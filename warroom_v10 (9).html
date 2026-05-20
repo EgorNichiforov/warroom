@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<!-- saved from url=(0056)https://egornichiforov.github.io/warroom/warroom_v6.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>War Room — Nichita</title>
+<link href="./War Room file 1_files/css2" rel="stylesheet">
+<style>
+:root{
+  /* Backgrounds — more distinct layers */
+  --bg:#080809;
+  --bg2:#10101a;
+  --bg3:#17171f;
+  --bg4:#202028;
+  /* Borders — visible but not harsh */
+  --border:#32323e;
+  --border2:#48485a;
+  /* Text — high contrast hierarchy */
+  --text:#f4f4f8;
+  --sub:#b8b8c8;
+  --muted:#8080a0;
+  --dim:#505068;
+  /* Accent palette */
+  --accent:#c8ff44;
+  --accent2:#44ffaa;
+  --red:#ff5060;
+  --amber:#ffbb22;
+  --blue:#60b8ff;
+  --purple:#a080ff;
+  /* Fonts */
+  --mono:'DM Mono',monospace;
+  --sans:'Syne',sans-serif;
+  --nav-w:210px
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;font-size:14px;line-height:1.6;overscroll-behavior:none}
+input,textarea,select{font-family:var(--mono);font-size:14px;color:var(--text);background:transparent;border:none;outline:none}
+input[type=number]::-webkit-inner-spin-button{opacity:0}
+input[type=time]{color-scheme:dark}
+p{color:var(--sub);font-size:13px;line-height:1.7}
+
+/* ── LAYOUT ── */
+.shell{display:grid;grid-template-columns:var(--nav-w) 1fr;min-height:100vh}
+.main{padding:24px;overflow-x:hidden;max-width:100%}
+
+/* ── SIDEBAR NAV ── */
+.nav{background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:50}
+.nav-logo{padding:18px 18px 16px;border-bottom:1px solid var(--border2);flex-shrink:0}
+.nav-logo .logo-t{font-family:var(--sans);font-size:16px;font-weight:900;letter-spacing:.06em;color:var(--accent)}
+.nav-logo .logo-d{font-size:11px;color:var(--muted);margin-top:3px;font-weight:500}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 18px;cursor:pointer;color:var(--sub);font-size:13px;transition:all .1s;border-left:3px solid transparent;user-select:none;font-weight:500}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(200,255,68,.07)}
+.nav-sec{padding:16px 18px 5px;font-size:10px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+
+/* ── MOBILE NAV ── */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--border2);z-index:100;padding:0;padding-bottom:env(safe-area-inset-bottom)}
+.mob-nav-inner{display:grid;grid-template-columns:repeat(5,1fr)}
+.mob-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;color:var(--muted);font-size:9px;gap:4px;border:none;background:none;font-family:var(--mono);transition:color .1s;font-weight:600}
+.mob-btn .mb-icon{font-size:20px;line-height:1}
+.mob-btn.active{color:var(--accent)}
+.mob-more{position:fixed;bottom:60px;left:0;right:0;background:var(--bg2);border-top:2px solid var(--border2);z-index:99;display:none;padding:10px}
+.mob-more.open{display:block}
+.mob-more-item{display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;color:var(--sub);font-size:14px;border-radius:10px;font-weight:500}
+.mob-more-item:hover,.mob-more-item:active{background:var(--bg3);color:var(--text)}
+.mob-more-item.active{color:var(--accent)}
+
+/* ── VIEWS ── */
+.view{display:none}.view.active{display:block}
+
+/* ── PAGE HEADER ── */
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:10px;flex-wrap:wrap}
+.page-hdr h1{font-family:var(--sans);font-size:24px;font-weight:900;letter-spacing:.02em;color:var(--text)}
+
+/* ── DATE NAV ── */
+.date-nav{display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:4px}
+.date-nav button{background:none;border:none;color:var(--sub);cursor:pointer;padding:5px 14px;border-radius:6px;font-family:var(--mono);font-size:16px;transition:all .1s;min-width:38px;min-height:38px;font-weight:700}
+.date-nav button:active{background:var(--bg4)}
+.date-nav .cur-d{font-size:12px;color:var(--text);padding:2px 10px;min-width:140px;text-align:center;font-weight:600}
+
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.card-t{font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;font-weight:700}
+.card-t .ct-r{font-size:12px;color:var(--sub);letter-spacing:0;text-transform:none;font-weight:500}
+
+/* ── METRICS ── */
+.metric{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px 16px}
+.metric .ml{font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.metric .mv{font-size:26px;font-weight:800;color:var(--text);font-family:var(--sans);line-height:1}
+.metric .mv input{font-family:var(--sans);font-size:26px;font-weight:800;width:100%;color:var(--text)}
+.metric .mv input::placeholder{color:var(--dim)}
+.metric .ms{font-size:11px;color:var(--muted);margin-top:5px;font-weight:500}
+.metric.ac{border-color:rgba(200,255,68,.4);background:rgba(200,255,68,.05)}
+.metric.ac .mv{color:var(--accent)}
+
+/* ── HONOR CARD ── */
+.honor-card{background:var(--bg2);border:2px solid var(--red);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.honor-card.kept{border-color:var(--accent2)}
+.honor-oath{font-size:12px;color:var(--sub);line-height:1.8;margin-bottom:14px;padding:12px 14px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--red)}
+.honor-card.kept .honor-oath{border-left-color:var(--accent2)}
+.honor-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 0}
+.honor-toggle label{font-size:14px;font-weight:600;color:var(--text)}
+.honor-streak{font-size:12px;color:var(--muted);margin-top:7px;font-weight:500}
+
+/* ── HABITS ── */
+.habit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.habit{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1px solid var(--border2);cursor:pointer;transition:all .12s;user-select:none;min-height:48px}
+.habit:active{opacity:.7}
+.habit.on{border-color:rgba(200,255,68,.5);background:rgba(200,255,68,.08)}
+.habit .hb{width:20px;height:20px;border:2px solid var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;transition:all .1s}
+.habit.on .hb{background:var(--accent);border-color:var(--accent);color:#080809}
+.habit .hl{font-size:13px;color:var(--sub);font-weight:500}
+.habit.on .hl{color:var(--text);font-weight:700}
+
+/* ── TOGGLES ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row label{font-size:13px;color:var(--sub);font-weight:500}
+.tpill{width:44px;height:24px;border-radius:12px;border:2px solid var(--border2);cursor:pointer;position:relative;transition:all .15s;background:var(--bg4);flex-shrink:0;min-width:44px}
+.tpill.on{background:rgba(200,255,68,.2);border-color:var(--accent)}
+.tpill::after{content:'';position:absolute;width:16px;height:16px;background:var(--dim);border-radius:50%;top:2px;left:2px;transition:all .15s}
+.tpill.on::after{background:var(--accent);left:22px}
+
+/* ── GOALS ── */
+.goal-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.goal-num{font-size:11px;color:var(--dim);width:16px;flex-shrink:0;text-align:center;font-weight:700}
+.goal-inp{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);font-weight:500}
+.goal-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,255,68,.1)}
+.goal-inp::placeholder{color:var(--dim)}
+.goal-ck{width:30px;height:30px;border:2px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:13px;transition:all .12s;color:transparent;background:var(--bg3)}
+.goal-ck.on{background:rgba(68,255,153,.15);border-color:var(--accent2);color:var(--accent2)}
+
+/* ── PROGRESS BARS ── */
+.bar-wrap{margin:6px 0}
+.bar-lbs{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:5px;font-weight:600}
+.bar-bg{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.bar-fill.green{background:var(--accent)}
+.bar-fill.blue{background:var(--blue)}
+.bar-fill.amber{background:var(--amber)}
+.bar-fill.red{background:var(--red)}
+.bar-fill.purple{background:var(--purple)}
+
+/* ── WEEK GRID ── */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.wday .wdn{font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px;font-weight:600}
+.wday .wdd{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--bg4);color:var(--sub);font-weight:600}
+.wday .wdd.today{outline:2px solid var(--blue);outline-offset:2px}
+.wday .wdd.hi{background:rgba(200,255,68,.2);color:var(--accent)}
+.wday .wdd.mid{background:rgba(255,187,34,.2);color:var(--amber)}
+.wday .wdd.lo{background:rgba(255,80,96,.2);color:var(--red)}
+
+/* ── NOTES / TEXTAREAS ── */
+.notes-ta{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--text);resize:vertical;min-height:80px;line-height:1.7;font-weight:500}
+.notes-ta:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,255,68,.08)}
+.notes-ta::placeholder{color:var(--dim)}
+
+/* ── SLEEP ── */
+.sleep-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.sleep-row label{font-size:12px;color:var(--muted);font-weight:600}
+.time-inp{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--text);width:110px;font-weight:600}
+.time-inp:focus{outline:none;border-color:var(--accent)}
+
+/* ── TRAINING TABS ── */
+.ttabs{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap}
+.ttab{padding:9px 16px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;font-size:12px;color:var(--sub);transition:all .12s;min-height:38px;font-weight:600;letter-spacing:.01em}
+.ttab:active{opacity:.7}
+.ttab.active{border-color:var(--accent);color:var(--accent);background:rgba(200,255,68,.12);box-shadow:0 0 12px rgba(200,255,68,.1)}
+
+/* ── EXERCISE BLOCKS ── */
+.ex-block{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:18px;margin-bottom:14px}
+.ex-name{font-size:15px;font-weight:700;color:var(--text)}
+.ex-spec{font-size:12px;color:var(--muted);margin-top:4px;margin-bottom:14px;font-weight:500}
+
+/* ── SET ROWS ── */
+.set-row{display:grid;grid-template-columns:28px 1fr 1fr 38px;gap:6px;align-items:center;margin-bottom:7px}
+.set-num{font-size:12px;color:var(--sub);text-align:center;font-weight:700}
+.set-inp{background:var(--bg4);border:1px solid var(--border2);border-radius:7px;padding:9px 4px;font-size:14px;color:var(--text);text-align:center;width:100%;min-height:40px;font-weight:600;transition:border-color .1s}
+.set-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,255,68,.12)}
+.set-inp::placeholder{color:var(--dim)}
+.set-col{font-size:10px;color:var(--muted);text-align:center;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.set-ck{width:36px;height:36px;border:2px solid var(--border2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--bg4);transition:all .15s;color:transparent;margin:auto}
+.set-ck.on{background:rgba(200,255,68,.18);border-color:var(--accent);color:var(--accent);box-shadow:0 0 10px rgba(200,255,68,.2)}
+
+/* ── PREVIOUS SESSION ── */
+.prev-session{background:rgba(96,184,255,.07);border:1px solid rgba(96,184,255,.25);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.prev-session-hdr{font-size:11px;color:var(--blue);margin-bottom:8px;letter-spacing:.07em;font-weight:700;text-transform:uppercase}
+.prev-set-row{display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;font-size:13px;color:var(--muted);margin-bottom:4px;padding:4px 0;border-bottom:1px solid rgba(96,184,255,.1)}
+.prev-set-row:last-child{border-bottom:none}
+.prev-set-row span{color:var(--text);font-weight:700}
+
+/* ── SAVE FLASH ── */
+.save-flash{position:fixed;top:14px;right:14px;background:var(--accent);color:#080809;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.save-flash.show{opacity:1}
+
+/* ── MEALS ── */
+.meal-block{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.meal-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;font-weight:700}
+.food-inp{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);margin-bottom:10px;font-weight:500}
+.food-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,255,68,.08)}
+.food-inp::placeholder{color:var(--dim)}
+.macro-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.macro-wrap label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-align:center;font-weight:700;letter-spacing:.06em}
+.macro-inp{width:100%;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;padding:9px 6px;font-size:13px;color:var(--text);text-align:center;min-height:40px;font-weight:600}
+.macro-inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,255,68,.08)}
+
+/* ── SUPPLEMENTS ── */
+.supps-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.supp-item{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;transition:all .1s;min-height:44px}
+.supp-item:active{opacity:.7}
+.supp-item.on{border-color:rgba(68,255,170,.4);background:rgba(68,255,170,.07)}
+.supp-item .sc{width:18px;height:18px;border:2px solid var(--border2);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .1s;color:transparent}
+.supp-item.on .sc{background:var(--accent2);border-color:var(--accent2);color:#080809}
+.supp-item .sl{font-size:13px;color:var(--sub);font-weight:500}
+.supp-item.on .sl{color:var(--text);font-weight:600}
+
+/* ── RULE LINES (PROTOCOLS) ── */
+.rule-line{padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);display:flex;align-items:center;gap:10px;line-height:1.5;font-weight:500}
+.rule-line:last-child{border-bottom:none}
+.ri{color:var(--accent);font-size:15px;flex-shrink:0}
+
+/* ── TAGS ── */
+.tag{display:inline-block;padding:4px 10px;border-radius:20px;background:var(--bg4);border:1px solid var(--border2);font-size:12px;color:var(--sub);margin:3px 3px 3px 0;font-weight:600}
+
+/* ── BUTTONS ── */
+.data-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 16px;font-family:var(--mono);font-size:13px;color:var(--sub);cursor:pointer;transition:all .1s;font-weight:600}
+.data-btn:hover{color:var(--text);border-color:var(--accent)}
+.btn-primary{background:rgba(200,255,68,.15);border:1px solid rgba(200,255,68,.4);border-radius:8px;padding:12px 18px;font-family:var(--mono);font-size:13px;color:var(--accent);cursor:pointer;font-weight:700;transition:all .1s}
+.btn-primary:hover{background:rgba(200,255,68,.22)}
+.btn-secondary{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-family:var(--mono);font-size:13px;color:var(--sub);cursor:pointer;font-weight:600}
+
+/* ── MODALS ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(6px);padding:20px;pointer-events:none;opacity:0;transition:opacity .15s}
+.modal-bg.open{pointer-events:all;opacity:1}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:24px;width:100%;max-width:520px;box-shadow:0 24px 80px rgba(0,0,0,.8)}
+
+/* ── WORKOUT HISTORY ── */
+.wk-hist-card{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:14px}
+.wk-hist-date{font-size:11px;color:var(--muted);letter-spacing:.1em;font-weight:700;margin-bottom:3px;text-transform:uppercase}
+.wk-hist-name{font-size:15px;font-weight:800;color:var(--accent);margin-bottom:14px;font-family:var(--sans)}
+.wk-hist-ex{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.wk-hist-ex:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.wk-hist-ex-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.wk-hist-sets{display:flex;flex-direction:column;gap:3px}
+.wk-hist-set{font-size:13px;color:var(--sub);font-weight:500}
+.wk-hist-set b{color:var(--text);font-weight:700}
+
+/* ── MOBILE ── */
+@media(max-width:700px){
+  .shell{grid-template-columns:1fr}
+  .nav{display:none}
+  .mob-nav{display:block}
+  .main{padding:16px;padding-bottom:80px}
+  .g2,.g3,.g4{grid-template-columns:1fr 1fr}
+  .g4{grid-template-columns:1fr 1fr}
+  .page-hdr h1{font-size:20px}
+}
+
+/* ── SITREP STYLES ── */
+.sitrep-section{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:18px;margin-bottom:14px}
+.sitrep-sec-hdr{font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sitrep-oath{font-size:13px;color:var(--sub);line-height:1.9;padding:14px 16px;background:var(--bg3);border-radius:10px;border-left:3px solid var(--red);margin-bottom:4px;font-weight:500}
+/* Big toggle for honor check */
+.big-toggle{padding:10px 20px;border-radius:10px;border:2px solid var(--red);background:rgba(255,80,96,.1);cursor:pointer;font-size:13px;font-weight:800;color:var(--red);font-family:var(--mono);letter-spacing:.08em;transition:all .15s;min-width:80px;text-align:center}
+.big-toggle.on{border-color:var(--accent2);background:rgba(68,255,170,.12);color:var(--accent2)}
+/* Protocol check items */
+.protocol-item{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
+.protocol-item:last-child{border-bottom:none;padding-bottom:0}
+.protocol-item-left{flex:1}
+.protocol-item-name{font-size:14px;font-weight:700;color:var(--text)}
+.protocol-item-desc{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
+.protocol-item-med{font-size:10px;color:var(--amber);margin-top:3px;font-weight:600}
+.pf-btn{padding:8px 16px;border-radius:8px;font-family:var(--mono);font-size:12px;font-weight:800;cursor:pointer;border:2px solid;transition:all .12s;letter-spacing:.04em;min-width:68px;text-align:center}
+.pf-pass{border-color:var(--accent2);background:rgba(68,255,170,.12);color:var(--accent2)}
+.pf-fail{border-color:var(--red);background:rgba(255,80,96,.1);color:var(--red)}
+.pf-none{border-color:var(--border2);background:var(--bg4);color:var(--muted)}
+/* Final status buttons */
+#fs-complete.active{border-color:var(--accent2)!important;background:rgba(68,255,170,.15)!important;color:var(--accent2)!important}
+#fs-repeat.active{border-color:var(--amber)!important;background:rgba(255,187,34,.12)!important;color:var(--amber)!important}
+#fs-reset.active{border-color:var(--red)!important;background:rgba(255,80,96,.12)!important;color:var(--red)!important}
+/* Threat pills */
+.threat-pill{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.06em}
+.threat-pill.red{background:rgba(255,80,96,.12);border:1px solid rgba(255,80,96,.3);color:var(--red)}
+/* Threat intel cards */
+.threat-card{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px;transition:all .1s}
+.threat-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.threat-desc{font-size:11px;color:var(--muted);line-height:1.5;font-style:italic}
+/* MED items */
+.med-item{padding:12px 0;border-bottom:1px solid var(--border)}
+.med-item:last-child{border-bottom:none}
+.med-label{font-size:12px;font-weight:700;color:var(--amber);margin-bottom:4px}
+.med-desc{font-size:12px;color:var(--sub);line-height:1.7}
+/* Mission items */
+.mission-item{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+.mission-item:last-child{border-bottom:none}
+.mission-ck{width:22px;height:22px;border:2px solid var(--border2);border-radius:5px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all .12s;margin-top:1px}
+.mission-ck.on{background:rgba(68,255,170,.15);border-color:var(--accent2);color:var(--accent2)}
+.mission-text{flex:1;font-size:13px;color:var(--sub);line-height:1.6;font-weight:500;cursor:pointer}
+.mission-text.done{text-decoration:line-through;color:var(--dim)}
+.mission-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;opacity:0;transition:opacity .1s}
+.mission-item:hover .mission-del{opacity:1}
+/* Debrief textareas */
+.debrief-ta{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--text);resize:vertical;min-height:68px;line-height:1.7;font-weight:500}
+.debrief-ta:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,255,68,.08)}
+.debrief-ta::placeholder{color:var(--dim)}
+/* Campaign day counter */
+#final-status-banner.complete{border-color:var(--accent2)!important;background:rgba(68,255,170,.04)!important}
+#final-status-banner.repeat{border-color:var(--amber)!important;background:rgba(255,187,34,.04)!important}
+#final-status-banner.reset{border-color:var(--red)!important;background:rgba(255,80,96,.04)!important}
+
+/* ── PM CHALLENGE DESIGN SYSTEM ── */
+
+/* Scanline texture overlay */
+.shell::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:1000}
+
+/* SITREP sections */
+.sitrep-section{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.sitrep-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.sitrep-sec-hdr{font-size:10px;color:var(--accent);letter-spacing:.18em;text-transform:uppercase;font-weight:800;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sitrep-oath{font-size:12px;color:var(--sub);line-height:1.8;padding:14px 16px;background:rgba(200,255,68,.04);border:1px solid rgba(200,255,68,.15);border-left:3px solid var(--accent);border-radius:8px;margin-bottom:14px}
+
+/* Big toggle for honor check */
+.big-toggle{padding:12px 28px;border-radius:10px;cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:.1em;border:2px solid var(--border2);background:rgba(255,80,96,.1);color:var(--red);transition:all .15s;user-select:none;min-width:100px;text-align:center}
+.big-toggle.pass{background:rgba(200,255,68,.12);border-color:var(--accent);color:var(--accent);box-shadow:0 0 20px rgba(200,255,68,.15)}
+
+/* Protocol check items */
+.proto-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:10px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all .12s;user-select:none;background:var(--bg3)}
+.proto-item:last-child{margin-bottom:0}
+.proto-item.pass{border-color:rgba(200,255,68,.4);background:rgba(200,255,68,.05)}
+.proto-item.fail{border-color:rgba(255,80,96,.3);background:rgba(255,80,96,.04)}
+.proto-item.med{border-color:rgba(255,187,34,.3);background:rgba(255,187,34,.04)}
+.proto-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+.proto-body{flex:1;min-width:0}
+.proto-name{font-size:13px;font-weight:700;color:var(--text)}
+.proto-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.proto-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.06em;flex-shrink:0}
+.proto-badge.pass{background:rgba(200,255,68,.15);color:var(--accent)}
+.proto-badge.fail{background:rgba(255,80,96,.12);color:var(--red)}
+.proto-badge.med{background:rgba(255,187,34,.12);color:var(--amber)}
+.proto-badge.off{background:var(--bg4);color:var(--dim)}
+
+/* Threat pills */
+.threat-pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.05em;display:inline-flex;align-items:center;gap:5px}
+.threat-pill.red{background:rgba(255,80,96,.1);border:1px solid rgba(255,80,96,.3);color:var(--red)}
+.threat-pill.amber{background:rgba(255,187,34,.1);border:1px solid rgba(255,187,34,.3);color:var(--amber)}
+
+/* MED items */
+.med-item{padding:12px 14px;border-radius:8px;border:1px solid rgba(255,187,34,.2);background:rgba(255,187,34,.04);margin-bottom:8px}
+.med-item:last-child{margin-bottom:0}
+.med-label{font-size:12px;font-weight:700;color:var(--amber);margin-bottom:4px}
+.med-desc{font-size:12px;color:var(--sub);line-height:1.6}
+
+/* Threat cards */
+.threat-card{padding:12px 14px;border-radius:10px;border:1px solid rgba(255,80,96,.2);background:rgba(255,80,96,.04)}
+.threat-name{font-size:12px;font-weight:800;color:var(--red);margin-bottom:4px;letter-spacing:.04em}
+.threat-desc{font-size:11px;color:var(--muted);line-height:1.5}
+
+/* Debrief textareas */
+.debrief-ta{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text);resize:none;min-height:70px;line-height:1.6;font-weight:500;transition:border-color .1s}
+.debrief-ta:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,255,68,.08)}
+.debrief-ta::placeholder{color:var(--dim)}
+
+/* Mission items */
+.mission-item{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border-radius:10px;border:1px solid var(--border2);background:var(--bg3);margin-bottom:8px;transition:all .1s}
+.mission-item.done{border-color:rgba(200,255,68,.3);background:rgba(200,255,68,.04)}
+.mission-item.done .mission-text{color:var(--dim);text-decoration:line-through}
+.mission-ck{width:22px;height:22px;border:2px solid var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:12px;color:transparent;transition:all .12s;margin-top:1px}
+.mission-ck.done{background:var(--accent);border-color:var(--accent);color:#080809}
+.mission-text{font-size:13px;color:var(--text);font-weight:500;flex:1;line-height:1.5}
+.mission-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0 4px;flex-shrink:0;transition:color .1s}
+.mission-del:hover{color:var(--red)}
+
+/* Day counter / status banner */
+.status-banner{border-radius:14px;padding:18px 20px;margin-bottom:16px;border:2px solid var(--border2);background:var(--bg2);position:relative;overflow:hidden}
+.status-banner::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+
+/* Campaign log calendar */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.cal-day{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;transition:all .1s;color:var(--dim);background:var(--bg3)}
+.cal-day:hover{background:var(--bg4);color:var(--sub)}
+.cal-day.today{outline:2px solid var(--blue);outline-offset:-2px;color:var(--blue)}
+.cal-day.complete{background:rgba(200,255,68,.2);color:var(--accent)}
+.cal-day.repeat{background:rgba(255,187,34,.18);color:var(--amber)}
+.cal-day.reset{background:rgba(255,80,96,.18);color:var(--red)}
+.cal-day.partial{background:rgba(96,184,255,.15);color:var(--blue)}
+.cal-day.empty{background:transparent;color:transparent;cursor:default;pointer-events:none}
+.cal-hdr{font-size:10px;color:var(--dim);text-align:center;font-weight:700;padding:3px 0;letter-spacing:.06em}
+
+/* Sync bar */
+.sync-bar{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.sync-dot.synced{background:var(--accent2)}
+.sync-dot.error{background:var(--red)}
+.sync-dot.syncing{background:var(--amber)}
+.sync-lbl{font-size:11px;color:var(--muted);flex:1;font-weight:500}
+.sync-btn{background:none;border:1px solid var(--border2);border-radius:5px;padding:4px 10px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;font-weight:600}
+.sync-btn:hover{color:var(--text);border-color:var(--border2)}
+
+/* Month goal inputs */
+.month-goal-inp{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);width:100%;font-weight:600}
+.month-goal-inp:focus{outline:none;border-color:var(--accent)}
+
+/* Analytics */
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-lbl{font-size:12px;color:var(--sub);font-weight:500}
+.stat-val{font-size:14px;font-weight:800;color:var(--text)}
+
+/* Bottom G threat section colors */
+.negotiator{border-color:rgba(255,187,34,.25);background:rgba(255,187,34,.04)}
+.negotiator .threat-name{color:var(--amber)}
+.assassin{border-color:rgba(160,128,255,.25);background:rgba(160,128,255,.04)}
+.assassin .threat-name{color:var(--purple)}
+.seducer{border-color:rgba(255,80,96,.25);background:rgba(255,80,96,.04)}
+.seducer .threat-name{color:var(--red)}
+.nihilist{border-color:rgba(96,184,255,.25);background:rgba(96,184,255,.04)}
+.nihilist .threat-name{color:var(--blue)}
+.arsonist{border-color:rgba(255,80,96,.4);background:rgba(255,80,96,.06)}
+.arsonist .threat-name{color:var(--red)}
+.tire-change{border-color:rgba(200,255,68,.3);background:rgba(200,255,68,.05)}
+.tire-change .threat-name{color:var(--accent)}
+.tire-change .threat-desc{color:var(--sub)}
+
+/* Nav logo campaign box */
+.campaign-box{margin-top:10px;padding:10px 12px;background:rgba(200,255,68,.06);border:1px solid rgba(200,255,68,.18);border-radius:10px}
+</style>
+<script src="chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/recordConsoleEvents.js"></script></head>
+<body>
+
+<div class="save-flash" id="save-flash">Saved ✓</div>
+
+<!-- SETUP MODAL -->
+<div class="modal-bg" id="setup-modal">
+  <div class="modal">
+    <h2>☁ Connect Cloud Sync</h2>
+    <p>Sync your data across phone + laptop. You need a JSONBin account (free).</p>
+
+    <label>Step 1 — JSONBin Master Key</label>
+    <p style="margin-bottom:4px">Go to <a href="https://jsonbin.io/" target="_blank" style="color:var(--blue)">jsonbin.io</a> → profile icon → API Keys → copy the Master Key at the top.</p>
+    <input type="text" id="api-key-inp" placeholder="$2b$10$..." autocomplete="off" spellcheck="false">
+
+    <label>Step 2 — Bin ID (only needed on 2nd device)</label>
+    <p style="margin-bottom:4px">First device: leave this empty — it will create a new bin and show you the ID.<br>Second device: paste the Bin ID from your first device.</p>
+    <input type="text" id="bin-id-inp" placeholder="Leave empty if this is your first device..." autocomplete="off" spellcheck="false">
+
+    <div class="modal-err" id="modal-err"></div>
+    <div class="modal-ok" id="modal-ok"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="connectSync()">Connect &amp; Sync</button>
+      <button class="btn-secondary" onclick="skipSync()">Use offline</button>
+    </div>
+  </div>
+</div>
+
+<!-- DAY DETAIL MODAL -->
+<div class="modal-bg" id="day-modal" onclick="if(event.target===this)closeDayModal()">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div id="day-modal-title" style="font-family:var(--sans);font-size:16px;font-weight:800"></div>
+      <button onclick="closeDayModal()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div id="day-modal-body"></div>
+  </div>
+</div>
+
+<!-- MOBILE MORE MENU -->
+<div class="mob-more" id="mob-more">
+  <div style="padding:10px 16px 6px;font-size:10px;color:var(--dim);letter-spacing:.12em;font-weight:700;text-transform:uppercase">Review</div>
+  <div class="mob-more-item" onclick="showView('history');closeMobMore()" data-view="history">📅 Campaign Log</div>
+  <div class="mob-more-item" onclick="showView('workouthist');closeMobMore()" data-view="workouthist">📈 Workout History</div>
+  <div class="mob-more-item" onclick="showView('analytics');closeMobMore()" data-view="analytics">◬ Analytics</div>
+  <div style="padding:10px 16px 6px;font-size:10px;color:var(--dim);letter-spacing:.12em;font-weight:700;text-transform:uppercase">Command</div>
+  <div class="mob-more-item" onclick="showView('goals');closeMobMore()" data-view="goals">🎖 90-Day Objectives</div>
+  <div class="mob-more-item" onclick="showView('protocols');closeMobMore()" data-view="protocols">📜 Rules of Engagement</div>
+  <div class="mob-more-item" onclick="showView('schedule');closeMobMore()" data-view="schedule">🗓 Schedule</div>
+  <div class="mob-more-item" onclick="showView('datasync');closeMobMore()" data-view="datasync">⇅ Sync & Export</div>
+</div>
+
+<!-- ADD EXERCISE NAME MODAL -->
+<div class="modal-bg" id="add-ex-modal" onclick="if(event.target===this)document.getElementById('add-ex-modal').classList.remove('open')">
+  <div class="modal" style="max-width:360px">
+    <div style="font-family:var(--sans);font-size:15px;font-weight:800;color:var(--accent);margin-bottom:12px">➕ Add Exercise</div>
+    <input id="add-ex-input" type="text" placeholder="Exercise name…"
+      style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;box-sizing:border-box;margin-bottom:12px"
+      onkeydown="if(event.key==='Enter')submitAddExercise()">
+    <div style="display:flex;gap:8px">
+      <button onclick="submitAddExercise()" style="flex:1;padding:12px;background:rgba(200,255,68,.15);border:1px solid rgba(200,255,68,.4);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer">Continue →</button>
+      <button onclick="document.getElementById('add-ex-modal').classList.remove('open')" style="padding:12px 16px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:13px;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCOPE MODAL — "just today" vs "every [weekday] from now on" -->
+<div class="modal-bg" id="scope-modal" onclick="if(event.target===this)closeScopeModal()">
+  <div class="modal" style="max-width:380px">
+    <div style="font-family:var(--sans);font-size:15px;font-weight:800;color:var(--accent);margin-bottom:6px" id="scope-modal-title">Apply this change to…</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px" id="scope-modal-desc"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="confirmScope('today')" style="text-align:left;padding:14px 16px;background:rgba(200,255,68,.08);border:1px solid rgba(200,255,68,.3);border-radius:10px;cursor:pointer;font-family:var(--mono)">
+        <div style="font-size:13px;font-weight:500;color:var(--accent)">📅 Just today</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Only this session — future weeks unchanged</div>
+      </button>
+      <button onclick="confirmScope('permanent')" style="text-align:left;padding:14px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-family:var(--mono)">
+        <div style="font-size:13px;font-weight:500;color:var(--text)" id="scope-permanent-label">Every Monday from now on</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Updates your permanent template for this weekday</div>
+      </button>
+    </div>
+    <button onclick="closeScopeModal()" style="width:100%;margin-top:10px;padding:10px;background:none;border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer">Cancel</button>
+  </div>
+</div>
+
+<div class="shell">
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-t">⚔ WAR ROOM</div>
+    <div class="logo-d" id="nav-date">Tue, 19 May 2026</div>
+    <div class="campaign-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div>
+          <div style="font-size:9px;color:var(--muted);letter-spacing:.12em;font-weight:700;text-transform:uppercase;margin-bottom:2px">Sovereign's Crucible</div>
+          <div style="font-size:26px;font-weight:900;color:var(--accent);font-family:var(--sans);line-height:1" id="nav-day-count">Day —</div>
+        </div>
+        <div style="text-align:right">
+          <div id="nav-status-badge" style="font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;background:var(--bg4);color:var(--muted);letter-spacing:.06em">—</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:4px" id="nav-honor-streak">honor: — days</div>
+        </div>
+      </div>
+      <div style="height:4px;background:var(--bg4);border-radius:2px;overflow:hidden">
+        <div id="nav-campaign-bar" style="height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .4s ease"></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right" id="nav-campaign-pct">0 / 30 days</div>
+    </div>
+  </div>
+
+  <div class="nav-sec">⚔ Execute</div>
+  <div class="nav-item active" onclick="showView('sitrep')" data-view="sitrep">
+    <span style="font-size:16px">📋</span> Daily SITREP
+  </div>
+  <div class="nav-item" onclick="showView('missions')" data-view="missions">
+    <span style="font-size:16px">🎯</span> Daily Missions
+  </div>
+  <div class="nav-item" onclick="showView('training')" data-view="training">
+    <span style="font-size:16px">💪</span> Physical Forging
+  </div>
+  <div class="nav-item" onclick="showView('food')" data-view="food">
+    <span style="font-size:16px">⚡</span> Fuel & Supps
+  </div>
+
+  <div class="nav-sec">📊 Review</div>
+  <div class="nav-item" onclick="showView('history')" data-view="history">
+    <span style="font-size:16px">📅</span> Campaign Log
+  </div>
+  <div class="nav-item" onclick="showView('workouthist')" data-view="workouthist">
+    <span style="font-size:16px">📈</span> Workout History
+  </div>
+  <div class="nav-item" onclick="showView('analytics')" data-view="analytics">
+    <span style="font-size:16px">◬</span> Analytics
+  </div>
+
+  <div class="nav-sec">🏛 Command</div>
+  <div class="nav-item" onclick="showView('goals')" data-view="goals">
+    <span style="font-size:16px">🎖</span> 90-Day Objectives
+  </div>
+  <div class="nav-item" onclick="showView('protocols')" data-view="protocols">
+    <span style="font-size:16px">📜</span> Rules of Engagement
+  </div>
+  <div class="nav-item" onclick="showView('schedule')" data-view="schedule">
+    <span style="font-size:16px">🗓</span> Schedule
+  </div>
+  <div class="nav-item" onclick="showView('datasync')" data-view="datasync">
+    <span style="font-size:16px">⇅</span> Sync & Export
+  </div>
+
+  <div class="sync-bar">
+    <div class="sync-dot synced" id="sync-dot"></div>
+    <span class="sync-lbl" id="sync-lbl">synced</span>
+    <button class="sync-btn" onclick="manualSync()" id="sync-now-btn">sync</button>
+  </div>
+</nav>
+
+
+<main class="main">
+
+<!-- ═══ SITREP ═══ -->
+<div class="view active" id="view-sitrep">
+  <div class="page-hdr">
+    <div>
+      <h1>Daily SITREP</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px" id="sitrep-day-lbl">Campaign Day — · FINAL STATUS: —</div>
+    </div>
+    <div class="date-nav">
+      <button onclick="shiftDay(-1)">‹</button>
+      <div class="cur-d" id="daily-date">Tue, 19 May 2026</div>
+      <button onclick="shiftDay(1)">›</button>
+    </div>
+  </div>
+
+  <!-- FINAL STATUS BANNER -->
+  <div class="status-banner" id="final-status-banner" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.14em;font-weight:700;text-transform:uppercase;margin-bottom:10px">⚑ Declare Final Status</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="setFinalStatus('COMPLETE')" id="fs-complete" style="padding:10px 18px;border-radius:10px;font-family:var(--mono);font-size:13px;font-weight:800;cursor:pointer;border:2px solid var(--border2);background:var(--bg4);color:var(--muted);transition:all .12s;letter-spacing:.06em">✓ COMPLETE</button>
+        <button onclick="setFinalStatus('REPEAT')" id="fs-repeat" style="padding:10px 18px;border-radius:10px;font-family:var(--mono);font-size:13px;font-weight:800;cursor:pointer;border:2px solid var(--border2);background:var(--bg4);color:var(--muted);transition:all .12s;letter-spacing:.06em">↺ REPEAT</button>
+        <button onclick="setFinalStatus('RESET')" id="fs-reset" style="padding:10px 18px;border-radius:10px;font-family:var(--mono);font-size:13px;font-weight:800;cursor:pointer;border:2px solid var(--border2);background:var(--bg4);color:var(--muted);transition:all .12s;letter-spacing:.06em">✕ RESET</button>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:42px;font-weight:900;color:var(--accent);font-family:var(--sans);line-height:1;text-shadow:0 0 30px rgba(200,255,68,.3)" id="day-counter-big">Day —</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600" id="day-counter-streak">streak: — days</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: HONOR CHECK -->
+  <div class="sitrep-section" id="honor-card">
+    <div class="sitrep-sec-hdr">
+      <span>SECTION I — OATH OF ALLEGIANCE</span>
+      <span style="font-size:10px;color:var(--muted);font-weight:500">Nuclear Reset Check</span>
+    </div>
+    <div class="sitrep-oath" id="honor-oath-text">I have upheld my Oath against all Acts of Treason.<br>I have not engaged in PMO or Masturbation.<br>I have not committed Willful Abdication (failed 3+ protocols).<br><span style="color:var(--accent);font-weight:700">My word is my bond. My discipline is my identity.</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 4px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">Oath upheld today</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="honor-streak-detail">— day streak</div>
+      </div>
+      <div class="big-toggle" id="tp-honor" onclick="toggleHabit('honor')">
+        <span id="honor-toggle-label">FAIL</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <div class="threat-pill red">☠ PMO = NUCLEAR RESET</div>
+      <div class="threat-pill red">☠ 3+ Fails = NUCLEAR RESET</div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: PROTOCOLS -->
+  <div class="sitrep-section">
+    <div class="sitrep-sec-hdr">
+      <span>SECTION II — DAILY STANDARD OF EXCELLENCE</span>
+      <span style="font-size:10px;font-weight:700" id="protocols-score-lbl">0/5 PASS</span>
+    </div>
+    <div id="protocol-checks"></div>
+  </div>
+
+  <!-- SECTION 3: COMMANDER'S DEBRIEF -->
+  <div class="sitrep-section">
+    <div class="sitrep-sec-hdr">
+      <span>SECTION III — COMMANDER'S DEBRIEF</span>
+    </div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.08em;margin-bottom:6px;text-transform:uppercase">◈ Top G Insight</div>
+      <textarea class="debrief-ta" id="topg-insight" placeholder="What tactic or action produced the best result today? Be specific." oninput="saveDay()"></textarea>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--red);font-weight:700;letter-spacing:.08em;margin-bottom:6px;text-transform:uppercase">◈ Bottom G Tactic</div>
+      <textarea class="debrief-ta" id="bottomg-tactic" placeholder="Which Bottom G pattern tried to subdue you today? Name it." oninput="saveDay()"></textarea>
+    </div>
+  </div>
+
+  <!-- METRICS ROW -->
+  <div class="g4" style="margin-top:4px">
+    <div class="metric ac"><div class="ml">Score</div><div class="mv" id="score-disp">0/5</div><div class="ms">protocols done</div></div>
+    <div class="metric"><div class="ml">Weight (kg)</div><div class="mv"><input type="number" id="weight-inp" placeholder="—" step="0.1" oninput="saveDay()"></div><div class="ms">target: 85kg</div></div>
+    <div class="metric"><div class="ml">Made ($)</div><div class="mv"><input type="number" id="made-inp" placeholder="0" step="1" oninput="saveDay()"></div><div class="ms">month: <span id="month-made">$0</span></div></div>
+    <div class="metric"><div class="ml">Spent ($)</div><div class="mv"><input type="number" id="spent-inp" placeholder="0" step="1" oninput="saveDay()"></div><div class="ms">target: $350/day</div></div>
+  </div>
+
+  <!-- PROGRESS BARS -->
+  <div class="card">
+    <div class="card-t">Weight progress — goal 85kg <span class="ct-r" id="weight-pct-lbl">—</span></div>
+    <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill purple" id="weight-bar" style="width:0%"></div></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:5px"><span id="weight-start-lbl">start: —</span><span id="weight-gain-lbl">—</span></div>
+  </div>
+  <div class="card">
+    <div class="card-t" id="month-goal-lbl">May 2026 — $10,000 goal</div>
+    <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill blue" id="month-bar" style="width:0%"></div></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:5px"><span id="month-total-lbl">$0 made</span><span id="days-needed">—</span></div>
+  </div>
+
+  <!-- SLEEP + NOTES -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-t">Sleep</div>
+      <div class="sleep-row"><label>Bed</label><input class="time-inp" type="time" id="bed-inp" oninput="saveDay()"></div>
+      <div class="sleep-row"><label>Wake</label><input class="time-inp" type="time" id="wake-inp" oninput="saveDay()"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="sleep-dur">—</div>
+    </div>
+    <div class="card">
+      <div class="card-t">War Notes</div>
+      <textarea class="notes-ta" id="daily-notes" placeholder="Wins, losses, battlefield notes..." style="min-height:90px" oninput="saveDay()"></textarea>
+    </div>
+  </div>
+
+  <!-- THIS WEEK -->
+  <div class="card"><div class="card-t">This week <span class="ct-r" id="week-avg-pct">—</span></div><div class="week-grid" id="week-strip"></div></div>
+</div>
+
+<!-- ═══ MISSIONS ═══ -->
+<div class="view" id="view-missions">
+  <div class="page-hdr">
+    <div>
+      <h1>🎯 Daily Missions</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px" id="missions-date-lbl">Tue, 19 May 2026</div>
+    </div>
+    <div class="date-nav">
+      <button onclick="shiftDay(-1)">‹</button>
+      <div class="cur-d" id="missions-date">Tue, 19 May 2026</div>
+      <button onclick="shiftDay(1)">›</button>
+    </div>
+  </div>
+
+  <!-- DOCTRINE BANNER -->
+  <div style="padding:14px 18px;background:rgba(200,255,68,.04);border:1px solid rgba(200,255,68,.15);border-left:3px solid var(--accent);border-radius:10px;margin-bottom:16px">
+    <div style="font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Commander's Doctrine</div>
+    <div style="font-size:12px;color:var(--sub);line-height:1.7">"You don't rise to the level of your goals. You fall to the level of your systems." — Define your 3 most important missions. Execute them before everything else.</div>
+  </div>
+
+  <!-- ADD MISSION -->
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <input id="mission-inp" class="goal-inp" placeholder="Enter mission objective..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addMission()">
+    <button class="btn-primary" onclick="addMission()" style="white-space:nowrap;padding:11px 20px;font-size:14px">⊕ Add</button>
+  </div>
+
+  <!-- ACTIVE MISSIONS -->
+  <div class="sitrep-section" style="margin-bottom:14px">
+    <div class="sitrep-sec-hdr">
+      <span>Active Missions</span>
+      <span id="missions-score" style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;background:var(--bg4)">0/0</span>
+    </div>
+    <div id="missions-list"></div>
+    <div id="missions-empty" style="font-size:13px;color:var(--dim);padding:20px 0;text-align:center;display:none">No missions logged. Add one above.<br><span style="font-size:11px;color:var(--dim);margin-top:4px;display:block">Top G identifies his 3 key objectives for the day.</span></div>
+  </div>
+
+  <!-- MED REFERENCE -->
+  <div class="sitrep-section">
+    <div class="sitrep-sec-hdr"><span>⚡ MED — Minimum Effective Dose</span></div>
+    <div class="med-item">
+      <div class="med-label">Physical Forging</div>
+      <div class="med-desc">Option A: 100 push-ups + 200 bodyweight squats (can be broken up)<br>Option B: 20-min non-stop run or brisk walk</div>
+    </div>
+    <div class="med-item">
+      <div class="med-label">Morning Protocol</div>
+      <div class="med-desc">Command Post → 1 glass of water → read Top G Code aloud → 20 push-ups. 5 minutes.</div>
+    </div>
+    <div class="med-item">
+      <div class="med-label">Deep Work</div>
+      <div class="med-desc">One 25-minute uninterrupted Pomodoro sprint. All Fortress Protocol rules apply.</div>
+    </div>
+    <div class="med-item">
+      <div class="med-label">Evening Power-Down</div>
+      <div class="med-desc">Digital Sunset is non-negotiable. 15 minutes minimum with a physical book before sleep.</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM G ARSENAL QUICK REF -->
+  <div class="sitrep-section">
+    <div class="sitrep-sec-hdr"><span>🎯 Threat Intel — Bottom G Tactics</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="threat-card"><div class="threat-name">The Negotiator</div><div class="threat-desc">"Start tomorrow. Conditions will be better."</div></div>
+      <div class="threat-card"><div class="threat-name">The Assassin</div><div class="threat-desc">"Who do you think you are? You always quit."</div></div>
+      <div class="threat-card"><div class="threat-name">The Seducer</div><div class="threat-desc">"This will make the pain go away."</div></div>
+      <div class="threat-card"><div class="threat-name">The Nihilist</div><div class="threat-desc">"None of this matters anyway."</div></div>
+      <div class="threat-card"><div class="threat-name">The Arsonist</div><div class="threat-desc">"Day is ruined. Might as well destroy everything."</div></div>
+      <div class="threat-card" style="background:rgba(200,255,68,.05);border-color:rgba(200,255,68,.2)"><div class="threat-name" style="color:var(--accent)">The Tire Change</div><div class="threat-desc" style="color:var(--sub)">Slip → Acknowledge → Contain → Resume next correct action.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TRAINING ═══ -->
+<div class="view" id="view-training">
+  <div class="page-hdr">
+    <div>
+      <h1>💪 Physical Forging</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">Build the body. Execute the protocol.</div>
+    </div>
+    <div class="date-nav">
+      <button onclick="shiftDay(-1)">‹</button>
+      <div class="cur-d" id="train-date">Mon, 18 May 2026</div>
+      <button onclick="shiftDay(1)">›</button>
+    </div>
+  </div>
+  <div class="ttabs" id="train-tabs"><div class="ttab active">Monday</div><div class="ttab">Tuesday</div><div class="ttab">Wednesday</div><div class="ttab">Thursday</div><div class="ttab">Friday</div><div class="ttab">Saturday</div><div class="ttab">Sunday</div></div>
+  <div class="g2" style="margin-bottom:10px">
+    <div class="metric"><div class="ml">Session</div><div class="mv" id="train-name" style="font-size:13px;line-height:1.3">Monday — Push Day</div></div>
+    <div class="metric"><div class="ml">Sets done</div><div class="mv"><span id="sets-done">20</span><span style="font-size:14px;color:var(--muted)">/<span id="sets-total">20</span></span></div></div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-t">Session rules</div>
+    <div><span class="tag">Tempo 4-1-2</span><span class="tag">Main: 4×6–10</span><span class="tag">Secondary: 3×8–12</span><span class="tag">Core: 3×12–20</span><span class="tag">90–120s rest</span><span class="tag">+2.5–5kg at top range</span></div>
+  </div>
+  <div id="exercises-wrap"><div class="ex-block">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px">
+        <input class="ex-name" style="flex:1;background:transparent;border:none;border-bottom:1px dashed var(--border2);padding-bottom:2px;outline:none;color:var(--text);font-size:13px;font-weight:500" value="Barbell Bench Press" onblur="if(this.value.trim())editExName(0,this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" fdprocessedid="r3fe4l">
+        <button onclick="deleteExercise(0)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0" title="Remove exercise" fdprocessedid="0vhahib">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="ex-spec" style="flex:1;margin:0">5×6–8 · main · Tight shoulder blades.</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="setExSets(0,-1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="zc2s5r">−</button>
+          <span style="font-size:11px;color:var(--muted);min-width:42px;text-align:center">5 sets</span>
+          <button onclick="setExSets(0,1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="ga5a76">+</button>
+        </div>
+      </div>
+      <div class="prev-session">
+        <div class="prev-session-hdr">◀ Last session: 2026-05-11</div>
+        <div style="display:grid;grid-template-columns:22px 1fr 1fr;gap:5px;margin-bottom:4px">
+          <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">reps</div>
+        </div>
+        <div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>1</div><div><span>60</span></div><div><span>6</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>2</div><div><span>55</span></div><div><span>6</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>3</div><div><span>50</span></div><div><span>7</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>4</div><div><span>50</span></div><div><span>7</span></div></div>
+      </div><div class="set-row" style="margin-bottom:6px;grid-template-columns:22px 1fr 1fr 36px">
+      <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">Reps</div><div class="set-col">✓</div>
+    </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">1</div>
+        <input class="set-inp" type="number" placeholder="kg" value="60" step="0.5" min="0" oninput="logSet(0,0,&#39;w&#39;,this.value)" fdprocessedid="vw5da">
+        <input class="set-inp" type="number" placeholder="reps" value="4" min="0" max="50" oninput="logSet(0,0,&#39;r&#39;,this.value)" fdprocessedid="qtum1e">
+        <div class="set-ck on" id="sck-0-0" onclick="toggleSet(0,0)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">2</div>
+        <input class="set-inp" type="number" placeholder="kg" value="60" step="0.5" min="0" oninput="logSet(0,1,&#39;w&#39;,this.value)" fdprocessedid="4wahq">
+        <input class="set-inp" type="number" placeholder="reps" value="3" min="0" max="50" oninput="logSet(0,1,&#39;r&#39;,this.value)" fdprocessedid="59acrb">
+        <div class="set-ck on" id="sck-0-1" onclick="toggleSet(0,1)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">3</div>
+        <input class="set-inp" type="number" placeholder="kg" value="50" step="0.5" min="0" oninput="logSet(0,2,&#39;w&#39;,this.value)" fdprocessedid="59s5u">
+        <input class="set-inp" type="number" placeholder="reps" value="8" min="0" max="50" oninput="logSet(0,2,&#39;r&#39;,this.value)" fdprocessedid="pyc3l">
+        <div class="set-ck on" id="sck-0-2" onclick="toggleSet(0,2)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">4</div>
+        <input class="set-inp" type="number" placeholder="kg" value="50" step="0.5" min="0" oninput="logSet(0,3,&#39;w&#39;,this.value)" fdprocessedid="554uf">
+        <input class="set-inp" type="number" placeholder="reps" value="7" min="0" max="50" oninput="logSet(0,3,&#39;r&#39;,this.value)" fdprocessedid="mepv1q">
+        <div class="set-ck on" id="sck-0-3" onclick="toggleSet(0,3)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">5</div>
+        <input class="set-inp" type="number" placeholder="kg" value="50" step="0.5" min="0" oninput="logSet(0,4,&#39;w&#39;,this.value)" fdprocessedid="4px5e">
+        <input class="set-inp" type="number" placeholder="reps" value="6" min="0" max="50" oninput="logSet(0,4,&#39;r&#39;,this.value)" fdprocessedid="lkzk5i">
+        <div class="set-ck on" id="sck-0-4" onclick="toggleSet(0,4)">✓</div>
+      </div></div><div class="ex-block">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px">
+        <input class="ex-name" style="flex:1;background:transparent;border:none;border-bottom:1px dashed var(--border2);padding-bottom:2px;outline:none;color:var(--text);font-size:13px;font-weight:500" value="Incline Dumbbell Press" onblur="if(this.value.trim())editExName(1,this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" fdprocessedid="tuh7gg">
+        <button onclick="deleteExercise(1)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0" title="Remove exercise" fdprocessedid="g04u1u">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="ex-spec" style="flex:1;margin:0">4×8–10 · main</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="setExSets(1,-1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="frghll">−</button>
+          <span style="font-size:11px;color:var(--muted);min-width:42px;text-align:center">4 sets</span>
+          <button onclick="setExSets(1,1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="fz0orn">+</button>
+        </div>
+      </div>
+      <div class="prev-session">
+        <div class="prev-session-hdr">◀ Last session: 2026-05-11</div>
+        <div style="display:grid;grid-template-columns:22px 1fr 1fr;gap:5px;margin-bottom:4px">
+          <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">reps</div>
+        </div>
+        <div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>1</div><div><span>17.5</span></div><div><span>8</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>2</div><div><span>17.5</span></div><div><span>7</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>3</div><div><span>17.5</span></div><div><span>6</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>4</div><div><span>15</span></div><div><span>7</span></div></div>
+      </div><div class="set-row" style="margin-bottom:6px;grid-template-columns:22px 1fr 1fr 36px">
+      <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">Reps</div><div class="set-col">✓</div>
+    </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">1</div>
+        <input class="set-inp" type="number" placeholder="kg" value="17.5" step="0.5" min="0" oninput="logSet(1,0,&#39;w&#39;,this.value)" fdprocessedid="uluhg">
+        <input class="set-inp" type="number" placeholder="reps" value="10" min="0" max="50" oninput="logSet(1,0,&#39;r&#39;,this.value)" fdprocessedid="cvg8d9">
+        <div class="set-ck on" id="sck-1-0" onclick="toggleSet(1,0)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">2</div>
+        <input class="set-inp" type="number" placeholder="kg" value="17.5" step="0.5" min="0" oninput="logSet(1,1,&#39;w&#39;,this.value)" fdprocessedid="w5m8f">
+        <input class="set-inp" type="number" placeholder="reps" value="10" min="0" max="50" oninput="logSet(1,1,&#39;r&#39;,this.value)" fdprocessedid="aom8rf">
+        <div class="set-ck on" id="sck-1-1" onclick="toggleSet(1,1)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">3</div>
+        <input class="set-inp" type="number" placeholder="kg" value="20" step="0.5" min="0" oninput="logSet(1,2,&#39;w&#39;,this.value)" fdprocessedid="94dpji">
+        <input class="set-inp" type="number" placeholder="reps" value="6" min="0" max="50" oninput="logSet(1,2,&#39;r&#39;,this.value)" fdprocessedid="s7ljl">
+        <div class="set-ck on" id="sck-1-2" onclick="toggleSet(1,2)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">4</div>
+        <input class="set-inp" type="number" placeholder="kg" value="20" step="0.5" min="0" oninput="logSet(1,3,&#39;w&#39;,this.value)" fdprocessedid="6pnuuv">
+        <input class="set-inp" type="number" placeholder="reps" value="5" min="0" max="50" oninput="logSet(1,3,&#39;r&#39;,this.value)" fdprocessedid="mofp6">
+        <div class="set-ck on" id="sck-1-3" onclick="toggleSet(1,3)">✓</div>
+      </div></div><div class="ex-block">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px">
+        <input class="ex-name" style="flex:1;background:transparent;border:none;border-bottom:1px dashed var(--border2);padding-bottom:2px;outline:none;color:var(--text);font-size:13px;font-weight:500" value="Seated Overhead Press" onblur="if(this.value.trim())editExName(2,this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" fdprocessedid="j8rpzc">
+        <button onclick="deleteExercise(2)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0" title="Remove exercise" fdprocessedid="zbywzxq">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="ex-spec" style="flex:1;margin:0">3×8–10 · main · Clean. No grinding.</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="setExSets(2,-1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="htiq2">−</button>
+          <span style="font-size:11px;color:var(--muted);min-width:42px;text-align:center">3 sets</span>
+          <button onclick="setExSets(2,1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="mkjo2h">+</button>
+        </div>
+      </div>
+      <div class="prev-session">
+        <div class="prev-session-hdr">◀ Last session: 2026-05-11</div>
+        <div style="display:grid;grid-template-columns:22px 1fr 1fr;gap:5px;margin-bottom:4px">
+          <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">reps</div>
+        </div>
+        <div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>1</div><div><span>27.5</span></div><div><span>6</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>2</div><div><span>15</span></div><div><span>6</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>3</div><div><span>15</span></div><div><span>4</span></div></div>
+      </div><div class="set-row" style="margin-bottom:6px;grid-template-columns:22px 1fr 1fr 36px">
+      <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">Reps</div><div class="set-col">✓</div>
+    </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">1</div>
+        <input class="set-inp" type="number" placeholder="kg" value="17.5" step="0.5" min="0" oninput="logSet(2,0,&#39;w&#39;,this.value)" fdprocessedid="3a9vla">
+        <input class="set-inp" type="number" placeholder="reps" value="10" min="0" max="50" oninput="logSet(2,0,&#39;r&#39;,this.value)" fdprocessedid="7bftq4">
+        <div class="set-ck on" id="sck-2-0" onclick="toggleSet(2,0)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">2</div>
+        <input class="set-inp" type="number" placeholder="kg" value="17.5" step="0.5" min="0" oninput="logSet(2,1,&#39;w&#39;,this.value)" fdprocessedid="3ldxu8">
+        <input class="set-inp" type="number" placeholder="reps" value="8" min="0" max="50" oninput="logSet(2,1,&#39;r&#39;,this.value)" fdprocessedid="one78f">
+        <div class="set-ck on" id="sck-2-1" onclick="toggleSet(2,1)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">3</div>
+        <input class="set-inp" type="number" placeholder="kg" value="17.5" step="0.5" min="0" oninput="logSet(2,2,&#39;w&#39;,this.value)" fdprocessedid="0sjok">
+        <input class="set-inp" type="number" placeholder="reps" value="7" min="0" max="50" oninput="logSet(2,2,&#39;r&#39;,this.value)" fdprocessedid="mi3nj4">
+        <div class="set-ck on" id="sck-2-2" onclick="toggleSet(2,2)">✓</div>
+      </div></div><div class="ex-block">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px">
+        <input class="ex-name" style="flex:1;background:transparent;border:none;border-bottom:1px dashed var(--border2);padding-bottom:2px;outline:none;color:var(--text);font-size:13px;font-weight:500" value="Weighted Dips OR Machine Chest Press" onblur="if(this.value.trim())editExName(3,this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" fdprocessedid="5pkr4h">
+        <button onclick="deleteExercise(3)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0" title="Remove exercise" fdprocessedid="xg9gh">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="ex-spec" style="flex:1;margin:0">3×10–12 · secondary</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="setExSets(3,-1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="54w43j">−</button>
+          <span style="font-size:11px;color:var(--muted);min-width:42px;text-align:center">3 sets</span>
+          <button onclick="setExSets(3,1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="7jdyr6">+</button>
+        </div>
+      </div>
+      <div class="prev-session">
+        <div class="prev-session-hdr">◀ Last session: 2026-05-11</div>
+        <div style="display:grid;grid-template-columns:22px 1fr 1fr;gap:5px;margin-bottom:4px">
+          <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">reps</div>
+        </div>
+        <div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>1</div><div><span>40</span></div><div><span>8</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>2</div><div><span>40</span></div><div><span>9</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>3</div><div><span>40</span></div><div><span>7</span></div></div>
+      </div><div class="set-row" style="margin-bottom:6px;grid-template-columns:22px 1fr 1fr 36px">
+      <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">Reps</div><div class="set-col">✓</div>
+    </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">1</div>
+        <input class="set-inp" type="number" placeholder="kg" value="50" step="0.5" min="0" oninput="logSet(3,0,&#39;w&#39;,this.value)" fdprocessedid="6s0ner">
+        <input class="set-inp" type="number" placeholder="reps" value="6" min="0" max="50" oninput="logSet(3,0,&#39;r&#39;,this.value)" fdprocessedid="89wocs">
+        <div class="set-ck on" id="sck-3-0" onclick="toggleSet(3,0)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">2</div>
+        <input class="set-inp" type="number" placeholder="kg" value="50" step="0.5" min="0" oninput="logSet(3,1,&#39;w&#39;,this.value)" fdprocessedid="m55ves">
+        <input class="set-inp" type="number" placeholder="reps" value="8" min="0" max="50" oninput="logSet(3,1,&#39;r&#39;,this.value)" fdprocessedid="hwqtr">
+        <div class="set-ck on" id="sck-3-1" onclick="toggleSet(3,1)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">3</div>
+        <input class="set-inp" type="number" placeholder="kg" value="50" step="0.5" min="0" oninput="logSet(3,2,&#39;w&#39;,this.value)" fdprocessedid="b65yt5">
+        <input class="set-inp" type="number" placeholder="reps" value="5" min="0" max="50" oninput="logSet(3,2,&#39;r&#39;,this.value)" fdprocessedid="euxhf7">
+        <div class="set-ck on" id="sck-3-2" onclick="toggleSet(3,2)">✓</div>
+      </div></div><div class="ex-block">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px">
+        <input class="ex-name" style="flex:1;background:transparent;border:none;border-bottom:1px dashed var(--border2);padding-bottom:2px;outline:none;color:var(--text);font-size:13px;font-weight:500" value="Dumbbell Lateral Raises" onblur="if(this.value.trim())editExName(4,this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" fdprocessedid="5wp5fx">
+        <button onclick="deleteExercise(4)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0" title="Remove exercise" fdprocessedid="f1b15g">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="ex-spec" style="flex:1;margin:0">3×12–15 · secondary · Light, slow, clean.</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="setExSets(4,-1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="6cxtg9">−</button>
+          <span style="font-size:11px;color:var(--muted);min-width:42px;text-align:center">3 sets</span>
+          <button onclick="setExSets(4,1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="wa0v69">+</button>
+        </div>
+      </div>
+      <div class="prev-session">
+        <div class="prev-session-hdr">◀ Last session: 2026-05-11</div>
+        <div style="display:grid;grid-template-columns:22px 1fr 1fr;gap:5px;margin-bottom:4px">
+          <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">reps</div>
+        </div>
+        <div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>1</div><div><span>10</span></div><div><span>14</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>2</div><div><span>10</span></div><div><span>7</span></div></div><div class="prev-set-row" style="grid-template-columns:22px 1fr 1fr"><div>3</div><div><span>7.5</span></div><div><span>12</span></div></div>
+      </div><div class="set-row" style="margin-bottom:6px;grid-template-columns:22px 1fr 1fr 36px">
+      <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">Reps</div><div class="set-col">✓</div>
+    </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">1</div>
+        <input class="set-inp" type="number" placeholder="kg" value="10" step="0.5" min="0" oninput="logSet(4,0,&#39;w&#39;,this.value)" fdprocessedid="rytgo">
+        <input class="set-inp" type="number" placeholder="reps" value="17" min="0" max="50" oninput="logSet(4,0,&#39;r&#39;,this.value)" fdprocessedid="96puz">
+        <div class="set-ck on" id="sck-4-0" onclick="toggleSet(4,0)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">2</div>
+        <input class="set-inp" type="number" placeholder="kg" value="10" step="0.5" min="0" oninput="logSet(4,1,&#39;w&#39;,this.value)" fdprocessedid="wyd1b">
+        <input class="set-inp" type="number" placeholder="reps" value="11" min="0" max="50" oninput="logSet(4,1,&#39;r&#39;,this.value)" fdprocessedid="iox0j9">
+        <div class="set-ck on" id="sck-4-1" onclick="toggleSet(4,1)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">3</div>
+        <input class="set-inp" type="number" placeholder="kg" value="10" step="0.5" min="0" oninput="logSet(4,2,&#39;w&#39;,this.value)" fdprocessedid="tmq3qc">
+        <input class="set-inp" type="number" placeholder="reps" value="10" min="0" max="50" oninput="logSet(4,2,&#39;r&#39;,this.value)" fdprocessedid="6hhr7a">
+        <div class="set-ck on" id="sck-4-2" onclick="toggleSet(4,2)">✓</div>
+      </div></div><div class="ex-block">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px">
+        <input class="ex-name" style="flex:1;background:transparent;border:none;border-bottom:1px dashed var(--border2);padding-bottom:2px;outline:none;color:var(--text);font-size:13px;font-weight:500" value="Leg Raises" onblur="if(this.value.trim())editExName(5,this.value)" onkeydown="if(event.key===\'Enter\')this.blur()" fdprocessedid="3jhm1">
+        <button onclick="deleteExercise(5)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0" title="Remove exercise" fdprocessedid="65n22k">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="ex-spec" style="flex:1;margin:0">2×8–12 · secondary</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="setExSets(5,-1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="sbom7jp">−</button>
+          <span style="font-size:11px;color:var(--muted);min-width:42px;text-align:center">2 sets</span>
+          <button onclick="setExSets(5,1)" style="background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:14px;line-height:1" fdprocessedid="olih7f">+</button>
+        </div>
+      </div>
+      <div class="set-row" style="margin-bottom:6px;grid-template-columns:22px 1fr 1fr 36px">
+      <div class="set-col">#</div><div class="set-col">kg</div><div class="set-col">Reps</div><div class="set-col">✓</div>
+    </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">1</div>
+        <input class="set-inp" type="number" placeholder="kg" value="" step="0.5" min="0" oninput="logSet(5,0,&#39;w&#39;,this.value)" fdprocessedid="hf92z">
+        <input class="set-inp" type="number" placeholder="reps" value="20" min="0" max="50" oninput="logSet(5,0,&#39;r&#39;,this.value)" fdprocessedid="o3o0c9">
+        <div class="set-ck on" id="sck-5-0" onclick="toggleSet(5,0)">✓</div>
+      </div><div class="set-row" style="grid-template-columns:22px 1fr 1fr 36px">
+        <div class="set-num">2</div>
+        <input class="set-inp" type="number" placeholder="kg" value="" step="0.5" min="0" oninput="logSet(5,1,&#39;w&#39;,this.value)" fdprocessedid="y0le5">
+        <input class="set-inp" type="number" placeholder="reps" value="20" min="0" max="50" oninput="logSet(5,1,&#39;r&#39;,this.value)" fdprocessedid="ktxxk">
+        <div class="set-ck on" id="sck-5-1" onclick="toggleSet(5,1)">✓</div>
+      </div></div><button class="data-btn" fdprocessedid="56xa5" style="width: 100%; margin-bottom: 10px; color: var(--accent); border-color: rgba(200, 255, 68, 0.3);">+ Add Exercise</button></div>
+  <div class="card" style="margin-top:10px">
+    <div class="card-t">Session notes</div>
+    <textarea class="notes-ta" id="train-notes" placeholder="Energy, what felt good, what to adjust..." oninput="saveDay()"></textarea>
+  </div>
+</div>
+
+<!-- ═══ WORKOUT HISTORY ═══ -->
+<div class="view" id="view-workouthist">
+  <div class="page-hdr"><h1>Workout History</h1></div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-t">Filter by exercise</div>
+    <select id="ex-filter" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text)" onchange="renderWorkoutHistory()" fdprocessedid="j2b2ph"><option value="">All exercises</option><option value="Barbell Bench Press">Barbell Bench Press</option><option value="Barbell Row">Barbell Row</option><option value="Bench Leg Raises">Bench Leg Raises</option><option value="DB Lateral Raises">DB Lateral Raises</option><option value="Decline Bench Press">Decline Bench Press</option><option value="Dumbbell Lateral Raises">Dumbbell Lateral Raises</option><option value="Dumbbell Pullover">Dumbbell Pullover</option><option value="Hammer Curls">Hammer Curls</option><option value="High Knee Raises">High Knee Raises</option><option value="Incline Dumbbell Press">Incline Dumbbell Press</option><option value="Lat Pulldown">Lat Pulldown</option><option value="Leg Curls / Glute Bridges">Leg Curls / Glute Bridges</option><option value="Leg Raises">Leg Raises</option><option value="Machine Shrugs">Machine Shrugs</option><option value="Rear Delt Fly">Rear Delt Fly</option><option value="Rear Delt Fly (45°)">Rear Delt Fly (45°)</option><option value="Romanian Deadlift">Romanian Deadlift</option><option value="Rope Pushdown">Rope Pushdown</option><option value="Seated OHP (Smith)">Seated OHP (Smith)</option><option value="Seated Overhead Press">Seated Overhead Press</option><option value="Single Arm DB Row">Single Arm DB Row</option><option value="Smith Machine Squat">Smith Machine Squat</option><option value="Standing Calf Raises">Standing Calf Raises</option><option value="Walking Lunges">Walking Lunges</option><option value="Weighted Dips OR Machine Chest Press">Weighted Dips OR Machine Chest Press</option><option value="Z-Bar Curls">Z-Bar Curls</option></select>
+  </div>
+  <div id="workout-history-list"><div class="wk-hist-card"><div class="wk-hist-date">Mon, 18 May 2026</div><div class="wk-hist-name">Monday — Push Day</div><div class="wk-hist-ex">
+        <div class="wk-hist-ex-name">Barbell Bench Press</div>
+        <div class="wk-hist-sets">
+          <div class="wk-hist-set">Set 1: 60kg × 4</div><div class="wk-hist-set">Set 2: 60kg × 3</div><div class="wk-hist-set">Set 3: 50kg × 8</div><div class="wk-hist-set">Set 4: 50kg × 7</div><div class="wk-hist-set">Set 5: 50kg × 6</div>
+        </div>
+      </div><div class="wk-hist-ex">
+        <div class="wk-hist-ex-name">Incline Dumbbell Press</div>
+        <div class="wk-hist-sets">
+          <div class="wk-hist-set">Set 1: 17.5kg × 10</div><div class="wk-hist-set">Set 2: 17.5kg × 10</div><div class="wk-hist-set">Set 3: 20kg × 6</div><div class="wk-hist-set">Set 4: 20kg × 5</div>
+        </div>
+      </div><div class="wk-hist-ex">
+        <div class="wk-hist-ex-name">Seated Overhead Press</div>
+        <div class="wk-hist-sets">
+          <div class="wk-hist-set">Set 1: 17.5kg × 10</div><div class="wk-hist-set">Set 2: 17.5kg × 8</div><div class="wk-hist-set">Set 3: 17.5kg × 7</div>
+        </div>
+      </div><div class="wk-hist-ex">
+        <div class="wk-hist-ex-name">Weighted Dips OR Machine Chest Press</div>
+        <div class="wk-hist-sets">
+          <div class="wk-hist-set">Set 1: 50kg × 6</div><div class="wk-hist-set">Set 2: 50kg × 8</div><div class="wk-hist-set">Set 3: 50kg × 5</div>
+        </div>
+      </div><div class="wk-hist-ex">
+        <div class="wk-hist-ex-name">Dumbbell Lateral Raises</div>
+        <div class="wk-hist-sets">
+          <div class="wk-hist-set">Set 1: 10kg × 17</div><div class="wk-hist-set">Set 2: 10kg × 11</div><div class="wk-hist-set">Set 3: 10kg × 10</div>
+        </div>
+      </div><div class="wk-hist-ex">
+        <div class="wk-hist-ex-name">Leg Raises</div>
+        <div class="wk-hist-sets">
+          <div class="wk-hist-set">Set 1: —kg × 20</div><div class="wk-hist-set">Set 2: —kg × 20</div>
+        </div>
+      </div><div style="font-size:11px;color:var(--dim);margin-top:8px;border-top:1px solid var(--border);padding-top:6px">Felt a little sick</div></div></div>
+</div>
+
+<!-- ═══ FOOD ═══ -->
+<div class="view" id="view-food">
+  <div class="page-hdr">
+    <div>
+      <h1>⚡ Fuel & Supplements</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">"Food is utility. Fuel the mission."</div>
+    </div><div class="date-nav"><button onclick="shiftDay(-1)" fdprocessedid="o8squ">‹</button><div class="cur-d" id="food-date">Mon, 18 May 2026</div><button onclick="shiftDay(1)" fdprocessedid="mhg3vn">›</button></div></div>
+  <div class="g3" style="margin-bottom:10px">
+    <div class="metric"><div class="ml">Protein (g)</div><div class="mv" id="protein-disp">0</div><div class="ms">target 165g</div></div>
+    <div class="metric"><div class="ml">Calories</div><div class="mv" id="cal-disp">0</div><div class="ms">target 3000</div></div>
+    <div class="metric"><div class="ml">Water (L)</div><div class="mv"><input type="number" id="water-inp" placeholder="0" step="0.1" min="0" oninput="saveDay()" fdprocessedid="ozxxdd"></div><div class="ms">aim 3L+</div></div>
+  </div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="bar-lbs"><span>protein</span><span id="protein-pct-lbl">0g / 165g</span></div>
+    <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill green" id="protein-bar" style="width:0%"></div></div></div>
+    <div class="bar-lbs" style="margin-top:10px"><span>calories</span><span id="cal-pct-lbl">0 / 3000 cal</span></div>
+    <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill amber" id="cal-bar" style="width:0%"></div></div></div>
+    <div class="bar-lbs" style="margin-top:10px"><span>surplus / deficit</span><span id="surplus-lbl">-3000 cal</span></div>
+    <div class="bar-wrap"><div class="bar-bg"><div class="bar-fill red" id="surplus-bar" style="width: 100%;"></div></div></div>
+    <div style="font-size:10px;color:var(--dim);margin-top:4px" id="surplus-note">Deficit — you won't gain weight like this</div>
+  </div>
+  <div id="meals-wrap"><div class="meal-block"><div class="meal-title">Meal 1</div><input class="food-inp" id="mf-0" placeholder="What did you eat..." value="" oninput="saveDay()" fdprocessedid="plvk0s"><div class="macro-row"><div class="macro-wrap"><label>Protein g</label><input class="macro-inp" type="number" id="mp-0" value="" min="0" oninput="saveDay()" fdprocessedid="8ruy6"></div><div class="macro-wrap"><label>Carbs g</label><input class="macro-inp" type="number" id="mc-0" value="" min="0" oninput="saveDay()" fdprocessedid="fg5bdp"></div><div class="macro-wrap"><label>Fat g</label><input class="macro-inp" type="number" id="mft-0" value="" min="0" oninput="saveDay()" fdprocessedid="cm493t"></div></div></div><div class="meal-block"><div class="meal-title">Meal 2</div><input class="food-inp" id="mf-1" placeholder="What did you eat..." value="" oninput="saveDay()" fdprocessedid="nrfvtm"><div class="macro-row"><div class="macro-wrap"><label>Protein g</label><input class="macro-inp" type="number" id="mp-1" value="" min="0" oninput="saveDay()" fdprocessedid="fncw5q"></div><div class="macro-wrap"><label>Carbs g</label><input class="macro-inp" type="number" id="mc-1" value="" min="0" oninput="saveDay()" fdprocessedid="u23pis"></div><div class="macro-wrap"><label>Fat g</label><input class="macro-inp" type="number" id="mft-1" value="" min="0" oninput="saveDay()" fdprocessedid="7x0gym"></div></div></div><div class="meal-block"><div class="meal-title">Meal 3</div><input class="food-inp" id="mf-2" placeholder="What did you eat..." value="" oninput="saveDay()" fdprocessedid="17o3dg"><div class="macro-row"><div class="macro-wrap"><label>Protein g</label><input class="macro-inp" type="number" id="mp-2" value="" min="0" oninput="saveDay()" fdprocessedid="la6mtn"></div><div class="macro-wrap"><label>Carbs g</label><input class="macro-inp" type="number" id="mc-2" value="" min="0" oninput="saveDay()" fdprocessedid="vdqum"></div><div class="macro-wrap"><label>Fat g</label><input class="macro-inp" type="number" id="mft-2" value="" min="0" oninput="saveDay()" fdprocessedid="yvxrrm"></div></div></div><div class="meal-block"><div class="meal-title">Meal 4</div><input class="food-inp" id="mf-3" placeholder="What did you eat..." value="" oninput="saveDay()" fdprocessedid="qo5h2o"><div class="macro-row"><div class="macro-wrap"><label>Protein g</label><input class="macro-inp" type="number" id="mp-3" value="" min="0" oninput="saveDay()" fdprocessedid="3uvcna"></div><div class="macro-wrap"><label>Carbs g</label><input class="macro-inp" type="number" id="mc-3" value="" min="0" oninput="saveDay()" fdprocessedid="pyopcg"></div><div class="macro-wrap"><label>Fat g</label><input class="macro-inp" type="number" id="mft-3" value="" min="0" oninput="saveDay()" fdprocessedid="fg08w"></div></div></div></div>
+  <div class="card" style="margin-bottom:10px"><div class="card-t">Core supplements</div><div class="supps-grid" id="core-supps"><div class="supp-item"><div class="sc"></div><div class="sl">Magnesium</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Zinc</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Boron</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Copper</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Creatine</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Taurine</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Glycine</div></div><div class="supp-item"><div class="sc"></div><div class="sl">NAC</div></div></div></div>
+  <div class="card" style="margin-bottom:10px"><div class="card-t">Gut protocol</div><div class="supps-grid" id="gut-supps"><div class="supp-item"><div class="sc"></div><div class="sl">L-Glutamine</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Zinc Carnosine</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Collagen/Gelatin</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Lactoferrin</div></div><div class="supp-item"><div class="sc"></div><div class="sl">S. Boulardii</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Spore Probiotics</div></div><div class="supp-item"><div class="sc"></div><div class="sl">DGL Licorice</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Marshmallow Root</div></div></div></div>
+  <div class="card"><div class="card-t">Liver support</div><div class="supps-grid" id="liver-supps"><div class="supp-item"><div class="sc"></div><div class="sl">Taurine (liver)</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Glycine (liver)</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Choline</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Vitamin B3</div></div><div class="supp-item"><div class="sc"></div><div class="sl">Vitamin E</div></div></div></div>
+</div>
+
+<!-- ═══ GOALS ═══ -->
+<div class="view" id="view-goals">
+  <div class="page-hdr">
+    <div>
+      <h1>🎖 90-Day Objectives</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">Define the target. Build the system. Execute daily.</div>
+    </div><span style="font-size:11px;color:var(--muted)" id="goals-month-lbl"></span></div>
+  <div class="card"><div class="card-t">Monthly mission</div><textarea class="notes-ta" id="month-mission" placeholder="What must be achieved this month?" style="min-height:80px" oninput="saveGoals()"></textarea></div>
+  <div class="card">
+    <div class="card-t">Monthly targets</div>
+    <div style="margin-bottom:10px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px">Money goal ($)</div><input class="month-goal-inp" type="number" id="month-money-goal" placeholder="10000" oninput="saveGoals()"></div>
+    <div style="margin-bottom:10px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px">Target weight (kg)</div><input class="month-goal-inp" type="number" id="month-weight-goal" placeholder="85" step="0.1" oninput="saveGoals()"></div>
+    <div><div style="font-size:10px;color:var(--muted);margin-bottom:6px">Other targets</div><div id="month-other-goals"></div><button class="data-btn" onclick="addMonthGoal()" style="margin-top:6px">+ Add target</button></div>
+  </div>
+  <div class="card">
+    <div class="card-t">Weekly goals — <span id="current-week-lbl"></span></div>
+    <div id="weekly-goals-wrap"></div>
+    <button class="data-btn" onclick="addWeekGoal()" style="margin-top:8px">+ Add goal</button>
+  </div>
+  <div class="card"><div class="card-t">Past weeks</div><div id="past-weeks-wrap"></div></div>
+</div>
+
+<!-- ═══ HISTORY ═══ -->
+<div class="view" id="view-history">
+  <div class="page-hdr">
+    <div>
+      <h1>📅 Campaign Log</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">Your battlefield record. Every day counts.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="card-t" style="margin-bottom:0" id="hist-month-title">May 2026</div>
+      <div style="display:flex;gap:6px">
+        <button onclick="shiftHistMonth(-1)" style="background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--sub);cursor:pointer;padding:5px 12px;font-family:var(--mono);font-size:13px;font-weight:700">‹</button>
+        <button onclick="shiftHistMonth(1)" style="background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--sub);cursor:pointer;padding:5px 12px;font-family:var(--mono);font-size:13px;font-weight:700">›</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(200,255,68,.2)"></div>Complete</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(255,187,34,.18)"></div>Repeat</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(255,80,96,.18)"></div>Reset</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:rgba(96,184,255,.15)"></div>Partial</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+      <div class="cal-hdr">MON</div><div class="cal-hdr">TUE</div><div class="cal-hdr">WED</div><div class="cal-hdr">THU</div><div class="cal-hdr">FRI</div><div class="cal-hdr">SAT</div><div class="cal-hdr">SUN</div>
+    </div>
+    <div class="cal-grid" id="main-cal"></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="data-btn" onclick="shiftHistMonth(-1)">‹ prev</button><button class="data-btn" onclick="shiftHistMonth(1)">next ›</button></div>
+  </div>
+  <div class="card"><div class="card-t">Recent days</div><div id="recent-days"></div></div>
+</div>
+
+<!-- ═══ ANALYTICS ═══ -->
+<div class="view" id="view-analytics">
+  <div class="page-hdr"><h1>Analytics</h1></div>
+  <div class="g2" style="margin-bottom:10px">
+    <div class="metric"><div class="ml">Best streak (75%+)</div><div class="mv" id="best-streak">—</div><div class="ms">days in a row</div></div>
+    <div class="metric"><div class="ml">Honor streak</div><div class="mv" id="honor-streak-ana">—</div><div class="ms">days clean</div></div>
+  </div>
+  <div class="g2" style="margin-bottom:10px">
+    <div class="metric"><div class="ml">Month avg score</div><div class="mv" id="may-avg">—</div><div class="ms">habit compliance</div></div>
+    <div class="metric"><div class="ml">Weight gain</div><div class="mv" id="weight-gain-ana">—</div><div class="ms">toward 85kg</div></div>
+  </div>
+  <div class="card" style="margin-bottom:10px"><div class="card-t">Weight trend</div><svg id="wt-chart" viewBox="0 0 560 90" style="width:100%;height:90px;overflow:visible"></svg></div>
+  <div class="card" style="margin-bottom:10px"><div class="card-t">Money made — daily</div><svg id="money-chart" viewBox="0 0 560 90" style="width:100%;height:90px;overflow:visible"></svg></div>
+  <div class="card"><div class="card-t">Habit consistency</div><div id="habit-consist"></div></div>
+</div>
+
+<!-- ═══ SCHEDULE ═══ -->
+<div class="view" id="view-schedule">
+  <div class="page-hdr"><h1>Daily Schedule</h1></div>
+  <div class="card" style="overflow-x:auto"><table class="sched-table"><thead><tr><th>Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead><tbody id="sched-body"></tbody></table></div>
+</div>
+
+<!-- ═══ PROTOCOLS ═══ -->
+<div class="view" id="view-protocols">
+  <div class="page-hdr"><h1>Rules of Engagement</h1></div>
+  <div class="honor-card" style="margin-bottom:10px">
+    <div class="card-t" style="margin-bottom:8px">⚔ THE OATH</div>
+    <div class="honor-oath" style="font-size:12px">I have upheld my Oath against all Acts of Treason.<br>I have not engaged in PMO.<br>I have not committed Willful Abdication.<br>My word is my bond. My discipline is my identity.<br>Every day I uphold this oath, I become harder to break.</div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-t">Diet rules</div><div class="rule-line"><span class="ri">✓</span>Meat, fish, eggs, A2 dairy (camel/sheep/goat preferred)</div><div class="rule-line"><span class="ri">✓</span>Raw carrots + cooked mushrooms daily</div><div class="rule-line"><span class="ri">✓</span>Sweet potato / white rice / potato for carbs</div><div class="rule-line"><span class="ri">✓</span>30–40g protein per meal · 165g total daily</div><div class="rule-line"><span class="ri">✓</span>3000–3500 cal/day to support weight gain to 85kg</div><div class="rule-line" style="color:var(--red)"><span class="ri" style="color:var(--red)">✗</span>NO nuts, seeds, legumes</div><div class="rule-line" style="color:var(--red)"><span class="ri" style="color:var(--red)">✗</span>NO standard cow dairy (A1)</div></div>
+    <div class="card"><div class="card-t">Lifestyle rules</div><div class="rule-line"><span class="ri">◉</span>Sleep, eat, train — same time every day</div><div class="rule-line"><span class="ri">◉</span>Sunlight daily</div><div class="rule-line"><span class="ri">◉</span>Cold plunge or cold shower</div><div class="rule-line"><span class="ri">◉</span>Sauna 2x/week + Modified Citrus Pectin before</div><div class="rule-line"><span class="ri">◉</span>Drink and eat from glass only</div><div class="rule-line"><span class="ri">◉</span>Replace deodorants, shampoo, etc.</div><div class="rule-line"><span class="ri">◉</span>Track what you eat every day</div></div>
+    <div class="card"><div class="card-t">Training rules</div><div class="rule-line"><span class="ri">◈</span>Tempo: 4 seconds down · 1 pause · 2 up</div><div class="rule-line"><span class="ri">◈</span>Main lift: 4 sets × 6–10 reps</div><div class="rule-line"><span class="ri">◈</span>Secondary: 3 sets × 8–12 reps</div><div class="rule-line"><span class="ri">◈</span>Isolation: 2–3 sets × 10–15 reps</div><div class="rule-line"><span class="ri">◈</span>Compounds: 90–120s rest</div><div class="rule-line"><span class="ri">◈</span>Hit top range all sets → +2.5–5kg next session</div><div class="rule-line"><span class="ri">◈</span>Deload every 6–8 weeks (−30–40% volume)</div></div>
+    <div class="card"><div class="card-t">Money &amp; work</div><div class="rule-line"><span class="ri">$</span>$350/day daily target</div><div class="rule-line"><span class="ri">$</span>$10,000/month goal</div><div class="rule-line"><span class="ri">$</span>Outreach / cold calls every single day</div><div class="rule-line"><span class="ri">$</span>G work sessions: Sat + Sun 8am–1pm</div><div class="rule-line"><span class="ri">$</span>Cold calls + meetings: 14:00–21:00 weekdays</div><div class="rule-line"><span class="ri">$</span>Tennis 3x/week (Tue + Thu + flex)</div></div>
+  </div>
+</div>
+
+<!-- ═══ SYNC ═══ -->
+<div class="view" id="view-datasync">
+  <div class="page-hdr"><h1>Sync &amp; Export</h1></div>
+  <div class="card">
+    <div class="card-t">Cloud sync status</div>
+    <div id="sync-status-detail" style="font-size:12px;color:var(--muted);line-height:1.8"><div>Status: <span style="color:var(--accent)">synced</span></div><div>Last sync: 1:19:56 PM</div><div style="margin-top:4px;font-size:11px;color:var(--dim)">Auto-saves 3 seconds after any change.</div></div>
+
+    <!-- BIN ID COPY BOX — shown after connecting -->
+    <div id="bin-id-section" style="display: block; margin-top: 12px;">
+      <div style="font-size:11px;color:var(--amber);margin-bottom:6px">⚠ Copy this Bin ID to connect your other device:</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="bin-box" id="bin-id-display" style="flex:1">6a0ad7dbc0954111d83e38ee</div>
+        <button class="copy-btn" onclick="copyBinId()">Copy</button>
+      </div>
+      <div style="font-size:10px;color:var(--dim);margin-top:6px">On your other device: go to Sync → Change Key → paste this Bin ID along with your Master Key.</div>
+    </div>
+
+    <div class="data-actions">
+      <button class="data-btn" onclick="manualSync()">↻ Sync now</button>
+      <button class="data-btn" onclick="showSetupModal()">⚙ Change key</button>
+      <button class="data-btn" onclick="disconnectSync()">✕ Disconnect</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-t">Backup &amp; restore</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Export a full JSON backup of all your data.</p>
+    <div class="data-actions">
+      <button class="data-btn" onclick="exportData()">↓ Export JSON</button>
+      <button class="data-btn" onclick="document.getElementById(&#39;import-file&#39;).click()">↑ Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+  <div class="card">
+  <div class="card-t">⚔ Campaign Settings</div>
+  <div style="margin-bottom:4px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">Campaign Start Date — sets Day 1 of your 30-day challenge</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="date" id="campaign-start-inp" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-family:var(--mono);font-size:13px;color:var(--text);flex:1" oninput="AD['campaign_start']=this.value;persist();renderSitrep()">
+      <button class="btn-primary" onclick="const td=dk(new Date());document.getElementById('campaign-start-inp').value=td;AD['campaign_start']=td;persist();renderSitrep()">Start Today</button>
+    </div>
+  </div>
+</div>
+<div class="card"><div class="card-t">Danger zone</div><button class="data-btn" style="color:var(--red);border-color:var(--red)" onclick="clearLocal()">✕ Clear local data</button></div>
+</div>
+
+</main>
+</div>
+
+<nav class="mob-nav">
+  <div class="mob-nav-inner">
+  <button class="mob-btn active" data-view="sitrep" onclick="showView('sitrep')"><span class="mb-icon">⚔</span>SITREP</button>
+  <button class="mob-btn" data-view="missions" onclick="showView('missions')"><span class="mb-icon">◎</span>Missions</button>
+  <button class="mob-btn" data-view="training" onclick="showView('training')"><span class="mb-icon">◈</span>Training</button>
+  <button class="mob-btn" data-view="food" onclick="showView('food')"><span class="mb-icon">◉</span>Food</button>
+  <button class="mob-btn" onclick="document.getElementById('mob-more').classList.toggle('open')"><span class="mb-icon">⋯</span>More</button>
+</div>>
