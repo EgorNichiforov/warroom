@@ -1,6 +1,6 @@
 /* War Room — Egor's daily command center. Vanilla JS, offline-first, optional Supabase sync. */
 'use strict';
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '3.0.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -151,7 +151,7 @@ function seed() {
   ].forEach((g) => (goals[g.id] = g));
   return {
     v: 1,
-    settings: { _u: t, name: 'Egor', wake: '05:20', bed: '21:00', weightTarget: 85, weightTargetDate: '2027-07-01', bacDate: '2027-06-01', bigDate: '2027-07-01', bigLabel: 'July 1, 2027 · $20k MRR', currency: 'MDL',
+    settings: { _u: t, name: 'Egor', wake: '05:20', bed: '21:00', shutdown: '20:45', minDials: 10, minBac: 25, stake: 500, commitStart: dk(new Date()), weightTarget: 85, weightTargetDate: '2027-07-01', bacDate: '2027-06-01', bigDate: '2027-07-01', bigLabel: 'July 1, 2027 · $20k MRR', currency: 'MDL',
       sync: { url: 'https://lajechvmsrmrmfcluhkr.supabase.co', key: 'sb_publishable_E_GGwWPOvnvV_PZDPu95Vg_0_9iqRmE', code: '' } },
     routines: { _u: t,
       morning: [R('weigh', '⚖️ Weigh in (before food and water)', ALL, 'weight'), R('train', '🏋️ Train', ALL, 'train'), R('shower', '🚿 Shower', ALL), R('bac', '📚 BAC study block', ALL), R('eat', '🍳 Breakfast', ALL), R('sun', '☀️ 10 min sunlight outside', ALL), R('pack', '🎒 Pack: lunch box + packed dinner + 1 L water', WK), R('go', '🚗 Leave for school 08:00', WK)],
@@ -165,7 +165,7 @@ function seed() {
     ] },
     schedule: { _u: t, blocks },
     programs, programByDay: { _u: t, map: { 1: 'upperA', 2: 'core', 3: 'upperB', 4: 'legs', 5: 'arms', 6: 'upperC', 7: 'recovery' } },
-    days: {}, tasks: {}, goals, reviews: {},
+    days: {}, tasks: {}, goals, reviews: {}, stakes: {}, session: { _u: 0, active: false }, timer: null,
   };
 }
 
@@ -177,6 +177,8 @@ function load() {
   const d = seed();
   for (const k of Object.keys(d)) if (S[k] === undefined) S[k] = d[k];
   if (!S.settings.sync) S.settings.sync = d.settings.sync;
+  for (const k of ['shutdown', 'minDials', 'minBac', 'stake', 'commitStart']) if (S.settings[k] === undefined) S.settings[k] = d.settings[k];
+  if (!S.stakes) S.stakes = {}; if (!S.session) S.session = { _u: 0, active: false };
 }
 let saveTimer = null;
 function save(immediate) {
@@ -228,68 +230,122 @@ function renderTop() {
 }
 function render() { renderNav(); renderTop(); document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view)); ({ today: renderToday, plan: renderPlan, tasks: renderTasks, train: renderTrain, goals: renderGoals, more: renderMore })[view](); }
 
-/* ───────── TODAY ───────── */
-function renderToday() {
-  const d = curDate, k = dk(d), o = day(k), w = dow(d), today = isToday(d), nm = nowMin();
-  const last = latestWeight(k), avg7 = avgWeight(7, k), prev7 = avgWeight(7, dk(addDays(d, -7)));
-  let html = '';
-  // Weigh-in
-  if (o.weight == null || o.weight === '' || o.weighEdit) {
-    const start = o.weight != null && o.weight !== '' ? o.weight : (last ? last.w : 75);
-    html += `<div class="card ac"><div class="card-h"><div class="card-t">⚖️ Morning weigh-in</div><div class="card-r">${last ? `last: <b>${fmt(last.w, 1)}</b> kg · ${fmtShort(pd(last.k))}` : 'first entry'}</div></div>
-      <div class="weigh-big"><button class="stepbtn" onclick="stepWeight(-0.1)">−</button><input id="w-inp" type="number" inputmode="decimal" step="0.1" value="${Number(start).toFixed(1)}" onkeydown="if(event.key==='Enter')saveWeight()"><span class="unit">kg</span><button class="stepbtn" onclick="stepWeight(0.1)">+</button></div>
-      <div class="weigh-stats"><span>7-day avg <b>${avg7 ? fmt(avg7, 1) : '—'}</b></span><span>target <b>${S.settings.weightTarget}</b> kg</span><span>to go <b>${avg7 ? fmt(S.settings.weightTarget - avg7, 1) : (last ? fmt(S.settings.weightTarget - last.w, 1) : '—')}</b> kg</span></div>
-      <div class="row"><button class="btn primary grow" onclick="saveWeight()">Save weight</button>${o.weighEdit ? `<button class="btn ghost" onclick="cancelWeight()">Cancel</button>` : `<button class="btn ghost" onclick="skipWeight()">Skip</button>`}</div></div>`;
-  } else {
-    const diff = avg7 && prev7 ? avg7 - prev7 : null;
-    html += `<div class="card" onclick="editWeight()" style="cursor:pointer"><div class="weigh-compact"><div class="val">${fmt(o.weight, 1)}<small>kg</small></div><div class="grow small muted">7-day avg <b class="acc">${avg7 ? fmt(avg7, 1) : '—'}</b>${diff != null ? ` · <span class="${diff >= 0 ? 'green' : 'red'}">${diff >= 0 ? '+' : ''}${fmt(diff, 1)}</span> vs last week` : ''}<br>${fmt(S.settings.weightTarget - (avg7 || o.weight), 1)} kg to ${S.settings.weightTarget} · judge by the weekly average</div><div class="dim">✎</div></div></div>`;
-  }
-  // Now / next
-  if (today) {
-    const bl = blocksFor(d); const cur = bl.filter((b) => tmin(b.start) <= nm && nm < tmin(b.end)); const next = bl.find((b) => tmin(b.start) > nm);
-    const wake = tmin(S.settings.wake), bed = tmin(S.settings.bed); const pct = clamp(((nm - wake) / (bed - wake)) * 100, 0, 100);
-    html += `<div class="card"><div class="card-h"><div class="card-t">Now</div><div class="card-r mono">${pad(Math.floor(nm / 60))}:${pad(nm % 60)}</div></div>
-      ${cur.length ? cur.map((b) => `<div class="now-cur"><span class="tag ${b.kind}" style="display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:8px"></span>${esc(b.title)}</div><div class="now-time">${b.start}–${b.end}${b.note ? ' · ' + esc(b.note) : ''}</div>`).join('') : `<div class="now-cur muted">Nothing scheduled</div>`}
-      ${next ? `<div class="now-next">Next <b>${esc(next.title)}</b> at ${next.start} <span class="muted">(in ${tmin(next.start) - nm} min)</span></div>` : ''}
-      <div class="bar" style="margin-top:10px"><i style="width:${pct}%"></i></div><div class="row sb xs dim" style="margin-top:4px"><span>${S.settings.wake} wake</span><span>${Math.round(pct)}% of the day</span><span>${S.settings.bed} bed</span></div></div>`;
-  }
-  // Routine
-  const rt = (list, title, open) => { const items = routineFor(list, d); if (!items.length) return ''; const done = items.filter((r) => o.routine[r.id]).length; let curIdx = items.findIndex((r) => !o.routine[r.id]);
-    return `<div class="card"><div class="card-h" onclick="toggleSec('${title}')" style="cursor:pointer"><div class="card-t">${title} routine</div><div class="card-r"><b>${done}</b>/${items.length} ${done === items.length ? '✓' : ''}</div></div><div id="sec-${title}" class="${open ? '' : 'hidden'}">${items.map((r, i) => `<div class="ck ${o.routine[r.id] ? 'on' : ''} ${i === curIdx && today ? 'cur' : ''}" onclick="toggleRoutine('${r.id}')"><div class="box">${o.routine[r.id] ? '✓' : ''}</div><div class="lbl">${esc(r.title)}</div></div>`).join('')}</div></div>`; };
-  const morningDone = routineFor(S.routines.morning, d).every((r) => o.routine[r.id]);
-  html += rt(S.routines.morning, 'morning', secOpen.morning != null ? secOpen.morning : (!today || nm < 15 * 60 || !morningDone));
-  html += rt(S.routines.evening, 'evening', secOpen.evening != null ? secOpen.evening : (!today || nm >= 15 * 60));
-  // Counters
-  const cs = S.counters.items.filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners');
-  if (cs.length) html += `<div class="card"><div class="card-h"><div class="card-t">Scoreboard</div><div class="card-r">week of ${fmtShort(monday(d))}</div></div>${cs.map((c) => { const v = Number(o.counters[c.id]) || 0, tg = c.targets[w] || 0, wk = counterWeek(c.id, d), tot = counterTotal(c.id);
-    return `<div class="counter"><div class="top"><div class="name">${esc(c.title)}</div><div class="num">${v}${tg ? `<small> / ${tg}${c.unit ? ' ' + c.unit : ''}</small>` : (c.unit ? `<small> ${c.unit}</small>` : '')}</div></div>
-      ${tg ? `<div class="bar"><i class="${c.color || ''}" style="width:${clamp((v / tg) * 100, 0, 100)}%"></i></div>` : ''}
-      <div class="btns">${c.steps.map((s) => `<button class="btn" onclick="bump('${c.id}',${s})">+${s}</button>`).join('')}<button class="btn" onclick="bump('${c.id}',-${c.steps[0]})">−${c.steps[0]}</button><button class="btn" onclick="setCounter('${c.id}')">=</button></div>
-      <div class="wk">${c.weekly ? `<span>week <b>${wk}</b> / ${c.weekly}${c.unit ? ' ' + c.unit : ''} ${wk >= c.weekly ? '✓' : `· ${c.weekly - wk} left`}</span>` : `<span>week <b>${wk}</b></span>`}<span>all time <b>${tot}</b></span></div></div>`; }).join('')}</div>`;
-  // Top 3 + tasks today
-  const tk = dk(new Date()); const due = tasksList().filter((t) => !t.done && t.due && t.due <= k).sort((a, b) => a.due.localeCompare(b.due));
-  html += `<div class="card top3"><div class="card-h"><div class="card-t">Top 3 for the day</div><div class="card-r">the needle movers</div></div>${o.top3.map((x, i) => `<div class="item ${x.d ? 'on' : ''}"><div class="n">${i + 1}</div><input value="${esc(x.t)}" placeholder="${['Most important thing…', 'Second…', 'Third…'][i]}" oninput="setTop3(${i},this.value)"><div class="box" onclick="toggleTop3(${i})">${x.d ? '✓' : ''}</div></div>`).join('')}
-    ${due.length ? `<div class="sec-h">Tasks due</div>${due.map((t) => taskRow(t, k)).join('')}` : ''}<div class="row" style="margin-top:8px"><input id="quick-task" placeholder="+ task for ${today ? 'today' : fmtShort(d)}" onkeydown="if(event.key==='Enter')quickTask('${k}')"></div></div>`;
-  // Habits
-  html += `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div></div>`;
-  // Sleep + money
-  html += `<div class="g2"><div class="card"><div class="card-t" style="margin-bottom:8px">Sleep</div><div class="field"><label>In bed</label><input type="time" value="${esc(o.bedAt || '')}" onchange="setDayField('bedAt',this.value)"></div><div class="field" style="margin:0"><label>Woke up</label><input type="time" value="${esc(o.wokeAt || '')}" onchange="setDayField('wokeAt',this.value)"></div>${o.bedAt && o.wokeAt ? `<div class="xs muted" style="margin-top:6px">${sleepDur(o.bedAt, o.wokeAt)} in bed</div>` : ''}</div>
-    <div class="card"><div class="card-t" style="margin-bottom:8px">Money (${S.settings.currency})</div><div class="field"><label>Made</label><input type="number" inputmode="numeric" value="${o.income ?? ''}" placeholder="0" oninput="setDayField('income',this.value)"></div><div class="field" style="margin:0"><label>Spent</label><input type="number" inputmode="numeric" value="${o.spent ?? ''}" placeholder="0" oninput="setDayField('spent',this.value)"></div></div></div>`;
-  // Journal
-  html += `<div class="card"><div class="card-h"><div class="card-t">Debrief</div><div class="card-r">30 seconds, honest</div></div><div class="field"><label>Win</label><input value="${esc(o.win || '')}" placeholder="What worked today?" oninput="setDayField('win',this.value)"></div><div class="field"><label>Loss</label><input value="${esc(o.loss || '')}" placeholder="Where did I break my word?" oninput="setDayField('loss',this.value)"></div><div class="field" style="margin:0"><label>Fix for tomorrow</label><input value="${esc(o.fix || '')}" placeholder="One change" oninput="setDayField('fix',this.value)"></div></div>`;
-  // Score
-  const sc = dayScore(d);
-  html += `<div class="card"><div class="score"><svg class="ring" viewBox="0 0 64 64"><circle class="bgc" cx="32" cy="32" r="27"/><circle class="fgc" cx="32" cy="32" r="27" stroke-dasharray="${2 * Math.PI * 27}" stroke-dashoffset="${2 * Math.PI * 27 * (1 - sc / 100)}"/><text x="32" y="33">${sc}%</text></svg><div class="grow"><div style="font-weight:700">Day score</div><div class="small muted">Routine + standards + targets hit + top 3. ${sc >= 80 ? 'Strong day.' : sc >= 50 ? 'Finish the list.' : 'Minimum day: 10 dials + 25 min BAC, never zero.'}</div></div></div></div>`;
-  $('view-today').innerHTML = html;
-}
+/* ───────── TODAY (phase-aware) ───────── */
+function morningDone(d) { const o = day(d); return routineFor(S.routines.morning, d).every((r) => o.routine[r.id]); }
+function phaseFor(d) { if (!isToday(d)) return dk(d) < dk(new Date()) ? 'past' : 'future'; const nm = nowMin(); if (nm >= tmin(S.settings.shutdown || '20:45')) return 'evening'; if (nm < 12 * 60 && !morningDone(d)) return 'morning'; return 'day'; }
 const secOpen = {};
-function toggleSec(n) { const el = $('sec-' + n); const open = el.classList.contains('hidden'); el.classList.toggle('hidden', !open); secOpen[n] = open; }
-function sleepDur(a, b) { let m = tmin(b) - tmin(a); if (m < 0) m += 1440; return Math.floor(m / 60) + 'h ' + pad(m % 60) + 'm'; }
+function toggleSec(n) { const el = $('sec-' + n); if (!el) return; const open = el.classList.contains('hidden'); el.classList.toggle('hidden', !open); secOpen[n] = open; }
+function sec(id, title, right, body, open) { const isOpen = secOpen[id] != null ? secOpen[id] : open; return `<div class="card"><div class="card-h" onclick="toggleSec('${id}')" style="cursor:pointer;margin-bottom:${isOpen ? 10 : 0}px"><div class="card-t">${title}</div><div class="card-r">${right} <span class="dim">${isOpen ? '▾' : '▸'}</span></div></div><div id="sec-${id}" class="${isOpen ? '' : 'hidden'}">${body}</div></div>`; }
+
+function renderToday() {
+  const d = curDate, k = dk(d), o = day(k), w = dow(d), today = isToday(d), ph = phaseFor(d);
+  const parts = {};
+  parts.timer = timerBanner();
+  parts.intro = !S.settings.introSeen ? `<div class="card" style="border-color:rgba(169,140,255,.5)"><div class="card-h"><div class="card-t purple">How this works</div><button class="btn sm ghost" onclick="S.settings.introSeen=true;S.settings._u=Date.now();save();render()">Got it</button></div><div class="small" style="line-height:1.6"><b>05:20</b> weigh in, then tap Done through the morning steps.<br><b>Afternoon</b> open a dial session during the block: +1 per dial, +1 per owner talk.<br><b>20:45</b> Start shutdown: numbers, debrief, tomorrow's top 3, phone out.<br>Minimum day, never zero: ${S.settings.minDials} dials + ${S.settings.minBac} min BAC, or ${S.settings.stake} ${S.settings.currency} goes in the ledger.</div></div>` : '';
+  parts.stake = today ? stakeAlert() : '';
+  parts.weigh = weighCard(o, k, d);
+  parts.focus = ph === 'morning' ? focusMorning(o, d) : '';
+  parts.now = today && ph !== 'morning' ? nowCard(d) : '';
+  parts.lever = (ph === 'day' || ph === 'past') ? leverCard(o, d) : '';
+  parts.shutdown = (ph === 'evening' || ph === 'past') ? shutdownCard(o, d) : '';
+  parts.change = oneChangeBanner(d);
+  parts.morning = routineCard('morning', d, o, ph === 'morning' || ph === 'future');
+  parts.evening = routineCard('evening', d, o, ph === 'evening' || ph === 'past');
+  parts.score = scoreboardCard(o, d);
+  parts.top3 = top3Card(o, k, d);
+  parts.standards = standardsCard(o);
+  parts.log = sec('log', 'Sleep · money', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : ''}`, sleepMoneyBody(o), ph === 'evening' || ph === 'past');
+  parts.debrief = sec('debrief', 'Debrief', o.win || o.loss || o.fix ? '✓' : '30 seconds, honest', debriefBody(o), ph === 'evening' || ph === 'past');
+  parts.grade = gradeCard(d);
+  const order = {
+    morning: ['timer', 'intro', 'stake', 'weigh', 'focus', 'change', 'morning', 'score', 'top3', 'standards', 'evening', 'log', 'debrief', 'grade'],
+    day: ['timer', 'intro', 'stake', 'weigh', 'now', 'lever', 'change', 'score', 'top3', 'morning', 'standards', 'evening', 'log', 'debrief', 'grade'],
+    evening: ['timer', 'intro', 'stake', 'weigh', 'shutdown', 'now', 'score', 'standards', 'debrief', 'evening', 'top3', 'morning', 'log', 'change', 'grade'],
+    past: ['weigh', 'grade', 'shutdown', 'score', 'top3', 'morning', 'evening', 'standards', 'log', 'debrief', 'lever'],
+    future: ['weigh', 'top3', 'score', 'morning', 'evening', 'standards', 'log', 'debrief'],
+  }[ph];
+  $('view-today').innerHTML = order.map((p) => parts[p] || '').join('');
+}
+
+function weighCard(o, k, d) {
+  const last = latestWeight(k), avg7 = avgWeight(7, k), prev7 = avgWeight(7, dk(addDays(d, -7)));
+  if (o.weighEdit || (o.weight == null && !o.weightSkipped)) {
+    const start = o.weight != null && o.weight !== '' ? o.weight : (last ? last.w : 75);
+    return `<div class="card ac"><div class="card-h"><div class="card-t">⚖️ Morning weigh-in</div><div class="card-r">${last ? `last <b>${fmt(last.w, 1)}</b> · ${fmtShort(pd(last.k))}` : 'first entry'}</div></div>
+      <div class="weigh-big"><button class="stepbtn" onclick="stepWeight(-0.1)">−</button><input id="w-inp" type="number" inputmode="decimal" step="0.1" value="${Number(start).toFixed(1)}" onkeydown="if(event.key==='Enter')saveWeight()"><span class="unit">kg</span><button class="stepbtn" onclick="stepWeight(0.1)">+</button></div>
+      <div class="weigh-stats"><span>7-day avg <b>${avg7 ? fmt(avg7, 1) : '—'}</b></span><span>target <b>${S.settings.weightTarget}</b></span><span>to go <b>${avg7 ? fmt(S.settings.weightTarget - avg7, 1) : (last ? fmt(S.settings.weightTarget - last.w, 1) : '—')}</b> kg</span><span>🔥 <b>${streakWeigh()}</b>d</span></div>
+      <div class="row"><button class="btn primary grow" onclick="saveWeight()">Save weight</button>${o.weighEdit ? `<button class="btn ghost" onclick="cancelWeight()">Cancel</button>` : `<button class="btn ghost" onclick="skipWeight()">Skip</button>`}</div></div>`;
+  }
+  if (o.weight == null || o.weight === '') return `<div class="card warn" onclick="editWeight()" style="cursor:pointer;padding:10px 16px"><div class="row sb"><div class="small"><b class="amber">No weigh-in</b> <span class="muted">· tap to add</span></div><div class="dim">✎</div></div></div>`;
+  const diff = avg7 && prev7 ? avg7 - prev7 : null;
+  return `<div class="card" onclick="editWeight()" style="cursor:pointer;padding:12px 16px"><div class="weigh-compact"><div class="val">${fmt(o.weight, 1)}<small>kg</small></div><div class="grow small muted">7-day avg <b class="acc">${avg7 ? fmt(avg7, 1) : '—'}</b>${diff != null ? ` · <span class="${diff >= 0 ? 'green' : 'red'}">${diff >= 0 ? '+' : ''}${fmt(diff, 1)}</span> vs last week` : ''}<br>${fmt(S.settings.weightTarget - (avg7 || o.weight), 1)} kg to ${S.settings.weightTarget} · 🔥 ${streakWeigh()}-day streak</div><div class="dim">✎</div></div></div>`;
+}
 function stepWeight(s) { const i = $('w-inp'); i.value = (Number(i.value || 0) + s).toFixed(1); }
-function saveWeight() { const v = num($('w-inp').value); if (v == null || v < 30 || v > 200) { toast('Enter a weight between 30 and 200 kg'); return; } const o = day(curDate); o.weight = Math.round(v * 10) / 10; delete o.weighEdit; delete o.weightSkipped; S.routines.morning.filter((r) => r.link === 'weight').forEach((r) => (o.routine[r.id] = 1)); touch(o); toast('Weight saved · ' + fmt(v, 1) + ' kg'); render(); }
+function saveWeight() { const v = num($('w-inp').value); if (v == null || v < 30 || v > 200) { toast('Enter a weight between 30 and 200 kg'); return; } const o = day(curDate); o.weight = Math.round(v * 10) / 10; delete o.weighEdit; delete o.weightSkipped; S.routines.morning.filter((r) => r.link === 'weight').forEach((r) => (o.routine[r.id] = 1)); touch(o); toast('Saved · ' + fmt(v, 1) + ' kg. Next: train.'); render(); }
 function editWeight() { const o = day(curDate); o.weighEdit = true; render(); }
 function cancelWeight() { const o = day(curDate); delete o.weighEdit; render(); }
-function skipWeight() { const o = day(curDate); o.weight = ''; o.weightSkipped = true; touch(o); render(); }
+function skipWeight() { const o = day(curDate); o.weightSkipped = true; touch(o); render(); }
+
+function focusMorning(o, d) {
+  const items = routineFor(S.routines.morning, d); const idx = items.findIndex((r) => !o.routine[r.id]); if (idx < 0) return '';
+  const cur = items[idx], next = items[idx + 1]; const nm = nowMin(); const blk = blocksFor(d).find((b) => tmin(b.start) <= nm && nm < tmin(b.end));
+  return `<div class="card ac focus"><div class="card-h"><div class="card-t">Step ${idx + 1} of ${items.length}</div><div class="card-r">${blk ? `now: ${esc(blk.title)} · until ${blk.end}` : ''}</div></div>
+    <div class="focus-t">${esc(cur.title)}</div>
+    <div class="row" style="margin-top:12px"><button class="btn primary hugebtn grow" onclick="toggleRoutine('${cur.id}')">Done ✓</button></div>
+    <div class="small muted" style="margin-top:10px">${next ? `Next: <b>${esc(next.title)}</b>` : 'Last step. Then out the door.'}</div></div>`;
+}
+function nowCard(d) {
+  const nm = nowMin(), bl = blocksFor(d); const cur = bl.filter((b) => tmin(b.start) <= nm && nm < tmin(b.end)); const next = bl.find((b) => tmin(b.start) > nm);
+  const wake = tmin(S.settings.wake), bed = tmin(S.settings.bed); const pct = clamp(((nm - wake) / (bed - wake)) * 100, 0, 100);
+  return `<div class="card"><div class="card-h"><div class="card-t">Now</div><div class="card-r mono">${pad(Math.floor(nm / 60))}:${pad(nm % 60)}</div></div>
+    ${cur.length ? cur.map((b) => `<div class="now-cur"><span class="tag ${b.kind}" style="display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:8px"></span>${esc(b.title)}</div><div class="now-time">${b.start}–${b.end}${b.note ? ' · ' + esc(b.note) : ''}</div>`).join('') : `<div class="now-cur muted">Nothing scheduled</div>`}
+    ${next ? `<div class="now-next">Next <b>${esc(next.title)}</b> at ${next.start} <span class="muted">(in ${tmin(next.start) - nm} min)</span></div>` : ''}
+    <div class="bar" style="margin-top:10px"><i style="width:${pct}%"></i></div><div class="row sb xs dim" style="margin-top:4px"><span>${S.settings.wake} wake</span><span>${Math.round(pct)}% of the day</span><span>${S.settings.bed} bed</span></div></div>`;
+}
+function paceNeed(c, d) { const w = dow(d); const rem = ALL.filter((x) => x >= w && (c.targets[x] || 0) > 0).length; if (!rem || !c.weekly) return null; return Math.ceil(Math.max(0, c.weekly - counterWeek(c.id, d)) / rem); }
+function leverCard(o, d) {
+  const c = S.counters.items.find((x) => x.id === 'dials'); if (!c) return '';
+  const w = dow(d), tg = c.targets[w] || 0, v = Number(o.counters.dials) || 0, ow = Number(o.counters.owners) || 0, wk = counterWeek('dials', d), need = paceNeed(c, d);
+  const nm = nowMin(), inBlock = isToday(d) && blocksFor(d).find((b) => b.kind === 'dials' && tmin(b.start) <= nm && nm < tmin(b.end)); const active = S.session && S.session.active;
+  if (!tg && !v && !isToday(d)) return '';
+  return `<div class="card ${inBlock || active ? 'ac' : ''}"><div class="card-h"><div class="card-t">The lever · dials</div><div class="card-r"><b>${wk}</b> / ${c.weekly} this week</div></div>
+    <div class="row sb"><div><div class="big">${v}<small> / ${tg || '—'}</small></div><div class="small muted">${tg ? (v >= tg ? 'Target hit. Volume negates luck.' : `${tg - v} left today`) : 'No dial target today'}${need != null && need > 0 ? ` · ${need}/day to reach ${c.weekly}` : ''}${ow ? ` · ${ow} owner${ow > 1 ? 's' : ''}` : ''}</div></div>
+    ${isToday(d) ? `<button class="btn primary" onclick="startSession()">${active ? '▶ Resume session' : inBlock ? '▶ Dial block now' : '▶ Dial session'}</button>` : ''}</div>
+    <div class="bar" style="margin-top:10px"><i class="red" style="width:${clamp((wk / c.weekly) * 100, 0, 100)}%"></i></div></div>`;
+}
+function shutdownCard(o, d) {
+  const g = gradeFor(d), m = minimumMet(d);
+  if (o.shutdownAt) return `<div class="card"><div class="row sb"><div><div style="font-weight:700">Day closed · grade ${g}</div><div class="small muted">${m.met ? 'Minimum met. ' : `<span class="red">Minimum missed.</span> `}Magnesium, phone out, bed ${S.settings.bed}.</div></div><button class="btn sm" onclick="startShutdown()">Reopen</button></div></div>`;
+  return `<div class="card ac"><div class="card-h"><div class="card-t">🌙 Shutdown</div><div class="card-r">5 minutes</div></div><div class="small muted" style="margin-bottom:10px">Log the numbers, debrief, set tomorrow's first action and top 3, then phone out.${!m.met ? ` <span class="red">Minimum not met yet: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC.</span>` : ''}</div><button class="btn primary hugebtn block" onclick="startShutdown()">Start shutdown</button></div>`;
+}
+function oneChangeBanner(d) { const prev = S.reviews[weekKey(addDays(monday(d), -7))]; if (!prev || !prev.change) return ''; return `<div class="card" style="padding:10px 16px;border-color:rgba(169,140,255,.4)"><div class="xs purple" style="letter-spacing:.1em;text-transform:uppercase;font-weight:700">This week's one change</div><div class="small">${esc(prev.change)}</div></div>`; }
+function routineCard(key, d, o, open) {
+  const items = routineFor(S.routines[key], d); if (!items.length) return ''; const done = items.filter((r) => o.routine[r.id]).length; const curIdx = items.findIndex((r) => !o.routine[r.id]);
+  return sec(key, `${key} routine`, `<b>${done}</b>/${items.length} ${done === items.length ? '✓' : ''}`, items.map((r, i) => `<div class="ck ${o.routine[r.id] ? 'on' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}" onclick="toggleRoutine('${r.id}')"><div class="box">${o.routine[r.id] ? '✓' : ''}</div><div class="lbl">${esc(r.title)}</div></div>`).join(''), open);
+}
+function scoreboardCard(o, d) {
+  const w = dow(d); const cs = S.counters.items.filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners'); if (!cs.length) return '';
+  return `<div class="card"><div class="card-h"><div class="card-t">Scoreboard</div><div class="card-r">week of ${fmtShort(monday(d))}</div></div>${cs.map((c) => { const v = Number(o.counters[c.id]) || 0, tg = c.targets[w] || 0, wk = counterWeek(c.id, d), tot = counterTotal(c.id); const timed = c.unit === 'min';
+    return `<div class="counter"><div class="top"><div class="name">${esc(c.title)}</div><div class="num">${v}${tg ? `<small> / ${tg}${c.unit ? ' ' + c.unit : ''}</small>` : (c.unit ? `<small> ${c.unit}</small>` : '')}</div></div>
+      ${tg ? `<div class="bar"><i class="${c.color || ''}" style="width:${clamp((v / tg) * 100, 0, 100)}%"></i></div>` : ''}
+      <div class="btns">${timed ? `<button class="btn" onclick="startTimer('${c.id}',25)">▶ 25</button><button class="btn" onclick="startTimer('${c.id}',50)">▶ 50</button>` : ''}${c.steps.slice(0, timed ? 2 : 3).map((s) => `<button class="btn" onclick="bump('${c.id}',${s})">+${s}</button>`).join('')}<button class="btn" onclick="bump('${c.id}',-${c.steps[0]})">−${c.steps[0]}</button><button class="btn" onclick="setCounter('${c.id}')">=</button></div>
+      <div class="wk">${c.weekly ? `<span>week <b>${wk}</b> / ${c.weekly}${c.unit ? ' ' + c.unit : ''} ${wk >= c.weekly ? '✓' : `· ${c.weekly - wk} left`}</span>` : `<span>week <b>${wk}</b></span>`}<span>all time <b>${tot}</b></span></div></div>`; }).join('')}</div>`;
+}
+function top3Card(o, k, d) {
+  const due = tasksList().filter((t) => !t.done && t.due && t.due <= k).sort((a, b) => a.due.localeCompare(b.due));
+  return `<div class="card top3"><div class="card-h"><div class="card-t">Top 3 for the day</div><div class="card-r">${o.top3.filter((x) => x.d).length}/${o.top3.filter((x) => x.t).length || 3}</div></div>${o.top3.map((x, i) => `<div class="item ${x.d ? 'on' : ''}"><div class="n">${i + 1}</div><input value="${esc(x.t)}" placeholder="${['Most important thing…', 'Second…', 'Third…'][i]}" oninput="setTop3(${i},this.value)"><div class="box" onclick="toggleTop3(${i})">${x.d ? '✓' : ''}</div></div>`).join('')}
+    ${due.length ? `<div class="sec-h">Tasks due</div>${due.map((t) => taskRow(t, k)).join('')}` : ''}<div class="row" style="margin-top:8px"><input id="quick-task" placeholder="+ task for ${isToday(d) ? 'today' : fmtShort(d)}" onkeydown="if(event.key==='Enter')quickTask('${k}')"></div></div>`;
+}
+function standardsCard(o) { return `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div></div>`; }
+function sleepMoneyBody(o) { return `<div class="g2"><div><div class="field"><label>In bed</label><input type="time" value="${esc(o.bedAt || '')}" onchange="setDayField('bedAt',this.value)"></div><div class="field" style="margin:0"><label>Woke up</label><input type="time" value="${esc(o.wokeAt || '')}" onchange="setDayField('wokeAt',this.value)"></div></div><div><div class="field"><label>Made (${S.settings.currency})</label><input type="number" inputmode="numeric" value="${o.income ?? ''}" placeholder="0" oninput="setDayField('income',this.value)"></div><div class="field" style="margin:0"><label>Spent</label><input type="number" inputmode="numeric" value="${o.spent ?? ''}" placeholder="0" oninput="setDayField('spent',this.value)"></div></div></div>`; }
+function debriefBody(o) { return `<div class="field"><label>Win</label><input value="${esc(o.win || '')}" placeholder="What worked today?" oninput="setDayField('win',this.value)"></div><div class="field"><label>Loss</label><input value="${esc(o.loss || '')}" placeholder="Where did I break my word?" oninput="setDayField('loss',this.value)"></div><div class="field" style="margin:0"><label>Fix for tomorrow</label><input value="${esc(o.fix || '')}" placeholder="One change" oninput="setDayField('fix',this.value)"></div>`; }
+function gradeCard(d) {
+  const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
+  const st = [['⚖️', streakWeigh(), 'weigh-ins'], ['📞', streakMinimum(), 'minimum days'], ['🌅', streakMorning(), 'full mornings'], ['😴', streakBed(), `bed ${S.settings.bed}`]];
+  return `<div class="card"><div class="score"><svg class="ring" viewBox="0 0 64 64"><circle class="bgc" cx="32" cy="32" r="27"/><circle class="fgc" cx="32" cy="32" r="27" stroke-dasharray="${2 * Math.PI * 27}" stroke-dashoffset="${2 * Math.PI * 27 * (1 - sc / 100)}" style="stroke:${g === 'A' ? 'var(--accent)' : g === 'B' ? 'var(--green)' : g === 'C' ? 'var(--amber)' : 'var(--red)'}"/><text x="32" y="33">${g}</text></svg><div class="grow"><div style="font-weight:700">Day grade · ${sc}%</div><div class="small muted">${m.met ? 'Minimum met' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}. ${sc >= 85 ? 'A-day. Keep the chain.' : sc >= 70 ? 'Solid. Finish the list.' : m.met ? 'Minimum done, standards slipped.' : `Never zero: ${S.settings.minDials} dials + ${S.settings.minBac} min BAC.`}</div></div></div>
+    <div class="chips" style="margin-top:12px">${st.map(([ic, n, l]) => `<span class="chip ${n > 0 ? 'on' : ''}">${ic} ${n}d <span class="dim">${l}</span></span>`).join('')}</div></div>`;
+}
+function sleepDur(a, b) { let m = tmin(b) - tmin(a); if (m < 0) m += 1440; return Math.floor(m / 60) + 'h ' + pad(m % 60) + 'm'; }
 function toggleRoutine(id) { const o = day(curDate); o.routine[id] = o.routine[id] ? 0 : 1; touch(o); render(); }
 function toggleHabit(id) { const o = day(curDate); o.habits[id] = o.habits[id] ? 0 : 1; touch(o); render(); }
 function bump(id, n) { const o = day(curDate); o.counters[id] = Math.max(0, (Number(o.counters[id]) || 0) + n); touch(o); render(); }
@@ -297,6 +353,73 @@ function setCounter(id) { const o = day(curDate); const c = S.counters.items.fin
 function setTop3(i, v) { const o = day(curDate); o.top3[i].t = v; touch(o); }
 function toggleTop3(i) { const o = day(curDate); if (!o.top3[i].t) return; o.top3[i].d = o.top3[i].d ? 0 : 1; touch(o); render(); }
 function setDayField(f, v) { const o = day(curDate); o[f] = v; touch(o); }
+
+/* ───────── GRADE · MINIMUM · STREAKS · STAKES ───────── */
+function minimumMet(d) { const o = S.days[dk(d)], w = dow(d), st = S.settings; const dials = o ? Number((o.counters || {}).dials) || 0 : 0, bac = o ? Number((o.counters || {}).bac) || 0 : 0; const needDials = WK.includes(w) ? (st.minDials || 0) : 0, needBac = st.minBac || 0; return { met: dials >= needDials && bac >= needBac, dials, bac, needDials, needBac }; }
+function gradeFor(d) { const sc = dayScore(d); let g = sc >= 85 ? 'A' : sc >= 70 ? 'B' : sc >= 50 ? 'C' : sc >= 30 ? 'D' : 'F'; if (dk(d) < dk(new Date()) && S.days[dk(d)] && !minimumMet(d).met && 'ABC'.includes(g)) g = 'D'; return g; }
+function streak(pred) { let d = new Date(); d.setHours(0, 0, 0, 0); if (!pred(d)) d = addDays(d, -1); let n = 0; while (n < 3650 && pred(d)) { n++; d = addDays(d, -1); } return n; }
+function streakWeigh() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.weight != null && o.weight !== ''); }); }
+function streakMinimum() { return streak((d) => !!S.days[dk(d)] && minimumMet(d).met && (Number(S.days[dk(d)].counters.dials) || Number(S.days[dk(d)].counters.bac))); }
+function streakMorning() { return streak((d) => { const o = S.days[dk(d)]; return !!o && routineFor(S.routines.morning, d).every((r) => o.routine[r.id]); }); }
+function streakBed() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.routine && o.routine.bed); }); }
+function evaluateStakes() {
+  const st = S.settings; if (!st.commitStart || !st.stake) return; if (!S.stakes) S.stakes = {};
+  let d = pd(st.commitStart); const floor = addDays(new Date(), -60); if (d < floor) d = floor; const y = addDays(new Date(), -1); y.setHours(0, 0, 0, 0); let changed = false;
+  while (d <= y) { const k = dk(d); if (!S.stakes[k]) { const m = minimumMet(d); if (!m.met) { S.stakes[k] = { _u: now(), amount: st.stake, paid: false, reason: `${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC` }; changed = true; } } d = addDays(d, 1); }
+  if (changed) save();
+}
+function stakesOwed() { return Object.keys(S.stakes || {}).filter((k) => !S.stakes[k].paid && !S.stakes[k].waived).reduce((a, k) => a + (S.stakes[k].amount || 0), 0); }
+function stakeAlert() { const y = dk(addDays(new Date(), -1)); const s = (S.stakes || {})[y]; const owed = stakesOwed(); if (!s || s.paid || s.waived) return owed ? `<div class="card" style="padding:10px 16px;border-color:rgba(255,92,108,.35)" onclick="moreTab='stakes';show('more')"><div class="row sb small"><span><b class="red">${fmt(owed)} ${S.settings.currency}</b> <span class="muted">in unpaid stakes</span></span><span class="dim">›</span></div></div>` : ''; return `<div class="card" style="border-color:var(--red);cursor:pointer" onclick="moreTab='stakes';show('more')"><div class="row sb"><div><div style="font-weight:700" class="red">Yesterday: minimum missed</div><div class="small muted">${esc(s.reason)} · ${fmt(s.amount)} ${S.settings.currency} stake owed${owed > s.amount ? ` · ${fmt(owed)} total` : ''}. Own it, pay it, move.</div></div><div class="dim">›</div></div></div>`; }
+function renderStakes() {
+  const st = S.settings, ks = Object.keys(S.stakes || {}).sort().reverse();
+  return `<div class="card"><div class="card-h"><div class="card-t">The deal</div><div class="card-r">${fmt(stakesOwed())} ${st.currency} owed</div></div><div class="hint" style="margin-bottom:10px">Minimum day, when everything breaks: ${st.minDials} dials (Mon–Fri) + ${st.minBac} min BAC. Never zero. Each missed day costs ${st.stake} ${st.currency}. Missed days are added automatically the next morning.</div>
+    <div class="kv"><span>Min dials (weekdays)</span><input type="number" inputmode="numeric" value="${st.minDials}" onchange="S.settings.minDials=Number(this.value)||0;S.settings._u=Date.now();save()"></div>
+    <div class="kv"><span>Min BAC minutes</span><input type="number" inputmode="numeric" value="${st.minBac}" onchange="S.settings.minBac=Number(this.value)||0;S.settings._u=Date.now();save()"></div>
+    <div class="kv"><span>Stake per missed day</span><input type="number" inputmode="numeric" value="${st.stake}" onchange="S.settings.stake=Number(this.value)||0;S.settings._u=Date.now();save()"></div>
+    <div class="kv"><span>Counting since</span><input type="date" value="${st.commitStart}" onchange="S.settings.commitStart=this.value;S.settings._u=Date.now();save();render()"></div></div>
+    <div class="card"><div class="card-t" style="margin-bottom:6px">Ledger</div>${ks.length ? ks.map((k) => { const s = S.stakes[k]; return `<div class="kv"><div><div class="${s.paid || s.waived ? 'muted' : ''}">${fmtDate(pd(k))}</div><div class="xs muted">${esc(s.reason)}${s.waived ? ' · waived' : s.paid ? ' · paid' : ''}</div></div><div class="row" style="gap:6px">${s.paid || s.waived ? `<span class="v muted">${fmt(s.amount)}</span>` : `<button class="btn sm" onclick="S.stakes['${k}'].paid=true;S.stakes['${k}']._u=Date.now();save();render()">Paid ${fmt(s.amount)}</button><button class="btn sm ghost" onclick="if(confirm('Waive this stake? Only for a real reason (sick, travel).')){S.stakes['${k}'].waived=true;S.stakes['${k}']._u=Date.now();save();render()}">Waive</button>`}</div></div>`; }).join('') : '<div class="empty">No missed days. Keep it that way.</div>'}</div>`;
+}
+
+/* ───────── DIAL SESSION ───────── */
+let sessTimer = null;
+function fmtEl(sec) { return pad(Math.floor(sec / 60)) + ':' + pad(sec % 60); }
+function startSession() { if (!S.session || !S.session.active) { const o = day(curDate); S.session = { _u: now(), active: true, start: now(), date: dk(curDate), d0: Number(o.counters.dials) || 0, o0: Number(o.counters.owners) || 0 }; save(true); } renderSession(); }
+function renderSession() {
+  const s = S.session, o = day(s.date), c = S.counters.items.find((x) => x.id === 'dials'); const dd = pd(s.date), tg = c ? c.targets[dow(dd)] || 0 : 0;
+  const v = Number(o.counters.dials) || 0, ow = Number(o.counters.owners) || 0, sd = v - s.d0, so = ow - s.o0; const nm = nowMin();
+  const blk = isToday(dd) && blocksFor(dd).find((b) => b.kind === 'dials' && tmin(b.start) <= nm && nm < tmin(b.end)); const left = Math.max(0, tg - v); const minsLeft = blk ? tmin(blk.end) - nm : null;
+  const pace = left > 0 && minsLeft > 0 ? `${left} left · ${minsLeft} min in block · one dial every ${Math.max(1, Math.floor(minsLeft / left))} min` : left > 0 ? `${left} left to today's ${tg}` : tg ? 'Target hit. Keep going while it\'s hot.' : 'No target today. Every dial counts toward the week.';
+  openModal(`<h2>Dial session <span class="small muted mono" id="sess-el">${fmtEl(Math.floor((now() - s.start) / 1000))}</span></h2>
+    <div class="sess-num">${v}<small> / ${tg || '—'}</small></div><div class="small muted" style="text-align:center;margin-bottom:14px">${pace}</div>
+    <button class="btn primary hugebtn block" style="height:110px;font-size:28px" onclick="sessBump('dials',1)">+1 dial</button>
+    <div class="g3" style="margin-top:8px"><button class="btn" onclick="sessBump('dials',5)">+5 dials</button><button class="btn" style="border-color:rgba(255,191,63,.5);color:var(--amber)" onclick="sessBump('owners',1)">+1 owner talk</button><button class="btn ghost" onclick="sessBump('dials',-1)">undo −1</button></div>
+    <div class="g3" style="margin-top:14px"><div class="cd"><div class="n">${sd}</div><div class="l">dials this session</div></div><div class="cd"><div class="n">${so}</div><div class="l">owner talks</div></div><div class="cd"><div class="n">${sd ? Math.round((so / sd) * 100) : 0}<span class="small muted">%</span></div><div class="l">reach rate</div></div></div>
+    <div class="hint" style="margin-top:12px">Week: ${counterWeek('dials', dd)} / ${c ? c.weekly : 225}. A no costs nothing; it is the price of a yes. Log every owner conversation.</div>
+    <div class="actions"><button class="btn" onclick="closeModal()">Hide</button><button class="btn danger" onclick="endSession()">End session</button></div>`, true);
+  clearInterval(sessTimer); sessTimer = setInterval(() => { const el = $('sess-el'); if (!el) { clearInterval(sessTimer); return; } el.textContent = fmtEl(Math.floor((now() - s.start) / 1000)); }, 1000);
+}
+function sessBump(id, n) { const o = day(S.session.date); o.counters[id] = Math.max(0, (Number(o.counters[id]) || 0) + n); touch(o); try { navigator.vibrate && navigator.vibrate(15); } catch (e) { } renderSession(); }
+function endSession() { const s = S.session, o = day(s.date); const sd = (Number(o.counters.dials) || 0) - s.d0, so = (Number(o.counters.owners) || 0) - s.o0; if (!o.sessions) o.sessions = []; o.sessions.push({ start: s.start, end: now(), dials: sd, owners: so }); S.session = { _u: now(), active: false }; touch(o); save(true); clearInterval(sessTimer); closeModal(); toast(`Session done: ${sd} dials · ${so} owner talks`); render(); }
+
+/* ───────── FOCUS TIMER ───────── */
+function startTimer(counterId, mins) { if (S.timer) { toast('A timer is already running'); return; } S.timer = { _u: now(), start: now(), mins, counter: counterId, date: dk(curDate) }; save(true); render(); toast(`${mins} min started. Phone face down.`); }
+function stopTimer(complete) { const t = S.timer; if (!t) return; const mins = complete ? t.mins : Math.round((now() - t.start) / 60000); const o = day(t.date); if (mins > 0) { o.counters[t.counter] = (Number(o.counters[t.counter]) || 0) + mins; touch(o); } S.timer = null; save(true); try { if (complete && navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]); } catch (e) { } toast(complete ? `Done · +${mins} min logged` : mins > 0 ? `Stopped · +${mins} min logged` : 'Timer cancelled'); render(); }
+function timerBanner() { const t = S.timer; if (!t) return ''; const rem = Math.max(0, t.mins * 60 - Math.floor((now() - t.start) / 1000)); const c = S.counters.items.find((x) => x.id === t.counter); return `<div class="card ac"><div class="row sb"><div><div class="card-t">Focus · ${esc(c ? c.title : '')} · ${t.mins} min</div><div class="big mono" id="timer-rem">${fmtEl(rem)}</div></div><button class="btn" onclick="stopTimer(false)">Stop</button></div></div>`; }
+setInterval(() => { const t = S && S.timer; if (!t) return; const rem = t.mins * 60 - Math.floor((now() - t.start) / 1000); if (rem <= 0) { stopTimer(true); return; } const el = $('timer-rem'); if (el) el.textContent = fmtEl(rem); else if (view !== 'today') $('top-sub').textContent = '⏱ ' + fmtEl(rem) + ' focus'; }, 1000);
+
+/* ───────── SHUTDOWN WIZARD ───────── */
+let sdStep = 0;
+function startShutdown() { sdStep = 0; renderShutdown(); }
+function renderShutdown() {
+  const k = dk(curDate), o = day(k), d = curDate, w = dow(d), tmr = addDays(d, 1), tk = dk(tmr), ot = day(tk); const steps = ['Numbers', 'Standards', 'Debrief', 'Tomorrow', 'Close']; let body = '';
+  if (sdStep === 0) body = `<div class="hint" style="margin-bottom:10px">Honest numbers for ${fmtShort(d)}. Adjust, don't round up.</div>${S.counters.items.map((c) => `<div class="kv"><span>${esc(c.title)}${c.targets[w] ? ` <span class="xs muted">/ ${c.targets[w]}${c.unit ? ' ' + c.unit : ''}</span>` : ''}</span><input type="number" inputmode="numeric" value="${o.counters[c.id] || 0}" onchange="day('${k}').counters['${c.id}']=Math.max(0,Number(this.value)||0);touch(day('${k}'))"></div>`).join('')}<div class="kv"><span>Made (${S.settings.currency})</span><input type="number" inputmode="numeric" value="${o.income ?? ''}" placeholder="0" onchange="day('${k}').income=this.value;touch(day('${k}'))"></div><div class="kv"><span>Spent</span><input type="number" inputmode="numeric" value="${o.spent ?? ''}" placeholder="0" onchange="day('${k}').spent=this.value;touch(day('${k}'))"></div>`;
+  if (sdStep === 1) body = `<div class="habits" style="margin-bottom:12px">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="day('${k}').habits['${h.id}']=day('${k}').habits['${h.id}']?0:1;touch(day('${k}'));renderShutdown()"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div><div class="field"><label>Top 3 today</label>${o.top3.filter((x) => x.t).map((x, i) => `<div class="ck ${x.d ? 'on' : ''}" onclick="day('${k}').top3[${o.top3.indexOf(x)}].d=${x.d ? 0 : 1};touch(day('${k}'));renderShutdown()"><div class="box">${x.d ? '✓' : ''}</div><div class="lbl">${esc(x.t)}</div></div>`).join('') || '<div class="empty">No top 3 was set today.</div>'}</div>`;
+  if (sdStep === 2) body = debriefBody(o).replace(/oninput="setDayField\('(\w+)',this.value\)"/g, (m, f) => `oninput="day('${k}').${f}=this.value;touch(day('${k}'))"`) + `<div class="hint" style="margin-top:12px">Jocko's idea: own the loss, name the fix. One sentence each.</div>`;
+  if (sdStep === 3) { const bl = blocksFor(tmr).slice(0, 4); const prog = S.programs[S.programByDay.map[dow(tmr)]]; const dc = S.counters.items.find((c) => c.id === 'dials'); body = `<div class="hint" style="margin-bottom:8px">${DAY_LONG[dow(tmr)]} ${fmtShort(tmr)}</div><div class="tl">${bl.map((b) => `<div class="blk"><div class="t">${b.start}–${b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div><div class="small" style="margin:10px 0">${prog ? `🏋️ <b>${esc(prog.name)}</b> · ` : ''}${dc && dc.targets[dow(tmr)] ? `📞 <b>${dc.targets[dow(tmr)]} dials</b>` : '📞 no dial target'}</div><div class="field"><label>Tomorrow's top 3 (decide now, not at 05:20)</label>${ot.top3.map((x, i) => `<input style="margin-bottom:6px" value="${esc(x.t)}" placeholder="${['Most important…', 'Second…', 'Third…'][i]}" oninput="day('${tk}').top3[${i}].t=this.value;touch(day('${tk}'))">`).join('')}</div>`; }
+  if (sdStep === 4) { const g = gradeFor(d), m = minimumMet(d); body = `<div class="countdown" style="margin-bottom:12px"><div class="cd"><div class="n">${g}</div><div class="l">grade · ${dayScore(d)}%</div></div><div class="cd"><div class="n ${m.met ? 'green' : 'red'}">${m.met ? '✓' : '✗'}</div><div class="l">${m.met ? 'minimum met' : `minimum missed · ${S.settings.stake} ${S.settings.currency}`}</div></div></div>${routineFor(S.routines.evening, d).map((r) => `<div class="ck ${o.routine[r.id] ? 'on' : ''}" onclick="day('${k}').routine['${r.id}']=day('${k}').routine['${r.id}']?0:1;touch(day('${k}'));renderShutdown()"><div class="box">${o.routine[r.id] ? '✓' : ''}</div><div class="lbl">${esc(r.title)}</div></div>`).join('')}`; }
+  openModal(`<h2>Shutdown · ${steps[sdStep]} <span class="small muted">${sdStep + 1}/5</span></h2><div class="steps">${steps.map((s, i) => `<i class="${i <= sdStep ? 'on' : ''}"></i>`).join('')}</div>${body}<div class="actions">${sdStep > 0 ? '<button class="btn" onclick="sdStep--;renderShutdown()">Back</button>' : ''}<button class="btn primary" onclick="sdNext()">${sdStep < 4 ? 'Next' : 'Close the day'}</button></div>`, true);
+}
+function sdNext() { if (sdStep < 4) { sdStep++; renderShutdown(); return; } const o = day(curDate); ['dials', 'bacmin', 'tomorrow'].forEach((id) => { if (S.routines.evening.find((r) => r.id === id)) o.routine[id] = 1; }); o.shutdownAt = now(); touch(o); closeModal(); toast(`Day closed · grade ${gradeFor(curDate)}. Phone out. Bed ${S.settings.bed}.`); render(); }
 
 /* ───────── TASKS ───────── */
 function taskRow(t, ctx) { const od = t.due && !t.done && t.due < dk(new Date()); return `<div class="ck ${t.done ? 'done' : ''}" onclick="toggleTask('${t.id}')"><div class="box round ${t.done ? 'on' : ''}" style="${t.done ? 'background:var(--green);border-color:var(--green)' : ''}">${t.done ? '✓' : ''}</div><div class="lbl">${esc(t.title)}${t.due && ctx !== t.due ? `<span class="sub ${od ? 'red' : ''}">${od ? 'overdue · ' : ''}${fmtShort(pd(t.due))}</span>` : ''}${t.note ? `<span class="sub">${esc(t.note)}</span>` : ''}</div><button class="edit" onclick="event.stopPropagation();editTask('${t.id}')">✎</button></div>`; }
@@ -328,7 +451,7 @@ function delTask(id) { S.tasks[id]._del = true; S.tasks[id]._u = now(); save(); 
 let planEdit = false;
 function renderPlan() {
   const m = monday(curDate), sel = dk(curDate), tk = dk(new Date()), nm = nowMin();
-  const strip = ALL.map((i) => { const d = addDays(m, i - 1), k = dk(d), o = S.days[k], sc = o ? dayScore(d) : 0; const wt = o && o.weight ? fmt(o.weight, 1) : ''; return `<div class="wday ${k === tk ? 'today' : ''} ${k === sel ? 'sel' : ''}" onclick="selDay('${k}')"><div class="d">${DAY_SHORT[i]}</div><div class="n">${d.getDate()}</div><div class="s">${wt || (o && sc ? sc + '%' : '·')}</div><div class="dot ${o && k <= tk ? (sc >= 70 ? 'hi' : sc >= 40 ? 'mid' : 'lo') : ''}"></div></div>`; }).join('');
+  const strip = ALL.map((i) => { const d = addDays(m, i - 1), k = dk(d), o = S.days[k], sc = o ? dayScore(d) : 0; const wt = o && o.weight ? fmt(o.weight, 1) : ''; const g = o && k <= tk ? gradeFor(d) : ''; return `<div class="wday ${k === tk ? 'today' : ''} ${k === sel ? 'sel' : ''}" onclick="selDay('${k}')"><div class="d">${DAY_SHORT[i]}</div><div class="n">${d.getDate()}</div><div class="s">${g ? `<b>${g}</b>${wt ? ' · ' + wt : ''}` : (wt || '·')}</div><div class="dot ${o && k <= tk ? (sc >= 70 ? 'hi' : sc >= 40 ? 'mid' : 'lo') : ''}"></div></div>`; }).join('');
   const dials = S.counters.items.find((c) => c.id === 'dials'), bac = S.counters.items.find((c) => c.id === 'bac');
   const sum = `<div class="g3" style="margin-bottom:12px">${dials ? `<div class="cd"><div class="n">${counterWeek('dials', curDate)}<span class="small muted">/${dials.weekly}</span></div><div class="l">dials this week</div></div>` : ''}${bac ? `<div class="cd"><div class="n">${(counterWeek('bac', curDate) / 60).toFixed(1)}<span class="small muted">h</span></div><div class="l">BAC study</div></div>` : ''}<div class="cd"><div class="n">${workoutsWeek(curDate)}<span class="small muted">/7</span></div><div class="l">training days</div></div></div>`;
   const bl = blocksFor(curDate);
@@ -445,19 +568,21 @@ function delGoal(id) { S.goals[id]._del = true; S.goals[id]._u = now(); save(); 
 let moreTab = 'home';
 function renderMore() {
   const t = moreTab, sync = S.settings.sync;
-  const tabs = `<div class="chips" style="margin-bottom:12px">${[['home', 'Menu'], ['weight', 'Weight'], ['review', 'Weekly review'], ['routines', 'Routines'], ['counters', 'Scoreboard'], ['sync', 'Sync'], ['install', 'Install']].map(([v, l]) => `<span class="chip ${t === v ? 'on' : ''}" onclick="moreTab='${v}';render()">${l}</span>`).join('')}</div>`;
+  const tabs = `<div class="chips" style="margin-bottom:12px">${[['home', 'Menu'], ['weight', 'Weight'], ['stakes', 'Stakes'], ['review', 'Weekly review'], ['routines', 'Routines'], ['counters', 'Scoreboard'], ['sync', 'Sync'], ['install', 'Install']].map(([v, l]) => `<span class="chip ${t === v ? 'on' : ''}" onclick="moreTab='${v}';render()">${l}</span>`).join('')}</div>`;
   let html = tabs;
   if (t === 'home') {
-    html += `<div class="card">${[['weight', 'Weight history', 'chart, averages, pace to 85 kg'], ['review', 'Weekly review', 'the Sunday 30 minutes'], ['routines', 'Routines & standards', 'edit the morning / evening lists'], ['counters', 'Scoreboard targets', 'dials, BAC minutes, per weekday'], ['sync', 'Sync & backup', sync.code ? 'connected · ' + syncLabel() : 'phone ↔ laptop'], ['install', 'Install on home screen', 'iPhone & Android steps']].map(([v, a, b]) => `<div class="setting-row" onclick="moreTab='${v}';render()"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>
+    html += `<div class="card">${[['weight', 'Weight history', 'chart, averages, pace to 85 kg'], ['stakes', 'Stakes & minimum day', stakesOwed() ? fmt(stakesOwed()) + ' ' + S.settings.currency + ' owed' : 'never zero · ' + S.settings.stake + ' ' + S.settings.currency + ' per missed day'], ['review', 'Weekly review', 'the Sunday 30 minutes'], ['routines', 'Routines & standards', 'edit the morning / evening lists'], ['counters', 'Scoreboard targets', 'dials, BAC minutes, per weekday'], ['sync', 'Sync & backup', sync.code ? 'connected · ' + syncLabel() : 'phone ↔ laptop'], ['install', 'Install on home screen', 'iPhone & Android steps']].map(([v, a, b]) => `<div class="setting-row" onclick="moreTab='${v}';render()"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>
       <div class="card"><div class="card-t" style="margin-bottom:8px">Settings</div>
       <div class="kv"><span>Wake</span><input type="time" value="${S.settings.wake}" onchange="S.settings.wake=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Bed</span><input type="time" value="${S.settings.bed}" onchange="S.settings.bed=this.value;S.settings._u=Date.now();save()"></div>
+      <div class="kv"><span>Shutdown starts</span><input type="time" value="${S.settings.shutdown}" onchange="S.settings.shutdown=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Weight target (kg)</span><input type="number" inputmode="decimal" value="${S.settings.weightTarget}" onchange="S.settings.weightTarget=Number(this.value)||85;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>BAC first exam</span><input type="date" value="${S.settings.bacDate}" onchange="S.settings.bacDate=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Big date</span><input type="date" value="${S.settings.bigDate}" onchange="S.settings.bigDate=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Currency</span><input value="${esc(S.settings.currency)}" onchange="S.settings.currency=this.value||'MDL';S.settings._u=Date.now();save()"></div></div>
       <div class="xs dim" style="text-align:center;margin:10px 0">War Room v${APP_VERSION} · data lives on this device${sync.code ? ' + cloud' : ''}</div>`;
   } else if (t === 'weight') html += renderWeight();
+  else if (t === 'stakes') html += renderStakes();
   else if (t === 'review') html += renderReview();
   else if (t === 'routines') html += renderRoutinesEditor();
   else if (t === 'counters') html += renderCountersEditor();
@@ -495,7 +620,7 @@ function renderReview() {
   let inc = 0, sp = 0, scores = []; for (let i = 0; i < 7; i++) { const o = S.days[dk(addDays(m, i))]; if (o) { inc += Number(o.income) || 0; sp += Number(o.spent) || 0; if (dk(addDays(m, i)) <= dk(new Date())) scores.push(dayScore(addDays(m, i))); } }
   const rows = S.counters.items.map((c) => `<div class="kv"><span>${esc(c.title)}</span><span class="v">${counterWeek(c.id, d)}${c.weekly ? ` / ${c.weekly}` : ''}${c.unit ? ' ' + c.unit : ''}</span></div>`).join('');
   return `<div class="card"><div class="card-h"><div class="card-t">Week of ${fmtShort(m)} – ${fmtShort(addDays(m, 6))}</div><div class="row" style="gap:4px"><button class="btn sm" onclick="curDate=addDays(curDate,-7);render()">‹</button><button class="btn sm" onclick="curDate=addDays(curDate,7);render()">›</button></div></div>${rows}
-    <div class="kv"><span>Training days</span><span class="v">${workoutsWeek(d)} / 7</span></div><div class="kv"><span>Weight, 7-day avg</span><span class="v">${aw ? fmt(aw, 1) : '—'} kg ${aw && awp ? `<span class="${aw - awp >= 0 ? 'green' : 'red'}">(${aw - awp >= 0 ? '+' : ''}${fmt(aw - awp, 1)})</span>` : ''}</span></div><div class="kv"><span>Money (${S.settings.currency})</span><span class="v">+${fmt(inc)} / −${fmt(sp)}</span></div><div class="kv"><span>Avg day score</span><span class="v">${scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) + '%' : '—'}</span></div></div>
+    <div class="kv"><span>Training days</span><span class="v">${workoutsWeek(d)} / 7</span></div><div class="kv"><span>Weight, 7-day avg</span><span class="v">${aw ? fmt(aw, 1) : '—'} kg ${aw && awp ? `<span class="${aw - awp >= 0 ? 'green' : 'red'}">(${aw - awp >= 0 ? '+' : ''}${fmt(aw - awp, 1)})</span>` : ''}</span></div><div class="kv"><span>Money (${S.settings.currency})</span><span class="v">+${fmt(inc)} / −${fmt(sp)}</span></div><div class="kv"><span>Avg day score</span><span class="v">${scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) + '%' : '—'}</span></div><div class="kv"><span>Minimum days missed</span><span class="v">${ALL.filter((i) => S.stakes && S.stakes[dk(addDays(m, i - 1))]).length}</span></div></div>
     <div class="card"><div class="field"><label>What happened (numbers, wins, misses)</label><textarea style="min-height:110px" oninput="setReview('${wk}','text',this.value)">${esc(r.text)}</textarea></div><div class="field" style="margin:0"><label>ONE change for next week</label><input value="${esc(r.change)}" placeholder="Just one." oninput="setReview('${wk}','change',this.value)"></div></div>
     ${Object.keys(S.reviews).filter((k) => k !== wk && S.reviews[k].change).sort().reverse().slice(0, 6).map((k) => `<div class="card" style="padding:10px 14px"><div class="xs muted">${fmtShort(pd(k.slice(1)))}</div><div class="small">${esc(S.reviews[k].change)}</div></div>`).join('')}`;
 }
@@ -540,7 +665,7 @@ async function pushCloud() {
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
 function merge(remote) {
-  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews'];
+  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes'];
   for (const k of singles) if (remote[k] && (remote[k]._u || 0) > (S[k]._u || 0)) { const keepSync = k === 'settings' ? S.settings.sync : null; S[k] = remote[k]; if (keepSync) S.settings.sync = keepSync; changed = true; }
   for (const k of maps) { if (!remote[k]) continue; if (!S[k]) S[k] = {}; for (const id in remote[k]) { const r = remote[k][id], l = S[k][id]; if (!l || (r._u || 0) > (l._u || 0)) { S[k][id] = r; changed = true; } } }
   return changed;
@@ -564,14 +689,14 @@ function importData(e) { const f = e.target.files[0]; if (!f) return; const r = 
 function resetAll() { if (!confirm('Delete ALL local data and restore the defaults? Export first if unsure.')) return; localStorage.removeItem(STORE); S = seed(); save(true); moreTab = 'home'; show('today'); }
 
 /* ───────── modal ───────── */
-function openModal(html) { $('modal').innerHTML = `<div style="display:flex;justify-content:flex-end"><button class="iconbtn" onclick="closeModal()" aria-label="Close">×</button></div>` + html; $('modal-bg').classList.add('open'); const f = $('modal').querySelector('input:not([type=date]):not([type=time]),textarea'); if (f && !f.value) setTimeout(() => f.focus(), 50); }
-function closeModal() { $('modal-bg').classList.remove('open'); }
+function openModal(html, noFocus) { $('modal').innerHTML = `<div style="display:flex;justify-content:flex-end"><button class="iconbtn" onclick="closeModal()" aria-label="Close">×</button></div>` + html; $('modal-bg').classList.add('open'); if (noFocus) return; const f = $('modal').querySelector('input:not([type=date]):not([type=time]),textarea'); if (f && !f.value) setTimeout(() => f.focus(), 50); }
+function closeModal() { $('modal-bg').classList.remove('open'); clearInterval(sessTimer); }
 $('modal-bg').addEventListener('click', (e) => { if (e.target === $('modal-bg')) closeModal(); });
 
 /* ───────── init ───────── */
-load(); render();
+load(); evaluateStakes(); render();
 if (syncReady()) pullCloud(true);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'today' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; render(); if (syncReady()) pullCloud(true); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'today' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) pullCloud(true); } });
 setInterval(() => { if (view === 'today' && isToday(curDate) && !document.activeElement.matches('input,textarea')) render(); }, 60000);
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready', 'Reload', () => location.reload()); }); }); }).catch(() => {});
