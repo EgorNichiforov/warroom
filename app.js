@@ -1,6 +1,6 @@
 /* War Room — Egor's daily command center. Vanilla JS, offline-first, optional Supabase sync. */
 'use strict';
-const APP_VERSION = '3.1.0';
+const APP_VERSION = '3.2.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -180,7 +180,23 @@ function load() {
   for (const k of ['shutdown', 'minDials', 'minBac', 'stake', 'commitStart']) if (S.settings[k] === undefined) S.settings[k] = d.settings[k];
   if (!S.stakes) S.stakes = {}; if (!S.session) S.session = { _u: 0, active: false };
   migrate();
+  migrateHabits();
 }
+/* ───────── money: same categories as the War Room Google Sheet ───────── */
+const MONEY_IN = [['tennis', 'Tennis'], ['agency', 'Agency']];
+const MONEY_OUT = [['food', 'Food'], ['transport', 'Transport'], ['out', 'Going out'], ['gym', 'Gym & health'], ['shopping', 'Shopping'], ['business', 'Business'], ['other', 'Other']];
+function setMoney(k, key, v) {
+  const o = day(k); o.money = o.money || {};
+  o.money[key] = v === '' ? '' : Math.max(0, Number(v) || 0);
+  const sum = (list) => list.reduce((t, [id]) => t + (Number(o.money[id]) || 0), 0);
+  o.income = sum(MONEY_IN); o.spent = sum(MONEY_OUT); touch(o);
+}
+function moneyFields(k) {
+  const o = day(k), m = o.money || {};
+  const f = ([id, label]) => `<div class="kv"><span>${label}</span><input type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0" onchange="setMoney('${k}','${id}',this.value)"></div>`;
+  return `<div class="small muted" style="margin:6px 0 2px">Made (${S.settings.currency})</div>${MONEY_IN.map(f).join('')}<div class="small muted" style="margin:10px 0 2px">Spent (${S.settings.currency})</div>${MONEY_OUT.map(f).join('')}`;
+}
+
 /* ───────── migrations ───────── */
 /* 8 Nov 2026: the company is priority #1. EgorFlow → Caregiver Bench. BAC: pass with 8+, not 9+.
    Freed BAC time goes to company deep work (AI screener, call lists, script). Runs once per device. */
@@ -222,6 +238,15 @@ function migrate() {
   S.settings.bigLabel = 'July 1, 2027 · $20k MRR · Caregiver Bench'; S.settings._u = t;
   S.migrations.m20261108 = t;
   save(true);
+}
+function migrateHabits() {
+  if (S.migrations.m20261108b) return;
+  S.habits.items = [
+    { id: 'sleep', title: '😴 Sleep (bed 21:00, 8 h)' }, { id: 'train', title: '🏋️ Train' },
+    { id: 'foodwater', title: '🥗 Food & Water' }, { id: 'sun', title: '☀️ Sun' },
+    { id: 'digital', title: '📴 Digital Protocol' }, { id: 'honor', title: '🤝 Honor Check' },
+    { id: 'deep', title: '🏗 Deep Work (company)' }];
+  S.habits._u = now(); S.migrations.m20261108b = now(); save(true);
 }
 let saveTimer = null;
 function save(immediate) {
@@ -380,7 +405,7 @@ function top3Card(o, k, d) {
     ${due.length ? `<div class="sec-h">Tasks due</div>${due.map((t) => taskRow(t, k)).join('')}` : ''}<div class="row" style="margin-top:8px"><input id="quick-task" placeholder="+ task for ${isToday(d) ? 'today' : fmtShort(d)}" onkeydown="if(event.key==='Enter')quickTask('${k}')"></div></div>`;
 }
 function standardsCard(o) { return `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div></div>`; }
-function sleepMoneyBody(o) { return `<div class="g2"><div><div class="field"><label>In bed</label><input type="time" value="${esc(o.bedAt || '')}" onchange="setDayField('bedAt',this.value)"></div><div class="field" style="margin:0"><label>Woke up</label><input type="time" value="${esc(o.wokeAt || '')}" onchange="setDayField('wokeAt',this.value)"></div></div><div><div class="field"><label>Made (${S.settings.currency})</label><input type="number" inputmode="numeric" value="${o.income ?? ''}" placeholder="0" oninput="setDayField('income',this.value)"></div><div class="field" style="margin:0"><label>Spent</label><input type="number" inputmode="numeric" value="${o.spent ?? ''}" placeholder="0" oninput="setDayField('spent',this.value)"></div></div></div>`; }
+function sleepMoneyBody(o) { return `<div class="g2"><div class="field"><label>In bed</label><input type="time" value="${esc(o.bedAt || '')}" onchange="setDayField('bedAt',this.value)"></div><div class="field"><label>Woke up</label><input type="time" value="${esc(o.wokeAt || '')}" onchange="setDayField('wokeAt',this.value)"></div></div>${moneyFields(dk(curDate))}`; }
 function debriefBody(o) { return `<div class="field"><label>Win</label><input value="${esc(o.win || '')}" placeholder="What worked today?" oninput="setDayField('win',this.value)"></div><div class="field"><label>Loss</label><input value="${esc(o.loss || '')}" placeholder="Where did I break my word?" oninput="setDayField('loss',this.value)"></div><div class="field" style="margin:0"><label>Fix for tomorrow</label><input value="${esc(o.fix || '')}" placeholder="One change" oninput="setDayField('fix',this.value)"></div>`; }
 function gradeCard(d) {
   const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
@@ -455,7 +480,7 @@ let sdStep = 0;
 function startShutdown() { sdStep = 0; renderShutdown(); }
 function renderShutdown() {
   const k = dk(curDate), o = day(k), d = curDate, w = dow(d), tmr = addDays(d, 1), tk = dk(tmr), ot = day(tk); const steps = ['Numbers', 'Standards', 'Debrief', 'Tomorrow', 'Close']; let body = '';
-  if (sdStep === 0) body = `<div class="hint" style="margin-bottom:10px">Honest numbers for ${fmtShort(d)}. Adjust, don't round up.</div>${S.counters.items.map((c) => `<div class="kv"><span>${esc(c.title)}${c.targets[w] ? ` <span class="xs muted">/ ${c.targets[w]}${c.unit ? ' ' + c.unit : ''}</span>` : ''}</span><input type="number" inputmode="numeric" value="${o.counters[c.id] || 0}" onchange="day('${k}').counters['${c.id}']=Math.max(0,Number(this.value)||0);touch(day('${k}'))"></div>`).join('')}<div class="kv"><span>Made (${S.settings.currency})</span><input type="number" inputmode="numeric" value="${o.income ?? ''}" placeholder="0" onchange="day('${k}').income=this.value;touch(day('${k}'))"></div><div class="kv"><span>Spent</span><input type="number" inputmode="numeric" value="${o.spent ?? ''}" placeholder="0" onchange="day('${k}').spent=this.value;touch(day('${k}'))"></div>`;
+  if (sdStep === 0) body = `<div class="hint" style="margin-bottom:10px">Honest numbers for ${fmtShort(d)}. Adjust, don't round up.</div>${S.counters.items.map((c) => `<div class="kv"><span>${esc(c.title)}${c.targets[w] ? ` <span class="xs muted">/ ${c.targets[w]}${c.unit ? ' ' + c.unit : ''}</span>` : ''}</span><input type="number" inputmode="numeric" value="${o.counters[c.id] || 0}" onchange="day('${k}').counters['${c.id}']=Math.max(0,Number(this.value)||0);touch(day('${k}'))"></div>`).join('')}${moneyFields(k)}`;
   if (sdStep === 1) body = `<div class="habits" style="margin-bottom:12px">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="day('${k}').habits['${h.id}']=day('${k}').habits['${h.id}']?0:1;touch(day('${k}'));renderShutdown()"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div><div class="field"><label>Top 3 today</label>${o.top3.filter((x) => x.t).map((x, i) => `<div class="ck ${x.d ? 'on' : ''}" onclick="day('${k}').top3[${o.top3.indexOf(x)}].d=${x.d ? 0 : 1};touch(day('${k}'));renderShutdown()"><div class="box">${x.d ? '✓' : ''}</div><div class="lbl">${esc(x.t)}</div></div>`).join('') || '<div class="empty">No top 3 was set today.</div>'}</div>`;
   if (sdStep === 2) body = debriefBody(o).replace(/oninput="setDayField\('(\w+)',this.value\)"/g, (m, f) => `oninput="day('${k}').${f}=this.value;touch(day('${k}'))"`) + `<div class="hint" style="margin-top:12px">Jocko's idea: own the loss, name the fix. One sentence each.</div>`;
   if (sdStep === 3) { const bl = blocksFor(tmr).slice(0, 4); const prog = S.programs[S.programByDay.map[dow(tmr)]]; const dc = S.counters.items.find((c) => c.id === 'dials'); body = `<div class="hint" style="margin-bottom:8px">${DAY_LONG[dow(tmr)]} ${fmtShort(tmr)}</div><div class="tl">${bl.map((b) => `<div class="blk"><div class="t">${b.start}–${b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div><div class="small" style="margin:10px 0">${prog ? `🏋️ <b>${esc(prog.name)}</b> · ` : ''}${dc && dc.targets[dow(tmr)] ? `📞 <b>${dc.targets[dow(tmr)]} dials</b>` : '📞 no dial target'}</div><div class="field"><label>Tomorrow's top 3 (decide now, not at 05:20)</label>${ot.top3.map((x, i) => `<input style="margin-bottom:6px" value="${esc(x.t)}" placeholder="${['Most important…', 'Second…', 'Third…'][i]}" oninput="day('${tk}').top3[${i}].t=this.value;touch(day('${tk}'))">`).join('')}</div>`; }
