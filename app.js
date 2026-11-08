@@ -1,6 +1,6 @@
 /* War Room — Egor's daily command center. Vanilla JS, offline-first, optional Supabase sync. */
 'use strict';
-const APP_VERSION = '3.0.0';
+const APP_VERSION = '3.1.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -179,6 +179,49 @@ function load() {
   if (!S.settings.sync) S.settings.sync = d.settings.sync;
   for (const k of ['shutdown', 'minDials', 'minBac', 'stake', 'commitStart']) if (S.settings[k] === undefined) S.settings[k] = d.settings[k];
   if (!S.stakes) S.stakes = {}; if (!S.session) S.session = { _u: 0, active: false };
+  migrate();
+}
+/* ───────── migrations ───────── */
+/* 8 Nov 2026: the company is priority #1. EgorFlow → Caregiver Bench. BAC: pass with 8+, not 9+.
+   Freed BAC time goes to company deep work (AI screener, call lists, script). Runs once per device. */
+function migrate() {
+  S.migrations = S.migrations || {};
+  if (S.migrations.m20261108) return;
+  const t = now();
+  for (const id in S.goals) {
+    const g = S.goals[id]; if (!g || g._del) continue;
+    if (/EgorFlow MRR/i.test(g.title)) { g.title = 'Caregiver Bench MRR'; g._u = t; }
+    if (/^BAC average 9\+/i.test(g.title)) { g.title = 'BAC: pass with an 8+ average (finish it, not perfect it)'; g.target = 8; g._u = t; }
+    if (/^20 h BAC study/i.test(g.title)) { g.title = '8 h BAC study'; g.target = 500; g._u = t; }
+    if (/^Owner conversations/i.test(g.title)) { g.title = '100 owner conversations (review 8 Dec)'; g.deadline = '2026-12-08'; g._u = t; }
+  }
+  if (!Object.values(S.goals).some((g) => g && /first 3 paying agencies/i.test(g.title))) {
+    const id = 'g-first3'; S.goals[id] = { id, _u: t, title: 'First 3 paying agencies (Stage 1 gate)', horizon: 'long', target: 3, unit: 'agencies', deadline: '2027-03-01', source: 'manual', current: null, done: false };
+  }
+  const bac = S.counters.items.find((c) => c.id === 'bac');
+  if (bac) { bac.targets = [0, 25, 25, 25, 115, 115, 110, 90]; bac.weekly = 500; }
+  const ow = S.counters.items.find((c) => c.id === 'owners');
+  if (ow) { ow.targets = [0, 5, 5, 5, 5, 5, 0, 0]; ow.weekly = 25; }
+  S.counters._u = t;
+  const bl = S.schedule.blocks; const add = [];
+  for (const b of bl) {
+    if (b.kind === 'bac' && b.start === '06:15' && b.end === '07:30') {
+      b.title = '📚 BAC: Anki (25 min)'; b.end = '06:40'; b.note = 'Minimum BAC for the day. Then straight into company work.';
+      add.push({ id: uid(), title: '🏗 Company deep work: AI screener · call list · script', start: '06:40', end: '07:30', days: b.days.slice(), kind: 'agency', note: 'Phone away. Florida is asleep, so build: the screener, tomorrow\'s numbers, the script.' });
+    }
+    if (b.kind === 'bac' && b.start === '06:00' && b.end === '09:00' && b.days.includes(7)) {
+      b.title = '📚 BAC: corectare test + plan'; b.end = '07:00';
+      add.push({ id: uid(), title: '🏗 Company deep work: build + week plan', start: '07:00', end: '09:00', days: [7], kind: 'agency', note: 'Biggest build block of the week.' });
+    }
+    if (b.kind === 'bac' && b.start === '17:00' && b.end === '18:30' && b.days.includes(6)) {
+      b.title = '🧑‍⚕️ Caregiver Bench: applicants + screener testing'; b.kind = 'agency'; b.note = 'Florida Saturday 10:00. Freed from BAC on 8 Nov.';
+    }
+    b.title = b.title.replace(/EgorFlow/g, 'Caregiver Bench');
+  }
+  bl.push(...add); S.schedule._u = t;
+  S.settings.bigLabel = 'July 1, 2027 · $20k MRR · Caregiver Bench'; S.settings._u = t;
+  S.migrations.m20261108 = t;
+  save(true);
 }
 let saveTimer = null;
 function save(immediate) {
@@ -394,7 +437,7 @@ function renderSession() {
     <button class="btn primary hugebtn block" style="height:110px;font-size:28px" onclick="sessBump('dials',1)">+1 dial</button>
     <div class="g3" style="margin-top:8px"><button class="btn" onclick="sessBump('dials',5)">+5 dials</button><button class="btn" style="border-color:rgba(255,191,63,.5);color:var(--amber)" onclick="sessBump('owners',1)">+1 owner talk</button><button class="btn ghost" onclick="sessBump('dials',-1)">undo −1</button></div>
     <div class="g3" style="margin-top:14px"><div class="cd"><div class="n">${sd}</div><div class="l">dials this session</div></div><div class="cd"><div class="n">${so}</div><div class="l">owner talks</div></div><div class="cd"><div class="n">${sd ? Math.round((so / sd) * 100) : 0}<span class="small muted">%</span></div><div class="l">reach rate</div></div></div>
-    <div class="hint" style="margin-top:12px">Week: ${counterWeek('dials', dd)} / ${c ? c.weekly : 225}. A no costs nothing; it is the price of a yes. Log every owner conversation.</div>
+    <div class="hint" style="margin-top:12px">Week: ${counterWeek('dials', dd)} / ${c ? c.weekly : 225}. A no costs nothing; it is the price of a yes. Log every owner conversation.<br><b>The ask:</b> “Would it be a terrible idea if I sent you a free snapshot of what's working for caregiver hiring in Naples right now?”</div>
     <div class="actions"><button class="btn" onclick="closeModal()">Hide</button><button class="btn danger" onclick="endSession()">End session</button></div>`, true);
   clearInterval(sessTimer); sessTimer = setInterval(() => { const el = $('sess-el'); if (!el) { clearInterval(sessTimer); return; } el.textContent = fmtEl(Math.floor((now() - s.start) / 1000)); }, 1000);
 }

@@ -13,7 +13,7 @@ No build step, no framework, no account: `index.html` + `app.js` + a service wor
 | **Plan** | Week strip with weight and day score per day, the weekly numbers, and the full time-blocked schedule for the selected day (mirrors the recurring Google Calendar). Tap Edit to change or add blocks. |
 | **Tasks** | Fast capture. Overdue / Today / Tomorrow / Upcoming / No date. Tap a task to edit, re-date, or delete. |
 | **Train** | The weekly split from the calendar (Upper A, Core + prehab, Upper B, Leg accessories, Arms + prehab, Upper C, Recovery) with every exercise, sets × reps and coaching notes. Log kg/reps per set; last session shows as placeholders. Finishing a workout ticks the routine. Programs are editable as plain text. |
-| **Goals** | Countdowns to July 1, 2027 and BAC. Weekly goals (225 dials, 20 h BAC, 6 training days) fill in automatically from the Scoreboard; monthly and campaign goals (MRR, clients, 100 owner conversations, 85 kg, BAC 9+) are tracked with progress bars. |
+| **Goals** | Countdowns to July 1, 2027 and BAC. Weekly goals (225 dials, 20 h BAC, 6 training days) fill in automatically from the Scoreboard; monthly and campaign goals (Caregiver Bench MRR, first 3 paying agencies, 100 owner conversations by 8 Dec, 85 kg, BAC pass with 8+) are tracked with progress bars. |
 | **More (⚙)** | **Stakes**: the minimum day (10 dials Mon–Fri + 25 min BAC, never zero) is checked automatically each morning; a missed day adds 500 MDL to the ledger (mark paid or waive). Also: Weight history with 7-day-average chart and pace to target, the Sunday weekly review, routine / standards / scoreboard editors, sync, backup, install steps. |
 
 ## Install on the phone
