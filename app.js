@@ -1,6 +1,6 @@
 /* War Room — Egor's daily command center. Vanilla JS, offline-first, optional Supabase sync. */
 'use strict';
-const APP_VERSION = '3.2.0';
+const APP_VERSION = '3.3.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -195,6 +195,36 @@ function moneyFields(k) {
   const o = day(k), m = o.money || {};
   const f = ([id, label]) => `<div class="kv"><span>${label}</span><input type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0" onchange="setMoney('${k}','${id}',this.value)"></div>`;
   return `<div class="small muted" style="margin:6px 0 2px">Made (${S.settings.currency})</div>${MONEY_IN.map(f).join('')}<div class="small muted" style="margin:10px 0 2px">Spent (${S.settings.currency})</div>${MONEY_OUT.map(f).join('')}`;
+}
+
+/* ───────── quick spend (cash): one tap from anywhere ───────── */
+let spendCat = null;
+function spendDefault() { try { return localStorage.getItem('wr-spendcat') || 'food'; } catch { return 'food'; } }
+function openSpend() {
+  const k = dk(new Date()), o = day(k); spendCat = spendCat || spendDefault();
+  const list = (o.spends || []).slice().reverse();
+  const lbl = (c) => (MONEY_OUT.find((x) => x[0] === c) || [c, c])[1];
+  openModal(`<div class="card-t" style="margin-bottom:4px">💸 Spent cash</div><div class="small muted" style="margin-bottom:12px">Today so far: <b>${Number(o.spent) || 0} ${S.settings.currency}</b></div>
+    <input id="sp-amt" type="number" inputmode="decimal" placeholder="0" style="font-size:40px;font-weight:700;text-align:center;padding:14px" onkeydown="if(event.key==='Enter')addSpend()">
+    <div class="chips" id="sp-cats" style="margin:14px 0">${MONEY_OUT.map(([id, l]) => `<button class="chip ${id === spendCat ? 'on' : ''}" style="font-size:14px;padding:9px 14px" onclick="spendCat='${id}';document.querySelectorAll('#sp-cats .chip').forEach(c=>c.classList.toggle('on',c.dataset.c==='${id}'))" data-c="${id}">${l}</button>`).join('')}</div>
+    <button class="btn primary block" style="min-height:54px;font-size:17px" onclick="addSpend()">Add</button>
+    ${list.length ? `<div class="small muted" style="margin:16px 0 6px">Today</div>${list.map((e) => `<div class="kv"><span>${e.at} · ${lbl(e.c)}</span><span><b>${e.a}</b> <button class="btn sm ghost" onclick="delSpend('${e.id}')">×</button></span></div>`).join('')}` : ''}`);
+}
+function addSpend() {
+  const a = Number(($('sp-amt') || {}).value); if (!(a > 0)) { toast('Type an amount'); return; }
+  const k = dk(new Date()), o = day(k), c = spendCat || 'food'; o.money = o.money || {}; o.spends = o.spends || [];
+  const t = new Date(), id = uid();
+  o.spends.push({ id, a, c, at: t.toTimeString().slice(0, 5) });
+  setMoney(k, c, (Number(o.money[c]) || 0) + a);
+  try { localStorage.setItem('wr-spendcat', c); } catch {}
+  closeModal(); render();
+  toast(`−${a} ${(MONEY_OUT.find((x) => x[0] === c) || [, c])[1]} · today ${o.spent}`, 'Undo', () => delSpend(id, true));
+}
+function delSpend(id, quiet) {
+  const k = dk(new Date()), o = day(k); const e = (o.spends || []).find((x) => x.id === id); if (!e) return;
+  o.spends = o.spends.filter((x) => x.id !== id);
+  setMoney(k, e.c, Math.max(0, (Number((o.money || {})[e.c]) || 0) - e.a));
+  render(); if (!quiet) openSpend(); else toast('Removed');
 }
 
 /* ───────── migrations ───────── */
@@ -763,6 +793,7 @@ $('modal-bg').addEventListener('click', (e) => { if (e.target === $('modal-bg'))
 
 /* ───────── init ───────── */
 load(); evaluateStakes(); render();
+if (/[?&]spend\b/.test(location.search)) { history.replaceState(null, '', location.pathname); setTimeout(openSpend, 150); }
 if (syncReady()) pullCloud(true);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'today' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) pullCloud(true); } });
 setInterval(() => { if (view === 'today' && isToday(curDate) && !document.activeElement.matches('input,textarea')) render(); }, 60000);

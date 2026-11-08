@@ -256,6 +256,7 @@ a{color:var(--accent)}
 .daychips .chip{flex:1;text-align:center;padding:8px 0;cursor:pointer}
 
 /* toast */
+.fab{position:fixed;right:16px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);width:60px;height:60px;border-radius:50%;background:var(--accent);color:#0b0b0f;font-size:28px;box-shadow:0 6px 20px rgba(0,0,0,.45);z-index:35;display:flex;align-items:center;justify-content:center}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);background:var(--text);color:#0b0b0f;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
 .toast.show{opacity:1;pointer-events:auto}
 .toast button{color:var(--accent);background:#0b0b0f;padding:6px 10px;border-radius:8px;margin-left:10px}
@@ -311,6 +312,7 @@ a{color:var(--accent)}
     <section class="view" id="view-more"></section>
   </main>
 </div>
+<button class="fab" onclick="openSpend()" aria-label="Add cash spend">💸</button>
 <nav class="nav"><div class="nav-in" id="nav"></div></nav>
 <div class="modal-bg" id="modal-bg"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
