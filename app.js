@@ -1,6 +1,6 @@
 /* War Room — Egor's daily command center. Vanilla JS, offline-first, optional Supabase sync. */
 'use strict';
-const APP_VERSION = '3.3.0';
+const APP_VERSION = '3.4.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -324,7 +324,7 @@ function renderTop() {
   else if (view === 'goals') sub.textContent = daysUntil(S.settings.bigDate) + ' days to ' + S.settings.bigLabel.split('·')[0].trim();
   else sub.textContent = 'v' + APP_VERSION;
   const nav = (view === 'today' || view === 'train' || view === 'plan') ? `<div class="datenav"><button onclick="shiftDay(-1)">‹</button><div class="cur" onclick="goToday()">${isToday(curDate) ? 'Today' : fmtShort(curDate)}<small>${DAY_SHORT[dow(curDate)]}</small></div><button onclick="shiftDay(1)">›</button></div>` : '';
-  $('top-right').innerHTML = nav + `<button class="iconbtn ${syncState.status === 'ok' ? 'on' : ''}" onclick="show('more')" title="More" aria-label="More">${syncIcon()}</button>`;
+  $('top-right').innerHTML = nav + `<button class="iconbtn" onclick="openSpend()" title="Spent cash" aria-label="Spent cash">💸</button><button class="iconbtn ${syncState.status === 'ok' ? 'on' : ''}" onclick="show('more')" title="More" aria-label="More">${syncIcon()}</button>`;
 }
 function render() { renderNav(); renderTop(); document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view)); ({ today: renderToday, plan: renderPlan, tasks: renderTasks, train: renderTrain, goals: renderGoals, more: renderMore })[view](); }
 
@@ -344,7 +344,7 @@ function renderToday() {
   parts.weigh = weighCard(o, k, d);
   parts.focus = ph === 'morning' ? focusMorning(o, d) : '';
   parts.now = today && ph !== 'morning' ? nowCard(d) : '';
-  parts.lever = (ph === 'day' || ph === 'past') ? leverCard(o, d) : '';
+  parts.lever = leverCard(o, d);
   parts.shutdown = (ph === 'evening' || ph === 'past') ? shutdownCard(o, d) : '';
   parts.change = oneChangeBanner(d);
   parts.morning = routineCard('morning', d, o, ph === 'morning' || ph === 'future');
@@ -352,22 +352,23 @@ function renderToday() {
   parts.score = scoreboardCard(o, d);
   parts.top3 = top3Card(o, k, d);
   parts.standards = standardsCard(o);
-  parts.log = sec('log', 'Sleep · money', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : ''}`, sleepMoneyBody(o), ph === 'evening' || ph === 'past');
+  parts.money = moneyCard(o, d);
+  parts.log = sec('log', 'Sleep times', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : ''}`, sleepMoneyBody(o), ph === 'evening' || ph === 'past');
   parts.debrief = sec('debrief', 'Debrief', o.win || o.loss || o.fix ? '✓' : '30 seconds, honest', debriefBody(o), ph === 'evening' || ph === 'past');
   parts.grade = gradeCard(d);
   const order = {
-    morning: ['timer', 'intro', 'stake', 'weigh', 'focus', 'change', 'morning', 'score', 'top3', 'standards', 'evening', 'log', 'debrief', 'grade'],
-    day: ['timer', 'intro', 'stake', 'weigh', 'now', 'lever', 'change', 'score', 'top3', 'morning', 'standards', 'evening', 'log', 'debrief', 'grade'],
-    evening: ['timer', 'intro', 'stake', 'weigh', 'shutdown', 'now', 'score', 'standards', 'debrief', 'evening', 'top3', 'morning', 'log', 'change', 'grade'],
-    past: ['weigh', 'grade', 'shutdown', 'score', 'top3', 'morning', 'evening', 'standards', 'log', 'debrief', 'lever'],
-    future: ['weigh', 'top3', 'score', 'morning', 'evening', 'standards', 'log', 'debrief'],
+    morning: ['timer', 'intro', 'stake', 'weigh', 'focus', 'top3', 'change', 'morning', 'lever', 'score', 'money', 'standards', 'evening', 'log', 'debrief', 'grade'],
+    day: ['timer', 'intro', 'stake', 'now', 'lever', 'top3', 'score', 'money', 'standards', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief', 'grade'],
+    evening: ['timer', 'intro', 'stake', 'shutdown', 'lever', 'money', 'standards', 'debrief', 'score', 'top3', 'weigh', 'evening', 'morning', 'log', 'change', 'grade'],
+    past: ['grade', 'weigh', 'lever', 'money', 'standards', 'score', 'top3', 'debrief', 'shutdown', 'morning', 'evening', 'log'],
+    future: ['top3', 'lever', 'score', 'weigh', 'morning', 'evening', 'standards', 'log', 'debrief'],
   }[ph];
   $('view-today').innerHTML = order.map((p) => parts[p] || '').join('');
 }
 
 function weighCard(o, k, d) {
   const last = latestWeight(k), avg7 = avgWeight(7, k), prev7 = avgWeight(7, dk(addDays(d, -7)));
-  if (o.weighEdit || (o.weight == null && !o.weightSkipped)) {
+  if (o.weighEdit || (o.weight == null && !o.weightSkipped && phaseFor(d) === 'morning')) {
     const start = o.weight != null && o.weight !== '' ? o.weight : (last ? last.w : 75);
     return `<div class="card ac"><div class="card-h"><div class="card-t">⚖️ Morning weigh-in</div><div class="card-r">${last ? `last <b>${fmt(last.w, 1)}</b> · ${fmtShort(pd(last.k))}` : 'first entry'}</div></div>
       <div class="weigh-big"><button class="stepbtn" onclick="stepWeight(-0.1)">−</button><input id="w-inp" type="number" inputmode="decimal" step="0.1" value="${Number(start).toFixed(1)}" onkeydown="if(event.key==='Enter')saveWeight()"><span class="unit">kg</span><button class="stepbtn" onclick="stepWeight(0.1)">+</button></div>
@@ -406,10 +407,11 @@ function leverCard(o, d) {
   const w = dow(d), tg = c.targets[w] || 0, v = Number(o.counters.dials) || 0, ow = Number(o.counters.owners) || 0, wk = counterWeek('dials', d), need = paceNeed(c, d);
   const nm = nowMin(), inBlock = isToday(d) && blocksFor(d).find((b) => b.kind === 'dials' && tmin(b.start) <= nm && nm < tmin(b.end)); const active = S.session && S.session.active;
   if (!tg && !v && !isToday(d)) return '';
-  return `<div class="card ${inBlock || active ? 'ac' : ''}"><div class="card-h"><div class="card-t">The lever · dials</div><div class="card-r"><b>${wk}</b> / ${c.weekly} this week</div></div>
+  return `<div class="card ${inBlock || active ? 'ac' : ''}"><div class="card-h"><div class="card-t">📞 Dials</div><div class="card-r"><b>${wk}</b> / ${c.weekly} this week</div></div>
     <div class="row sb"><div><div class="big">${v}<small> / ${tg || '—'}</small></div><div class="small muted">${tg ? (v >= tg ? 'Target hit. Volume negates luck.' : `${tg - v} left today`) : 'No dial target today'}${need != null && need > 0 ? ` · ${need}/day to reach ${c.weekly}` : ''}${ow ? ` · ${ow} owner${ow > 1 ? 's' : ''}` : ''}</div></div>
     ${isToday(d) ? `<button class="btn primary" onclick="startSession()">${active ? '▶ Resume session' : inBlock ? '▶ Dial block now' : '▶ Dial session'}</button>` : ''}</div>
-    <div class="bar" style="margin-top:10px"><i class="red" style="width:${clamp((wk / c.weekly) * 100, 0, 100)}%"></i></div></div>`;
+    <div class="bar" style="margin-top:10px"><i class="red" style="width:${clamp((wk / c.weekly) * 100, 0, 100)}%"></i></div>
+    <div class="row" style="margin-top:10px;gap:6px"><button class="btn grow" onclick="bump('dials',1)">+1 dial</button><button class="btn grow" onclick="bump('owners',1)">+1 owner talk</button><button class="btn" onclick="bump('dials',-1)" aria-label="Undo a dial">−1</button></div></div>`;
 }
 function shutdownCard(o, d) {
   const g = gradeFor(d), m = minimumMet(d);
@@ -422,8 +424,8 @@ function routineCard(key, d, o, open) {
   return sec(key, `${key} routine`, `<b>${done}</b>/${items.length} ${done === items.length ? '✓' : ''}`, items.map((r, i) => `<div class="ck ${o.routine[r.id] ? 'on' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}" onclick="toggleRoutine('${r.id}')"><div class="box">${o.routine[r.id] ? '✓' : ''}</div><div class="lbl">${esc(r.title)}</div></div>`).join(''), open);
 }
 function scoreboardCard(o, d) {
-  const w = dow(d); const cs = S.counters.items.filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners'); if (!cs.length) return '';
-  return `<div class="card"><div class="card-h"><div class="card-t">Scoreboard</div><div class="card-r">week of ${fmtShort(monday(d))}</div></div>${cs.map((c) => { const v = Number(o.counters[c.id]) || 0, tg = c.targets[w] || 0, wk = counterWeek(c.id, d), tot = counterTotal(c.id); const timed = c.unit === 'min';
+  const w = dow(d); const cs = S.counters.items.filter((c) => !['dials', 'owners'].includes(c.id)).filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners'); if (!cs.length) return '';
+  return `<div class="card"><div class="card-h"><div class="card-t">📚 Study &amp; counters</div><div class="card-r">week of ${fmtShort(monday(d))}</div></div>${cs.map((c) => { const v = Number(o.counters[c.id]) || 0, tg = c.targets[w] || 0, wk = counterWeek(c.id, d), tot = counterTotal(c.id); const timed = c.unit === 'min';
     return `<div class="counter"><div class="top"><div class="name">${esc(c.title)}</div><div class="num">${v}${tg ? `<small> / ${tg}${c.unit ? ' ' + c.unit : ''}</small>` : (c.unit ? `<small> ${c.unit}</small>` : '')}</div></div>
       ${tg ? `<div class="bar"><i class="${c.color || ''}" style="width:${clamp((v / tg) * 100, 0, 100)}%"></i></div>` : ''}
       <div class="btns">${timed ? `<button class="btn" onclick="startTimer('${c.id}',25)">▶ 25</button><button class="btn" onclick="startTimer('${c.id}',50)">▶ 50</button>` : ''}${c.steps.slice(0, timed ? 2 : 3).map((s) => `<button class="btn" onclick="bump('${c.id}',${s})">+${s}</button>`).join('')}<button class="btn" onclick="bump('${c.id}',-${c.steps[0]})">−${c.steps[0]}</button><button class="btn" onclick="setCounter('${c.id}')">=</button></div>
@@ -435,7 +437,15 @@ function top3Card(o, k, d) {
     ${due.length ? `<div class="sec-h">Tasks due</div>${due.map((t) => taskRow(t, k)).join('')}` : ''}<div class="row" style="margin-top:8px"><input id="quick-task" placeholder="+ task for ${isToday(d) ? 'today' : fmtShort(d)}" onkeydown="if(event.key==='Enter')quickTask('${k}')"></div></div>`;
 }
 function standardsCard(o) { return `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div></div>`; }
-function sleepMoneyBody(o) { return `<div class="g2"><div class="field"><label>In bed</label><input type="time" value="${esc(o.bedAt || '')}" onchange="setDayField('bedAt',this.value)"></div><div class="field"><label>Woke up</label><input type="time" value="${esc(o.wokeAt || '')}" onchange="setDayField('wokeAt',this.value)"></div></div>${moneyFields(dk(curDate))}`; }
+function sleepMoneyBody(o) { return `<div class="g2"><div class="field"><label>In bed</label><input type="time" value="${esc(o.bedAt || '')}" onchange="setDayField('bedAt',this.value)"></div><div class="field"><label>Woke up</label><input type="time" value="${esc(o.wokeAt || '')}" onchange="setDayField('wokeAt',this.value)"></div></div>`; }
+function moneyCard(o, d) {
+  const k = dk(d), m = o.money || {}, cur = S.settings.currency, today = isToday(d);
+  const inp = (id, l) => `<div class="field" style="margin:0"><label>${l}</label><input type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0" onchange="setMoney('${k}','${id}',this.value);render()"></div>`;
+  return `<div class="card"><div class="card-h"><div class="card-t">💰 Money</div><div class="card-r">made <b class="green">${Number(o.income) || 0}</b> · spent <b class="red">${Number(o.spent) || 0}</b> ${cur}</div></div>
+    <div class="g2">${inp('tennis', 'Made: tennis')}${inp('agency', 'Made: agency')}</div>
+    ${today ? `<button class="btn primary block" style="margin-top:10px" onclick="openSpend()">💸 Spent cash</button>` : ''}
+    <details style="margin-top:8px"><summary class="small muted" style="cursor:pointer">Spending by category (edit)</summary>${MONEY_OUT.map(([id, l]) => `<div class="kv"><span>${l}</span><input type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0" onchange="setMoney('${k}','${id}',this.value);render()"></div>`).join('')}</details></div>`;
+}
 function debriefBody(o) { return `<div class="field"><label>Win</label><input value="${esc(o.win || '')}" placeholder="What worked today?" oninput="setDayField('win',this.value)"></div><div class="field"><label>Loss</label><input value="${esc(o.loss || '')}" placeholder="Where did I break my word?" oninput="setDayField('loss',this.value)"></div><div class="field" style="margin:0"><label>Fix for tomorrow</label><input value="${esc(o.fix || '')}" placeholder="One change" oninput="setDayField('fix',this.value)"></div>`; }
 function gradeCard(d) {
   const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
