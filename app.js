@@ -1,6 +1,6 @@
 /* War Room — Egor's daily command center. Vanilla JS, offline-first, optional Supabase sync. */
 'use strict';
-const APP_VERSION = '3.4.0';
+const APP_VERSION = '3.4.1';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -808,5 +808,6 @@ if (syncReady()) pullCloud(true);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'today' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) pullCloud(true); } });
 setInterval(() => { if (view === 'today' && isToday(curDate) && !document.activeElement.matches('input,textarea')) render(); }, 60000);
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready', 'Reload', () => location.reload()); }); }); }).catch(() => {});
+  let wrReloaded = false; navigator.serviceWorker.addEventListener('controllerchange', () => { if (wrReloaded) return; wrReloaded = true; location.reload(); });
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready', 'Reload', () => location.reload()); }); }); }).catch(() => {});
 }
