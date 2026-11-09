@@ -167,13 +167,13 @@ function saveQueueItem() {
 function editQueueItem(id) {
   const x = Q.items[id];
   openModal(`<h2>${esc(x.agency)}</h2>
-    <div class="g2"><div class="field"><label>Phone</label><input id="eq-p" value="${esc(x.phone)}"></div><div class="field"><label>Status</label><select id="eq-s">${['new', 'callback', 'voicemail', 'gatekeeper', 'owner', 'booked', 'bulletin', 'no', 'bad'].map((s) => `<option ${s === x.status ? 'selected' : ''}>${s}</option>`).join('')}</select></div></div>
+    <div class="g2"><div class="field"><label>Phone</label><input id="eq-p" value="${esc(x.phone)}"></div><div class="field"><label>Status</label><select id="eq-s">${['new', 'callback', 'voicemail', 'gatekeeper', 'owner', 'booked', 'bulletin', 'trial', 'member', 'no', 'bad'].map((s) => `<option ${s === x.status ? 'selected' : ''}>${s}</option>`).join('')}</select></div></div>
     <div class="field"><label>Who to ask for</label><input id="eq-w" value="${esc(x.contact)}"></div>
     <div class="field"><label>Hook / opener</label><textarea id="eq-h">${esc(x.opener)}</textarea></div>
     <div class="g2"><div class="field"><label>Next date</label><input id="eq-n" type="date" value="${esc(x.next_at || '')}"></div><div class="field"><label>Email</label><input id="eq-e" value="${esc(x.email || '')}"></div></div>
     <div class="field"><label>Notes</label><textarea id="eq-note">${esc(x.notes || '')}</textarea></div>
     ${(x.log || []).length ? `<div class="sec-h">Log · tap × to remove a call (its dial comes off the counter)</div>${x.log.slice().reverse().map((l) => `<div class="kv"><span class="small">${new Date(l.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span><span class="small" style="text-align:right">${esc(l.r)}${l.note ? ' · ' + esc(l.note) : ''}${l.dur ? ' · ' + fmtEl(l.dur) : ''} <button class="btn sm ghost" style="color:var(--bad)" onclick="undoEntry(${id},'${l.at}');editQueueItem(${id})">×</button></span></div>`).join('')}<button class="btn sm danger" style="margin-top:8px" onclick="resetAgency(${id})">Reset this agency</button>` : ''}
-    <div class="actions"><button class="btn" onclick="dialPick=${id};closeModal();render()">Dial this one next</button><button class="btn primary" onclick="saveQueueEdit(${id})">Save</button></div>`);
+    <div class="actions"><button class="btn" onclick="dialPick=${id};closeModal();render()">Dial next</button><button class="btn" onclick="pipelineModal(${id})">Pipeline ›</button><button class="btn primary" onclick="saveQueueEdit(${id})">Save</button></div>`);
 }
 function saveQueueEdit(id) { const x = Q.items[id]; Object.assign(x, { phone: $('eq-p').value.trim(), status: $('eq-s').value, contact: $('eq-w').value.trim(), opener: $('eq-h').value.trim(), next_at: $('eq-n').value, email: $('eq-e').value.trim(), notes: $('eq-note').value.trim(), _u: now() }); qSave(); closeModal(); render(); }
 
@@ -218,6 +218,8 @@ function scriptHtml(x) {
 /* ───────── the Dial view ───────── */
 function florida(nm) { const f = (nm - 7 * 60 + 1440) % 1440; return pad(Math.floor(f / 60)) + ':' + pad(f % 60); }
 function renderDial() {
+  const modeBar = `<div class="chips" style="margin-bottom:12px"><span class="chip ${benchMode === 'owners' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='owners';render()">☏ Owners</span><span class="chip ${benchMode === 'caregivers' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='caregivers';render()">🧑‍⚕️ Caregivers${B && cgNext().length ? ' · ' + cgNext().length : ''}</span></div>`;
+  if (benchMode === 'caregivers') { $('view-dial').innerHTML = modeBar + (B ? renderBench() : '<div class="card"><div class="empty">Loading the bench…</div></div>'); return; }
   const d = new Date(), k = dk(d), o = day(k), w = dow(d), nm = nowMin();
   const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dc ? dc.targets[w] || 0 : 0, weekly = dc ? dc.weekly : 225;
   const v = Number(o.counters.dials) || 0, wk = counterWeek('dials', d), owners = counterTotal('owners'), ow = Number(o.counters.owners) || 0;
@@ -277,7 +279,9 @@ function renderDial() {
   const ownersDone = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners');
   const gate = ownersDone ? `<div class="coach">Rule from the plan: <b>no new business ideas until ${ownersDone.target} owner conversations</b> (${owners} so far · review ${ownersDone.deadline ? fmtShort(pd(ownersDone.deadline)) : '8 Dec'}). His idea: volume negates luck <span class="ref">[#1]</span>.</div>` : '';
 
-  $('view-dial').innerHTML = tiles + sessHtml + nextCard + lastEntryHtml() + scriptCard + listHtml + gate;
+  const clients = qItems().filter((x) => ['booked', 'trial', 'member', 'bulletin'].includes(x.status));
+  const clientsHtml = clients.length ? `<div class="card"><div class="card-h"><div class="card-t">Pipeline · ${clients.length}</div><div class="card-r">MRR <b>$${mrr().toLocaleString()}</b></div></div>${clients.map((x) => `<div class="qrow" onclick="pipelineModal(${x.id})"><div class="grow"><div class="a">${esc(x.agency)}</div><div class="m">${x.status === 'member' ? (PLANS[x.plan] || [''])[0] + (x.memberSince ? ' since ' + fmtShort(pd(x.memberSince)) : '') : x.status === 'trial' ? 'trial day ' + Math.round((now() - pd(x.trialStart || dk(new Date()))) / 86400000) + (x.case ? ' · ' + esc(x.case) : '') : x.next_step ? esc(x.next_step) : x.status}</div></div><span class="st ${x.status}">${x.status === 'member' ? 'paying' : x.status}</span></div>`).join('')}<div class="xs muted" style="margin-top:8px">Tap an agency to move it: trial started · first shift · paying · lost.</div></div>` : '';
+  $('view-dial').innerHTML = modeBar + tiles + sessHtml + nextCard + lastEntryHtml() + clientsHtml + scriptCard + listHtml + gate;
   clearInterval(sessTimer); if (sess) sessTimer = setInterval(() => { const el = $('sess-el'); if (!el) { clearInterval(sessTimer); return; } el.textContent = fmtEl(Math.floor((now() - sess.start) / 1000)); }, 1000);
 }
 function dialListHtml(list) {

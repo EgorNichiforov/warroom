@@ -148,7 +148,7 @@ function renderTrainView() { $('view-train').innerHTML = renderTrain(); }
 function renderWeek() {
   const tabs = [['plan', 'Plan'], ['tasks', `Tasks${(() => { const n = tasksList().filter((t) => !t.done && t.due && t.due <= dk(new Date())).length; return n ? ' · ' + n : ''; })()}`], ['goals', 'Goals'], ['review', 'Review']];
   const head = `<div class="chips" style="margin-bottom:12px">${tabs.map(([v, l]) => `<span class="chip ${weekTab === v ? 'on' : ''}" onclick="weekTab='${v}';render()">${l}</span>`).join('')}</div>`;
-  const body = weekTab === 'plan' ? renderPlan() : weekTab === 'tasks' ? renderTasks() + (tdOn() ? `<div class="xs muted" style="text-align:center;margin:6px 0">Todoist · ${esc(tdLabel())} · <a href="#" onclick="tdPull(false);return false">sync</a></div>` : `<div class="xs muted" style="text-align:center;margin:6px 0"><a href="#" onclick="moreTab='home';show('me');return false">Connect Todoist</a> to keep tasks in both places.</div>`) : weekTab === 'goals' ? renderGoals() : renderReview();
+  const body = weekTab === 'plan' ? renderPlan() : weekTab === 'tasks' ? renderTasks() + (tdOn() ? `<div class="xs muted" style="text-align:center;margin:6px 0">Todoist · ${esc(tdLabel())} · <a href="#" onclick="tdPull(false);return false">sync</a></div>` : `<div class="xs muted" style="text-align:center;margin:6px 0"><a href="#" onclick="moreTab='home';show('me');return false">Connect Todoist</a> to keep tasks in both places.</div>`) : weekTab === 'goals' ? renderGoals() : businessCard() + renderReview();
   $('view-week').innerHTML = head + body;
 }
 
@@ -188,10 +188,10 @@ if (/[?&]dial\b/.test(_qs)) view = 'dial';
 render();
 if (/[?&]spend\b/.test(_qs)) setTimeout(openSpend, 150);
 if (_qs) history.replaceState(null, '', location.pathname);
-qLoad();
+qLoad(); bLoad();
 if (syncReady()) pullCloud(true);
 if (tdOn()) { tdFlush(); tdPull(true); }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); } if (tdOn()) { tdFlush(); tdPull(true); } } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); bPull(true); } if (tdOn()) { tdFlush(); tdPull(true); } } });
 setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea')) render(); }, 60000);
 if ('serviceWorker' in navigator) {
   let wrReloaded = false; const hadSW = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (wrReloaded || !hadSW) return; wrReloaded = true; location.reload(); });
