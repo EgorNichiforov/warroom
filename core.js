@@ -1,6 +1,6 @@
 /* War Room v4 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '4.1.0';
+const APP_VERSION = '4.2.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -295,7 +295,9 @@ function counterWeek(id, d) { const m = monday(d); let s = 0; for (let i = 0; i 
 function counterTotal(id) { let s = 0; for (const k in S.days) { const o = S.days[k]; if (o.counters && o.counters[id]) s += Number(o.counters[id]) || 0; } return s; }
 function workoutsWeek(d) { const m = monday(d); let n = 0; for (let i = 0; i < 7; i++) { const o = S.days[dk(addDays(m, i))]; if (o && o.workout && o.workout.done) n++; } return n; }
 function routineFor(list, d) { const w = dow(d); return list.filter((r) => !r.days || r.days.includes(w)); }
-function blocksFor(d) { const w = dow(d); return S.schedule.blocks.filter((b) => b.days.includes(w)).sort((a, b) => tmin(a.start) - tmin(b.start) || tmin(a.end) - tmin(b.end)); }
+function blocksFor(d) { const w = dow(d), o = S.days[dk(d)], sc = o && o.sched; let list = S.schedule.blocks.filter((b) => b.days.includes(w)); if (sc) { const skip = new Set(sc.skip || []); list = list.filter((b) => !skip.has(b.id)).concat((sc.add || []).map((b) => Object.assign({}, b, { once: true }))); } return list.sort((a, b) => tmin(a.start) - tmin(b.start) || tmin(a.end) - tmin(b.end)); }
+function dayOnce(d) { const o = day(d); if (!o.sched) o.sched = { skip: [], add: [] }; return o.sched; }
+function resetDaySchedule() { const o = day(curDate); delete o.sched; touch(o); toast('Regular schedule restored for ' + fmtShort(curDate)); render(); }
 function dayScore(d) {
   const o = S.days[dk(d)] || { routine: {}, habits: {}, counters: {}, top3: [] };
   let tot = 0, done = 0;
@@ -491,17 +493,22 @@ function renderPlan() {
   const dials = S.counters.items.find((c) => c.id === 'dials'), bac = S.counters.items.find((c) => c.id === 'bac');
   const sum = `<div class="g3" style="margin-bottom:12px">${dials ? `<div class="cd"><div class="n">${counterWeek('dials', curDate)}<span class="small muted">/${dials.weekly}</span></div><div class="l">dials this week</div></div>` : ''}${bac ? `<div class="cd"><div class="n">${(counterWeek('bac', curDate) / 60).toFixed(1)}<span class="small muted">h</span></div><div class="l">BAC study</div></div>` : ''}<div class="cd"><div class="n">${workoutsWeek(curDate)}<span class="small muted">/7</span></div><div class="l">training days</div></div></div>`;
   const bl = blocksFor(curDate);
-  const tl = bl.map((b) => { const past = sel === tk && tmin(b.end) <= nm, cur = sel === tk && tmin(b.start) <= nm && nm < tmin(b.end); return `<div class="blk ${past ? 'past' : ''} ${cur ? 'now' : ''}"><div class="t">${b.start}–${b.end === '24:00' ? '…' : b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div>${b.note ? `<div class="k">${esc(b.note)}</div>` : ''}</div>${planEdit ? `<button class="edit" onclick="editBlock('${b.id}')">✎</button>` : ''}</div>`; }).join('');
+  const tl = bl.map((b) => { const past = sel === tk && tmin(b.end) <= nm, cur = sel === tk && tmin(b.start) <= nm && nm < tmin(b.end); return `<div class="blk ${past ? 'past' : ''} ${cur ? 'now' : ''}"><div class="t">${b.start}–${b.end === '24:00' ? '…' : b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}${b.once ? ' <span class="xs acc">· this day only</span>' : ''}</div>${b.note ? `<div class="k">${esc(b.note)}</div>` : ''}</div>${planEdit ? `<button class="edit" onclick="editBlock('${b.id}')">✎</button>` : ''}</div>`; }).join('');
+  const dayO = S.days[sel], hasOnce = dayO && dayO.sched && ((dayO.sched.skip || []).length || (dayO.sched.add || []).length);
   return `<div class="card" style="padding:12px"><div class="wstrip">${strip}</div></div>${sum}
     <div class="card"><div class="card-h"><div class="card-t">${DAY_LONG[dow(curDate)]} · ${bl.length} blocks</div><div class="row" style="gap:6px"><button class="btn sm ${planEdit ? 'primary' : ''}" onclick="planEdit=!planEdit;render()">${planEdit ? 'Done' : 'Edit'}</button>${planEdit ? `<button class="btn sm" onclick="editBlock('')">+ Block</button>` : ''}</div></div>
-    <div class="tl">${tl || '<div class="empty">No blocks for this day. Tap Edit to add.</div>'}</div></div>
+    <div class="tl">${tl || '<div class="empty">No blocks for this day. Tap Edit to add.</div>'}</div>${hasOnce ? `<div class="row sb" style="margin-top:10px"><span class="xs muted">This day differs from the weekly plan.</span><button class="btn sm ghost" onclick="resetDaySchedule()">Restore regular</button></div>` : ''}${planEdit ? '<div class="xs muted" style="margin-top:8px">Tap ✎ on a block: choose <b>Every week</b> or <b>Only this day</b> before saving or deleting.</div>' : ''}</div>
     <div class="card"><div class="row sb"><div><div style="font-weight:600">Google Calendar</div><div class="xs muted">The schedule above mirrors your recurring calendar. For one-off events open the calendar.</div></div><a class="btn sm" href="https://calendar.google.com/calendar/u/0/r/day" target="_blank" rel="noopener">Open ↗</a></div></div>`;
 }
 function selDay(k) { curDate = pd(k); render(); }
 const KINDS = ['routine', 'train', 'bac', 'school', 'dials', 'agency', 'tennis', 'food', 'travel', 'sleep', 'other'];
 function editBlock(id) {
-  const b = id ? S.schedule.blocks.find((x) => x.id === id) : { id: '', title: '', start: '09:00', end: '10:00', days: [dow(curDate)], kind: 'other', note: '' };
-  openModal(`<h2>${id ? 'Edit block' : 'New block'}</h2><div class="field"><label>Title</label><input id="m-title" value="${esc(b.title)}" placeholder="What happens"></div>
+  const o = S.days[dk(curDate)], onceB = o && o.sched && (o.sched.add || []).find((x) => x.id === id);
+  const b = onceB || (id ? S.schedule.blocks.find((x) => x.id === id) : { id: '', title: '', start: '09:00', end: '10:00', days: [dow(curDate)], kind: 'other', note: '' });
+  const scope = onceB ? 'day' : 'week';
+  openModal(`<h2>${id ? 'Edit block' : 'New block'}</h2>
+    <div class="field"><label>Applies to</label><div class="chips" id="m-scope"><span class="chip ${scope === 'week' ? 'on' : ''}" data-s="week" ${onceB ? 'style="opacity:.4;pointer-events:none"' : ''} onclick="document.querySelectorAll('#m-scope .chip').forEach(c=>c.classList.toggle('on',c===this))">Every week</span><span class="chip ${scope === 'day' ? 'on' : ''}" data-s="day" onclick="document.querySelectorAll('#m-scope .chip').forEach(c=>c.classList.toggle('on',c===this))">Only ${fmtShort(curDate)}</span></div></div>
+    <div class="field"><label>Title</label><input id="m-title" value="${esc(b.title)}" placeholder="What happens"></div>
     <div class="g2"><div class="field"><label>Start</label><input id="m-start" type="time" value="${b.start}"></div><div class="field"><label>End</label><input id="m-end" type="time" value="${b.end === '24:00' ? '23:59' : b.end}"></div></div>
     <div class="field"><label>Days</label><div class="daychips" id="m-days">${ALL.map((i) => `<span class="chip ${b.days.includes(i) ? 'on' : ''}" data-d="${i}" onclick="this.classList.toggle('on')">${DAY_SHORT[i]}</span>`).join('')}</div></div>
     <div class="field"><label>Type</label><select id="m-kind">${KINDS.map((k) => `<option ${k === b.kind ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
@@ -512,25 +519,41 @@ function saveBlock(id) {
   const days = [...document.querySelectorAll('#m-days .chip.on')].map((c) => Number(c.dataset.d)); const title = $('m-title').value.trim();
   if (!title || !days.length) { toast('Title and at least one day'); return; }
   let end = $('m-end').value; if (end === '23:59') end = '24:00';
-  const b = id ? S.schedule.blocks.find((x) => x.id === id) : { id: uid() }; Object.assign(b, { title, start: $('m-start').value, end, days, kind: $('m-kind').value, note: $('m-note').value.trim() });
+  const scope = (document.querySelector('#m-scope .chip.on') || {}).dataset?.s || 'week';
+  const vals = { title, start: $('m-start').value, end, days, kind: $('m-kind').value, note: $('m-note').value.trim() };
+  if (scope === 'day') {
+    const sc = dayOnce(curDate); const existing = (sc.add || []).find((x) => x.id === id);
+    if (existing) Object.assign(existing, vals);
+    else { if (id && S.schedule.blocks.find((x) => x.id === id) && !sc.skip.includes(id)) sc.skip.push(id); sc.add.push(Object.assign({ id: uid(), from: id || '' }, vals)); }
+    touch(day(curDate)); closeModal(); render(); return;
+  }
+  const b = id ? S.schedule.blocks.find((x) => x.id === id) : { id: uid() }; Object.assign(b, vals);
   if (!id) S.schedule.blocks.push(b); S.schedule._u = now(); save(); closeModal(); render();
 }
-function delBlock(id) { S.schedule.blocks = S.schedule.blocks.filter((x) => x.id !== id); S.schedule._u = now(); save(); closeModal(); render(); }
+function delBlock(id) {
+  const scope = (document.querySelector('#m-scope .chip.on') || {}).dataset?.s || 'week';
+  const o = S.days[dk(curDate)], sc = o && o.sched;
+  if (sc && (sc.add || []).some((x) => x.id === id)) { sc.add = sc.add.filter((x) => x.id !== id); touch(o); closeModal(); render(); return; }
+  if (scope === 'day') { const s = dayOnce(curDate); if (!s.skip.includes(id)) s.skip.push(id); touch(day(curDate)); toast('Removed for ' + fmtShort(curDate) + ' only'); closeModal(); render(); return; }
+  S.schedule.blocks = S.schedule.blocks.filter((x) => x.id !== id); S.schedule._u = now(); save(); closeModal(); render(); }
 
 /* ───────── TRAIN ───────── */
 function renderTrain() {
   const k = dk(curDate), o = day(k), w = dow(curDate);
   if (!o.workout) o.workout = { program: S.programByDay.map[w] || '', sets: {}, done: false, note: '' };
-  const wo = o.workout, p = S.programs[wo.program];
+  const wo = o.workout, p = S.programs[wo.program], EX = sessionEx(wo);
   const sel = `<select onchange="setProgram(this.value)"><option value="">— Rest / none —</option>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<option value="${id}" ${id === wo.program ? 'selected' : ''}>${esc(S.programs[id].name)}</option>`).join('')}</select>`;
-  let html = `<div class="card ac"><div class="card-h"><div class="card-t">${DAY_LONG[w]}'s session</div><div class="card-r">${wo.done ? '<span class="ok">✓ done</span>' : wo.skipped ? '<span class="bad">skipped · ' + esc(wo.skipped) + '</span>' : p ? 'planned' : ''}</div></div><div class="field" style="margin-bottom:8px">${sel}</div>${p && p.note ? `<div class="hint">${esc(p.note)}</div>` : ''}
+  let html = `<div class="card ac"><div class="card-h"><div class="card-t">${DAY_LONG[w]}'s session</div><div class="card-r">${restPill()} ${wo.done ? '<span class="ok">✓ done</span>' : wo.skipped ? '<span class="bad">skipped · ' + esc(wo.skipped) + '</span>' : p ? 'planned' : ''}</div></div><div class="field" style="margin-bottom:8px">${sel}</div>
+    ${p ? `<div class="row" style="gap:6px;margin-bottom:8px"><button class="btn sm grow" onclick="editSession()">✎ Today only${wo.ex ? ' · edited' : ''}</button><button class="btn sm grow" onclick="editProgram('${wo.program}')">✎ Every week</button></div>` : ''}${p && p.note ? `<div class="hint">${esc(p.note)}</div>` : ''}
     ${wo.skipped ? `<div class="row" style="margin-top:10px"><div class="small muted grow">Not trained today: <b>${esc(wo.skipped)}</b>. Counts as 0 for the week.</div><button class="btn sm" onclick="unskipWorkout()">Undo</button></div>` : wo.done ? '' : `<div class="row" style="margin-top:10px;gap:6px;flex-wrap:wrap"><span class="small muted">Not training today?</span>${['Rest day', 'Sick', 'Tennis instead', 'No time', 'Overslept'].map((r) => `<span class="chip" onclick="skipWorkout('${r}')">${r}</span>`).join('')}</div>`}</div>`;
-  if (p) {
-    const prev = prevWorkout(wo.program, k);
-    html += `<div class="card">${p.ex.map((e, ei) => { const sets = wo.sets[ei] || []; const pv = prev && prev.sets[ei] || [];
-      return `<div class="ex"><div class="h"><div class="n">${esc(e.n)}</div><div class="tgt">${e.s} × ${esc(e.r)}</div></div>${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}<div class="sets">${Array.from({ length: e.s }, (_, si) => { const s = sets[si] || {}; const ps = pv[si]; return `<div class="set ${s.done ? 'on' : ''}"><div class="i">${si + 1}</div><input type="number" inputmode="decimal" placeholder="${ps && ps.w != null && ps.w !== '' ? ps.w : 'kg'}" value="${s.w ?? ''}" oninput="setSet(${ei},${si},'w',this.value)"><input inputmode="numeric" placeholder="${ps && ps.r ? ps.r : (/s\b|min/.test(e.r) ? 'sec' : 'reps')}" value="${s.r ?? ''}" oninput="setSet(${ei},${si},'r',this.value)"><div class="dn" onclick="toggleSet(${ei},${si})">${s.done ? '✓' : ''}</div></div>`; }).join('')}</div></div>`; }).join('')}
+  if (p || wo.ex) {
+    html += `<div class="card">${EX.map((e, ei) => { const sets = wo.sets[ei] || []; const hist = exHistory(e.n, k, 6); const last = hist[0]; const pv = last ? last.sets : []; const best = exBest(hist);
+      return `<div class="ex"><div class="h"><div class="n">${esc(e.n)}</div><div class="row" style="gap:6px"><div class="tgt">${e.s} × ${esc(e.r)}</div><button class="btn sm ghost" style="min-height:28px;padding:2px 8px" onclick="exMenu(${ei})">⋯</button></div></div>${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px">${last ? `<span class="xs muted">Last ${fmtShort(pd(last.k))}: <b style="color:var(--sub)">${esc(fmtSets(last.sets))}</b></span>` : '<span class="xs dim">First time: write what you do.</span>'}${best && best.w ? `<span class="xs muted">· best ${best.w}×${best.r}</span>` : ''}${progressHint(e, last)}${hist.length > 1 ? `<span class="xs acc" onclick="exMenu(${ei})" style="cursor:pointer">history ›</span>` : ''}</div>
+        <div class="sets">${Array.from({ length: e.s }, (_, si) => { const s = sets[si] || {}; const ps = pv[si]; return `<div class="set ${s.done ? 'on' : ''}"><div class="i">${si + 1}</div><input type="number" inputmode="decimal" placeholder="${ps && ps.w != null && ps.w !== '' ? ps.w : 'kg'}" value="${s.w ?? ''}" oninput="setSet(${ei},${si},'w',this.value)"><input inputmode="numeric" placeholder="${ps && ps.r ? ps.r : (/s\b|min/.test(e.r) ? 'sec' : 'reps')}" value="${s.r ?? ''}" oninput="setSet(${ei},${si},'r',this.value)"><div class="dn" onclick="toggleSet(${ei},${si})">${s.done ? '✓' : ''}</div></div>`; }).join('')}</div></div>`; }).join('')}
       <div class="field" style="margin-top:12px"><label>Session note</label><input value="${esc(wo.note || '')}" placeholder="RPE, pain, what to change" oninput="day('${k}').workout.note=this.value;touch(day('${k}'))"></div>
-      <button class="btn ${wo.done ? '' : 'primary'} block" onclick="finishWorkout()">${wo.done ? 'Mark as not done' : 'Finish workout ✓'}</button>${prev ? `<div class="xs muted" style="margin-top:8px;text-align:center">Placeholders show your last ${esc(p.name)} session (${fmtShort(pd(prev.k))}).</div>` : ''}</div>`;
+      ${(() => { let done = 0, total = 0, vol = 0; EX.forEach((e, ei) => { total += e.s; (wo.sets[ei] || []).forEach((s) => { if (s && s.done) { done++; vol += (num(s.w) || 0) * (parseInt(s.r) || 0); } }); }); return `<div class="row sb small muted" style="margin:12px 0 8px"><span>Sets <b>${done}</b> / ${total}</span><span>Volume <b>${Math.round(vol)}</b> kg</span><span>Week <b>${workoutsWeek(curDate)}</b> days</span></div>`; })()}
+      <button class="btn ${wo.done ? '' : 'primary'} block" onclick="finishWorkout()">${wo.done ? 'Mark as not done' : 'Finish workout ✓'}</button><div class="xs muted" style="margin-top:8px;text-align:center">Grey placeholders = your last sets for that exercise. Tap the box when a set is done: a rest timer starts.</div></div>`;
   }
   // programs + mapping
   html += `<div class="card"><div class="card-h"><div class="card-t">Programs</div><button class="btn sm" onclick="editProgram('')">+ New</button></div>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<div class="setting-row" onclick="editProgram('${id}')"><div><div class="t">${esc(S.programs[id].name)}</div><div class="d">${S.programs[id].ex.length} exercises · ${ALL.filter((d) => S.programByDay.map[d] === id).map((d) => DAY_SHORT[d]).join(', ') || 'unscheduled'}</div></div><div class="arr">›</div></div>`).join('')}</div>`;
@@ -541,9 +564,44 @@ function renderTrain() {
   return html;
 }
 function prevWorkout(pid, beforeKey) { const ks = Object.keys(S.days).filter((k) => k < beforeKey && S.days[k].workout && S.days[k].workout.program === pid && Object.keys(S.days[k].workout.sets || {}).length).sort(); if (!ks.length) return null; const k = ks[ks.length - 1]; return { k, sets: S.days[k].workout.sets }; }
+function sessionEx(wo) { if (!wo) return []; if (wo.ex) return wo.ex; const p = S.programs[wo.program]; return p ? p.ex : []; }
+function exKey(n) { return String(n || '').toLowerCase().replace(/^[a-d]\d?\s+/, '').replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+/* every past session that had this exercise (matched by name, across programs and per-day edits), newest first */
+function exHistory(name, beforeKey, n) {
+  const key = exKey(name), out = [];
+  for (const k of Object.keys(S.days).sort().reverse()) { if (k >= beforeKey) continue; const wo = S.days[k].workout; if (!wo || !wo.sets) continue; const ex = sessionEx(wo); ex.forEach((e, ei) => { if (exKey(e.n) !== key) return; const sets = (wo.sets[ei] || []).filter((s) => s && (s.done || s.w || s.r)); if (sets.length) out.push({ k, sets: sets.map((s) => ({ w: s.w, r: s.r, done: !!s.done })) }); }); if (out.length >= (n || 6)) break; }
+  return out;
+}
+function fmtSets(sets) { return sets.map((s) => (s.w !== undefined && s.w !== '' ? s.w + '×' : '') + (s.r || '?')).join(' · '); }
+function exBest(hist) { let best = null; hist.forEach((h) => h.sets.forEach((s) => { const w = num(s.w) || 0, r = parseInt(s.r) || 0; const score = w ? w * r : r; if (score && (!best || score > best.score)) best = { w, r, score, k: h.k }; })); return best; }
+function progressHint(e, last) { if (!last) return ''; const m = String(e.r).match(/(\d+)\s*[–-]\s*(\d+)/); if (!m) return ''; const top = parseInt(m[2]); const all = last.sets.length >= e.s && last.sets.every((s) => (parseInt(s.r) || 0) >= top); return all ? `<span class="chip ok" style="padding:3px 8px;font-size:11px">↑ progress: add weight</span>` : ''; }
+let restEnd = 0, restTimer = null;
+function startRest(sec) { restEnd = now() + sec * 1000; clearInterval(restTimer); restTimer = setInterval(() => { const el = $('rest-pill'); if (!el) { clearInterval(restTimer); return; } const left = Math.ceil((restEnd - now()) / 1000); if (left <= 0) { el.textContent = 'Rest done · go'; el.classList.add('ok'); clearInterval(restTimer); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (e) { } return; } el.textContent = 'Rest ' + fmtEl(left); }, 250); }
+function restPill() { if (!restEnd) return ''; const left = Math.ceil((restEnd - now()) / 1000); return `<span class="chip ${left <= 0 ? 'ok' : 'on'}" id="rest-pill" onclick="restEnd=0;render()">${left <= 0 ? 'Rest done · go' : 'Rest ' + fmtEl(left)}</span>`; }
+function editSession() {
+  const o = day(curDate), wo = o.workout, ex = sessionEx(wo);
+  const lines = ex.map((e) => `${e.n} | ${e.s} | ${e.r}${e.note ? ' | ' + e.note : ''}`).join('\n');
+  openModal(`<h2>Today's session only</h2><div class="hint" style="margin-bottom:10px">Changes here apply to ${fmtShort(curDate)} only. The weekly program stays as it is. To change every week, use <b>Edit program</b>.</div>
+    <div class="field"><label>Exercises — one per line: <span class="mono">name | sets | reps | note</span></label><textarea id="m-ex" style="min-height:200px;font-family:var(--mono);font-size:12px">${esc(lines)}</textarea></div>
+    <div class="actions">${wo.ex ? `<button class="btn" onclick="day('${dk(curDate)}').workout.ex=undefined;delete day('${dk(curDate)}').workout.ex;touch(day('${dk(curDate)}'));closeModal();render()">Back to program</button>` : ''}<button class="btn primary" onclick="saveSession()">Save for today</button></div>`);
+}
+function saveSession() {
+  const o = day(curDate); const ex = $('m-ex').value.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => { const [n, s, r, ...note] = l.split('|').map((x) => x.trim()); return { n: n || 'Exercise', s: clamp(parseInt(s) || 1, 1, 12), r: r || '', note: note.join(' | ') }; });
+  o.workout.ex = ex; touch(o); closeModal(); render();
+}
+function exMenu(ei) {
+  const o = day(curDate), ex = sessionEx(o.workout), e = ex[ei];
+  openModal(`<h2>${esc(e.n)}</h2>
+    <div class="field"><label>Swap for today (name)</label><input id="m-swap" placeholder="e.g. Inverted rows"></div>
+    <div class="g2"><div class="field"><label>Sets</label><input id="m-s" type="number" value="${e.s}"></div><div class="field"><label>Reps / time</label><input id="m-r" value="${esc(e.r)}"></div></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" onclick="applyExToday(${ei})">Apply to today</button><button class="btn sm danger" onclick="removeExToday(${ei})">Remove for today</button><button class="btn sm ghost" onclick="closeModal();editProgram('${o.workout.program}')">Edit the weekly program</button></div>
+    ${(() => { const h = exHistory(e.n, dk(addDays(curDate, 1)), 8); return h.length ? `<div class="sec-h">History</div>${h.map((x) => `<div class="kv"><span class="small muted">${fmtShort(pd(x.k))}</span><span class="small">${esc(fmtSets(x.sets))}</span></div>`).join('')}` : '<div class="empty">No past sets for this exercise yet.</div>'; })()}`);
+}
+function applyExToday(ei) { const o = day(curDate); const ex = sessionEx(o.workout).map((x) => Object.assign({}, x)); const sw = $('m-swap').value.trim(); if (sw) ex[ei].n = sw; ex[ei].s = clamp(parseInt($('m-s').value) || ex[ei].s, 1, 12); ex[ei].r = $('m-r').value.trim() || ex[ei].r; o.workout.ex = ex; if (sw) o.workout.sets[ei] = []; touch(o); closeModal(); render(); }
+function removeExToday(ei) { const o = day(curDate); const ex = sessionEx(o.workout).map((x) => Object.assign({}, x)); ex.splice(ei, 1); const sets = {}; Object.keys(o.workout.sets || {}).forEach((k) => { const i = Number(k); if (i < ei) sets[i] = o.workout.sets[k]; else if (i > ei) sets[i - 1] = o.workout.sets[k]; }); o.workout.ex = ex; o.workout.sets = sets; touch(o); closeModal(); render(); }
 function setProgram(id) { const o = day(curDate); o.workout = { program: id, sets: {}, done: false, note: '' }; touch(o); render(); }
 function setSet(ei, si, f, v) { const o = day(curDate); if (!o.workout.sets[ei]) o.workout.sets[ei] = []; if (!o.workout.sets[ei][si]) o.workout.sets[ei][si] = {}; o.workout.sets[ei][si][f] = v; touch(o); }
-function toggleSet(ei, si) { const o = day(curDate); if (!o.workout.sets[ei]) o.workout.sets[ei] = []; if (!o.workout.sets[ei][si]) o.workout.sets[ei][si] = {}; const s = o.workout.sets[ei][si]; s.done = !s.done; if (s.done) { const p = S.programs[o.workout.program]; const prev = prevWorkout(o.workout.program, dk(curDate)); const ps = prev && prev.sets[ei] && prev.sets[ei][si]; if (!s.w && ps && ps.w) s.w = ps.w; if (!s.r && ps && ps.r) s.r = ps.r; if (!s.r && p && p.ex[ei] && /^\d+$/.test(p.ex[ei].r)) s.r = p.ex[ei].r; } touch(o); render(); }
+function toggleSet(ei, si) { const o = day(curDate); if (!o.workout.sets[ei]) o.workout.sets[ei] = []; if (!o.workout.sets[ei][si]) o.workout.sets[ei][si] = {}; const s = o.workout.sets[ei][si]; s.done = !s.done; if (s.done) { const ex = sessionEx(o.workout), e = ex[ei]; const h = e ? exHistory(e.n, dk(curDate), 1)[0] : null; const ps = h && h.sets[si]; if (!s.w && ps && ps.w) s.w = ps.w; if (!s.r && ps && ps.r) s.r = ps.r; if (!s.r && e && /^\d+$/.test(e.r)) s.r = e.r; startRest(e && /s\b|min/.test(e.r) ? 45 : 90); } touch(o); render(); }
 function skipWorkout(reason) { const o = day(curDate); if (!o.workout) o.workout = { program: S.programByDay.map[dow(curDate)] || '', sets: {}, done: false, note: '' }; o.workout.done = false; o.workout.skipped = reason; o.habits.train = 0; S.routines.morning.filter((r) => r.link === 'train').forEach((r) => (o.routine[r.id] = 0)); touch(o); toast('Logged: no training · ' + reason); render(); }
 function unskipWorkout() { const o = day(curDate); delete o.workout.skipped; delete o.habits.train; touch(o); render(); }
 function finishWorkout() { const o = day(curDate); o.workout.done = !o.workout.done; if (o.workout.done) delete o.workout.skipped; o.habits.train = o.workout.done ? 1 : 0; if (!o.workout.done) delete o.habits.train; S.routines.morning.filter((r) => r.link === 'train').forEach((r) => (o.routine[r.id] = o.workout.done ? 1 : 0)); touch(o); toast(o.workout.done ? 'Workout logged 💪' : 'Workout reopened'); render(); }
