@@ -71,13 +71,36 @@ function hookFor(x) { if (x.opener) return x.opener; return `You're one of the a
 let dialFilter = 'all', dialPick = null, dialSearch = '', scriptOpen = false, queueOpen = false;
 function currentCall() { if (dialPick && Q.items[dialPick] && Q_OPEN.includes(Q.items[dialPick].status)) return Q.items[dialPick]; const l = qNextList(dialFilter); return l[0] || null; }
 function countDial(owner) { const o = day(new Date()); o.counters.dials = (Number(o.counters.dials) || 0) + 1; if (owner) o.counters.owners = (Number(o.counters.owners) || 0) + 1; touch(o); try { navigator.vibrate && navigator.vibrate(12); } catch (e) { } }
-function logCall(id, result, patch, note) {
+let lastEntry = null; // {id, at} of the last logged outcome, for one-tap undo
+function logCall(id, result, patch, note, owner) {
   const x = Q.items[id]; if (!x) return;
-  x.log = x.log || []; x.log.push({ at: new Date().toISOString(), r: result, note: note || '' });
-  x.attempts = (x.attempts || 0) + 1; x.last_dial_at = new Date().toISOString(); x._u = now();
+  const prev = { status: x.status, attempts: x.attempts || 0, next_at: x.next_at || '', next_step: x.next_step || '', contact: x.contact || '', notes: x.notes || '', email: x.email || '', receptionist: x.receptionist || '' };
+  const dur = x._tap && now() - x._tap < 30 * 60000 ? Math.round((now() - x._tap) / 1000) : null; delete x._tap;
+  const e = { at: new Date().toISOString(), r: result, note: note || '', day: dk(new Date()), d: { dials: 1, owners: owner ? 1 : 0 }, prev, dur };
+  x.log = x.log || []; x.log.push(e);
+  x.attempts = (x.attempts || 0) + 1; x.last_dial_at = e.at; x._u = now();
   if (note) x.notes = (x.notes ? x.notes + ' · ' : '') + note;
   Object.assign(x, patch || {});
+  lastEntry = { id, at: e.at };
   qSave();
+}
+function undoEntry(id, at, quiet) {
+  const x = Q.items[id]; if (!x) return; const i = (x.log || []).findIndex((l) => l.at === at); if (i < 0) return;
+  const e = x.log[i];
+  if (e.d && e.day) { const o = day(e.day); o.counters.dials = Math.max(0, (Number(o.counters.dials) || 0) - (e.d.dials || 0)); o.counters.owners = Math.max(0, (Number(o.counters.owners) || 0) - (e.d.owners || 0)); touch(o); }
+  if (e.task && S.tasks[e.task]) { S.tasks[e.task]._del = true; S.tasks[e.task]._u = now(); save(); taskHook('delete', S.tasks[e.task]); }
+  x.log.splice(i, 1);
+  if (i === x.log.length && e.prev) Object.assign(x, e.prev); else if (e.prev) { x.attempts = Math.max(0, (x.attempts || 1) - 1); }
+  if (!x.log.length) { x.status = 'new'; x.attempts = 0; x.next_at = ''; x.next_step = ''; }
+  x._u = now(); qSave(); if (lastEntry && lastEntry.at === at) lastEntry = null;
+  if (!quiet) toast('Undone: ' + e.r); render();
+}
+function undoLast() { if (!lastEntry) { toast('Nothing to undo'); return; } undoEntry(lastEntry.id, lastEntry.at); }
+function resetAgency(id) { const x = Q.items[id]; if (!x) return; if (!confirm('Reset ' + x.agency + '? Every logged call is removed and the dials are taken back out of your counters.')) return; (x.log || []).slice().reverse().forEach((e) => undoEntry(id, e.at, true)); closeModal(); toast('Reset'); render(); }
+function lastEntryHtml() {
+  if (!lastEntry || !Q.items[lastEntry.id]) return '';
+  const x = Q.items[lastEntry.id], e = (x.log || []).find((l) => l.at === lastEntry.at); if (!e) return '';
+  return `<div class="card flat"><div class="row sb"><div class="small muted">Last: <b>${esc(x.agency)}</b> · ${esc(e.r)}${e.dur ? ` · ${fmtEl(e.dur)} on the line` : ''}</div><button class="btn sm" onclick="undoLast()">↶ Undo</button></div></div>`;
 }
 function outcome(id, kind) {
   const x = Q.items[id]; if (!x) return;
@@ -123,12 +146,14 @@ function saveOwner(id) {
   if (who) patch.contact = who; if (email) patch.email = email;
   if (res === 'booked' || res === 'callback') { patch.next_at = when; patch.next_step = (res === 'booked' ? 'Case call ' : 'Call back ') + when + ' ' + time; }
   if (res === 'bulletin') patch.next_step = 'Monday Bulletin';
-  logCall(id, 'OWNER TALK → ' + res, patch, note); countDial(true);
-  if (res === 'booked') { const t = { id: uid(), _u: now(), title: `Case call: ${Q.items[id].agency}${who ? ' (' + who + ')' : ''} at ${time}`, due: when, done: false, note }; S.tasks[t.id] = t; save(); }
+  logCall(id, 'OWNER TALK → ' + res, patch, note, true); countDial(true);
+  if (res === 'booked') { const t = { id: uid(), _u: now(), title: `Case call: ${Q.items[id].agency}${who ? ' (' + who + ')' : ''} at ${time}`, due: when, done: false, note }; S.tasks[t.id] = t; save(); taskHook('create', t); const x = Q.items[id]; x.log[x.log.length - 1].task = t.id; qSave(); }
   dialPick = null; closeModal(); toast(res === 'booked' ? 'Booked. Case call added to tasks.' : 'Owner talk logged'); render();
 }
-function offListDial() { countDial(); toast('+1 dial (off-list)'); render(); }
-function offListOwner() { countDial(true); toast('+1 dial, +1 owner talk (off-list)'); render(); }
+function offListDial() { countDial(); render(); toast('+1 dial (off-list)', 'Undo', () => { bumpToday('dials', -1); }); }
+function offListOwner() { countDial(true); render(); toast('+1 dial, +1 owner talk (off-list)', 'Undo', () => { bumpToday('dials', -1); bumpToday('owners', -1); }); }
+function bumpToday(id, n) { const o = day(new Date()); o.counters[id] = Math.max(0, (Number(o.counters[id]) || 0) + n); touch(o); render(); }
+function setToday(id) { const o = day(new Date()); const c = S.counters.items.find((x) => x.id === id); const v = prompt('Set ' + c.title + ' for today (exact number)', o.counters[id] || 0); if (v == null) return; o.counters[id] = Math.max(0, num(v) || 0); touch(o); render(); }
 function addQueueItem() {
   openModal(`<h2>Add an agency</h2><div class="field"><label>Agency</label><input id="aq-a" placeholder="Name"></div><div class="g2"><div class="field"><label>City</label><input id="aq-c" placeholder="Naples"></div><div class="field"><label>County</label><input id="aq-co" placeholder="Collier"></div></div><div class="field"><label>Phone</label><input id="aq-p" type="tel" placeholder="(239) 555-0100"></div><div class="field"><label>Who to ask for</label><input id="aq-w"></div><div class="field"><label>Hook (the one true specific thing)</label><input id="aq-h" placeholder="I saw your post for a live-in caregiver in Bonita"></div>
     <div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveQueueItem()">Add</button></div>`);
@@ -147,7 +172,7 @@ function editQueueItem(id) {
     <div class="field"><label>Hook / opener</label><textarea id="eq-h">${esc(x.opener)}</textarea></div>
     <div class="g2"><div class="field"><label>Next date</label><input id="eq-n" type="date" value="${esc(x.next_at || '')}"></div><div class="field"><label>Email</label><input id="eq-e" value="${esc(x.email || '')}"></div></div>
     <div class="field"><label>Notes</label><textarea id="eq-note">${esc(x.notes || '')}</textarea></div>
-    ${(x.log || []).length ? `<div class="sec-h">Log</div>${x.log.slice().reverse().map((l) => `<div class="kv"><span class="small">${new Date(l.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span><span class="small" style="text-align:right">${esc(l.r)}${l.note ? ' · ' + esc(l.note) : ''}</span></div>`).join('')}` : ''}
+    ${(x.log || []).length ? `<div class="sec-h">Log · tap × to remove a call (its dial comes off the counter)</div>${x.log.slice().reverse().map((l) => `<div class="kv"><span class="small">${new Date(l.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span><span class="small" style="text-align:right">${esc(l.r)}${l.note ? ' · ' + esc(l.note) : ''}${l.dur ? ' · ' + fmtEl(l.dur) : ''} <button class="btn sm ghost" style="color:var(--bad)" onclick="undoEntry(${id},'${l.at}');editQueueItem(${id})">×</button></span></div>`).join('')}<button class="btn sm danger" style="margin-top:8px" onclick="resetAgency(${id})">Reset this agency</button>` : ''}
     <div class="actions"><button class="btn" onclick="dialPick=${id};closeModal();render()">Dial this one next</button><button class="btn primary" onclick="saveQueueEdit(${id})">Save</button></div>`);
 }
 function saveQueueEdit(id) { const x = Q.items[id]; Object.assign(x, { phone: $('eq-p').value.trim(), status: $('eq-s').value, contact: $('eq-w').value.trim(), opener: $('eq-h').value.trim(), next_at: $('eq-n').value, email: $('eq-e').value.trim(), notes: $('eq-note').value.trim(), _u: now() }); qSave(); closeModal(); render(); }
@@ -206,9 +231,9 @@ function renderDial() {
   const dueCb = Q ? qItems().filter((y) => y.status === 'callback' && y.next_at && y.next_at <= k).length : 0;
 
   const tiles = `<div class="tiles">
-    <div class="tile ${tg && v >= tg ? 'hit' : ''}" onclick="document.getElementById('dial-next').scrollIntoView({behavior:'smooth'})"><div class="n num">${v}<small>/${tg || '—'}</small></div><div class="l">today</div></div>
+    <div class="tile ${tg && v >= tg ? 'hit' : ''}" onclick="setToday('dials')"><div class="n num">${v}<small>/${tg || '—'}</small></div><div class="l">today · tap to fix</div></div>
     <div class="tile"><div class="n num">${wk}<small>/${weekly}</small></div><div class="l">week</div></div>
-    <div class="tile"><div class="n num">${owners}<small>/${ownersGoal ? ownersGoal.target : 100}</small></div><div class="l">owner talks</div></div>
+    <div class="tile" onclick="setToday('owners')"><div class="n num">${owners}<small>/${ownersGoal ? ownersGoal.target : 100}</small></div><div class="l">owner talks</div></div>
     <div class="tile"><div class="n num">${Math.max(0, weekly - wk)}</div><div class="l">left · week</div></div></div>`;
 
   const sessHtml = sess ? `<div class="card ac flat"><div class="row sb"><div><div class="card-t">Session · <span class="mono" id="sess-el">${fmtEl(Math.floor((now() - sess.start) / 1000))}</span></div><div class="small">${v - sess.d0} dials · ${ow - sess.o0} owner talks · ${v - sess.d0 ? Math.round(((ow - sess.o0) / (v - sess.d0)) * 100) : 0}% reach${blk ? ` · block ends ${blk.end} (${tmin(blk.end) - nm} min)` : ''}</div></div><button class="btn sm danger" onclick="endSession()">End</button></div></div>`
@@ -252,7 +277,7 @@ function renderDial() {
   const ownersDone = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners');
   const gate = ownersDone ? `<div class="coach">Rule from the plan: <b>no new business ideas until ${ownersDone.target} owner conversations</b> (${owners} so far · review ${ownersDone.deadline ? fmtShort(pd(ownersDone.deadline)) : '8 Dec'}). His idea: volume negates luck <span class="ref">[#1]</span>.</div>` : '';
 
-  $('view-dial').innerHTML = tiles + sessHtml + nextCard + scriptCard + listHtml + gate;
+  $('view-dial').innerHTML = tiles + sessHtml + nextCard + lastEntryHtml() + scriptCard + listHtml + gate;
   clearInterval(sessTimer); if (sess) sessTimer = setInterval(() => { const el = $('sess-el'); if (!el) { clearInterval(sessTimer); return; } el.textContent = fmtEl(Math.floor((now() - sess.start) / 1000)); }, 1000);
 }
 function dialListHtml(list) {
@@ -261,4 +286,4 @@ function dialListHtml(list) {
   return items.map((x) => `<div class="qrow" onclick="dialPick=${x.id};queueOpen=false;render();window.scrollTo(0,0)"><div class="grow"><div class="a">${x.tier === 'T1' ? '★ ' : ''}${esc(x.agency)}</div><div class="m">${esc(x.city)}${x.phone ? '' : ' · no phone'}${x.attempts ? ` · ${x.attempts} attempt${x.attempts > 1 ? 's' : ''}` : ''}${x.next_at && x.status === 'callback' ? ' · ' + fmtShort(pd(x.next_at)) : ''}</div></div><span class="st ${x.status}">${x.status}</span></div>`).join('');
 }
 function renderDialList() { const el = $('dial-list'); if (el) el.innerHTML = dialListHtml(qNextList(dialFilter)); }
-function markDialing(id) { const x = Q.items[id]; if (x) { x._lastTap = now(); } }
+function markDialing(id) { const x = Q.items[id]; if (x) { x._tap = now(); } }

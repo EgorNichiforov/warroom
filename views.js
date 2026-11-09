@@ -38,7 +38,7 @@ function show(v) {
 }
 function shiftDay(n) { curDate = addDays(curDate, n); render(); }
 function goToday() { curDate = new Date(); curDate.setHours(0, 0, 0, 0); render(); }
-function renderNav() { $('nav').innerHTML = NAV.map(([v, ic, l]) => `<button class="${view === v ? 'on' : ''}" onclick="show('${v}')"><span class="ic">${ic}</span>${l}</button>`).join(''); }
+function renderNav() { const d = new Date(), o = day(d), dc = S.counters.items.find((c) => c.id === 'dials'), tg = dc ? dc.targets[dow(d)] || 0 : 0, left = Math.max(0, tg - (Number(o.counters.dials) || 0)); const nm = nowMin(); const inBlock = blocksFor(d).some((b) => b.kind === 'dials' && tmin(b.start) <= nm && nm < tmin(b.end)); $('nav').innerHTML = NAV.map(([v, ic, l]) => `<button class="${view === v ? 'on' : ''}" onclick="show('${v}')"><span class="ic">${ic}</span>${l}${v === 'dial' && left && (inBlock || nm >= 15 * 60) ? `<span class="badge">${left}</span>` : ''}</button>`).join(''); }
 function renderTop() {
   const titles = { now: isToday(curDate) ? 'Now' : fmtShort(curDate), dial: 'Dial', train: 'Train', week: 'Week', me: 'Me' };
   $('top-title').textContent = titles[view];
@@ -147,7 +147,7 @@ function renderTrainView() { $('view-train').innerHTML = renderTrain(); }
 function renderWeek() {
   const tabs = [['plan', 'Plan'], ['tasks', `Tasks${(() => { const n = tasksList().filter((t) => !t.done && t.due && t.due <= dk(new Date())).length; return n ? ' · ' + n : ''; })()}`], ['goals', 'Goals'], ['review', 'Review']];
   const head = `<div class="chips" style="margin-bottom:12px">${tabs.map(([v, l]) => `<span class="chip ${weekTab === v ? 'on' : ''}" onclick="weekTab='${v}';render()">${l}</span>`).join('')}</div>`;
-  const body = weekTab === 'plan' ? renderPlan() : weekTab === 'tasks' ? renderTasks() : weekTab === 'goals' ? renderGoals() : renderReview();
+  const body = weekTab === 'plan' ? renderPlan() : weekTab === 'tasks' ? renderTasks() + (tdOn() ? `<div class="xs muted" style="text-align:center;margin:6px 0">Todoist · ${esc(tdLabel())} · <a href="#" onclick="tdPull(false);return false">sync</a></div>` : `<div class="xs muted" style="text-align:center;margin:6px 0"><a href="#" onclick="moreTab='home';show('me');return false">Connect Todoist</a> to keep tasks in both places.</div>`) : weekTab === 'goals' ? renderGoals() : renderReview();
   $('view-week').innerHTML = head + body;
 }
 
@@ -166,6 +166,7 @@ function renderMe() {
       <div class="kv"><span>BAC first exam</span><input type="date" value="${S.settings.bacDate}" onchange="S.settings.bacDate=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Big date</span><input type="date" value="${S.settings.bigDate}" onchange="S.settings.bigDate=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Currency</span><input value="${esc(S.settings.currency)}" onchange="S.settings.currency=this.value||'MDL';S.settings._u=Date.now();save()"></div></div>
+      ${tdCard()}
       <div class="card flat"><div class="row sb"><div><div style="font-weight:600">Classic War Room</div><div class="xs muted">The previous version, same data. If anything here is off on a dial day, use it.</div></div><a class="btn sm" href="./classic/">Open</a></div></div>
       <div class="xs dim" style="text-align:center;margin:10px 0">War Room v${APP_VERSION} · data on this device${sync.code ? ' + cloud' : ''}${Q ? ` · queue ${qItems().length} agencies` : ''}</div>`;
   } else if (t === 'weight') html += renderWeight();
@@ -187,7 +188,8 @@ if (/[?&]spend\b/.test(_qs)) setTimeout(openSpend, 150);
 if (_qs) history.replaceState(null, '', location.pathname);
 qLoad();
 if (syncReady()) pullCloud(true);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); } } });
+if (tdOn()) { tdFlush(); tdPull(true); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); } if (tdOn()) { tdFlush(); tdPull(true); } } });
 setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea')) render(); }, 60000);
 if ('serviceWorker' in navigator) {
   let wrReloaded = false; const hadSW = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (wrReloaded || !hadSW) return; wrReloaded = true; location.reload(); });

@@ -271,7 +271,7 @@ a{color:var(--acc)}
 .nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .nav button .ic{font-size:21px;line-height:1}
 .nav button.on{color:var(--acc)}
-.nav button .badge{position:absolute;margin-top:-30px;margin-left:26px;background:var(--bad);color:#fff;font-size:9px;border-radius:999px;padding:1px 5px}
+.nav button{position:relative}.nav button .badge{position:absolute;top:8px;left:calc(50% + 8px);background:var(--bad);color:#fff;font-size:9px;border-radius:999px;padding:1px 5px;line-height:1.4}
 
 /* modal + toast */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50}
@@ -339,8 +339,9 @@ a{color:var(--acc)}
 <nav class="nav"><div class="nav-in" id="nav"></div></nav>
 <div class="modal-bg" id="modal-bg"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
-<script src="./core.js?v=4.0.0"></script>
-<script src="./dial.js?v=4.0.0"></script>
-<script src="./views.js?v=4.0.0"></script>
+<script src="./core.js?v=4.1.0"></script>
+<script src="./dial.js?v=4.1.0"></script>
+<script src="./todoist.js?v=4.1.0"></script>
+<script src="./views.js?v=4.1.0"></script>
 </body>
 </html>
