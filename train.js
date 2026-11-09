@@ -87,7 +87,7 @@ function renderTrain() {
   html += `<div class="card" style="padding:12px"><div class="card-t" style="margin-bottom:8px;padding:0 4px">This week</div><div class="wstrip">${cols}</div><div class="g4" style="margin-top:10px">${[[workoutsWeek(curDate), 'days'], [wkSess, 'sessions'], [wkMin ? Math.round(wkMin / 60 * 10) / 10 + 'h' : wkMin, 'time'], [Math.round(wkVol / 1000 * 10) / 10 + 't', 'lifted']].map(([n, l]) => `<div class="cd"><div class="n" style="font-size:18px">${n}</div><div class="l">${l}</div></div>`).join('')}</div></div>`;
   // history
   const hist = []; Object.keys(S.days).sort().reverse().some((kk) => { sessionsRO(S.days[kk]).filter((s) => s.done).forEach((s) => hist.push({ k: kk, s })); return hist.length >= 20; });
-  html += programsCard();
+  html += `<div class="xs muted" style="text-align:center;margin:4px 0 10px"><a href="#" onclick="moreTab='programs';show('me');return false">Edit programs & weekly split</a></div>`;
   html += `<div class="card"><div class="card-t" style="margin-bottom:6px">Recent sessions</div>${hist.length ? hist.slice(0, 20).map(({ k: kk, s }) => `<div class="kv" onclick="curDate=pd('${kk}');trainSel=-1;render()" style="cursor:pointer"><span>${kindIcon(s.kind)} ${esc(sessionLabel(s))} <span class="xs muted">${fmtShort(pd(kk))}</span></span><span class="small muted">${sessionSets(s) ? sessionSets(s) + ' sets' : ''}${sessionMinutes(s) ? (sessionSets(s) ? ' · ' : '') + sessionMinutes(s) + ' min' : ''}${s.rpe ? ' · RPE ' + s.rpe : ''}</span></div>`).join('') : '<div class="empty">No sessions logged yet.</div>'}</div>`;
   return html;
 }

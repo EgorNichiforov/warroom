@@ -1,6 +1,6 @@
 /* War Room v4 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '4.4.0';
+const APP_VERSION = '4.5.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -374,22 +374,25 @@ function top3Card(o, k, d) {
   return `<div class="card top3"><div class="card-h"><div class="card-t">Top 3 for the day</div><div class="card-r">${o.top3.filter((x) => x.d).length}/${o.top3.filter((x) => x.t).length || 3}</div></div>${o.top3.map((x, i) => `<div class="item ${x.d ? 'on' : ''}"><div class="n">${i + 1}</div><input value="${esc(x.t)}" placeholder="${['Most important thing…', 'Second…', 'Third…'][i]}" oninput="setTop3(${i},this.value)"><div class="box" onclick="toggleTop3(${i})">${x.d ? '✓' : ''}</div></div>`).join('')}
     ${due.length ? `<div class="sec-h">Tasks due</div>${due.map((t) => taskRow(t, k)).join('')}` : ''}<div class="row" style="margin-top:8px"><input id="quick-task" placeholder="+ task for ${isToday(d) ? 'today' : fmtShort(d)}" onkeydown="if(event.key==='Enter')quickTask('${k}')"></div></div>`;
 }
-function standardsCard(o) { return `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div></div>`; }
+function standardsCard(o) { const short = (t) => t.replace(/\s*\(.*?\)\s*/g, '').replace(/ Protocol| Check/g, ''); return `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits compact">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')" title="${esc(h.title)}"><div class="b">${o.habits[h.id] ? '✓' : ''}</div><span>${esc(short(h.title))}</span></div>`).join('')}</div></div>`; }
 function sleepMoneyBody(o) { return `<div class="g2"><div class="field"><label>In bed</label><input type="time" value="${esc(o.bedAt || '')}" onchange="setDayField('bedAt',this.value)"></div><div class="field"><label>Woke up</label><input type="time" value="${esc(o.wokeAt || '')}" onchange="setDayField('wokeAt',this.value)"></div></div>`; }
 function moneyCard(o, d) {
-  const k = dk(d), m = o.money || {}, cur = S.settings.currency, today = isToday(d);
-  const inp = (id, l) => `<div class="field" style="margin:0"><label>${l}</label><input type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0" onchange="setMoney('${k}','${id}',this.value);render()"></div>`;
-  return `<div class="card"><div class="card-h"><div class="card-t">💰 Money</div><div class="card-r">made <b class="ok">${Number(o.income) || 0}</b> · spent <b class="bad">${Number(o.spent) || 0}</b> ${cur}</div></div>
-    <div class="g2">${inp('tennis', 'Made: tennis')}${inp('agency', 'Made: agency')}</div>
-    ${today ? `<button class="btn primary block" style="margin-top:10px" onclick="openSpend()">💸 Spent cash</button>` : ''}
-    <details style="margin-top:8px"><summary class="small muted" style="cursor:pointer">Spending by category (edit)</summary>${MONEY_OUT.map(([id, l]) => `<div class="kv"><span>${l}</span><input type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0" onchange="setMoney('${k}','${id}',this.value);render()"></div>`).join('')}</details></div>`;
+  const cur = S.settings.currency, today = isToday(d), k = dk(d);
+  return `<div class="card flat"><div class="row sb"><div><div class="card-t">Money</div><div style="font-weight:700;margin-top:2px">made <span class="ok">${Number(o.income) || 0}</span> · spent <span class="bad">${Number(o.spent) || 0}</span> <span class="small muted">${cur}</span></div></div><div class="row" style="gap:6px"><button class="btn sm" onclick="incomeModal('${k}')">+ Made</button><button class="btn sm primary" onclick="openSpend()">💸 Spent</button></div></div></div>`;
+}
+function incomeModal(k) {
+  const o = day(k), m = o.money || {};
+  openModal(`<h2>Money made · ${fmtShort(pd(k))}</h2><div class="g2">${MONEY_IN.map(([id, l]) => `<div class="field"><label>${l}</label><input id="inc-${id}" type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0"></div>`).join('')}</div>
+    <div class="sec-h">Spent by category</div><div class="g2">${MONEY_OUT.map(([id, l]) => `<div class="field" style="margin-bottom:8px"><label>${l}</label><input id="inc-${id}" type="number" inputmode="numeric" value="${m[id] ?? ''}" placeholder="0"></div>`).join('')}</div>
+    <div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="${MONEY_IN.concat(MONEY_OUT).map(([id]) => `setMoney('${k}','${id}',document.getElementById('inc-${id}').value);`).join('')}closeModal();render()">Save</button></div>`);
 }
 function debriefBody(o) { return `<div class="field"><label>Win</label><input value="${esc(o.win || '')}" placeholder="What worked today?" oninput="setDayField('win',this.value)"></div><div class="field"><label>Loss</label><input value="${esc(o.loss || '')}" placeholder="Where did I break my word?" oninput="setDayField('loss',this.value)"></div><div class="field" style="margin:0"><label>Fix for tomorrow</label><input value="${esc(o.fix || '')}" placeholder="One change" oninput="setDayField('fix',this.value)"></div>`; }
 function gradeCard(d) {
   const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
   const st = [['⚖️', streakWeigh(), 'weigh-ins'], ['📞', streakMinimum(), 'minimum days'], ['🌅', streakMorning(), 'full mornings'], ['😴', streakBed(), `bed ${S.settings.bed}`]];
-  return `<div class="card"><div class="score"><svg class="ring" viewBox="0 0 64 64"><circle class="bgc" cx="32" cy="32" r="27"/><circle class="fgc" cx="32" cy="32" r="27" stroke-dasharray="${2 * Math.PI * 27}" stroke-dashoffset="${2 * Math.PI * 27 * (1 - sc / 100)}" style="stroke:${g === 'A' ? 'var(--accent)' : g === 'B' ? 'var(--green)' : g === 'C' ? 'var(--amber)' : 'var(--red)'}"/><text x="32" y="33">${g}</text></svg><div class="grow"><div style="font-weight:700">Day grade · ${sc}%</div><div class="small muted">${m.met ? 'Minimum met' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}. ${sc >= 85 ? 'A-day. Keep the chain.' : sc >= 70 ? 'Solid. Finish the list.' : m.met ? 'Minimum done, standards slipped.' : `Never zero: ${S.settings.minDials} dials + ${S.settings.minBac} min BAC.`}</div></div></div>
-    <div class="chips" style="margin-top:12px">${st.map(([ic, n, l]) => `<span class="chip ${n > 0 ? 'on' : ''}">${ic} ${n}d <span class="dim">${l}</span></span>`).join('')}</div></div>`;
+  const col = g === 'A' ? 'var(--acc)' : g === 'B' ? 'var(--ok)' : g === 'C' ? 'var(--acc)' : 'var(--bad)';
+  return `<div class="card flat"><div class="row sb" onclick="toggleSec('streaks')" style="cursor:pointer"><div class="row"><span style="font-size:26px;font-weight:800;color:${col};width:34px">${g}</span><div><div style="font-weight:700">Day grade · ${sc}%</div><div class="xs muted">${m.met ? 'Minimum met' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}</div></div></div><span class="dim">${secOpen.streaks ? '▾' : '▸'}</span></div>
+    <div id="sec-streaks" class="${secOpen.streaks ? '' : 'hidden'}"><div class="chips" style="margin-top:12px">${st.map(([ic, n, l]) => `<span class="chip ${n > 0 ? 'on' : ''}">${ic} ${n}d <span class="dim">${l}</span></span>`).join('')}</div></div></div>`;
 }
 function sleepDur(a, b) { let m = tmin(b) - tmin(a); if (m < 0) m += 1440; return Math.floor(m / 60) + 'h ' + pad(m % 60) + 'm'; }
 function toggleRoutine(id) { const o = day(curDate); o.routine[id] = rState(o, id) ? 0 : 1; touch(o); render(); }

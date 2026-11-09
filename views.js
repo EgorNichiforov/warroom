@@ -85,8 +85,7 @@ function heroCard(d) {
     ${action ? `<div class="action">${action}</div>` : ''}
     ${line ? `<div class="next">${line}</div>` : ''}
     ${next ? `<div class="next">Then <b>${esc(next.title)}</b> at ${next.start} <span class="dim">(in ${tmin(next.start) - nm} min)</span></div>` : ''}
-    <div class="dayline"><i style="width:${pct}%"></i></div>
-    <div class="row sb xs dim" style="margin-top:4px"><span>${S.settings.wake}</span><span>${Math.round(pct)}% of the day</span><span>${S.settings.bed}</span></div></div>`;
+    <div class="dayline" title="${Math.round(pct)}% of the day"><i style="width:${pct}%"></i></div></div>`;
 }
 function tilesCard(o, d) {
   const w = dow(d), dc = S.counters.items.find((c) => c.id === 'dials'), bc = S.counters.items.find((c) => c.id === 'bac');
@@ -159,7 +158,7 @@ function renderMe() {
   const back = t === 'home' ? '' : `<button class="btn sm ghost" style="margin-bottom:10px" onclick="moreTab='home';render()">‹ Back</button>`;
   let html = back;
   if (t === 'home') {
-    html += `<div class="card">${[['weight', 'Weight history', 'chart, averages, pace to ' + S.settings.weightTarget + ' kg'], ['stakes', 'Stakes & minimum day', stakesOwed() ? fmt(stakesOwed()) + ' ' + S.settings.currency + ' owed' : 'never zero · ' + S.settings.stake + ' ' + S.settings.currency + ' per missed day'], ['routines', 'Routines & standards', 'edit the morning / evening lists and the 7 standards'], ['counters', 'Daily targets', 'dials, BAC minutes, deep work, per weekday'], ['sync', 'Sync & backup', sync.code ? 'connected · ' + syncLabel() : 'phone ↔ laptop'], ['install', 'Install on home screen', 'iPhone & Android steps']].map(([v, a, b]) => `<div class="setting-row" onclick="moreTab='${v}';render()"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>
+    html += `<div class="card">${[['weight', 'Weight history', 'chart, averages, pace to ' + S.settings.weightTarget + ' kg'], ['stakes', 'Stakes & minimum day', stakesOwed() ? fmt(stakesOwed()) + ' ' + S.settings.currency + ' owed' : 'never zero · ' + S.settings.stake + ' ' + S.settings.currency + ' per missed day'], ['routines', 'Routines & standards', 'edit the morning / evening lists and the 7 standards'], ['counters', 'Daily targets', 'dials, BAC minutes, deep work, per weekday'], ['programs', 'Training programs & split', 'edit the weekly programs and which day gets which'], ['sync', 'Sync & backup', sync.code ? 'connected · ' + syncLabel() : 'phone ↔ laptop'], ['install', 'Install on home screen', 'iPhone & Android steps']].map(([v, a, b]) => `<div class="setting-row" onclick="moreTab='${v}';render()"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>
       <div class="card"><div class="card-t" style="margin-bottom:8px">Settings</div>
       <div class="kv"><span>Wake</span><input type="time" value="${S.settings.wake}" onchange="S.settings.wake=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Bed</span><input type="time" value="${S.settings.bed}" onchange="S.settings.bed=this.value;S.settings._u=Date.now();save()"></div>
@@ -175,6 +174,7 @@ function renderMe() {
   else if (t === 'stakes') html += renderStakes();
   else if (t === 'routines') html += renderRoutinesEditor();
   else if (t === 'counters') html += renderCountersEditor();
+  else if (t === 'programs') html += programsCard();
   else if (t === 'sync') html += renderSync() + `<div class="card flat"><div class="row sb"><div class="small">Call queue${qState.status === 'ok' ? ' · <span class="ok">synced</span>' : qState.status === 'err' ? ' · <span class="bad">' + esc(qState.msg) + '</span>' : ''}</div><button class="btn sm" onclick="qPull(false).then(()=>render())">Sync queue</button></div></div>`;
   else if (t === 'install') html += `<div class="card"><div class="card-t" style="margin-bottom:8px">iPhone (Safari)</div><ol class="small" style="padding-left:18px;line-height:1.8"><li>Open this page in <b>Safari</b>.</li><li>Tap <b>Share</b> → <b>Add to Home Screen</b> → <b>Add</b>.</li></ol></div>
     <div class="card"><div class="card-t" style="margin-bottom:8px">Android (Chrome)</div><ol class="small" style="padding-left:18px;line-height:1.8"><li>Open this page in Chrome.</li><li><b>⋮</b> → <b>Add to Home screen</b> / <b>Install app</b>.</li><li>Long-press the icon for the <b>Dial</b> and <b>Spend</b> shortcuts.</li></ol></div>`;
