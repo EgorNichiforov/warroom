@@ -1,6 +1,6 @@
 /* War Room v4 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '4.2.0';
+const APP_VERSION = '4.3.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -295,13 +295,15 @@ function counterWeek(id, d) { const m = monday(d); let s = 0; for (let i = 0; i 
 function counterTotal(id) { let s = 0; for (const k in S.days) { const o = S.days[k]; if (o.counters && o.counters[id]) s += Number(o.counters[id]) || 0; } return s; }
 function workoutsWeek(d) { const m = monday(d); let n = 0; for (let i = 0; i < 7; i++) { const o = S.days[dk(addDays(m, i))]; if (o && o.workout && o.workout.done) n++; } return n; }
 function routineFor(list, d) { const w = dow(d); return list.filter((r) => !r.days || r.days.includes(w)); }
+function rState(o, id) { const v = o && o.routine ? o.routine[id] : 0; if (typeof v === 'string' && v.startsWith('skip')) return 'skip'; return v ? 'done' : ''; }
+function rSkipReason(o, id) { const v = o.routine[id]; return typeof v === 'string' ? v.replace(/^skip:?/, '') : ''; }
 function blocksFor(d) { const w = dow(d), o = S.days[dk(d)], sc = o && o.sched; let list = S.schedule.blocks.filter((b) => b.days.includes(w)); if (sc) { const skip = new Set(sc.skip || []); list = list.filter((b) => !skip.has(b.id)).concat((sc.add || []).map((b) => Object.assign({}, b, { once: true }))); } return list.sort((a, b) => tmin(a.start) - tmin(b.start) || tmin(a.end) - tmin(b.end)); }
 function dayOnce(d) { const o = day(d); if (!o.sched) o.sched = { skip: [], add: [] }; return o.sched; }
 function resetDaySchedule() { const o = day(curDate); delete o.sched; touch(o); toast('Regular schedule restored for ' + fmtShort(curDate)); render(); }
 function dayScore(d) {
   const o = S.days[dk(d)] || { routine: {}, habits: {}, counters: {}, top3: [] };
   let tot = 0, done = 0;
-  routineFor(S.routines.morning, d).concat(routineFor(S.routines.evening, d)).forEach((r) => { tot++; if (o.routine && o.routine[r.id]) done++; });
+  routineFor(S.routines.morning, d).concat(routineFor(S.routines.evening, d)).forEach((r) => { const st = rState(o, r.id); if (st === 'skip') return; tot++; if (st === 'done') done++; });
   S.habits.items.forEach((h) => { tot++; if (o.habits && o.habits[h.id]) done++; });
   S.counters.items.forEach((c) => { const tg = c.targets[dow(d)] || 0; if (tg > 0) { tot++; if ((Number(o.counters && o.counters[c.id]) || 0) >= tg) done++; } });
   (o.top3 || []).forEach((x) => { if (x.t) { tot++; if (x.d) done++; } });
@@ -310,7 +312,7 @@ function dayScore(d) {
 function tasksList() { return Object.values(S.tasks).filter((t) => !t._del); }
 let view = 'now', curDate = new Date(); curDate.setHours(0, 0, 0, 0);
 /* ───────── TODAY (phase-aware) ───────── */
-function morningDone(d) { const o = day(d); return routineFor(S.routines.morning, d).every((r) => o.routine[r.id]); }
+function morningDone(d) { const o = day(d); return routineFor(S.routines.morning, d).every((r) => rState(o, r.id)); }
 function phaseFor(d) { if (!isToday(d)) return dk(d) < dk(new Date()) ? 'past' : 'future'; const nm = nowMin(); if (nm >= tmin(S.settings.shutdown || '20:45')) return 'evening'; if (nm < 12 * 60 && !morningDone(d)) return 'morning'; return 'day'; }
 const secOpen = {};
 function toggleSec(n) { const el = $('sec-' + n); if (!el) return; const open = el.classList.contains('hidden'); el.classList.toggle('hidden', !open); secOpen[n] = open; }
@@ -335,12 +337,12 @@ function editWeight() { const o = day(curDate); o.weighEdit = true; render(); }
 function cancelWeight() { const o = day(curDate); delete o.weighEdit; render(); }
 function skipWeight() { const o = day(curDate); o.weightSkipped = true; touch(o); render(); }
 function focusMorning(o, d) {
-  const items = routineFor(S.routines.morning, d); const idx = items.findIndex((r) => !o.routine[r.id]); if (idx < 0) return '';
+  const items = routineFor(S.routines.morning, d); const idx = items.findIndex((r) => !rState(o, r.id)); if (idx < 0) return '';
   const cur = items[idx], next = items[idx + 1]; const nm = nowMin(); const blk = blocksFor(d).find((b) => tmin(b.start) <= nm && nm < tmin(b.end));
   return `<div class="card ac focus"><div class="card-h"><div class="card-t">Step ${idx + 1} of ${items.length}</div><div class="card-r">${blk ? `now: ${esc(blk.title)} · until ${blk.end}` : ''}</div></div>
     <div class="focus-t">${esc(cur.title)}</div>
-    <div class="row" style="margin-top:12px"><button class="btn primary lg grow" onclick="toggleRoutine('${cur.id}')">Done ✓</button></div>
-    <div class="small muted" style="margin-top:10px">${next ? `Next: <b>${esc(next.title)}</b>` : 'Last step. Then out the door.'}</div></div>`;
+    <div class="row" style="margin-top:12px;gap:8px"><button class="btn primary lg grow" onclick="toggleRoutine('${cur.id}')">Done ✓</button><button class="btn lg" onclick="skipRoutine('${cur.id}')">Skip</button></div>
+    <div class="row sb small muted" style="margin-top:10px"><span>${next ? `Next: <b>${esc(next.title)}</b>` : 'Last step. Then out the door.'}</span><a href="#" class="xs dim" onclick="skipRestOfMorning();return false">overslept · skip the rest</a></div></div>`;
 }
 function paceNeed(c, d) { const w = dow(d); const rem = ALL.filter((x) => x >= w && (c.targets[x] || 0) > 0).length; if (!rem || !c.weekly) return null; return Math.ceil(Math.max(0, c.weekly - counterWeek(c.id, d)) / rem); }
 function shutdownCard(o, d) {
@@ -350,8 +352,8 @@ function shutdownCard(o, d) {
 }
 function oneChangeBanner(d) { const prev = S.reviews[weekKey(addDays(monday(d), -7))]; if (!prev || !prev.change) return ''; return `<div class="card" style="padding:10px 16px;border-color:rgba(169,140,255,.4)"><div class="xs purple" style="letter-spacing:.1em;text-transform:uppercase;font-weight:700">This week's one change</div><div class="small">${esc(prev.change)}</div></div>`; }
 function routineCard(key, d, o, open) {
-  const items = routineFor(S.routines[key], d); if (!items.length) return ''; const done = items.filter((r) => o.routine[r.id]).length; const curIdx = items.findIndex((r) => !o.routine[r.id]);
-  return sec(key, `${key} routine`, `<b>${done}</b>/${items.length} ${done === items.length ? '✓' : ''}`, items.map((r, i) => `<div class="ck ${o.routine[r.id] ? 'on' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}" onclick="toggleRoutine('${r.id}')"><div class="box">${o.routine[r.id] ? '✓' : ''}</div><div class="lbl">${esc(r.title)}</div></div>`).join(''), open);
+  const items = routineFor(S.routines[key], d); if (!items.length) return ''; const done = items.filter((r) => rState(o, r.id) === 'done').length, skipped = items.filter((r) => rState(o, r.id) === 'skip').length; const curIdx = items.findIndex((r) => !rState(o, r.id));
+  return sec(key, `${key} routine`, `<b>${done}</b>/${items.length - skipped}${skipped ? ` <span class="dim">· ${skipped} skipped</span>` : ''} ${done === items.length - skipped ? '✓' : ''}`, items.map((r, i) => { const st = rState(o, r.id); return `<div class="ck ${st === 'done' ? 'on' : ''} ${st === 'skip' ? 'done' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}"><div class="box ${st === 'skip' ? 'round' : ''}" onclick="toggleRoutine('${r.id}')">${st === 'done' ? '✓' : st === 'skip' ? '–' : ''}</div><div class="lbl" onclick="toggleRoutine('${r.id}')">${esc(r.title)}${st === 'skip' ? `<span class="sub">skipped${rSkipReason(o, r.id) ? ' · ' + esc(rSkipReason(o, r.id)) : ''}</span>` : ''}</div>${st ? '' : `<button class="edit" title="Skip" onclick="skipRoutine('${r.id}')">↷</button>`}</div>`; }).join(''), open);
 }
 function scoreboardCard(o, d) {
   const w = dow(d); const cs = S.counters.items.filter((c) => !['dials', 'owners'].includes(c.id)).filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners'); if (!cs.length) return '';
@@ -384,7 +386,13 @@ function gradeCard(d) {
     <div class="chips" style="margin-top:12px">${st.map(([ic, n, l]) => `<span class="chip ${n > 0 ? 'on' : ''}">${ic} ${n}d <span class="dim">${l}</span></span>`).join('')}</div></div>`;
 }
 function sleepDur(a, b) { let m = tmin(b) - tmin(a); if (m < 0) m += 1440; return Math.floor(m / 60) + 'h ' + pad(m % 60) + 'm'; }
-function toggleRoutine(id) { const o = day(curDate); o.routine[id] = o.routine[id] ? 0 : 1; touch(o); render(); }
+function toggleRoutine(id) { const o = day(curDate); o.routine[id] = rState(o, id) ? 0 : 1; touch(o); render(); }
+function skipRoutine(id) {
+  const all = S.routines.morning.concat(S.routines.evening), r = all.find((x) => x.id === id); if (!r) return;
+  openModal(`<h2>Skip · ${esc(r.title)}</h2><div class="small muted" style="margin-bottom:10px">Skipped steps don't count against your day. Tap it again later to mark it done.</div><div class="chips">${['Not today', 'No time', 'Sick', 'Travelling', 'Already done elsewhere', 'Overslept'].map((x) => `<span class="chip" onclick="setRoutineSkip('${id}','${x}')">${x}</span>`).join('')}</div><div class="field" style="margin-top:12px"><label>Or your reason</label><div class="inline"><input id="m-skipwhy" placeholder="optional"><button class="btn" onclick="setRoutineSkip('${id}',document.getElementById('m-skipwhy').value)">Skip</button></div></div>`);
+}
+function setRoutineSkip(id, why) { const o = day(curDate); o.routine[id] = 'skip:' + (why || '').trim(); touch(o); closeModal(); render(); }
+function skipRestOfMorning() { const o = day(curDate); routineFor(S.routines.morning, curDate).forEach((r) => { if (!rState(o, r.id)) o.routine[r.id] = 'skip:overslept'; }); touch(o); toast('Morning closed. The day starts now.'); render(); }
 function toggleHabit(id) { const o = day(curDate); o.habits[id] = o.habits[id] ? 0 : 1; touch(o); render(); }
 function bump(id, n) { const o = day(curDate); o.counters[id] = Math.max(0, (Number(o.counters[id]) || 0) + n); touch(o); render(); }
 function setCounter(id) { const o = day(curDate); const c = S.counters.items.find((x) => x.id === id); const v = prompt('Set ' + c.title + ' for ' + fmtShort(curDate), o.counters[id] || 0); if (v == null) return; o.counters[id] = Math.max(0, num(v) || 0); touch(o); render(); }
@@ -397,7 +405,7 @@ function gradeFor(d) { const sc = dayScore(d); let g = sc >= 85 ? 'A' : sc >= 70
 function streak(pred) { let d = new Date(); d.setHours(0, 0, 0, 0); if (!pred(d)) d = addDays(d, -1); let n = 0; while (n < 3650 && pred(d)) { n++; d = addDays(d, -1); } return n; }
 function streakWeigh() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.weight != null && o.weight !== ''); }); }
 function streakMinimum() { return streak((d) => !!S.days[dk(d)] && minimumMet(d).met && (Number(S.days[dk(d)].counters.dials) || Number(S.days[dk(d)].counters.bac))); }
-function streakMorning() { return streak((d) => { const o = S.days[dk(d)]; return !!o && routineFor(S.routines.morning, d).every((r) => o.routine[r.id]); }); }
+function streakMorning() { return streak((d) => { const o = S.days[dk(d)]; return !!o && routineFor(S.routines.morning, d).every((r) => rState(o, r.id) === 'done'); }); }
 function streakBed() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.routine && o.routine.bed); }); }
 function evaluateStakes() {
   const st = S.settings; if (!st.commitStart || !st.stake) return; if (!S.stakes) S.stakes = {};
@@ -453,7 +461,7 @@ function renderShutdown() {
   if (sdStep === 1) body = `<div class="habits" style="margin-bottom:12px">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="day('${k}').habits['${h.id}']=day('${k}').habits['${h.id}']?0:1;touch(day('${k}'));renderShutdown()"><div class="b">${o.habits[h.id] ? '✓' : ''}</div>${esc(h.title)}</div>`).join('')}</div><div class="field"><label>Top 3 today</label>${o.top3.filter((x) => x.t).map((x, i) => `<div class="ck ${x.d ? 'on' : ''}" onclick="day('${k}').top3[${o.top3.indexOf(x)}].d=${x.d ? 0 : 1};touch(day('${k}'));renderShutdown()"><div class="box">${x.d ? '✓' : ''}</div><div class="lbl">${esc(x.t)}</div></div>`).join('') || '<div class="empty">No top 3 was set today.</div>'}</div>`;
   if (sdStep === 2) body = debriefBody(o).replace(/oninput="setDayField\('(\w+)',this.value\)"/g, (m, f) => `oninput="day('${k}').${f}=this.value;touch(day('${k}'))"`) + `<div class="hint" style="margin-top:12px">Jocko's idea: own the loss, name the fix. One sentence each.</div>`;
   if (sdStep === 3) { const bl = blocksFor(tmr).slice(0, 4); const prog = S.programs[S.programByDay.map[dow(tmr)]]; const dc = S.counters.items.find((c) => c.id === 'dials'); body = `<div class="hint" style="margin-bottom:8px">${DAY_LONG[dow(tmr)]} ${fmtShort(tmr)}</div><div class="tl">${bl.map((b) => `<div class="blk"><div class="t">${b.start}–${b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div><div class="small" style="margin:10px 0">${prog ? `🏋️ <b>${esc(prog.name)}</b> · ` : ''}${dc && dc.targets[dow(tmr)] ? `📞 <b>${dc.targets[dow(tmr)]} dials</b>` : '📞 no dial target'}</div><div class="field"><label>Tomorrow's top 3 (decide now, not at 05:20)</label>${ot.top3.map((x, i) => `<input style="margin-bottom:6px" value="${esc(x.t)}" placeholder="${['Most important…', 'Second…', 'Third…'][i]}" oninput="day('${tk}').top3[${i}].t=this.value;touch(day('${tk}'))">`).join('')}</div>`; }
-  if (sdStep === 4) { const g = gradeFor(d), m = minimumMet(d); body = `<div class="countdown" style="margin-bottom:12px"><div class="cd"><div class="n">${g}</div><div class="l">grade · ${dayScore(d)}%</div></div><div class="cd"><div class="n ${m.met ? 'ok' : 'bad'}">${m.met ? '✓' : '✗'}</div><div class="l">${m.met ? 'minimum met' : `minimum missed · ${S.settings.stake} ${S.settings.currency}`}</div></div></div>${routineFor(S.routines.evening, d).map((r) => `<div class="ck ${o.routine[r.id] ? 'on' : ''}" onclick="day('${k}').routine['${r.id}']=day('${k}').routine['${r.id}']?0:1;touch(day('${k}'));renderShutdown()"><div class="box">${o.routine[r.id] ? '✓' : ''}</div><div class="lbl">${esc(r.title)}</div></div>`).join('')}`; }
+  if (sdStep === 4) { const g = gradeFor(d), m = minimumMet(d); body = `<div class="countdown" style="margin-bottom:12px"><div class="cd"><div class="n">${g}</div><div class="l">grade · ${dayScore(d)}%</div></div><div class="cd"><div class="n ${m.met ? 'ok' : 'bad'}">${m.met ? '✓' : '✗'}</div><div class="l">${m.met ? 'minimum met' : `minimum missed · ${S.settings.stake} ${S.settings.currency}`}</div></div></div>${routineFor(S.routines.evening, d).map((r) => `<div class="ck ${rState(o, r.id) ? 'on' : ''}" onclick="day('${k}').routine['${r.id}']=day('${k}').routine['${r.id}']?0:1;touch(day('${k}'));renderShutdown()"><div class="box">${rState(o, r.id) === 'done' ? '✓' : rState(o, r.id) === 'skip' ? '–' : ''}</div><div class="lbl">${esc(r.title)}</div></div>`).join('')}`; }
   openModal(`<h2>Shutdown · ${steps[sdStep]} <span class="small muted">${sdStep + 1}/5</span></h2><div class="steps">${steps.map((s, i) => `<i class="${i <= sdStep ? 'on' : ''}"></i>`).join('')}</div>${body}<div class="actions">${sdStep > 0 ? '<button class="btn" onclick="sdStep--;renderShutdown()">Back</button>' : ''}<button class="btn primary" onclick="sdNext()">${sdStep < 4 ? 'Next' : 'Close the day'}</button></div>`, true);
 }
 function sdNext() { if (sdStep < 4) { sdStep++; renderShutdown(); return; } const o = day(curDate); ['dials', 'bacmin', 'tomorrow'].forEach((id) => { if (S.routines.evening.find((r) => r.id === id)) o.routine[id] = 1; }); o.shutdownAt = now(); touch(o); closeModal(); toast(`Day closed · grade ${gradeFor(curDate)}. Phone out. Bed ${S.settings.bed}.`); render(); }

@@ -1,5 +1,5 @@
 /* War Room service worker: app shell cached for offline use, network-first so updates arrive. */
-const CACHE = 'warroom-v4.2.0';
+const CACHE = 'warroom-v4.3.0';
 const SHELL = ['./', './index.html', './core.js', './dial.js', './todoist.js', './views.js', './queue_seed.json', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
