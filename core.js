@@ -1,6 +1,6 @@
 /* War Room v4 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '4.3.0';
+const APP_VERSION = '4.4.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -293,7 +293,13 @@ function latestWeight(beforeKey) { const e = weightEntries().filter((x) => !befo
 function avgWeight(days, endKey) { const end = endKey || dk(new Date()); const start = dk(addDays(pd(end), -(days - 1))); const e = weightEntries().filter((x) => x.k >= start && x.k <= end); if (!e.length) return null; return e.reduce((a, b) => a + b.w, 0) / e.length; }
 function counterWeek(id, d) { const m = monday(d); let s = 0; for (let i = 0; i < 7; i++) { const o = S.days[dk(addDays(m, i))]; if (o && o.counters && o.counters[id]) s += Number(o.counters[id]) || 0; } return s; }
 function counterTotal(id) { let s = 0; for (const k in S.days) { const o = S.days[k]; if (o.counters && o.counters[id]) s += Number(o.counters[id]) || 0; } return s; }
-function workoutsWeek(d) { const m = monday(d); let n = 0; for (let i = 0; i < 7; i++) { const o = S.days[dk(addDays(m, i))]; if (o && o.workout && o.workout.done) n++; } return n; }
+function sessionsRO(o) { if (!o) return []; return o.workouts || (o.workout ? [o.workout] : []); }
+function sessionsOf(o) { if (!o.workouts) { o.workouts = o.workout ? [o.workout] : []; delete o.workout; } return o.workouts; }
+let trainSel = -1;
+function curSession(o) { const ss = sessionsOf(o); if (!ss.length) ss.push({ id: uid(), kind: 'program', program: S.programByDay.map[dow(curDate)] || '', sets: {}, done: false, note: '' }); ss.forEach((s) => { if (!s.id) s.id = uid(); if (!s.kind) s.kind = 'program'; }); const i = trainSel >= 0 && trainSel < ss.length ? trainSel : ss.length - 1; return ss[i]; }
+function W(o) { return curSession(o); }
+function dayTrained(o) { return sessionsRO(o).some((s) => s.done); }
+function workoutsWeek(d) { const m = monday(d); let n = 0; for (let i = 0; i < 7; i++) { const o = S.days[dk(addDays(m, i))]; if (o && dayTrained(o)) n++; } return n; }
 function routineFor(list, d) { const w = dow(d); return list.filter((r) => !r.days || r.days.includes(w)); }
 function rState(o, id) { const v = o && o.routine ? o.routine[id] : 0; if (typeof v === 'string' && v.startsWith('skip')) return 'skip'; return v ? 'done' : ''; }
 function rSkipReason(o, id) { const v = o.routine[id]; return typeof v === 'string' ? v.replace(/^skip:?/, '') : ''; }
@@ -546,38 +552,17 @@ function delBlock(id) {
   S.schedule.blocks = S.schedule.blocks.filter((x) => x.id !== id); S.schedule._u = now(); save(); closeModal(); render(); }
 
 /* ───────── TRAIN ───────── */
-function renderTrain() {
-  const k = dk(curDate), o = day(k), w = dow(curDate);
-  if (!o.workout) o.workout = { program: S.programByDay.map[w] || '', sets: {}, done: false, note: '' };
-  const wo = o.workout, p = S.programs[wo.program], EX = sessionEx(wo);
-  const sel = `<select onchange="setProgram(this.value)"><option value="">— Rest / none —</option>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<option value="${id}" ${id === wo.program ? 'selected' : ''}>${esc(S.programs[id].name)}</option>`).join('')}</select>`;
-  let html = `<div class="card ac"><div class="card-h"><div class="card-t">${DAY_LONG[w]}'s session</div><div class="card-r">${restPill()} ${wo.done ? '<span class="ok">✓ done</span>' : wo.skipped ? '<span class="bad">skipped · ' + esc(wo.skipped) + '</span>' : p ? 'planned' : ''}</div></div><div class="field" style="margin-bottom:8px">${sel}</div>
-    ${p ? `<div class="row" style="gap:6px;margin-bottom:8px"><button class="btn sm grow" onclick="editSession()">✎ Today only${wo.ex ? ' · edited' : ''}</button><button class="btn sm grow" onclick="editProgram('${wo.program}')">✎ Every week</button></div>` : ''}${p && p.note ? `<div class="hint">${esc(p.note)}</div>` : ''}
-    ${wo.skipped ? `<div class="row" style="margin-top:10px"><div class="small muted grow">Not trained today: <b>${esc(wo.skipped)}</b>. Counts as 0 for the week.</div><button class="btn sm" onclick="unskipWorkout()">Undo</button></div>` : wo.done ? '' : `<div class="row" style="margin-top:10px;gap:6px;flex-wrap:wrap"><span class="small muted">Not training today?</span>${['Rest day', 'Sick', 'Tennis instead', 'No time', 'Overslept'].map((r) => `<span class="chip" onclick="skipWorkout('${r}')">${r}</span>`).join('')}</div>`}</div>`;
-  if (p || wo.ex) {
-    html += `<div class="card">${EX.map((e, ei) => { const sets = wo.sets[ei] || []; const hist = exHistory(e.n, k, 6); const last = hist[0]; const pv = last ? last.sets : []; const best = exBest(hist);
-      return `<div class="ex"><div class="h"><div class="n">${esc(e.n)}</div><div class="row" style="gap:6px"><div class="tgt">${e.s} × ${esc(e.r)}</div><button class="btn sm ghost" style="min-height:28px;padding:2px 8px" onclick="exMenu(${ei})">⋯</button></div></div>${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}
-        <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px">${last ? `<span class="xs muted">Last ${fmtShort(pd(last.k))}: <b style="color:var(--sub)">${esc(fmtSets(last.sets))}</b></span>` : '<span class="xs dim">First time: write what you do.</span>'}${best && best.w ? `<span class="xs muted">· best ${best.w}×${best.r}</span>` : ''}${progressHint(e, last)}${hist.length > 1 ? `<span class="xs acc" onclick="exMenu(${ei})" style="cursor:pointer">history ›</span>` : ''}</div>
-        <div class="sets">${Array.from({ length: e.s }, (_, si) => { const s = sets[si] || {}; const ps = pv[si]; return `<div class="set ${s.done ? 'on' : ''}"><div class="i">${si + 1}</div><input type="number" inputmode="decimal" placeholder="${ps && ps.w != null && ps.w !== '' ? ps.w : 'kg'}" value="${s.w ?? ''}" oninput="setSet(${ei},${si},'w',this.value)"><input inputmode="numeric" placeholder="${ps && ps.r ? ps.r : (/s\b|min/.test(e.r) ? 'sec' : 'reps')}" value="${s.r ?? ''}" oninput="setSet(${ei},${si},'r',this.value)"><div class="dn" onclick="toggleSet(${ei},${si})">${s.done ? '✓' : ''}</div></div>`; }).join('')}</div></div>`; }).join('')}
-      <div class="field" style="margin-top:12px"><label>Session note</label><input value="${esc(wo.note || '')}" placeholder="RPE, pain, what to change" oninput="day('${k}').workout.note=this.value;touch(day('${k}'))"></div>
-      ${(() => { let done = 0, total = 0, vol = 0; EX.forEach((e, ei) => { total += e.s; (wo.sets[ei] || []).forEach((s) => { if (s && s.done) { done++; vol += (num(s.w) || 0) * (parseInt(s.r) || 0); } }); }); return `<div class="row sb small muted" style="margin:12px 0 8px"><span>Sets <b>${done}</b> / ${total}</span><span>Volume <b>${Math.round(vol)}</b> kg</span><span>Week <b>${workoutsWeek(curDate)}</b> days</span></div>`; })()}
-      <button class="btn ${wo.done ? '' : 'primary'} block" onclick="finishWorkout()">${wo.done ? 'Mark as not done' : 'Finish workout ✓'}</button><div class="xs muted" style="margin-top:8px;text-align:center">Grey placeholders = your last sets for that exercise. Tap the box when a set is done: a rest timer starts.</div></div>`;
-  }
-  // programs + mapping
+function programsCard() { let html = '';
   html += `<div class="card"><div class="card-h"><div class="card-t">Programs</div><button class="btn sm" onclick="editProgram('')">+ New</button></div>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<div class="setting-row" onclick="editProgram('${id}')"><div><div class="t">${esc(S.programs[id].name)}</div><div class="d">${S.programs[id].ex.length} exercises · ${ALL.filter((d) => S.programByDay.map[d] === id).map((d) => DAY_SHORT[d]).join(', ') || 'unscheduled'}</div></div><div class="arr">›</div></div>`).join('')}</div>`;
   html += `<div class="card"><div class="card-t" style="margin-bottom:8px">Weekly split</div>${ALL.map((d) => `<div class="kv"><span>${DAY_LONG[d]}</span><select style="width:60%" onchange="S.programByDay.map[${d}]=this.value;S.programByDay._u=Date.now();save();render()"><option value="">Rest</option>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<option value="${id}" ${S.programByDay.map[d] === id ? 'selected' : ''}>${esc(S.programs[id].name)}</option>`).join('')}</select></div>`).join('')}</div>`;
-  // history
-  const hist = Object.keys(S.days).filter((kk) => S.days[kk].workout && S.days[kk].workout.done).sort().reverse().slice(0, 14);
-  html += `<div class="card"><div class="card-t" style="margin-bottom:6px">History</div>${hist.length ? hist.map((kk) => { const ww = S.days[kk].workout, pp = S.programs[ww.program]; const n = Object.values(ww.sets).reduce((a, s) => a + s.filter((x) => x && x.done).length, 0); return `<div class="kv" onclick="selDay('${kk}')" style="cursor:pointer"><span>${fmtShort(pd(kk))} · ${pp ? esc(pp.name) : 'session'}</span><span class="v muted">${n} sets</span></div>`; }).join('') : '<div class="empty">No finished workouts yet.</div>'}</div>`;
-  return html;
-}
+  return html; }
 function prevWorkout(pid, beforeKey) { const ks = Object.keys(S.days).filter((k) => k < beforeKey && S.days[k].workout && S.days[k].workout.program === pid && Object.keys(S.days[k].workout.sets || {}).length).sort(); if (!ks.length) return null; const k = ks[ks.length - 1]; return { k, sets: S.days[k].workout.sets }; }
 function sessionEx(wo) { if (!wo) return []; if (wo.ex) return wo.ex; const p = S.programs[wo.program]; return p ? p.ex : []; }
 function exKey(n) { return String(n || '').toLowerCase().replace(/^[a-d]\d?\s+/, '').replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 /* every past session that had this exercise (matched by name, across programs and per-day edits), newest first */
 function exHistory(name, beforeKey, n) {
   const key = exKey(name), out = [];
-  for (const k of Object.keys(S.days).sort().reverse()) { if (k >= beforeKey) continue; const wo = S.days[k].workout; if (!wo || !wo.sets) continue; const ex = sessionEx(wo); ex.forEach((e, ei) => { if (exKey(e.n) !== key) return; const sets = (wo.sets[ei] || []).filter((s) => s && (s.done || s.w || s.r)); if (sets.length) out.push({ k, sets: sets.map((s) => ({ w: s.w, r: s.r, done: !!s.done })) }); }); if (out.length >= (n || 6)) break; }
+  for (const k of Object.keys(S.days).sort().reverse()) { if (k >= beforeKey) continue; for (const wo of sessionsRO(S.days[k])) { if (!wo || !wo.sets) continue; const ex = sessionEx(wo); ex.forEach((e, ei) => { if (exKey(e.n) !== key) return; const sets = (wo.sets[ei] || []).filter((s) => s && (s.done || s.w || s.r)); if (sets.length) out.push({ k, sets: sets.map((s) => ({ w: s.w, r: s.r, done: !!s.done })) }); }); } if (out.length >= (n || 6)) break; }
   return out;
 }
 function fmtSets(sets) { return sets.map((s) => (s.w !== undefined && s.w !== '' ? s.w + '×' : '') + (s.r || '?')).join(' · '); }
@@ -587,32 +572,33 @@ let restEnd = 0, restTimer = null;
 function startRest(sec) { restEnd = now() + sec * 1000; clearInterval(restTimer); restTimer = setInterval(() => { const el = $('rest-pill'); if (!el) { clearInterval(restTimer); return; } const left = Math.ceil((restEnd - now()) / 1000); if (left <= 0) { el.textContent = 'Rest done · go'; el.classList.add('ok'); clearInterval(restTimer); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (e) { } return; } el.textContent = 'Rest ' + fmtEl(left); }, 250); }
 function restPill() { if (!restEnd) return ''; const left = Math.ceil((restEnd - now()) / 1000); return `<span class="chip ${left <= 0 ? 'ok' : 'on'}" id="rest-pill" onclick="restEnd=0;render()">${left <= 0 ? 'Rest done · go' : 'Rest ' + fmtEl(left)}</span>`; }
 function editSession() {
-  const o = day(curDate), wo = o.workout, ex = sessionEx(wo);
+  const o = day(curDate), wo = W(o), ex = sessionEx(wo);
   const lines = ex.map((e) => `${e.n} | ${e.s} | ${e.r}${e.note ? ' | ' + e.note : ''}`).join('\n');
   openModal(`<h2>Today's session only</h2><div class="hint" style="margin-bottom:10px">Changes here apply to ${fmtShort(curDate)} only. The weekly program stays as it is. To change every week, use <b>Edit program</b>.</div>
     <div class="field"><label>Exercises — one per line: <span class="mono">name | sets | reps | note</span></label><textarea id="m-ex" style="min-height:200px;font-family:var(--mono);font-size:12px">${esc(lines)}</textarea></div>
-    <div class="actions">${wo.ex ? `<button class="btn" onclick="day('${dk(curDate)}').workout.ex=undefined;delete day('${dk(curDate)}').workout.ex;touch(day('${dk(curDate)}'));closeModal();render()">Back to program</button>` : ''}<button class="btn primary" onclick="saveSession()">Save for today</button></div>`);
+    <div class="actions">${wo.ex ? `<button class="btn" onclick="delete W(day('${dk(curDate)}')).ex;touch(day('${dk(curDate)}'));closeModal();render()">Back to program</button>` : ''}<button class="btn primary" onclick="saveSession()">Save for today</button></div>`);
 }
 function saveSession() {
   const o = day(curDate); const ex = $('m-ex').value.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => { const [n, s, r, ...note] = l.split('|').map((x) => x.trim()); return { n: n || 'Exercise', s: clamp(parseInt(s) || 1, 1, 12), r: r || '', note: note.join(' | ') }; });
-  o.workout.ex = ex; touch(o); closeModal(); render();
+  W(o).ex = ex; touch(o); closeModal(); render();
 }
 function exMenu(ei) {
-  const o = day(curDate), ex = sessionEx(o.workout), e = ex[ei];
+  const o = day(curDate), ex = sessionEx(W(o)), e = ex[ei];
   openModal(`<h2>${esc(e.n)}</h2>
     <div class="field"><label>Swap for today (name)</label><input id="m-swap" placeholder="e.g. Inverted rows"></div>
     <div class="g2"><div class="field"><label>Sets</label><input id="m-s" type="number" value="${e.s}"></div><div class="field"><label>Reps / time</label><input id="m-r" value="${esc(e.r)}"></div></div>
-    <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" onclick="applyExToday(${ei})">Apply to today</button><button class="btn sm danger" onclick="removeExToday(${ei})">Remove for today</button><button class="btn sm ghost" onclick="closeModal();editProgram('${o.workout.program}')">Edit the weekly program</button></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" onclick="applyExToday(${ei})">Apply to today</button><button class="btn sm danger" onclick="removeExToday(${ei})">Remove for today</button><button class="btn sm ghost" onclick="closeModal();editProgram('${W(o).program}')">Edit the weekly program</button></div>
     ${(() => { const h = exHistory(e.n, dk(addDays(curDate, 1)), 8); return h.length ? `<div class="sec-h">History</div>${h.map((x) => `<div class="kv"><span class="small muted">${fmtShort(pd(x.k))}</span><span class="small">${esc(fmtSets(x.sets))}</span></div>`).join('')}` : '<div class="empty">No past sets for this exercise yet.</div>'; })()}`);
 }
-function applyExToday(ei) { const o = day(curDate); const ex = sessionEx(o.workout).map((x) => Object.assign({}, x)); const sw = $('m-swap').value.trim(); if (sw) ex[ei].n = sw; ex[ei].s = clamp(parseInt($('m-s').value) || ex[ei].s, 1, 12); ex[ei].r = $('m-r').value.trim() || ex[ei].r; o.workout.ex = ex; if (sw) o.workout.sets[ei] = []; touch(o); closeModal(); render(); }
-function removeExToday(ei) { const o = day(curDate); const ex = sessionEx(o.workout).map((x) => Object.assign({}, x)); ex.splice(ei, 1); const sets = {}; Object.keys(o.workout.sets || {}).forEach((k) => { const i = Number(k); if (i < ei) sets[i] = o.workout.sets[k]; else if (i > ei) sets[i - 1] = o.workout.sets[k]; }); o.workout.ex = ex; o.workout.sets = sets; touch(o); closeModal(); render(); }
-function setProgram(id) { const o = day(curDate); o.workout = { program: id, sets: {}, done: false, note: '' }; touch(o); render(); }
-function setSet(ei, si, f, v) { const o = day(curDate); if (!o.workout.sets[ei]) o.workout.sets[ei] = []; if (!o.workout.sets[ei][si]) o.workout.sets[ei][si] = {}; o.workout.sets[ei][si][f] = v; touch(o); }
-function toggleSet(ei, si) { const o = day(curDate); if (!o.workout.sets[ei]) o.workout.sets[ei] = []; if (!o.workout.sets[ei][si]) o.workout.sets[ei][si] = {}; const s = o.workout.sets[ei][si]; s.done = !s.done; if (s.done) { const ex = sessionEx(o.workout), e = ex[ei]; const h = e ? exHistory(e.n, dk(curDate), 1)[0] : null; const ps = h && h.sets[si]; if (!s.w && ps && ps.w) s.w = ps.w; if (!s.r && ps && ps.r) s.r = ps.r; if (!s.r && e && /^\d+$/.test(e.r)) s.r = e.r; startRest(e && /s\b|min/.test(e.r) ? 45 : 90); } touch(o); render(); }
-function skipWorkout(reason) { const o = day(curDate); if (!o.workout) o.workout = { program: S.programByDay.map[dow(curDate)] || '', sets: {}, done: false, note: '' }; o.workout.done = false; o.workout.skipped = reason; o.habits.train = 0; S.routines.morning.filter((r) => r.link === 'train').forEach((r) => (o.routine[r.id] = 0)); touch(o); toast('Logged: no training · ' + reason); render(); }
-function unskipWorkout() { const o = day(curDate); delete o.workout.skipped; delete o.habits.train; touch(o); render(); }
-function finishWorkout() { const o = day(curDate); o.workout.done = !o.workout.done; if (o.workout.done) delete o.workout.skipped; o.habits.train = o.workout.done ? 1 : 0; if (!o.workout.done) delete o.habits.train; S.routines.morning.filter((r) => r.link === 'train').forEach((r) => (o.routine[r.id] = o.workout.done ? 1 : 0)); touch(o); toast(o.workout.done ? 'Workout logged 💪' : 'Workout reopened'); render(); }
+function applyExToday(ei) { const o = day(curDate), wo = W(o); const ex = sessionEx(wo).map((x) => Object.assign({}, x)); const sw = $('m-swap').value.trim(); if (sw) ex[ei].n = sw; ex[ei].s = clamp(parseInt($('m-s').value) || ex[ei].s, 1, 12); ex[ei].r = $('m-r').value.trim() || ex[ei].r; wo.ex = ex; if (sw) wo.sets[ei] = []; touch(o); closeModal(); render(); }
+function removeExToday(ei) { const o = day(curDate), wo = W(o); const ex = sessionEx(wo).map((x) => Object.assign({}, x)); ex.splice(ei, 1); const sets = {}; Object.keys(wo.sets || {}).forEach((k) => { const i = Number(k); if (i < ei) sets[i] = wo.sets[k]; else if (i > ei) sets[i - 1] = wo.sets[k]; }); wo.ex = ex; wo.sets = sets; touch(o); closeModal(); render(); }
+function setProgram(id) { const o = day(curDate); const s = W(o); Object.assign(s, { kind: 'program', program: id, sets: {}, done: false, note: s.note || '' }); delete s.ex; delete s.skipped; touch(o); render(); }
+function setSet(ei, si, f, v) { const o = day(curDate), wo = W(o); if (!wo.sets[ei]) wo.sets[ei] = []; if (!wo.sets[ei][si]) wo.sets[ei][si] = {}; wo.sets[ei][si][f] = v; touch(o); }
+function toggleSet(ei, si) { const o = day(curDate), wo = W(o); if (!wo.sets[ei]) wo.sets[ei] = []; if (!wo.sets[ei][si]) wo.sets[ei][si] = {}; const s = wo.sets[ei][si]; s.done = !s.done; if (s.done) { const ex = sessionEx(wo), e = ex[ei]; const h = e ? exHistory(e.n, dk(curDate), 1)[0] : null; const ps = h && h.sets[si]; if (!s.w && ps && ps.w) s.w = ps.w; if (!s.r && ps && ps.r) s.r = ps.r; if (!s.r && e && /^\d+$/.test(e.r)) s.r = e.r; startRest(e && /s\b|min/.test(e.r) ? 45 : 90); } touch(o); render(); }
+function skipWorkout(reason) { const o = day(curDate), wo = W(o); wo.done = false; wo.skipped = reason; syncTrainFlags(o); touch(o); toast('Logged: skipped · ' + reason + '. You can still add a session later.'); render(); }
+function syncTrainFlags(o) { const trained = dayTrained(o); if (trained) o.habits.train = 1; else if (sessionsRO(o).some((s) => s.skipped)) o.habits.train = 0; else delete o.habits.train; S.routines.morning.filter((r) => r.link === 'train').forEach((r) => { if (trained) o.routine[r.id] = 1; else if (rState(o, r.id) === 'done') o.routine[r.id] = 0; }); }
+function unskipWorkout() { const o = day(curDate); delete W(o).skipped; syncTrainFlags(o); touch(o); render(); }
+function finishWorkout() { const o = day(curDate), wo = W(o); wo.done = !wo.done; if (wo.done) { delete wo.skipped; wo.endedAt = wo.endedAt || new Date().toTimeString().slice(0, 5); } syncTrainFlags(o); touch(o); toast(wo.done ? 'Session logged 💪' : 'Session reopened'); render(); }
 function editProgram(id) {
   const p = id ? S.programs[id] : { name: '', note: '', ex: [] };
   const lines = p.ex.map((e) => `${e.n} | ${e.s} | ${e.r}${e.note ? ' | ' + e.note : ''}`).join('\n');

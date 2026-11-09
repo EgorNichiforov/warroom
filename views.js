@@ -72,10 +72,12 @@ function heroCard(d) {
   else if (kind === 'bac') { action = S.timer ? '' : `<div class="row" style="gap:6px"><button class="btn primary lg grow" onclick="startTimer('bac',25)">▶ 25 min BAC</button><button class="btn lg" onclick="startTimer('bac',50)">▶ 50</button></div>`; }
   else if (kind === 'agency') { action = S.timer ? '' : `<button class="btn primary lg block" onclick="startTimer('deep',50)">▶ 50 min deep work · phone away</button>`; }
   else if (kind === 'train') { action = `<button class="btn primary lg block" onclick="show('train')">🏋️ Open today's workout</button>`; }
+  else if (kind === 'tennis' && !/lesson|grupa/i.test(cur.title) && unloggedBlocks(d).some((b) => b.id === cur.id)) { action = `<div class="row" style="gap:6px"><button class="btn primary lg grow" onclick="logBlock('${cur.id}',true)">✓ Done: ${esc(cur.title)}</button><button class="btn lg" onclick="logBlock('${cur.id}',false)">Didn't</button></div>`; }
   else if (kind === 'routine' && /weigh/i.test(cur.title) && (o.weight == null || o.weight === '')) { action = `<button class="btn primary lg block" onclick="editWeight()">⚖️ Weigh in</button>`; }
   else if (tg && v < tg && nm >= 12 * 60) { action = `<button class="btn lg block" onclick="startSession()">📞 ${tg - v} dials still open today</button>`; }
   const top = o.top3.find((x) => x.t && !x.d);
   if (!action && top) line = `Next on the list: <b>${esc(top.t)}</b>`;
+  const unl = unloggedBlocks(d).filter((b) => !cur || b.id !== cur.id); if (unl.length && !line) line = `Not logged yet: <b>${unl.map((b) => esc(b.title)).join(' · ')}</b> <a href="#" onclick="show('train');return false">log ›</a>`;
   return `<div class="card ac hero">
     <div class="kicker"><span>${cur ? 'Now' : 'Free'}</span><span class="mono">${pad(Math.floor(nm / 60))}:${pad(nm % 60)}</span></div>
     <div class="title">${cur ? esc(cur.title) : (next ? 'Nothing scheduled' : 'Day is done')}</div>
