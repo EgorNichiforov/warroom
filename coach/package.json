@@ -1,0 +1,23 @@
+{
+  "name": "warroom-coach",
+  "version": "1.0.0",
+  "description": "War Room coach: morning accountability call + on-demand coach via Vapi, Cloudflare Worker",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "undici": "^8.12.4",
+    "wrangler": "^4.160.0"
+  },
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}
