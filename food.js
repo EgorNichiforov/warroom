@@ -27,7 +27,8 @@ function scaleImage(im, max, q) { const s = Math.min(1, max / Math.max(im.width,
 function dataUrlBlob(u) { const [h, b] = u.split(','), bin = atob(b), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: (h.match(/:(.*?);/) || [, 'image/jpeg'])[1] }); }
 
 /* ───────── AI: runs straight from this device with your own key ───────── */
-function aiCfg() { try { return JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); } catch (e) { return {}; } }
+function aiCfg() { let c = {}; try { c = JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); } catch (e) { } if (!c.key && S && S.secrets && S.secrets.ai && S.secrets.ai.key) c = Object.assign({}, S.secrets.ai, { shared: true }); return c; }
+function aiShare(cfg, on) { if (on) { S.secrets = { _u: now(), ai: { provider: cfg.provider, key: cfg.key, model: cfg.model, alts: cfg.alts || [] } }; } else if (S.secrets && S.secrets.ai) { S.secrets = { _u: now() }; } save(true); if (syncReady()) pushCloud(); }
 function aiOn() { const c = aiCfg(); return !!(c.key && c.provider); }
 const AI_PROMPT = `You estimate nutrition for a meal log. Identify each food item, estimate its portion in grams (use the plate, cutlery and hands for scale), then its calories and macros. Count oils, sauces, dressings and drinks you can see. Be realistic, not cautious: give your single best estimate.
 Return ONLY a JSON object, no other text:
@@ -85,11 +86,12 @@ async function aiEstimate(b64, hint, cfgOverride) {
 function foodAiModal() {
   const c = aiCfg(), prov = c.provider || 'gemini';
   openModal(`<h2>Photo AI</h2>
-    <div class="hint" style="margin-bottom:12px">The photo estimate needs an AI key. It is saved on this device only: never synced, never shown again. Add it once on your phone (and once on the laptop if you want it there).</div>
+    <div class="hint" style="margin-bottom:12px">The photo estimate needs an AI key. Add it once here and, if your devices are linked, it works on your phone and laptop both. It is never shown again after saving.</div>
     <div class="field"><label>Provider</label><div class="chips"><span class="chip ${prov === 'gemini' ? 'on' : ''}" id="ai-p-gemini" onclick="aiPick('gemini')">Google Gemini</span><span class="chip ${prov === 'anthropic' ? 'on' : ''}" id="ai-p-anthropic" onclick="aiPick('anthropic')">Anthropic (Claude)</span></div></div>
     <div class="field"><label>API key</label><input id="ai-key" type="password" autocomplete="off" autocapitalize="off" placeholder="${c.key ? 'saved · paste a new one to replace' : 'paste the key here'}"></div>
     <div class="field"><label>Model (leave empty for automatic)</label><input id="ai-model" autocapitalize="off" autocomplete="off" value="${esc(c.model || '')}" placeholder="automatic"></div>
     <div class="hint" id="ai-help"></div>
+    <label class="row small" style="gap:8px;margin:12px 0 2px;cursor:pointer"><input type="checkbox" id="ai-share" ${c.key && !c.shared ? '' : 'checked'}> Use this key on my linked devices too (phone and laptop)</label><div class="xs muted">It travels with your synced War Room, protected by your sync code. Untick to keep it on this device only.</div>
     <div id="ai-err"></div>
     <div class="actions">${c.key ? `<button class="btn danger" onclick="aiClear()">Remove key</button>` : `<button class="btn" onclick="closeModal()">Later</button>`}<button class="btn primary" id="ai-save" onclick="aiSave()">Save &amp; test</button></div>`, true);
   aiPick(prov);
@@ -105,14 +107,14 @@ async function aiSave() {
     const cfg = { provider: _aiProv, key, model: models[0], alts: models.slice(1) };
     const t = await aiEstimate('', 'one medium banana', cfg);
     cfg.alts = models.filter((x) => x !== t.model); cfg.model = t.model;
-    localStorage.setItem(FOOD_AI_KEY, JSON.stringify(cfg));
-    closeModal(); render(); toast(`Photo AI is on · test: banana ≈ ${t.kcal} kcal`);
+    const share = !$('ai-share') || $('ai-share').checked; cfg.shared = share; localStorage.setItem(FOOD_AI_KEY, JSON.stringify(cfg)); aiShare(cfg, share);
+    closeModal(); render(); toast(`Photo AI is on${share ? ' on all linked devices' : ''} · test: banana ≈ ${t.kcal} kcal`);
   } catch (e) {
     btn.disabled = false; btn.textContent = 'Save & test'; const msg = String(e.message || e).split(key).join('•••').slice(0, 400);
     box.innerHTML = `<div class="hint" style="margin-top:10px;border:1px solid rgba(255,79,94,.45)"><b class="bad">It did not work.</b> ${esc(aiExplain(msg))}<div class="xs muted" style="margin-top:8px;word-break:break-word">${e.model ? 'Model: ' + esc(e.model) + ' · ' : ''}${esc(msg)}</div></div>`;
   }
 }
-function aiClear() { localStorage.removeItem(FOOD_AI_KEY); closeModal(); render(); toast('Key removed from this device'); }
+function aiClear() { const was = aiCfg().shared; localStorage.removeItem(FOOD_AI_KEY); if (was || (S.secrets && S.secrets.ai)) aiShare({}, false); closeModal(); render(); toast(was ? 'Key removed from all linked devices' : 'Key removed from this device'); }
 
 /* ───────── capture → estimate → confirm ───────── */
 let foodDraft = null;
@@ -193,7 +195,7 @@ function renderFood() {
   const add = `<button class="snap" onclick="foodSnap()">${ic('camera')}Snap a meal</button>
     <div class="snap2"><button class="btn" onclick="foodPick()">${ic('image', 18)} From photos</button><button class="btn" onclick="foodManual()">${ic('pen', 18)} ${ai ? 'Describe or type' : 'Type it'}</button></div>
     <div class="card"><div class="card-h"><div class="card-t">Your plan · tap to log</div><div class="card-r">${st.saved.filter((x) => list.some((m) => m.name === x.name)).length} of ${st.saved.length} eaten · <a href="#" onclick="foodSavedModal();return false">edit</a></div></div><div class="savedm">${st.saved.map((x, i) => `<button class="${list.some((m) => m.name === x.name) ? 'eaten' : ''}" onclick="foodQuick(${i})"><div class="n">${list.some((m) => m.name === x.name) ? '✓ ' : ''}${esc(x.name)}</div><div class="m"><b>${x.kcal}</b> kcal · ${x.p} g P</div></button>`).join('') || '<div class="empty">No saved meals yet.</div>'}</div></div>
-    <div class="card flat" onclick="foodAiModal()" style="cursor:pointer"><div class="row sb"><div><div class="lab">Photo AI</div><div class="small muted" style="margin-top:3px">${ai ? `On · ${cfg.provider === 'anthropic' ? 'Claude' : 'Gemini'}${cfg.model ? ' · ' + esc(cfg.model) : ''}` : 'Off. Add a key once and photos fill the numbers.'}</div></div><span class="pill ${ai ? 'on' : 'warn'}">${ai ? 'on' : 'set up'}</span></div></div>`;
+    <div class="card flat" onclick="foodAiModal()" style="cursor:pointer"><div class="row sb"><div><div class="lab">Photo AI</div><div class="small muted" style="margin-top:3px">${ai ? `On · ${cfg.provider === 'anthropic' ? 'Claude' : 'Gemini'}${cfg.shared ? ' · shared with linked devices' : ' · this device only'}` : 'Off. Add a key once and photos fill the numbers.'}</div></div><span class="pill ${ai ? 'on' : 'warn'}">${ai ? 'on' : 'set up'}</span></div></div>`;
   const log = `<div class="card"><div class="card-h"><div class="card-t">${today ? 'Today' : fmtShort(curDate)} · ${list.length} meal${list.length === 1 ? '' : 's'}</div><div class="card-r">tap a meal to fix it</div></div>${list.length ? list.map((m) => `<div class="meal" onclick="foodEdit('${m.id}')"><div class="ph">${m.ph ? `<img data-ph="${m.id}" alt="">` : ic('food', 22)}</div><div class="bd"><div class="nm">${esc(m.name)}</div><div class="mc">${m.t || ''} · P ${Math.round(m.p)} g${m.c || m.f ? ` · C ${Math.round(m.c)} · F ${Math.round(m.f)}` : ''}${m.src === 'ai' ? ' · AI' : ''}</div></div><div class="kc">${fmt(m.kcal)}<small>KCAL</small></div></div>`).join('') : `<div class="empty">Nothing logged ${today ? 'yet today' : 'this day'}. Snap the next thing you eat.</div>`}</div>`;
   const days = []; for (let i = 6; i >= 0; i--) { const d = addDays(curDate, -i), t = foodTotals(d); days.push({ l: DAY_SHORT[dow(d)], v: t.kcal, t: tt.kcal, cls: t.kcal >= tt.kcal * 0.9 ? 'hit' : '', top: t.kcal ? (t.kcal / 1000).toFixed(1) + 'k' : '', today: dk(d) === dk(new Date()) }); }
   const hit = days.filter((x) => x.v >= tt.kcal * 0.9).length;
