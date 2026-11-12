@@ -12,7 +12,7 @@ function calOn() { return !!calUrl(); }
 function calEmail() { const m = calUrl().match(/\/ical\/([^/]+)\//); return m ? decodeURIComponent(m[1]) : ''; }
 function calUsesSchedule() { return calOn() && CAL && CAL.events && (S.settings.schedSource || 'calendar') === 'calendar'; }
 function calCovers(k) { return CAL && CAL.from && k >= dk(new Date(CAL.from)) && k < dk(new Date(CAL.to)); }
-const CAL_KIND = [[/DIAL/i, 'dials'], [/📚|BAC|Anki|engle|Python|Română|Romana|Istorie|CS50|Cambridge|Certiport/i, 'bac'], [/🏋|Train:|calisthen|mobility/i, 'train'], [/Grup|lesson|lecți|lectie|\bTT\b|OFP|tenis(?!\s*→)|🎾/i, 'tennis'], [/Breakfast|Lunch|Dinner|Snack|Kefir|mic dejun|prânz|cină/i, 'food'], [/deep work|Applicant|bench|screener|Caregiver|Company|EgorFlow/i, 'agency'], [/Sleep|😴/i, 'sleep'], [/🚗|→|drive|Spre/i, 'travel'], [/🏫|școal|scoal|school|Consulta/i, 'school'], [/Shutdown|Weigh|Shower|Sun|☀|⚖|🌙/i, 'routine']];
+const CAL_KIND = [[/DIAL/i, 'dials'], [/🚗|→|\bdrive\b|Spre|\bride\b|drum/i, 'travel'], [/📚|BAC|Anki|engle|Python|Română|Romana|Istorie|CS50|Cambridge|Certiport/i, 'bac'], [/🏋|Train:|calisthen|mobility/i, 'train'], [/Grup|lesson|lecți|lectie|\bTT\b|OFP|tenis(?!\s*→)|🎾/i, 'tennis'], [/Breakfast|Lunch|Dinner|Snack|Kefir|mic dejun|prânz|cină/i, 'food'], [/deep work|Applicant|bench|screener|Caregiver|Company|EgorFlow/i, 'agency'], [/Sleep|😴/i, 'sleep'], [/🏫|școal|scoal|school|Consulta/i, 'school'], [/Shutdown|Weigh|Shower|Sun|☀|⚖|🌙/i, 'routine']];
 function calKind(t) { const r = CAL_KIND.find(([re]) => re.test(t)); return r ? r[1] : 'other'; }
 function calEventsOn(k) { return CAL && CAL.events ? CAL.events.filter((e) => e.date === k) : []; }
 let _calTg = null;

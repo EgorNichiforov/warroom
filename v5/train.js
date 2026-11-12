@@ -10,7 +10,7 @@ function sessionVolume(s) { return Object.values(s.sets || {}).reduce((a, x) => 
 /* schedule blocks today that look like training and have no session yet */
 function unloggedBlocks(d) {
   const o = S.days[dk(d)], ss = sessionsRO(o), nm = nowMin(), today = isToday(d);
-  return blocksFor(d).filter((b) => (b.kind === 'train' || b.kind === 'tennis') && !/lesson|grupa|lessons/i.test(b.title) && (!today || tmin(b.start) <= nm) && !ss.some((s) => s.block === b.id || (s.blockTitle && s.blockTitle === b.title) || (b.kind === 'train' && s.kind === 'program' && (s.done || s.skipped))));
+  return blocksFor(d).filter((b) => (b.kind === 'train' || b.kind === 'tennis') && !/lesson|grupa|lessons|🚗|→|spre|drive|ride/i.test(b.title) && (!today || tmin(b.start) <= nm) && !ss.some((s) => s.block === b.id || (s.blockTitle && s.blockTitle === b.title) || (b.kind === 'train' && s.kind === 'program' && (s.done || s.skipped))));
 }
 function logBlock(id, happened) {
   const o = day(curDate), b = blocksFor(curDate).find((x) => x.id === id); if (!b) return; const ss = sessionsOf(o);
