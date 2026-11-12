@@ -97,3 +97,25 @@ function renderAsk() {
     <div class="row sb" style="margin-top:10px;gap:8px;flex-wrap:wrap"><span class="xs muted">${ai ? `In-app answers use your ${aiCfg().provider === 'anthropic' ? 'Claude' : 'Gemini'} key.` : 'Add the AI key (More → Food photo AI) for in-app answers.'} For bigger things, changes to your calendar or plan, ask Claude.</span><button class="btn sm" onclick="askClaude()">Ask Claude ↗</button></div></div>`;
   const box = document.querySelector('.chat'); if (box) box.scrollTop = box.scrollHeight;
 }
+
+/* ───────── capture: one "+" for anything new. Each kind goes to its one home. ───────── */
+function openCapture() {
+  const B = (icn, t, d, fn) => `<button class="capopt" onclick="${fn}">${ic(icn, 22)}<span><b>${t}</b><i>${d}</i></span></button>`;
+  openModal(`<h2>Add</h2>
+    <div class="field"><textarea id="cap-in" rows="2" placeholder="Type it here, then choose where it goes"></textarea></div>
+    <div class="capgrid">
+      ${B('check', 'Task', 'Todoist · dates like “fri 10am” work', "capDo('task')")}
+      ${B('bolt', 'Idea', 'parked in Todoist “Later”, looked at on Sunday', "capDo('idea')")}
+      ${B('pen', 'Note', 'kept in Playbook → My notes', "capDo('note')")}
+      ${B('wallet', 'Spent cash', 'money out, by category', 'closeModal();openSpend()')}
+      ${B('camera', 'Meal', 'photo → calories', 'closeModal();foodSnap()')}
+      ${B('scale', 'Weight', 'morning weigh-in', "closeModal();goToday();view='now';editWeight()")}
+    </div>
+    <div class="xs muted" style="margin-top:10px">Something at a set time (an appointment, a lesson) goes in Google Calendar. <a href="https://calendar.google.com/calendar/u/0/r/eventedit" target="_blank" rel="noopener">New calendar event ↗</a></div>`);
+}
+function capDo(kind) {
+  const v = ($('cap-in') && $('cap-in').value || '').trim(); if (!v) { toast('Type it first'); return; }
+  if (kind === 'task') { closeModal(); captureTask(v, ''); return; }
+  if (kind === 'idea') { closeModal(); const later = Object.keys(tdProjects).find((id) => /^later$/i.test(tdProjects[id].name)); captureTask(v + (tdOn() ? ' #Later' : ''), '', null); return; }
+  if (kind === 'note') { const p = pb('notes') || { title: 'Notes', body: '' }; const stamp = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); pbSave('notes', p.title || 'Notes', `- **${stamp}** ${v}\n` + (p.body || ''), 'mine'); closeModal(); toast('Saved in Playbook → My notes'); render(); }
+}
