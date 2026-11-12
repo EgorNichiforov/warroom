@@ -213,7 +213,7 @@ linkFromUrl();
 if (/[?&]spend\b/.test(_qs)) setTimeout(openSpend, 150);
 if (_qs) history.replaceState(null, '', location.pathname);
 qLoad(); bLoad();
-if (syncReady()) pullCloud(true).then(devHeartbeat);
+if (syncReady()) pullCloud(true).then(() => { devHeartbeat(); aiAutoShare(); });
 setInterval(devHeartbeat, 5 * 60000);
 if (tdOn()) { tdFlush(); tdPull(true); }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); bPull(true); } if (tdOn()) { tdFlush(); tdPull(true); } } });
