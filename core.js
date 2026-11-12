@@ -1,6 +1,6 @@
-/* War Room v4 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
+/* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '4.6.0';
+const APP_VERSION = '5.0.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -147,7 +147,7 @@ function seed() {
     G('BAC average 9+ (Română, Istorie by exam; English + IT certificates)', 'long', 9, 'avg', '2027-06-30'),
     G('Weight 77 kg by end of November', 'month', 77, 'kg', '2026-11-30', 'weight'), G('Book the Python ITS exam (UTM, Dec 14–18)', 'month', 1, '', '2026-11-15', 'check'),
     G('Python ITS exam: 700/1000', 'month', 700, 'pts', '2026-12-18'),
-    G('225 dials', 'week', 225, 'dials', '', 'counter:dials:week'), G('20 h BAC study', 'week', 1200, 'min', '', 'counter:bac:week'), G('6 training days', 'week', 6, 'days', '', 'workouts:week'),
+    G('150 dials', 'week', 150, 'dials', '', 'counter:dials:week'), G('20 h BAC study', 'week', 1200, 'min', '', 'counter:bac:week'), G('6 training days', 'week', 6, 'days', '', 'workouts:week'),
   ].forEach((g) => (goals[g.id] = g));
   return {
     v: 1,
@@ -158,13 +158,14 @@ function seed() {
       evening: [R('dials', '📞 Dials + owner conversations logged', WK), R('bacmin', '📚 BAC minutes logged', ALL), R('tomorrow', '📅 Tomorrow checked: first action is 05:30 train', ALL), R('mag', '💊 Magnesium + water', ALL), R('phone', '📵 Phone charging outside the bedroom', ALL), R('bed', '😴 In bed by 21:00', ALL)] },
     habits: { _u: t, items: [{ id: 'meal', title: '🥗 Ate the plan' }, { id: 'water', title: '💧 2 L+ water' }, { id: 'noshorts', title: '🚫 No short videos' }, { id: 'screens', title: '📴 Screens off 20:45' }, { id: 'read', title: '📖 Read 10 min' }, { id: 'word', title: '🤝 Kept my word today' }] },
     counters: { _u: t, items: [
-      { id: 'dials', title: 'Dials', unit: '', targets: [0, 25, 55, 30, 70, 45, 0, 0], weekly: 225, steps: [1, 5, 10], color: 'bad' },
+      { id: 'dials', title: 'Dials', unit: '', targets: [0, 5, 50, 5, 70, 20, 0, 0], weekly: 150, steps: [1, 5, 10], color: 'bad' },
       { id: 'owners', title: 'Owner conversations', unit: '', targets: [0, 0, 0, 0, 0, 0, 0, 0], weekly: 0, steps: [1], color: 'acc' },
       { id: 'bac', title: 'BAC study', unit: 'min', targets: [0, 75, 75, 75, 165, 165, 200, 230], weekly: 1200, steps: [15, 25, 50], color: 'info' },
       { id: 'applicants', title: 'Applicant calls', unit: '', targets: [0, 0, 0, 0, 0, 0, 0, 0], weekly: 0, steps: [1], color: 'ok' },
     ] },
     schedule: { _u: t, blocks },
     programs, programByDay: { _u: t, map: { 1: 'upperA', 2: 'core', 3: 'upperB', 4: 'legs', 5: 'arms', 6: 'upperC', 7: 'recovery' } },
+    food: { _u: t, kcal: 3400, p: 170, saved: (typeof FOOD_SAVED_DEFAULT !== 'undefined' ? FOOD_SAVED_DEFAULT : []).map((x) => Object.assign({}, x)) },
     days: {}, tasks: {}, goals, reviews: {}, stakes: {}, session: { _u: 0, active: false }, timer: null,
   };
 }
@@ -409,7 +410,7 @@ function setTop3(i, v) { const o = day(curDate); o.top3[i].t = v; touch(o); }
 function toggleTop3(i) { const o = day(curDate); if (!o.top3[i].t) return; o.top3[i].d = o.top3[i].d ? 0 : 1; touch(o); render(); }
 function setDayField(f, v) { const o = day(curDate); o[f] = v; touch(o); }
 /* ───────── GRADE · MINIMUM · STREAKS · STAKES ───────── */
-function minimumMet(d) { const o = S.days[dk(d)], w = dow(d), st = S.settings; const dials = o ? Number((o.counters || {}).dials) || 0 : 0, bac = o ? Number((o.counters || {}).bac) || 0 : 0; const needDials = WK.includes(w) ? (st.minDials || 0) : 0, needBac = st.minBac || 0; return { met: dials >= needDials && bac >= needBac, dials, bac, needDials, needBac }; }
+function minimumMet(d) { const o = S.days[dk(d)], w = dow(d), st = S.settings; const dials = o ? Number((o.counters || {}).dials) || 0 : 0, bac = o ? Number((o.counters || {}).bac) || 0 : 0; const dcT = (S.counters.items.find((c) => c.id === 'dials') || { targets: [] }).targets[w] || 0; const needDials = WK.includes(w) ? Math.min(st.minDials || 0, dcT || st.minDials || 0) : 0, needBac = st.minBac || 0; return { met: dials >= needDials && bac >= needBac, dials, bac, needDials, needBac }; }
 function gradeFor(d) { const sc = dayScore(d); let g = sc >= 85 ? 'A' : sc >= 70 ? 'B' : sc >= 50 ? 'C' : sc >= 30 ? 'D' : 'F'; if (dk(d) < dk(new Date()) && S.days[dk(d)] && !minimumMet(d).met && 'ABC'.includes(g)) g = 'D'; return g; }
 function streak(pred) { let d = new Date(); d.setHours(0, 0, 0, 0); if (!pred(d)) d = addDays(d, -1); let n = 0; while (n < 3650 && pred(d)) { n++; d = addDays(d, -1); } return n; }
 function streakWeigh() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.weight != null && o.weight !== ''); }); }
@@ -731,8 +732,8 @@ async function pushCloud() {
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
 function merge(remote) {
-  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes'];
-  for (const k of singles) if (remote[k] && (remote[k]._u || 0) > (S[k]._u || 0)) { const keepSync = k === 'settings' ? S.settings.sync : null; S[k] = remote[k]; if (keepSync) S.settings.sync = keepSync; changed = true; }
+  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes'];
+  for (const k of singles) if (remote[k] && (remote[k]._u || 0) > ((S[k] && S[k]._u) || 0)) { const keepSync = k === 'settings' ? S.settings.sync : null; S[k] = remote[k]; if (keepSync) S.settings.sync = keepSync; changed = true; }
   for (const k of maps) { if (!remote[k]) continue; if (!S[k]) S[k] = {}; for (const id in remote[k]) { const r = remote[k][id], l = S[k][id]; if (!l || (r._u || 0) > (l._u || 0)) { S[k][id] = r; changed = true; } } }
   return changed;
 }

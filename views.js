@@ -1,4 +1,4 @@
-/* War Room v4 · views: Now (cockpit), Train, Week, Me. Navigation + init. */
+/* War Room v5 · views: HQ, Train, Plan, Me. Navigation + init. Food, Stats and the game layer live in their own files. */
 'use strict';
 
 /* ───────── v4 migration: a deep-work counter, the Dial tab ───────── */
@@ -12,6 +12,16 @@ function migrateV4() {
   }
   for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && /^(Priority Bench clients|Multi-site clients)$/.test(g.title)) { g._del = true; g._u = t; } }
   S.migrations.m20261109 = t; save(true);
+}
+
+/* ───────── v5 migration: the 150-dial week (Mon 5 · Tue 50 · Wed 5 · Thu 70 · Fri 20), food state ───────── */
+function migrateV5() {
+  S.migrations = S.migrations || {}; foodState();
+  if (S.migrations.m20261112) return;
+  const t = now(), dc = S.counters.items.find((c) => c.id === 'dials');
+  if (dc && dc.weekly === 225) { dc.targets = [0, 5, 50, 5, 70, 20, 0, 0]; dc.weekly = 150; S.counters._u = t; }
+  for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week' && g.target === 225) { g.title = '150 dials'; g.target = 150; g._u = t; } }
+  S.migrations.m20261112 = t; save(true);
 }
 
 /* ───────── coach lines (paraphrased from Egor's own KB summaries; [#N] = knowledge/video_index.md) ───────── */
@@ -28,33 +38,56 @@ function coachLine(ctx) {
 }
 
 /* ───────── navigation ───────── */
-const NAV = [['now', '◉', 'Now'], ['dial', '☏', 'Dial'], ['train', '▲', 'Train'], ['week', '▦', 'Week'], ['me', '☰', 'Me']];
+const NAV = [['now', 'hq', 'HQ'], ['dial', 'dial', 'Dial'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['week', 'plan', 'Plan'], ['me', 'me', 'Me']];
 let moreTab = 'home', weekTab = 'plan';
 function show(v) {
-  const map = { today: 'now', more: 'me', plan: 'week', goals: 'week', tasks: 'week' };
-  if (v === 'plan' || v === 'goals' || v === 'tasks') weekTab = v;
-  if (v === 'more' && moreTab === 'home') moreTab = 'home';
+  const map = { today: 'now', hq: 'now', more: 'me', plan: 'week', goals: 'week', tasks: 'week', review: 'week' };
+  if (v === 'plan' || v === 'goals' || v === 'tasks' || v === 'review') weekTab = v;
+  if (v === 'me' && view === 'me') moreTab = 'home';
   view = map[v] || v; closeModal(); render(); window.scrollTo(0, 0);
 }
 function shiftDay(n) { curDate = addDays(curDate, n); render(); }
 function goToday() { curDate = new Date(); curDate.setHours(0, 0, 0, 0); render(); }
-function renderNav() { const d = new Date(), o = day(d), dc = S.counters.items.find((c) => c.id === 'dials'), tg = dc ? dc.targets[dow(d)] || 0 : 0, left = Math.max(0, tg - (Number(o.counters.dials) || 0)); const nm = nowMin(); const inBlock = blocksFor(d).some((b) => b.kind === 'dials' && tmin(b.start) <= nm && nm < tmin(b.end)); $('nav').innerHTML = NAV.map(([v, ic, l]) => `<button class="${view === v ? 'on' : ''}" onclick="show('${v}')"><span class="ic">${ic}</span>${l}${v === 'dial' && left && (inBlock || nm >= 15 * 60) ? `<span class="badge">${left}</span>` : ''}</button>`).join(''); }
+function dialBadge() { const d = new Date(), o = day(d), tg = dialTarget(d), left = Math.max(0, tg - (Number(o.counters.dials) || 0)), nm = nowMin(); const inBlock = blocksFor(d).some((b) => b.kind === 'dials' && tmin(b.start) <= nm && nm < tmin(b.end)); return left && (inBlock || nm >= 15 * 60) ? left : 0; }
+function renderNav() {
+  const badge = dialBadge();
+  // phone: five screens + More (Plan and Me live behind it)
+  const phone = NAV.slice(0, 5).concat([['me', 'more', 'More']]);
+  $('nav').innerHTML = phone.map(([v, icn, l]) => `<button class="${view === v || (v === 'me' && view === 'week') ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 23)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('');
+  // desktop: sidebar
+  const r = rankInfo(), left = daysUntil(S.settings.bigDate), t = new Date();
+  $('side').innerHTML = `<div class="brand"><div class="mk">${ic('hq', 20)}</div><div><b>WAR ROOM</b><span>CAREGIVER BENCH</span></div></div>
+    <div class="dd"><b>D-${left}</b><span>${DAY_SHORT[dow(t)]} ${t.getDate()} ${t.toLocaleDateString('en-GB', { month: 'short' })}<br>week ${isoWeek(t)}</span></div>
+    <nav>${NAV.map(([v, icn, l]) => `<button class="${view === v ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 20)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('')}</nav>
+    <div class="sp"></div>
+    <div class="srank" onclick="openRank()"><div class="rank"><div class="ins">${insignia(r.i)}</div><div class="bd"><div class="nm">${r.name}</div><div class="lv">Level ${r.i + 1}</div></div></div><div class="xpbar"><i style="width:${r.pct}%"></i></div><div class="ft"><span>${fmt(r.xp)} XP</span><span>${r.next != null ? fmt(r.toNext) + ' to go' : 'top rank'}</span></div></div>
+    <div class="sync ${syncReady() ? syncState.status : ''}"><i></i>v${APP_VERSION} · ${syncReady() ? 'cloud ' + syncLabel() : 'this device only'}</div>`;
+}
+function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 86400000 + 1) / 7); }
 function renderTop() {
-  const titles = { now: isToday(curDate) ? 'Now' : fmtShort(curDate), dial: 'Dial', train: 'Train', week: 'Week', me: 'Me' };
-  $('top-title').textContent = titles[view];
-  const sub = $('top-sub');
-  if (view === 'now') sub.textContent = fmtDate(curDate) + (isToday(curDate) ? '' : ' · not today');
-  else if (view === 'dial') { const dc = S.counters.items.find((c) => c.id === 'dials'); sub.textContent = `${counterWeek('dials', new Date())} / ${dc ? dc.weekly : 225} this week · ${counterTotal('owners')} owner talks`; }
+  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
+  $('top-title').innerHTML = view === 'now' && isToday(curDate) ? '<span class="only-phone">HQ</span><span class="only-desk">Headquarters</span>' : esc(titles[view]);
+  const sub = $('top-sub'), t = new Date();
+  if (view === 'now') sub.textContent = `${DAY_SHORT[dow(curDate)]} ${curDate.getDate()} ${curDate.toLocaleDateString('en-GB', { month: 'short' })}${window.innerWidth >= 700 ? ' · week ' + isoWeek(curDate) : ''} · D-${daysUntil(S.settings.bigDate)}` + (isToday(curDate) || window.innerWidth < 700 ? '' : ' · not today');
+  else if (view === 'dial') { const dc = counterDef('dials'); sub.textContent = `${counterWeek('dials', t)} / ${dc ? dc.weekly : 150} this week · ${counterTotal('owners')} owner talks`; }
   else if (view === 'train') sub.textContent = fmtDate(curDate);
+  else if (view === 'food') { const ft = foodTotals(curDate), tt = foodTargets(); sub.textContent = ft.kcal >= tt.kcal ? `target hit · ${Math.round(ft.p)} / ${tt.p} g protein` : `${fmt(tt.kcal - ft.kcal)} kcal · ${Math.max(0, Math.round(tt.p - ft.p))} g P left`; }
+  else if (view === 'stats') sub.textContent = `${fmt(counterTotal('dials'))} dials · ${counterTotal('owners')} owner talks · ${rankInfo().name}`;
   else if (view === 'week') sub.textContent = 'Week of ' + fmtShort(monday(curDate));
-  else sub.textContent = 'v' + APP_VERSION + (syncReady() ? ' · ' + syncLabel() : '');
-  const nav = (view === 'now' || view === 'train' || view === 'week') ? `<div class="datenav"><button onclick="shiftDay(-1)">‹</button><div class="cur" onclick="goToday()">${isToday(curDate) ? 'Today' : fmtShort(curDate)}<small>${DAY_SHORT[dow(curDate)]}</small></div><button onclick="shiftDay(1)">›</button></div>` : '';
-  $('top-right').innerHTML = nav + `<button class="iconbtn" onclick="openSpend()" title="Spent cash" aria-label="Spent cash">💸</button>`;
+  else sub.textContent = 'v' + APP_VERSION + (syncReady() ? ' · cloud ' + syncLabel() : ' · this device only');
+  const nav = (view === 'now' || view === 'train' || view === 'week' || view === 'food') ? `<div class="datenav"><button onclick="shiftDay(-1)" aria-label="Previous day">‹</button><div class="cur" onclick="goToday()">${isToday(curDate) ? 'Today' : fmtShort(curDate)}<small>${DAY_SHORT[dow(curDate)]}</small></div><button onclick="shiftDay(1)" aria-label="Next day">›</button></div>` : '';
+  $('top-right').innerHTML = nav + (view === 'food' ? '' : `<button class="iconbtn" onclick="openSpend()" title="Spent cash" aria-label="Spent cash">${ic('wallet', 19)}</button>`);
+}
+function renderRail() {
+  const el = $('rail'); if (!el) return; if (['now', 'stats', 'food'].includes(view)) { el.innerHTML = ''; return; }
+  const t = new Date(); el.innerHTML = ringsCard(t, true) + rankCard() + weekCard(t);
 }
 function render() {
+  document.body.dataset.view = view;
   renderNav(); renderTop();
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
-  ({ now: renderNow, dial: renderDial, train: renderTrainView, week: renderWeek, me: renderMe })[view]();
+  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe })[view]();
+  renderRail();
 }
 
 /* ───────── NOW: the cockpit ───────── */
@@ -107,28 +140,26 @@ function renderNow() {
   parts.weigh = weighCard(o, k, d);
   parts.focus = ph === 'morning' ? focusMorning(o, d) : '';
   parts.hero = today && ph !== 'morning' ? heroCard(d) : '';
-  parts.tiles = tilesCard(o, d);
+  parts.rings = ringsCard(d);
+  parts.quick = today ? quickCard() : '';
   parts.shutdown = (ph === 'evening' || ph === 'past') ? shutdownCard(o, d) : '';
   parts.change = oneChangeBanner(d);
   parts.morning = routineCard('morning', d, o, ph === 'morning' || ph === 'future');
   parts.evening = routineCard('evening', d, o, ph === 'evening');
-  parts.study = sec('study', '📚 Study & deep work', `${Number(o.counters.bac) || 0} min BAC · ${Number(o.counters.deep) || 0} deep`, countersBody(o, d), (() => { const b = blocksFor(d).find((x) => (x.kind === 'bac' || x.kind === 'agency') && tmin(x.start) <= nm && nm < tmin(x.end)); return !!b && today; })());
+  parts.study = sec('study', 'Study &amp; deep work', `${Number(o.counters.bac) || 0} min BAC · ${Number(o.counters.deep) || 0} deep`, countersBody(o, d), (() => { const b = blocksFor(d).find((x) => (x.kind === 'bac' || x.kind === 'agency') && tmin(x.start) <= nm && nm < tmin(x.end)); return !!b && today; })());
   parts.top3 = top3Card(o, k, d);
   parts.standards = standardsCard(o);
   parts.money = moneyCard(o, d);
   parts.log = sec('log', 'Sleep times', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : ''}`, sleepMoneyBody(o), false);
   parts.debrief = sec('debrief', 'Debrief', o.win || o.loss || o.fix ? '✓' : '30 seconds, honest', debriefBody(o), ph === 'evening' || ph === 'past');
-  parts.grade = gradeCard(d);
-  const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dc ? dc.targets[w] || 0 : 0, v = Number(o.counters.dials) || 0;
+  const tg = dialTarget(d), v = Number(o.counters.dials) || 0;
   parts.coach = !today ? '' : ph === 'morning' ? coachLine('morning') : ph === 'evening' ? coachLine('evening') : (tg ? (v >= tg ? coachLine('hit') : nm >= 15 * 60 ? coachLine('behind') : coachLine('study')) : coachLine('weekend'));
-  const order = {
-    morning: ['timer', 'stake', 'weigh', 'focus', 'tiles', 'coach', 'top3', 'change', 'morning', 'study', 'standards', 'money', 'evening', 'log', 'debrief', 'grade'],
-    day: ['timer', 'stake', 'hero', 'tiles', 'coach', 'top3', 'study', 'standards', 'money', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief', 'grade'],
-    evening: ['timer', 'stake', 'shutdown', 'tiles', 'coach', 'money', 'standards', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change', 'grade'],
-    past: ['grade', 'tiles', 'weigh', 'money', 'standards', 'study', 'top3', 'debrief', 'shutdown', 'morning', 'evening', 'log'],
-    future: ['tiles', 'top3', 'weigh', 'morning', 'evening', 'standards', 'log'],
-  }[ph];
-  $('view-now').innerHTML = order.map((p) => parts[p] || '').join('');
+  // A: what to do now · B: today's checklist · C: where you stand
+  parts.week = weekCard(d);
+  const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'hero', 'rings', 'quick', 'week'], past: ['rings', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
+  const B = { morning: ['top3', 'change', 'morning', 'study', 'standards', 'money', 'evening', 'log', 'debrief', 'coach'], day: ['top3', 'standards', 'study', 'money', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief', 'coach'], evening: ['standards', 'money', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change', 'coach'], past: ['weigh', 'money', 'standards', 'study', 'top3', 'debrief', 'morning', 'evening', 'log'], future: ['top3', 'weigh', 'morning', 'evening', 'standards', 'log'] }[ph];
+  const C = rankCard() + gradeStreaksCard(d) + (today ? upNextCard() : '') + missionCard() + nextMedalsCard();
+  $('view-now').innerHTML = `<div class="hq"><div class="hq-a">${A.map((p) => parts[p] || '').join('')}</div><div class="hq-b">${B.map((p) => parts[p] || '').join('')}</div><div class="hq-c">${C}</div></div>`;
 }
 
 function countersBody(o, d) {
@@ -158,6 +189,7 @@ function renderMe() {
   const back = t === 'home' ? '' : `<button class="btn sm ghost" style="margin-bottom:10px" onclick="moreTab='home';render()">‹ Back</button>`;
   let html = back;
   if (t === 'home') {
+    html += `<div class="card only-phone">${[['plan', 'Week plan', 'the schedule, block by block'], ['tasks', 'Tasks', 'everything with a due date'], ['goals', 'Goals', 'long, month and week targets'], ['review', 'Sunday review', 'the only place the plan changes']].map(([v, a, b]) => `<div class="setting-row" onclick="show('${v}')"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>` + rankCard() + `<div class="card"><div class="setting-row" onclick="foodAiModal()"><div><div class="t">Food photo AI</div><div class="d">${aiOn() ? 'on · key saved on this device' : 'off · add a key so photos fill calories and macros'}</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodSavedModal()"><div><div class="t">Food targets &amp; saved meals</div><div class="d">${foodTargets().kcal} kcal · ${foodTargets().p} g protein a day</div></div><div class="arr">›</div></div></div>`;
     html += `<div class="card">${[['weight', 'Weight history', 'chart, averages, pace to ' + S.settings.weightTarget + ' kg'], ['stakes', 'Stakes & minimum day', stakesOwed() ? fmt(stakesOwed()) + ' ' + S.settings.currency + ' owed' : 'never zero · ' + S.settings.stake + ' ' + S.settings.currency + ' per missed day'], ['routines', 'Routines & standards', 'edit the morning / evening lists and the 7 standards'], ['counters', 'Daily targets', 'dials, BAC minutes, deep work, per weekday'], ['programs', 'Training programs & split', 'edit the weekly programs and which day gets which'], ['sync', 'Sync & backup', sync.code ? 'connected · ' + syncLabel() : 'phone ↔ laptop'], ['install', 'Install on home screen', 'iPhone & Android steps']].map(([v, a, b]) => `<div class="setting-row" onclick="moreTab='${v}';render()"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>
       <div class="card"><div class="card-t" style="margin-bottom:8px">Settings</div>
       <div class="kv"><span>Wake</span><input type="time" value="${S.settings.wake}" onchange="S.settings.wake=this.value;S.settings._u=Date.now();save()"></div>
@@ -182,9 +214,10 @@ function renderMe() {
 }
 
 /* ───────── init ───────── */
-load(); migrateV4(); evaluateStakes();
+load(); migrateV4(); migrateV5(); evaluateStakes();
 const _qs = location.search;
 if (/[?&]dial\b/.test(_qs)) view = 'dial';
+if (/[?&]meal\b/.test(_qs)) view = 'food';
 render();
 if (/[?&]spend\b/.test(_qs)) setTimeout(openSpend, 150);
 if (_qs) history.replaceState(null, '', location.pathname);
@@ -192,7 +225,7 @@ qLoad(); bLoad();
 if (syncReady()) pullCloud(true);
 if (tdOn()) { tdFlush(); tdPull(true); }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); bPull(true); } if (tdOn()) { tdFlush(); tdPull(true); } } });
-setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea')) render(); }, 60000);
+setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea') && !$('modal-bg').classList.contains('open')) render(); }, 60000);
 if ('serviceWorker' in navigator) {
   let wrReloaded = false; const hadSW = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (wrReloaded || !hadSW) return; wrReloaded = true; location.reload(); });
   navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready', 'Reload', () => location.reload()); }); }); }).catch(() => {});

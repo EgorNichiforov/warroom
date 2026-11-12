@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <title>War Room</title>
-<meta name="theme-color" content="#0a0b0e">
+<meta name="theme-color" content="#060707">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="War Room">
@@ -324,29 +324,39 @@ a{color:var(--acc)}
 .goal.done .n{color:var(--muted);text-decoration:line-through}
 .now-cur{font-size:19px;font-weight:700}.now-time{font-size:12px;color:var(--muted)}.now-next{font-size:13px;color:var(--sub);margin-top:6px}
 </style>
+<link rel="stylesheet" href="./v5.css?v=5.0.0">
 </head>
 <body>
+<aside class="side" id="side"></aside>
 <div class="app">
   <header class="topbar">
-    <div><h1 id="top-title">Now</h1><div class="sub" id="top-sub"></div></div>
+    <div><h1 id="top-title">Headquarters</h1><div class="sub" id="top-sub"></div></div>
     <div class="right" id="top-right"></div>
   </header>
-  <main>
-    <section class="view active" id="view-now"></section>
-    <section class="view" id="view-dial"></section>
-    <section class="view" id="view-train"></section>
-    <section class="view" id="view-week"></section>
-    <section class="view" id="view-me"></section>
-  </main>
+  <div class="stage">
+    <main>
+      <section class="view active" id="view-now"></section>
+      <section class="view" id="view-dial"></section>
+      <section class="view" id="view-train"></section>
+      <section class="view" id="view-food"></section>
+      <section class="view" id="view-stats"></section>
+      <section class="view" id="view-week"></section>
+      <section class="view" id="view-me"></section>
+    </main>
+    <aside class="rail" id="rail"></aside>
+  </div>
 </div>
 <nav class="nav"><div class="nav-in" id="nav"></div></nav>
 <div class="modal-bg" id="modal-bg"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
-<script src="./core.js?v=4.6.0"></script>
-<script src="./train.js?v=4.6.0"></script>
-<script src="./dial.js?v=4.6.0"></script>
-<script src="./pipeline.js?v=4.6.0"></script>
-<script src="./todoist.js?v=4.6.0"></script>
-<script src="./views.js?v=4.6.0"></script>
+<script src="./core.js?v=5.0.0"></script>
+<script src="./train.js?v=5.0.0"></script>
+<script src="./dial.js?v=5.0.0"></script>
+<script src="./pipeline.js?v=5.0.0"></script>
+<script src="./todoist.js?v=5.0.0"></script>
+<script src="./game.js?v=5.0.0"></script>
+<script src="./food.js?v=5.0.0"></script>
+<script src="./stats.js?v=5.0.0"></script>
+<script src="./views.js?v=5.0.0"></script>
 </body>
 </html>
