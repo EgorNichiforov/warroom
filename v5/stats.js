@@ -99,5 +99,5 @@ function statsMoney() {
 }
 function renderStats() {
   const seg = `<div class="row sb" style="margin-bottom:14px"><div class="seg">${[[14, '2 wk'], [28, '4 wk'], [84, '12 wk']].map(([v, l]) => `<button class="${statsRange === v ? 'on' : ''}" onclick="statsRange=${v};render()">${l}</button>`).join('')}</div><button class="btn sm" onclick="openRank()">${ic('medal', 16)} Rank &amp; medals</button></div>`;
-  $('view-stats').innerHTML = seg + statsKpis() + `<div class="sgrid">${statsDials()}${statsFunnel()}${statsHeat()}${statsStandards()}${statsTrain()}${statsWeight()}${statsStudy()}${statsFood()}${statsMoney()}</div>`;
+  $('view-stats').innerHTML = seg + statsKpis() + `<div class="sgrid">${statsIntel()}${statsDials()}${statsFunnel()}${statsCalls()}${statsRecords()}${statsXp()}${statsHeat()}${statsStandards()}${statsTrain()}${statsWeight()}${statsStudy()}${statsFood()}${statsMoney()}</div>`;
 }
