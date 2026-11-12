@@ -114,10 +114,10 @@ function heroCard(d) {
   return `<div class="card ac hero">
     <div class="kicker"><span>${cur ? 'Now' : 'Free'}</span><span class="mono">${pad(Math.floor(nm / 60))}:${pad(nm % 60)}</span></div>
     <div class="title">${cur ? esc(cur.title) : (next ? 'Nothing scheduled' : 'Day is done')}</div>
-    <div class="when">${cur ? `${cur.start}–${cur.end === '24:00' ? '…' : cur.end} · <b>${left} min left</b>${cur.note ? ' · ' + esc(cur.note) : ''}` : ''}</div>
+    <div class="when">${cur ? `${cur.start}–${cur.end === '24:00' ? '…' : cur.end} · <b>${left} min left</b> · <a href="#" onclick="blockSheet('${cur.id}','${dk(d)}');return false">cancel / move</a>${cur.note ? '<br><span class="muted">' + esc(cur.note) + '</span>' : ''}` : ''}</div>
     ${action ? `<div class="action">${action}</div>` : ''}
     ${line ? `<div class="next">${line}</div>` : ''}
-    ${next ? `<div class="next">Then <b>${esc(next.title)}</b> at ${next.start} <span class="dim">(in ${tmin(next.start) - nm} min)</span></div>` : ''}
+    ${next ? `<div class="next">Then <b>${esc(next.title)}</b> at ${next.start} <span class="dim">(in ${tmin(next.start) - nm} min)</span> · <a href="#" onclick="blockSheet('${next.id}','${dk(d)}');return false">cancel / move</a></div>` : ''}
     <div class="dayline" title="${Math.round(pct)}% of the day"><i style="width:${pct}%"></i></div></div>`;
 }
 function tilesCard(o, d) {

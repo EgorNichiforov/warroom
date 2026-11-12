@@ -149,9 +149,34 @@ function quickCard() {
   return `<div class="quick">${B('dial', 'Dial', 'startSession()', tg && v < tg)}${B('camera', 'Meal', 'foodSnap()')}${B('scale', 'Weigh', "goToday();editWeight()", noW)}${B('timer', 'BAC 25', "startTimer('bac',25)")}${B('wallet', 'Spend', 'openSpend()')}</div>`;
 }
 
+/* ───────── one-tap schedule control: cancel or move a block for one day ───────── */
+function findBlock(id, k) { const o = S.days[k], once = o && o.sched && (o.sched.add || []).find((x) => x.id === id); return once ? Object.assign({}, once, { once: true }) : S.schedule.blocks.find((x) => x.id === id); }
+function blockSheet(id, k) {
+  k = k || dk(curDate); const b = findBlock(id, k); if (!b) return; const d = pd(k), tm = dk(addDays(d, 1)), dur = tmin(b.end) - tmin(b.start);
+  const setDay = (v) => `document.getElementById('bm-date').value='${v}';document.querySelectorAll('#bm-q .chip').forEach(c=>c.classList.toggle('on',c===this))`;
+  openModal(`<h2>${esc(b.title)}</h2><div class="small muted" style="margin:-6px 0 14px">${fmtDate(d)} · ${b.start}–${b.end === '24:00' ? '…' : b.end}${b.once ? ' · this day only' : ' · every ' + b.days.map((i) => DAY_SHORT[i]).join(', ')}</div>
+    <button class="btn lg block danger" onclick="blockCancel('${id}','${k}')">Cancel it for ${isToday(d) ? 'today' : fmtShort(d)}</button>
+    <div class="sec-h" style="margin-top:18px">Or move it · this time only</div>
+    <div class="chips" id="bm-q" style="margin-bottom:10px"><span class="chip" onclick="${setDay(k)}">Same day</span><span class="chip on" onclick="${setDay(tm)}">${isToday(d) ? 'Tomorrow' : 'Next day'}</span><span class="chip" onclick="${setDay(dk(addDays(d, 2)))}">${DAY_LONG[dow(addDays(d, 2))]}</span></div>
+    <div class="field"><label>Day</label><input type="date" id="bm-date" value="${tm}" onchange="document.querySelectorAll('#bm-q .chip').forEach(c=>c.classList.remove('on'))"></div>
+    <div class="g2"><div class="field"><label>Start</label><input type="time" id="bm-start" value="${b.start}" onchange="var m=tmin(this.value)+${dur};if(m<1440)document.getElementById('bm-end').value=pad(Math.floor(m/60))+':'+pad(m%60)"></div><div class="field"><label>End</label><input type="time" id="bm-end" value="${b.end === '24:00' ? '23:59' : b.end}"></div></div>
+    <div class="xs muted">The weekly plan stays as it is. Only this one day changes.</div>
+    <div class="actions"><button class="btn" onclick="curDate=pd('${k}');closeModal();editBlock('${id}')">Edit every week</button><button class="btn primary" onclick="blockMove('${id}','${k}')">Move it</button></div>`, true);
+}
+function blockDrop(id, k) { const o = day(k); if (!o.sched) o.sched = { skip: [], add: [] }; const sc = o.sched; sc.skip = sc.skip || []; sc.add = sc.add || []; if (sc.add.some((x) => x.id === id)) sc.add = sc.add.filter((x) => x.id !== id); else if (!sc.skip.includes(id)) sc.skip.push(id); touch(o); }
+function schedSnap(keys) { const snap = {}; keys.forEach((k) => (snap[k] = JSON.stringify((S.days[k] || {}).sched || null))); return () => { keys.forEach((k) => { const o = day(k), v = JSON.parse(snap[k]); if (v) o.sched = v; else delete o.sched; touch(o); }); render(); }; }
+function blockCancel(id, k) { const b = findBlock(id, k); if (!b) return; const undo = schedSnap([k]); blockDrop(id, k); closeModal(); render(); toast(`${b.title} · cancelled for ${isToday(pd(k)) ? 'today' : fmtShort(pd(k))}`, 'Undo', undo); }
+function blockMove(id, k) {
+  const b = findBlock(id, k); if (!b) return; const to = $('bm-date').value, start = $('bm-start').value; let end = $('bm-end').value;
+  if (!to || !start || !end) { toast('Pick a day and a time'); return; } if (end === '23:59') end = '24:00';
+  if (tmin(end) <= tmin(start)) { toast('End must be after start'); return; }
+  const undo = schedSnap(k === to ? [k] : [k, to]); blockDrop(id, k);
+  const sc = dayOnce(pd(to)); sc.add = sc.add || []; sc.add.push({ id: uid(), from: b.from || (b.once ? '' : b.id), title: b.title, start, end, days: [dow(pd(to))], kind: b.kind, note: b.note || '' }); touch(day(to));
+  closeModal(); render(); toast(`Moved to ${fmtShort(pd(to))} · ${start}`, 'Undo', undo);
+}
 function upNextCard() {
   const d = new Date(), nm = nowMin(), bl = blocksFor(d).filter((b) => tmin(b.end) > nm && b.kind !== 'sleep').slice(0, 5); if (!bl.length) return '';
-  return `<div class="card"><div class="card-h"><div class="card-t">Up next</div><div class="card-r"><a href="#" onclick="show('plan');return false">full plan</a></div></div><div class="tl">${bl.map((b) => `<div class="blk ${tmin(b.start) <= nm ? 'now' : ''}"><div class="t">${b.start}–${b.end === '24:00' ? '…' : b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div></div>`;
+  return `<div class="card"><div class="card-h"><div class="card-t">Up next</div><div class="card-r">tap to cancel or move · <a href="#" onclick="show('plan');return false">full plan</a></div></div><div class="tl">${bl.map((b) => `<div class="blk tap ${tmin(b.start) <= nm ? 'now' : ''}" onclick="blockSheet('${b.id}','${dk(d)}')"><div class="t">${b.start}–${b.end === '24:00' ? '…' : b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div></div>`;
 }
 function nextMedalsCard() {
   const md = medalsList(), got = md.filter((x) => x[2]).length, next = md.filter((x) => !x[2]).slice(0, 3); if (!next.length) return '';
