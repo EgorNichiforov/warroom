@@ -26,10 +26,28 @@ function ordersCard(d) {
     <div class="sweep ${sweep ? 'on' : ''}">${ic('star', 15)}<span>${sweep ? `Clean sweep. +${SWEEP_XP} XP` : `Clean sweep: all ${L.length} done = +${SWEEP_XP} XP`}</span>${today ? `<a href="#" onclick="event.stopPropagation();openManual();return false">how it works</a>` : ''}</div></div>`;
 }
 
+function callbacksCard() { let due = 0; try { const k = dk(new Date()); due = qItems().filter((x) => x.status === 'callback' && x.next_at && x.next_at <= k).length; } catch (e) { } if (!due) return ''; return `<div class="card flat" onclick="show('dial')" style="cursor:pointer;border-color:rgba(255,165,31,.4)"><div class="row sb"><div><div class="lab" style="color:var(--acc)">${due} callback${due === 1 ? '' : 's'} due</div><div class="small muted" style="margin-top:3px">Warm calls first: they told you when to ring back.</div></div><span class="pill warn">open dialer</span></div></div>`; }
+
+/* ───────── week report: the numbers for the Sunday review ───────── */
+function weekReportCard(d) {
+  const m = monday(d), days = ALL.map((i) => addDays(m, i - 1)), tk = dk(new Date()), dc = counterDef('dials'), bc = counterDef('bac'), sum = (id) => days.reduce((a, x) => a + cOf(x, id), 0);
+  const dials = sum('dials'), owners = sum('owners'), bac = sum('bac'), deep = sum('deep'), wkT = dc ? dc.weekly || 150 : 150, bT = bc ? bc.weekly || 0 : 0;
+  const logged = days.filter((x) => S.days[dk(x)] && dk(x) <= tk), sc = logged.length ? Math.round(logged.reduce((a, x) => a + dayScore(x), 0) / logged.length) : 0, tr = days.filter((x) => S.days[dk(x)] && dayTrained(S.days[dk(x)])).length;
+  const fd = days.map((x) => foodTotals(x)).filter((x) => x.n), kc = fd.length ? fd.reduce((a, x) => a + x.kcal, 0) / fd.length : 0, pr = fd.length ? fd.reduce((a, x) => a + x.p, 0) / fd.length : 0, tt = foodTargets();
+  const wE = avgWeight(7, dk(days[6])), wS = avgWeight(7, dk(addDays(m, -1))), xp = days.reduce((a, x) => a + dayXp(dk(x)), 0), inc = days.reduce((a, x) => a + (Number((S.days[dk(x)] || {}).income) || 0), 0), sp = days.reduce((a, x) => a + (Number((S.days[dk(x)] || {}).spent) || 0), 0);
+  const R = (v, l, s, cls) => `<div class="rec"><div class="rv ${cls || ''}">${v}</div><div class="rl">${l}</div><div class="rs">${s}</div></div>`, hit = (a, b) => (b && a >= b ? 'ok' : b && a < b * 0.6 ? 'bad' : '');
+  const miss = [[dials / wkT, `Dials: ${dials} of ${wkT}`], [bT ? bac / bT : 1, `BAC: ${bac} of ${bT} min`], [tr / 6, `Training: ${tr} of 6 days`], [fd.length ? kc / tt.kcal : 1, `Food: ${fmt(kc)} of ${fmt(tt.kcal)} kcal a day`]].sort((a, b) => a[0] - b[0])[0];
+  return `<div class="card"><div class="card-h"><div class="card-t">Week report · ${fmtShort(m)} – ${fmtShort(days[6])}</div><div class="card-r">from what you logged</div></div><div class="recs">
+    ${R(dials, 'dials', 'target ' + wkT, hit(dials, wkT))}${R(owners, 'owner conversations', dials ? '1 per ' + Math.round(dials / Math.max(1, owners)) + ' dials' : 'no dials')}${R((bac / 60).toFixed(1) + 'h', 'BAC study', bT ? 'target ' + (bT / 60).toFixed(1) + 'h' : '', hit(bac, bT))}${R(deep + 'm', 'deep work', 'company')}
+    ${R(tr, 'training days', 'target 6', hit(tr, 6))}${R(sc + '%', 'average day score', logged.length + ' days logged')}${R(wE && wS ? (wE - wS >= 0 ? '+' : '') + fmt(wE - wS, 1) : '—', 'kg vs last week', wE ? '7-day avg ' + fmt(wE, 1) : 'no weigh-ins')}${R(fd.length ? fmt(kc) : '—', 'kcal a day', fd.length ? Math.round(pr) + ' g protein · ' + fd.length + ' days' : 'no meals logged', fd.length ? hit(kc, tt.kcal * 0.9) : '')}
+    ${R('+' + fmt(xp), 'XP earned', rankInfo().name)}${R(fmt(inc - sp), 'net ' + S.settings.currency, `made ${fmt(inc)} · spent ${fmt(sp)}`)}</div>
+    <div class="hint" style="margin-top:12px"><b>Biggest gap this week:</b> ${miss[0] >= 1 ? 'none. Every tracked target was met.' : miss[1] + '. Start the review there.'}</div></div>`;
+}
+
 /* ───────── the weekly operation: pace to the weekly dial target ───────── */
 function weekOp(d) {
   const dc = counterDef('dials'), wkT = dc ? dc.weekly || 150 : 150, wk = counterWeek('dials', d), m = monday(d), tk = dk(new Date()); let n = 0;
-  for (let i = 0; i < 7; i++) { const dd = addDays(m, i), k = dk(dd), tg = dc ? dc.targets[dow(dd)] || 0 : 0; if (tg && k >= tk && !(k === tk && cOf(dd, 'dials') >= tg)) n++; }
+  for (let i = 0; i < 7; i++) { const dd = addDays(m, i), k = dk(dd), tg = dialTargetFor(dd); if (tg && k >= tk && !(k === tk && cOf(dd, 'dials') >= tg)) n++; }
   const left = Math.max(0, wkT - wk), cur = weekKey(d) === weekKey(new Date());
   const line = wk >= wkT ? 'Operation complete. Everything from here is extra.' : !cur ? (dk(addDays(m, 6)) < tk ? `Closed ${left} short of ${wkT}.` : `${wkT} dials to make.`) : n ? `${left} to go · ${n} dial day${n === 1 ? '' : 's'} left · <b>${Math.ceil(left / n)} a day</b> closes it` : `${left} short and no dial days left this week.`;
   return { wk, wkT, left, n, need: n ? Math.ceil(left / n) : null, line, done: wk >= wkT };
@@ -169,6 +187,7 @@ function openManual() {
     ${R('dial', 'Logging is one tap', 'Dials log themselves when you tap an outcome in Dial. Meals: snap a photo in Food. Weight: the morning card. Spending: the wallet button.')}
     ${R('medal', 'XP, rank and medals', 'Only logged work counts. A dial is 10 XP, an owner conversation 100, a paying client 5,000. Rank and medals follow from that.')}
     ${R('stats', 'Stats and intel', 'Charts for everything you track. Intel turns the numbers into findings, and each one unlocks when there is enough data to trust it.')}
-    ${R('plan', 'The plan changes on Sunday', 'Plan → Review is where the week gets changed. Monday to Saturday the app is for doing.')}
+    ${R('plan', 'The plan changes on Sunday', 'Plan → Review opens with the week report: every number against its target, and the biggest gap. Monday to Saturday the app is for doing.')}
+    <div class="man only-desk"><div class="mi">${ic('bolt', 20)}</div><div><div class="mh">Keyboard</div><div class="md">Keys <b>1</b> to <b>7</b> switch screens. <b>T</b> jumps back to today.</div></div></div>
     <div class="actions"><button class="btn" onclick="openRank()">Rank &amp; medals</button><button class="btn primary" onclick="closeModal()">Got it</button></div>`, true);
 }

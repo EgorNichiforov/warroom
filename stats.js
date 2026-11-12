@@ -24,7 +24,7 @@ function statsKpis() {
 function statsDials() {
   const dc = counterDef('dials'), tk = dk(new Date()); let items, total = 0, hit = 0, due = 0, owners = 0;
   if (statsRange <= 28) {
-    items = rangeDays(statsRange).map((d) => { const k = dk(d), v = cOf(d, 'dials'), tg = dc ? dc.targets[dow(d)] || 0 : 0; total += v; owners += cOf(d, 'owners'); if (tg && k <= tk) { due++; if (v >= tg) hit++; }
+    items = rangeDays(statsRange).map((d) => { const k = dk(d), v = cOf(d, 'dials'), tg = dialTargetFor(d); total += v; owners += cOf(d, 'owners'); if (tg && k <= tk) { due++; if (v >= tg) hit++; }
       return { l: dow(d) === 1 ? d.getDate() + '.' + pad(d.getMonth() + 1) : '', v, t: tg, cls: tg && v >= tg ? 'hit' : (k < tk && tg ? 'miss' : ''), top: statsRange <= 14 ? v : '', today: k === tk, tip: `${fmtShort(d)}: ${v}${tg ? ' / ' + tg : ''}` }; });
     items.forEach((x) => { if (x.today) x.l = 'today'; });
   } else {
@@ -53,7 +53,7 @@ function statsHeat() {
 function statsStandards() {
   const days = rangeDays(14), short = (t) => t.replace(/\s*\(.*?\)\s*/g, '').replace(/ Protocol| Check/g, '');
   const rows = S.habits.items.map((h) => { const on = days.map((d) => { const o = S.days[dk(d)]; return !!(o && o.habits && o.habits[h.id]); }); return `<span class="nm">${esc(short(h.title))}</span>${on.map((x) => `<i class="${x ? 'on' : ''}"></i>`).join('')}<span class="pc">${Math.round((on.filter(Boolean).length / days.length) * 100)}%</span>`; }).join('');
-  return `<div class="card"><div class="card-h"><div class="card-t">Standards · 14 days</div><div class="card-r">kept / day</div></div><div class="mx" style="grid-template-columns:minmax(84px,auto) repeat(14,1fr) auto">${rows}</div></div>`;
+  return `<div class="card"><div class="card-h"><div class="card-t">Standards · 14 days</div><div class="card-r">% of days kept</div></div><div class="mx" style="grid-template-columns:minmax(84px,auto) repeat(14,1fr) auto">${rows}</div></div>`;
 }
 function statsWeight() {
   const all = weightEntries(), n = Math.max(statsRange, 28), from = dk(addDays(new Date(), -n + 1)), pts = all.filter((x) => x.k >= from), tg = S.settings.weightTarget;
@@ -86,7 +86,7 @@ function statsFood() {
   const items = ds.map((d) => { const t = foodTotals(d); if (t.n) { days++; kc += t.kcal; pr += t.p; if (t.p >= tt.p) hitP++; } return { l: dow(d) === 1 ? d.getDate() + '.' + pad(d.getMonth() + 1) : '', v: t.kcal, t: tt.kcal, cls: t.kcal >= tt.kcal * 0.9 ? 'hit' : '', today: dk(d) === dk(new Date()) }; });
   return `<div class="card w2"><div class="card-h"><div class="card-t">Food · calories by day</div><div class="card-r">${n} days</div></div>
     <div class="statline"><div><div class="sub-n">${days ? fmt(kc / days) : '—'}<small>kcal</small></div><div class="l">avg on logged days</div></div><div><div class="sub-n">${days ? Math.round(pr / days) : '—'}<small>g</small></div><div class="l">avg protein</div></div><div><div class="sub-n">${hitP}<small>/ ${days}</small></div><div class="l">protein days hit</div></div></div>
-    ${vbars(items, { h: 170, max: tt.kcal * 1.1 })}</div>`;
+    ${vbars(items, { h: 170, max: tt.kcal * 1.1 })}<div class="legend"><span><i class="ln" style="background:var(--text);opacity:.5"></i>${fmt(tt.kcal)} kcal target</span><span><i style="background:var(--body)"></i>within 10%</span></div></div>`;
 }
 function statsMoney() {
   const cur = S.settings.currency; let inc = 0, sp = 0, tennis = 0, agency = 0; const cats = {};
