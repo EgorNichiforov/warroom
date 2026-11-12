@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.3.1';
+const APP_VERSION = '5.4.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -304,10 +304,10 @@ function workoutsWeek(d) { const m = monday(d); let n = 0; for (let i = 0; i < 7
 function routineFor(list, d) { const w = dow(d); return list.filter((r) => !r.days || r.days.includes(w)); }
 function rState(o, id) { const v = o && o.routine ? o.routine[id] : 0; if (typeof v === 'string' && v.startsWith('skip')) return 'skip'; return v ? 'done' : ''; }
 function rSkipReason(o, id) { const v = o.routine[id]; return typeof v === 'string' ? v.replace(/^skip:?/, '') : ''; }
-function blocksFor(d) { const w = dow(d), o = S.days[dk(d)], sc = o && o.sched; let list = S.schedule.blocks.filter((b) => b.days.includes(w)); if (sc) { const skip = new Set(sc.skip || []); list = list.filter((b) => !skip.has(b.id)).concat((sc.add || []).map((b) => Object.assign({}, b, { once: true }))); } return list.sort((a, b) => tmin(a.start) - tmin(b.start) || tmin(a.end) - tmin(b.end)); }
+function blocksFor(d) { const w = dow(d), o = S.days[dk(d)], sc = o && o.sched; const cb = typeof calBlocks === 'function' ? calBlocks(d) : null; let list = cb || S.schedule.blocks.filter((b) => b.days.includes(w)); if (sc) { const skip = new Set(sc.skip || []); list = list.filter((b) => !skip.has(b.id)).concat((sc.add || []).map((b) => Object.assign({}, b, { once: true }))); } return list.sort((a, b) => tmin(a.start) - tmin(b.start) || tmin(a.end) - tmin(b.end)); }
 function dayOnce(d) { const o = day(d); if (!o.sched) o.sched = { skip: [], add: [] }; return o.sched; }
 function resetDaySchedule() { const o = day(curDate); delete o.sched; touch(o); toast('Regular schedule restored for ' + fmtShort(curDate)); render(); }
-function dialTargetFor(d) { const o = S.days[dk(d)]; if (o && o.targets && o.targets.dials != null && o.targets.dials !== '') return Math.max(0, Number(o.targets.dials) || 0); const c = S.counters.items.find((x) => x.id === 'dials'); return c ? c.targets[dow(d)] || 0 : 0; }
+function dialTargetFor(d) { const o = S.days[dk(d)]; if (o && o.targets && o.targets.dials != null && o.targets.dials !== '') return Math.max(0, Number(o.targets.dials) || 0); const ct = typeof calDialTarget === 'function' ? calDialTarget(dk(d)) : null; if (ct != null) return ct; const c = S.counters.items.find((x) => x.id === 'dials'); return c ? c.targets[dow(d)] || 0 : 0; }
 function dayScore(d) {
   const o = S.days[dk(d)] || { routine: {}, habits: {}, counters: {}, top3: [] };
   let tot = 0, done = 0;
@@ -737,7 +737,7 @@ async function pushCloud() {
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
 function merge(remote) {
-  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices'];
+  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices', 'playbook', 'inbox'];
   for (const k of singles) if (remote[k] && (remote[k]._u || 0) > ((S[k] && S[k]._u) || 0)) { const keepSync = k === 'settings' ? S.settings.sync : null; S[k] = remote[k]; if (keepSync) S.settings.sync = keepSync; changed = true; }
   for (const k of maps) { if (!remote[k]) continue; if (!S[k]) S[k] = {}; for (const id in remote[k]) { const r = remote[k][id], l = S[k][id]; if (!l || (r._u || 0) > (l._u || 0)) { S[k][id] = r; changed = true; } } }
   return changed;

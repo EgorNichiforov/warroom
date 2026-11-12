@@ -183,6 +183,11 @@ function endSession() { const s = S.session; if (!s || !s.active) return; const 
 
 /* ───────── the script (v3, Caregiver Bench) ───────── */
 function scriptHtml(x) {
+  const P = typeof pb === 'function' ? pb(x && (x.tier === 'AL' || x.tier === 'AL2') ? 'script-al' : 'script-owner') : null, ob = typeof pb === 'function' ? pb('objections') : null;
+  if (P) { const tok = { name: x ? firstName(x.contact) || '[name]' : '[name]', hook: x ? hookFor(x) : '[hook]', town: x ? x.city.split(/[\/(;]/)[0].trim() : '[town]' }; return `<div class="script">${pbRender(P.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'), tok)}${ob ? `<div class="lab">Objections</div>${pbRender(ob.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'))}` : ''}<div class="xs muted" style="margin-top:10px">Edit these in Playbook → Scripts. <a href="#" onclick="pbOpen='script-owner';show('book');return false">Open</a></div></div>`; }
+  return scriptHtmlOld(x);
+}
+function scriptHtmlOld(x) {
   const name = x ? firstName(x.contact) : '', hook = x ? hookFor(x) : '[HOOK]', town = x ? x.city.split(/[\/(;]/)[0].trim() : '[town]';
   const nm = name ? name : '[name]';
   const al = x && (x.tier === 'AL' || x.tier === 'AL2');
