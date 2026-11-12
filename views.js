@@ -200,7 +200,7 @@ function renderMe() {
       <div class="kv"><span>Big date</span><input type="date" value="${S.settings.bigDate}" onchange="S.settings.bigDate=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Currency</span><input value="${esc(S.settings.currency)}" onchange="S.settings.currency=this.value||'MDL';S.settings._u=Date.now();save()"></div></div>
       ${tdCard()}
-      <div class="card flat"><div class="row sb"><div><div style="font-weight:600">Classic War Room</div><div class="xs muted">The previous version, same data. If anything here is off on a dial day, use it.</div></div><a class="btn sm" href="./classic/">Open</a></div></div>
+      ${/\/v5\//.test(location.pathname) ? `<div class="card flat"><div class="row sb"><div><div style="font-weight:600">Back to the current app (v4)</div><div class="xs muted">This is the v5 preview. Same data on this device, so nothing is lost either way.</div></div><a class="btn sm" href="../">Open</a></div></div>` : `<div class="card flat"><div class="row sb"><div><div style="font-weight:600">Classic War Room</div><div class="xs muted">The old version, same data.</div></div><a class="btn sm" href="./classic/">Open</a></div></div>`}
       <div class="xs dim" style="text-align:center;margin:10px 0">War Room v${APP_VERSION} · data on this device${sync.code ? ' + cloud' : ''}${Q ? ` · queue ${qItems().length} agencies` : ''}</div>`;
   } else if (t === 'weight') html += renderWeight();
   else if (t === 'stakes') html += renderStakes();
