@@ -34,26 +34,53 @@ Return ONLY a JSON object, no other text:
 {"name": "short name of the meal", "items": [{"name": "item", "grams": 0, "kcal": 0, "protein": 0, "carbs": 0, "fat": 0}], "kcal": 0, "protein": 0, "carbs": 0, "fat": 0, "confidence": "low|medium|high", "note": "one short sentence on the biggest uncertainty"}
 Totals must equal the sum of the items. Protein, carbs and fat are in grams. If there is no food, return {"error": "no food found"}.`;
 function aiParse(text) { const a = text.indexOf('{'), b = text.lastIndexOf('}'); if (a < 0 || b < 0) throw new Error('The AI did not return numbers'); const j = JSON.parse(text.slice(a, b + 1)); if (j.error) throw new Error(j.error); const n = (v) => Math.max(0, Math.round(Number(v) || 0)); return { name: String(j.name || 'Meal').slice(0, 60), kcal: n(j.kcal), p: n(j.protein), c: n(j.carbs), f: n(j.fat), conf: String(j.confidence || ''), note: String(j.note || '').slice(0, 200), items: (Array.isArray(j.items) ? j.items : []).slice(0, 12).map((x) => ({ name: String(x.name || '').slice(0, 50), g: n(x.grams), kcal: n(x.kcal), p: n(x.protein) })) }; }
-async function aiGeminiModel(key) {
-  try { const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } }); if (!r.ok) throw new Error('HTTP ' + r.status); const j = await r.json();
-    const c = (j.models || []).filter((m) => (m.supportedGenerationMethods || []).includes('generateContent')).map((m) => m.name.replace('models/', '')).filter((n) => /^gemini-[\d.]+-flash$/.test(n)).sort((a, b) => parseFloat(b.split('-')[1]) - parseFloat(a.split('-')[1]));
-    if (c.length) return c[0]; } catch (e) { if (/HTTP 4/.test(String(e.message))) throw new Error('Google did not accept that key'); }
-  return 'gemini-flash-latest';
+/* Which Gemini models to try, best first. Free-tier quota differs per model, so one refusing is not the end. */
+async function aiGeminiModels(key) {
+  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
+  const names = (j.models || []).filter((m) => (m.supportedGenerationMethods || []).includes('generateContent')).map((m) => m.name.replace('models/', ''));
+  const ver = (n) => parseFloat(n.split('-')[1]) || 0, pick = (re) => names.filter((n) => re.test(n)).sort((x, y) => ver(y) - ver(x));
+  const out = pick(/^gemini-[\d.]+-flash$/).concat(pick(/^gemini-[\d.]+-flash-lite$/), ['gemini-flash-latest', 'gemini-flash-lite-latest'], pick(/^gemini-[\d.]+-flash-(preview|lite-preview)/));
+  return out.filter((n, i) => out.indexOf(n) === i).slice(0, 8);
 }
-async function aiEstimate(b64, hint) {
-  const c = aiCfg(); if (!c.key) throw new Error('Photo AI is not set up yet');
+function aiExplain(msg) {
+  const m = String(msg || '');
+  if (/API key not valid|API_KEY_INVALID|invalid api key|invalid x-api-key|authentication/i.test(m)) return 'The key was not accepted. Copy it again: the whole line, nothing before or after it.';
+  if (/location is not supported|not available in your (country|region)|FAILED_PRECONDITION/i.test(m)) return 'Google does not offer the free key in your region on this account. The other route is an Anthropic key (paid).';
+  if (/limit: 0|quota|RESOURCE_EXHAUSTED|429|rate/i.test(m)) return 'Google refused on quota: this account has no free allowance for the models tried, or the allowance is used up for now.';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'This device could not reach the AI service. Check the connection, and switch off any VPN or ad blocker for this page.';
+  if (/not found|404|not supported for generateContent/i.test(m)) return 'That model name does not exist for this key. Clear the Model field and try again.';
+  if (/credit|billing|balance/i.test(m)) return 'The account has no credit. Add credit in the provider console, then try again.';
+  return 'The AI service answered with an error. Send Claude the grey text below (never the key).';
+}
+async function aiCall(c, b64, hint, model) {
   const prompt = AI_PROMPT + (hint ? `\nThe person adds: "${hint}". Trust this over what you see.` : '') + (b64 ? '' : '\nThere is no photo. Estimate from the description only.');
-  let text = '';
   if (c.provider === 'anthropic') {
     const content = []; if (b64) content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } }); content.push({ type: 'text', text: prompt });
-    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model: c.model || 'claude-haiku-5-5', max_tokens: 900, messages: [{ role: 'user', content }] }) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && j.error.message) || 'HTTP ' + r.status); text = (j.content || []).filter((x) => x.type === 'text').map((x) => x.text).join('');
-  } else {
-    const parts = []; if (b64) parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }); parts.push({ text: prompt });
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(c.model || 'gemini-flash-latest')}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify({ contents: [{ parts }], generationConfig: { temperature: 0.2, responseMimeType: 'application/json' } }) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && j.error.message) || 'HTTP ' + r.status); text = (((j.candidates || [])[0] || {}).content || { parts: [] }).parts.map((x) => x.text || '').join('');
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: 900, messages: [{ role: 'user', content }] }) });
+    const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
+    return aiParse((j.content || []).filter((x) => x.type === 'text').map((x) => x.text).join(''));
   }
+  const parts = []; if (b64) parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }); parts.push({ text: prompt });
+  const send = (cfg) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify(Object.assign({ contents: [{ parts }] }, cfg ? { generationConfig: cfg } : {})) });
+  let r = await send({ temperature: 0.2, responseMimeType: 'application/json' }), j = await r.json().catch(() => ({}));
+  if (r.status === 400 && /mime|generation_?config|response_?mime/i.test((j.error && j.error.message) || '')) { r = await send(null); j = await r.json().catch(() => ({})); }
+  if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
+  const cand = (j.candidates || [])[0] || {}, text = ((cand.content || {}).parts || []).filter((x) => !x.thought).map((x) => x.text || '').join('');
+  if (!text) throw new Error('The model sent an empty answer' + (cand.finishReason ? ' (' + cand.finishReason + ')' : ''));
   return aiParse(text);
+}
+/* Try the saved model, then the alternates. A model that is missing or out of quota is skipped; a bad key stops at once. */
+async function aiEstimate(b64, hint, cfgOverride) {
+  const c = cfgOverride || aiCfg(); if (!c.key) throw new Error('Photo AI is not set up yet');
+  const list = [c.model].concat(c.alts || []).filter((x, i, a) => x && a.indexOf(x) === i); if (!list.length) list.push(c.provider === 'anthropic' ? 'claude-haiku-5-5' : 'gemini-flash-latest');
+  let last = null;
+  for (const m of list) {
+    try { const out = await aiCall(c, b64, hint, m); if (!cfgOverride && m !== c.model) { c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } } out.model = m; return out; }
+    catch (e) { last = e; last.model = m; if (/API key not valid|API_KEY_INVALID|location is not supported/i.test(e.message) || !(e.status === 404 || e.status === 429 || e.status === 503 || e.status === 500 || e.status === 400 || /not found|quota|overloaded|unavailable/i.test(e.message))) break; }
+  }
+  throw last || new Error('No model answered');
 }
 function foodAiModal() {
   const c = aiCfg(), prov = c.provider || 'gemini';
@@ -63,20 +90,27 @@ function foodAiModal() {
     <div class="field"><label>API key</label><input id="ai-key" type="password" autocomplete="off" autocapitalize="off" placeholder="${c.key ? 'saved · paste a new one to replace' : 'paste the key here'}"></div>
     <div class="field"><label>Model (leave empty for automatic)</label><input id="ai-model" autocapitalize="off" autocomplete="off" value="${esc(c.model || '')}" placeholder="automatic"></div>
     <div class="hint" id="ai-help"></div>
+    <div id="ai-err"></div>
     <div class="actions">${c.key ? `<button class="btn danger" onclick="aiClear()">Remove key</button>` : `<button class="btn" onclick="closeModal()">Later</button>`}<button class="btn primary" id="ai-save" onclick="aiSave()">Save &amp; test</button></div>`, true);
   aiPick(prov);
 }
 let _aiProv = 'gemini';
 function aiPick(p) { _aiProv = p; ['gemini', 'anthropic'].forEach((x) => { const el = $('ai-p-' + x); if (el) el.classList.toggle('on', x === p); }); const h = $('ai-help'); if (h) h.innerHTML = p === 'gemini' ? 'Get a key at <b>aistudio.google.com</b> → Get API key. Google lists a free tier for its Flash models; check the limits there.' : 'Get a key at <b>console.anthropic.com</b> → API keys. Paid per use: a photo costs a fraction of a cent.'; }
 async function aiSave() {
-  const old = aiCfg(), key = $('ai-key').value.trim() || (old.provider === _aiProv ? old.key : ''); let model = $('ai-model').value.trim();
+  const old = aiCfg(), key = $('ai-key').value.trim() || (old.provider === _aiProv ? old.key : ''), typed = $('ai-model').value.trim(), box = $('ai-err');
   if (!key) { toast('Paste the key first'); return; }
-  const btn = $('ai-save'); btn.disabled = true; btn.textContent = 'Testing…';
-  try { if (!model && _aiProv === 'gemini') model = await aiGeminiModel(key); if (!model && _aiProv === 'anthropic') model = 'claude-haiku-5-5';
-    localStorage.setItem(FOOD_AI_KEY, JSON.stringify({ provider: _aiProv, key, model }));
-    const t = await aiEstimate('', 'one medium banana');
+  const btn = $('ai-save'); btn.disabled = true; btn.textContent = 'Testing…'; box.innerHTML = '';
+  try {
+    const models = typed ? [typed] : _aiProv === 'gemini' ? await aiGeminiModels(key) : ['claude-haiku-5-5', 'claude-sonnet-5-5'];
+    const cfg = { provider: _aiProv, key, model: models[0], alts: models.slice(1) };
+    const t = await aiEstimate('', 'one medium banana', cfg);
+    cfg.alts = models.filter((x) => x !== t.model); cfg.model = t.model;
+    localStorage.setItem(FOOD_AI_KEY, JSON.stringify(cfg));
     closeModal(); render(); toast(`Photo AI is on · test: banana ≈ ${t.kcal} kcal`);
-  } catch (e) { if (old.key) localStorage.setItem(FOOD_AI_KEY, JSON.stringify(old)); else localStorage.removeItem(FOOD_AI_KEY); btn.disabled = false; btn.textContent = 'Save & test'; toast('Did not work: ' + String(e.message || e).slice(0, 120)); }
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Save & test'; const msg = String(e.message || e).split(key).join('•••').slice(0, 400);
+    box.innerHTML = `<div class="hint" style="margin-top:10px;border:1px solid rgba(255,79,94,.45)"><b class="bad">It did not work.</b> ${esc(aiExplain(msg))}<div class="xs muted" style="margin-top:8px;word-break:break-word">${e.model ? 'Model: ' + esc(e.model) + ' · ' : ''}${esc(msg)}</div></div>`;
+  }
 }
 function aiClear() { localStorage.removeItem(FOOD_AI_KEY); closeModal(); render(); toast('Key removed from this device'); }
 
@@ -98,12 +132,12 @@ async function foodAnalyze(hint) {
   openModal(`<h2>Reading your plate</h2>${d.photo ? `<img class="fphoto" src="${d.photo}" alt="">` : ''}<div class="scan"><div class="sp"></div><div class="lab">Estimating calories and macros…</div></div>`, true);
   try { const r = await aiEstimate(d.photo ? d.photo.split(',')[1] : '', hint || d.hint || ''); if (foodDraft !== d) return;
     Object.assign(d, { name: r.name, kcal: r.kcal, p: r.p, c: r.c, f: r.f, items: r.items, conf: r.conf, note: r.note, base: { kcal: r.kcal, p: r.p, c: r.c, f: r.f }, mult: 1, src: 'ai', hint: hint || d.hint || '' }); foodForm();
-  } catch (e) { if (foodDraft !== d) return; d.err = String(e.message || e).slice(0, 160); foodForm(); }
+  } catch (e) { if (foodDraft !== d) return; d.err = aiExplain(e.message) + ' (' + String(e.message || e).slice(0, 140) + ')'; foodForm(); }
 }
 function foodForm() {
   const d = foodDraft; if (!d) return; const sv = foodState().saved, ai = aiOn();
   const head = d.isNew ? (d.src === 'ai' ? 'Looks like' : 'Log a meal') : 'Edit meal';
-  const msg = d.err ? `<div class="hint" style="margin-bottom:12px;border:1px solid rgba(255,79,94,.4)"><b class="bad">The estimate failed.</b> ${esc(d.err)}. Type the numbers or pick a saved meal.</div>`
+  const msg = d.err ? `<div class="hint" style="margin-bottom:12px;border:1px solid rgba(255,79,94,.4)"><b class="bad">The estimate failed.</b> ${esc(d.err)} Type the numbers or pick a saved meal.</div>`
     : d.src === 'photo' && !ai ? `<div class="hint" style="margin-bottom:12px"><b class="amber">Photo AI is off.</b> Turn it on once and photos fill these numbers by themselves. <a href="#" onclick="foodAiModal();return false">Set it up</a>. For now pick a saved meal or type the numbers.</div>` : '';
   openModal(`<h2>${head}</h2>${d.photo ? `<img class="fphoto" src="${d.photo}" alt="">` : d.hasPhoto ? `<img class="fphoto" data-ph="${d.id}" alt="">` : ''}${msg}
     <div class="field" style="margin-bottom:6px"><input id="fd-name" value="${esc(d.name)}" placeholder="What is it?" style="font-weight:600;font-size:16px"></div>
