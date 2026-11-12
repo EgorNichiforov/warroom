@@ -77,6 +77,7 @@ function dayXp(k) {
   x += S.habits.items.filter((h) => o.habits && o.habits[h.id]).length * XP.standard;
   x += Math.min(5, (o.meals || []).length) * XP.meal;
   if ((Number(c.dials) || Number(c.bac)) && minimumMet(pd(k)).met) x += XP.minimum;
+  x += ordersXp(pd(k));
   return x;
 }
 function xpTotal() { let x = 0; for (const k in S.days) x += dayXp(k); try { x += trials().length * XP.trial + members().length * XP.client; } catch (e) { } return x; }
@@ -112,7 +113,7 @@ function medalsList() {
 function openRank() {
   const r = rankInfo(), md = medalsList();
   openModal(`<h2>Rank</h2><div class="card rk" style="margin-bottom:14px"><div class="rank" style="cursor:default"><div class="ins">${insignia(r.i)}</div><div class="bd"><div class="top"><span class="nm">${r.name}</span><span class="lv">Level ${r.i + 1}</span></div><div class="xpbar"><i style="width:${r.pct}%"></i></div><div class="ft"><span><b>${fmt(r.xp)}</b>${r.next != null ? ' / ' + fmt(r.next) : ''} XP</span><span>${r.next != null ? fmt(r.toNext) + ' to ' + r.nextName : 'top rank'}</span></div></div></div></div>
-    <div class="sec-h">How XP is earned</div><div class="hint" style="margin-bottom:14px">Dial <b>+${XP.dial}</b> · Owner conversation <b>+${XP.owner}</b> · Agency on trial <b>+${fmt(XP.trial)}</b> · Paying client <b>+${fmt(XP.client)}</b><br>BAC or deep work <b>+${XP.bac}</b> a minute · Workout <b>+${XP.workout}</b> · Weigh-in <b>+${XP.weigh}</b> · Standard kept <b>+${XP.standard}</b> · Meal logged <b>+${XP.meal}</b> · Minimum day <b>+${XP.minimum}</b><br><span class="dim">Counted from what you log. Nothing else moves it.</span></div>
+    <div class="sec-h">How XP is earned</div><div class="hint" style="margin-bottom:14px">Dial <b>+${XP.dial}</b> · Owner conversation <b>+${XP.owner}</b> · Agency on trial <b>+${fmt(XP.trial)}</b> · Paying client <b>+${fmt(XP.client)}</b><br>BAC or deep work <b>+${XP.bac}</b> a minute · Workout <b>+${XP.workout}</b> · Weigh-in <b>+${XP.weigh}</b> · Standard kept <b>+${XP.standard}</b> · Meal logged <b>+${XP.meal}</b> · Minimum day <b>+${XP.minimum}</b><br>Each order of the day <b>+20 to +100</b> · Clean sweep (all orders) <b>+${SWEEP_XP}</b><br><span class="dim">Counted from what you log. Nothing else moves it.</span></div>
     <div class="sec-h">Medals · ${md.filter((x) => x[2]).length} of ${md.length}</div><div class="medals" style="margin-bottom:14px">${md.map(([t, d, on, icn]) => `<div class="medal ${on ? 'on' : ''}"><div class="i">${ic(icn, 24)}</div><div class="t">${t}</div><div class="d">${d}</div></div>`).join('')}</div>
     <div class="sec-h">Ranks</div><div class="ranklist">${RANKS.map(([n, x], i) => `<div class="rw ${i < r.i ? 'got' : i === r.i ? 'cur' : ''}">${insignia(i)}<span class="n">${n}</span><span class="x">${fmt(x)} XP</span></div>`).join('')}</div>`, true);
 }
@@ -130,7 +131,8 @@ function weekCard(d) {
   const cols = ALL.map((i) => { const dd = addDays(m, i - 1), k = dk(dd), tg = dc ? dc.targets[i] || 0 : 0, v = Number(((S.days[k] || {}).counters || {}).dials) || 0, past = k < tk;
     const cls = !tg && !v ? 'off' : tg && v >= tg ? 'hit' : past && tg ? 'miss' : '';
     return `<div class="d ${k === tk ? 'today' : ''} ${k === dk(d) ? 'sel' : ''}" onclick="curDate=pd('${k}');render()"><div class="v">${v || (tg ? '0' : '·')}${tg ? `<small>/${tg}</small>` : ''}</div><div class="col ${cls}"><i style="height:${v ? Math.max(6, Math.min(100, (v / (tg || v)) * 100)) : (cls === 'miss' ? 4 : 0)}%"></i></div><div class="n">${DAY_SHORT[i]}</div><div class="gr">${S.days[k] && k <= tk ? gradeFor(dd) : '–'}</div></div>`; }).join('');
-  return `<div class="card wkc"><div class="card-h"><div class="card-t">Week · dials</div><div class="card-r"><b>${wk}</b> / ${wkT}</div></div><div class="wk7">${cols}</div><div class="bar" style="margin-top:12px"><i style="width:${clamp((wk / (wkT || 1)) * 100, 0, 100)}%;background:linear-gradient(90deg,var(--co),var(--co2))"></i></div></div>`;
+  const op = weekOp(d);
+  return `<div class="card wkc"><div class="card-h"><div class="card-t">Operation · week ${isoWeek(d)}</div><div class="card-r"><b>${wk}</b> / ${wkT} dials</div></div><div class="wk7">${cols}</div><div class="bar" style="margin-top:12px"><i style="width:${clamp((wk / (wkT || 1)) * 100, 0, 100)}%;background:${op.done ? 'linear-gradient(90deg,var(--body2),var(--body))' : 'linear-gradient(90deg,var(--co),var(--co2))'}"></i></div><div class="small muted" style="margin-top:9px">${op.line}</div></div>`;
 }
 function missionCard() {
   const left = daysUntil(S.settings.bigDate); let m = 0; try { m = mrr(); } catch (e) { }

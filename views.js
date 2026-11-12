@@ -88,6 +88,7 @@ function render() {
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
   ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe })[view]();
   renderRail();
+  checkGame();
 }
 
 /* ───────── NOW: the cockpit ───────── */
@@ -141,7 +142,7 @@ function renderNow() {
   parts.focus = ph === 'morning' ? focusMorning(o, d) : '';
   parts.hero = today && ph !== 'morning' ? heroCard(d) : '';
   parts.rings = ringsCard(d);
-  parts.quick = today ? quickCard() : '';
+  parts.quick = ordersCard(d);
   parts.shutdown = (ph === 'evening' || ph === 'past') ? shutdownCard(o, d) : '';
   parts.change = oneChangeBanner(d);
   parts.morning = routineCard('morning', d, o, ph === 'morning' || ph === 'future');
@@ -156,9 +157,9 @@ function renderNow() {
   parts.coach = !today ? '' : ph === 'morning' ? coachLine('morning') : ph === 'evening' ? coachLine('evening') : (tg ? (v >= tg ? coachLine('hit') : nm >= 15 * 60 ? coachLine('behind') : coachLine('study')) : coachLine('weekend'));
   // A: what to do now · B: today's checklist · C: where you stand
   parts.week = weekCard(d);
-  const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'hero', 'rings', 'quick', 'week'], past: ['rings', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
+  const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'hero', 'rings', 'quick', 'week'], past: ['rings', 'quick', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
   const B = { morning: ['top3', 'change', 'morning', 'study', 'standards', 'money', 'evening', 'log', 'debrief', 'coach'], day: ['top3', 'standards', 'study', 'money', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief', 'coach'], evening: ['standards', 'money', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change', 'coach'], past: ['weigh', 'money', 'standards', 'study', 'top3', 'debrief', 'morning', 'evening', 'log'], future: ['top3', 'weigh', 'morning', 'evening', 'standards', 'log'] }[ph];
-  const C = rankCard() + gradeStreaksCard(d) + (today ? upNextCard() : '') + missionCard() + nextMedalsCard();
+  const C = rankCard() + gradeStreaksCard(d) + (today ? upNextCard() : '') + campaignCard() + nextMedalsCard();
   $('view-now').innerHTML = `<div class="hq"><div class="hq-a">${A.map((p) => parts[p] || '').join('')}</div><div class="hq-b">${B.map((p) => parts[p] || '').join('')}</div><div class="hq-c">${C}</div></div>`;
 }
 
@@ -189,7 +190,7 @@ function renderMe() {
   const back = t === 'home' ? '' : `<button class="btn sm ghost" style="margin-bottom:10px" onclick="moreTab='home';render()">‹ Back</button>`;
   let html = back;
   if (t === 'home') {
-    html += `<div class="card only-phone">${[['plan', 'Week plan', 'the schedule, block by block'], ['tasks', 'Tasks', 'everything with a due date'], ['goals', 'Goals', 'long, month and week targets'], ['review', 'Sunday review', 'the only place the plan changes']].map(([v, a, b]) => `<div class="setting-row" onclick="show('${v}')"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>` + rankCard() + `<div class="card"><div class="setting-row" onclick="foodAiModal()"><div><div class="t">Food photo AI</div><div class="d">${aiOn() ? 'on · key saved on this device' : 'off · add a key so photos fill calories and macros'}</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodSavedModal()"><div><div class="t">Food targets &amp; saved meals</div><div class="d">${foodTargets().kcal} kcal · ${foodTargets().p} g protein a day</div></div><div class="arr">›</div></div></div>`;
+    html += `<div class="card only-phone">${[['plan', 'Week plan', 'the schedule, block by block'], ['tasks', 'Tasks', 'everything with a due date'], ['goals', 'Goals', 'long, month and week targets'], ['review', 'Sunday review', 'the only place the plan changes']].map(([v, a, b]) => `<div class="setting-row" onclick="show('${v}')"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>` + rankCard() + `<div class="card"><div class="setting-row" onclick="openManual()"><div><div class="t">How it works</div><div class="d">the whole app on one screen</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodAiModal()"><div><div class="t">Food photo AI</div><div class="d">${aiOn() ? 'on · key saved on this device' : 'off · add a key so photos fill calories and macros'}</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodSavedModal()"><div><div class="t">Food targets &amp; saved meals</div><div class="d">${foodTargets().kcal} kcal · ${foodTargets().p} g protein a day</div></div><div class="arr">›</div></div></div>`;
     html += `<div class="card">${[['weight', 'Weight history', 'chart, averages, pace to ' + S.settings.weightTarget + ' kg'], ['stakes', 'Stakes & minimum day', stakesOwed() ? fmt(stakesOwed()) + ' ' + S.settings.currency + ' owed' : 'never zero · ' + S.settings.stake + ' ' + S.settings.currency + ' per missed day'], ['routines', 'Routines & standards', 'edit the morning / evening lists and the 7 standards'], ['counters', 'Daily targets', 'dials, BAC minutes, deep work, per weekday'], ['programs', 'Training programs & split', 'edit the weekly programs and which day gets which'], ['sync', 'Sync & backup', sync.code ? 'connected · ' + syncLabel() : 'phone ↔ laptop'], ['install', 'Install on home screen', 'iPhone & Android steps']].map(([v, a, b]) => `<div class="setting-row" onclick="moreTab='${v}';render()"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>
       <div class="card"><div class="card-t" style="margin-bottom:8px">Settings</div>
       <div class="kv"><span>Wake</span><input type="time" value="${S.settings.wake}" onchange="S.settings.wake=this.value;S.settings._u=Date.now();save()"></div>
