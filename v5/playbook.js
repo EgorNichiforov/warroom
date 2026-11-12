@@ -3,9 +3,61 @@
    The dialer reads the scripts from here, so editing a script changes what you see on the next call. */
 'use strict';
 
-const PB_CATS = [['mission', 'Mission', 'target'], ['rules', 'Rules', 'shield'], ['scripts', 'Scripts', 'dial'], ['sops', 'SOPs', 'check'], ['business', 'Business', 'stats'], ['body', 'Body & BAC', 'train'], ['mine', 'My notes', 'pen']];
+const PB_CATS = [['system', 'How it works', 'hq'], ['mission', 'Mission', 'target'], ['rules', 'Rules', 'shield'], ['scripts', 'Scripts', 'dial'], ['sops', 'SOPs', 'check'], ['business', 'Business', 'stats'], ['body', 'Body & BAC', 'train'], ['mine', 'My notes', 'pen']];
 const PB_SEED_V = 1;
 const PB_SEED = [
+/* ───────── SYSTEM ───────── */
+{ id: 'system', cat: 'system', title: 'One job per tool', body: `The whole system is five tools. Each one does one job. If information has two homes, one of them is wrong.
+
+| Tool | Its one job | Source of truth for |
+| **Google Calendar** | WHEN. Anything at a set time | Schedule: blocks, lessons, school, appointments, the day's dial number ("DIALS: 90") |
+| **Todoist** | WHAT. Anything to do that isn't at a set time | Tasks, deadlines, reminders, ideas parked for later (project Later) |
+| **War Room** | DO and MEASURE | Every number you log (dials, owner talks, food, weight, training, money, standards), the Playbook, your rank and stats |
+| **Google Sheets** | Archive and mirror. Never typed in | Nothing. The War Room sheet and the Tracker are copies the hourly sync writes |
+| **Claude** | Check-ins and heavy lifting | Nothing. Reads the others; notes land in Ask → From Claude |
+
+## How they connect
+- **Calendar → War Room:** HQ "Now", Up next and the day's dial target come from the calendar (once connected in the Calendar tab). Refreshes on open and every 10 minutes.
+- **Todoist ⇄ War Room:** "To do today" on HQ and Plan → Tasks are your Todoist. Tick or add in either place; both update. Every 5 minutes.
+- **War Room → Sheets:** hourly copy, so the sheet is a readable archive. Don't type in it.
+- **Phone ⇄ laptop:** the same War Room on both (More → Devices & sync).
+- **Claude:** 06:00 brief, 20:40 close-the-day, Sunday 10:40 review. Each leaves a note in the app.
+
+## The physical whiteboard
+One job: what you need to see without opening a phone. Rewritten every Sunday: **this week's dial number, the ONE change, the next 3 hard deadlines.** Nothing else, so it never goes stale.` },
+{ id: 'where', cat: 'system', title: 'Where things go', body: `| Situation | Where | What happens next |
+| I wake up: what's today? | **War Room → HQ** | The top card is what to do now. "Today's orders" are the day's jobs, "To do today" is Todoist. The 06:00 note from Claude is under Ask |
+| A new task pops up | **+ → Task** (or Todoist's own quick add) | It goes to Todoist. Write the date in words: "call Maria fri 10am" |
+| Something must happen on a date | **+ → Task with the date** ("pay rent 1 dec") | Todoist reminds you that day. If it's at a set time with other people, put it in Google Calendar instead |
+| A recurring responsibility | At a set time → **Google Calendar repeating event**. No set time → **Todoist** ("every month on the 1st") | A daily habit (sleep, sun, digital) is not a task: it's a Standard you tick in the War Room |
+| A new appointment | **Google Calendar** (+ → "New calendar event") | It appears in the War Room Calendar tab and on HQ |
+| Planning the week | **Sunday 11:00, Plan → Review** | The week report shows every number against its target. Change the calendar blocks, write ONE change, rewrite the whiteboard |
+| A new project with tasks and deadlines | **Todoist: a project** with dated tasks | It shows up in War Room Tasks grouped by project. Its goal number (if it has one) goes in Plan → Goals |
+| I finished a task | **Tick it** (HQ, Tasks or Todoist) | Closed in both. Logged work (dials, meals, workouts) counts toward XP and stats by itself |
+| Review goals and progress | **Stats** (numbers, Intel), **HQ → Campaign** (the ladder to $20k) | Sunday's Claude review writes the summary |
+| An idea I don't want to forget | **+ → Idea** | Parked in Todoist "Later". Looked at only on Sunday. No new business ideas until 100 owner conversations |
+| Something to remember (a fact, a name, a number) | **+ → Note** | Kept in Playbook → My notes, searchable |
+| Spent cash | **+ → Spent cash** | Money out by category; the sheet copies it |` },
+{ id: 'audit', cat: 'system', title: 'System audit · 12 Nov', body: `What was checked: the War Room app (v4 in use, v5 preview), Google Calendar, Todoist, every Google Sheet, the plan docs, all 10 Claude scheduled tasks, the sync database.
+
+## Fixed tonight (in the v5 preview)
+- **Todoist "Failed to fetch":** Todoist shut down the old API the app used; it answers with an error the browser can't read. Moved to Todoist's new API, which accepts calls from the app. Old links between tasks are kept.
+- **Three task lists → one.** Todoist is the list. HQ "Top 3" is replaced by "To do today" (from Todoist). Old Top 3 entries are kept in the data, not deleted.
+- **Two schedules → one.** When the calendar is connected, HQ and Plan show the calendar. The app's own copy is only a fallback.
+- **"Back to the current app (v4)" link removed.** It was a safety exit while v5 was a test version. Not part of the product.
+- **One "+" button** for anything new (task, idea, note, spend, meal, weight), each going to its one home.
+- **Readability:** brighter secondary text, no faint grey for words, placeholders readable.
+- **Claude check-ins** (morning, close-the-day, Sunday) were reading the old sync row after you re-linked devices. Fixed.
+
+## Needs your OK (Sunday)
+1. **Switch:** make v5 the app on your home screen. v4 kept as a backup at /v4/ for 30 days.
+2. **Two ghost calendar blocks** "DIALS: 20" on Mon and Wed 18:00 sit on top of Red 2. With the calendar driving targets they'd add 20 dials to those days. Delete them?
+3. **Retire 3 old check-ins** (14:47 pre-call, 18:05 mid-day, Sunday 11:05). They use the old 225 targets and duplicate the 06:00, 20:40 and Sunday 10:40 ones.
+4. **Fix 2 check-ins** (hourly sheet sync, Monday Bulletin) to use the new sync row. Until then the sheet doesn't get new logs.
+5. **Retire the Todoist daily "DIAL BLOCK" task.** The calendar block and Today's orders already say it.
+6. **Archive old sheets** (Dubai leads, DaviDan research, 5 gym trackers, 100 Days, MasterTracker, Bench tracker) into one Archive folder. Moved, not deleted.
+7. **EGOR OS doc:** mark it "frozen, the live plan is the War Room Playbook" so there's one plan.
+8. **The whiteboard:** send a photo; I'll set its one job.` },
 /* ───────── MISSION ───────── */
 { id: 'why', cat: 'mission', title: 'Why I do this', body: `Read before the first block every day.
 

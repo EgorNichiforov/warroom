@@ -142,7 +142,7 @@ function weekCard(d) {
 /* ───────── one-tap schedule control: cancel or move a block for one day ───────── */
 function findBlock(id, k) { const o = S.days[k], once = o && o.sched && (o.sched.add || []).find((x) => x.id === id); return once ? Object.assign({}, once, { once: true }) : S.schedule.blocks.find((x) => x.id === id); }
 function blockSheet(id, k) {
-  k = k || dk(curDate); const b = findBlock(id, k); if (!b) return; const d = pd(k), tm = dk(addDays(d, 1)), dur = tmin(b.end) - tmin(b.start);
+  k = k || dk(curDate); if (String(id).startsWith('cal:') && typeof calOpen === 'function') { calOpen(String(id).slice(4)); return; } const b = findBlock(id, k); if (!b) return; const d = pd(k), tm = dk(addDays(d, 1)), dur = tmin(b.end) - tmin(b.start);
   const setDay = (v) => `document.getElementById('bm-date').value='${v}';document.querySelectorAll('#bm-q .chip').forEach(c=>c.classList.toggle('on',c===this))`;
   openModal(`<h2>${esc(b.title)}</h2><div class="small muted" style="margin:-6px 0 14px">${fmtDate(d)} · ${b.start}–${b.end === '24:00' ? '…' : b.end}${b.once ? ' · this day only' : ' · every ' + b.days.map((i) => DAY_SHORT[i]).join(', ')}</div>
     ${b.kind === 'dials' ? `<div class="field"><label>Dial target for ${isToday(d) ? 'today' : fmtShort(d)} only</label><div class="inline"><input type="number" inputmode="numeric" id="bm-tg" value="${dialTargetFor(d)}"><button class="btn" onclick="setDayDialTarget('${k}')">Set</button></div><div class="xs muted" style="margin-top:6px">Moving dials between days? Raise one day and lower the other. The weekly ${(counterDef('dials') || {}).weekly || 150} stays.</div></div>` : ''}

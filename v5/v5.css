@@ -11,7 +11,7 @@
 :root{
   --bg:#060707;--bg2:#0f1110;--bg3:#171a18;--bg4:#232725;
   --line:#1b1f1d;--line2:#2c322f;
-  --text:#f5f7f4;--sub:#d0d5cf;--muted:#a4aba3;--dim:#727a72;
+  --text:#f6f8f5;--sub:#d8ddd7;--muted:#b0b7af;--dim:#8a928a;
   --acc:#ffa51f;--acc-dim:rgba(255,165,31,.12);--acc-ink:#1a1000;
   --ok:#86e36a;--bad:#ff4f5e;--info:#45c4f5;--purple:#a79bff;--pink:#ff7ad9;
   --co:#ff7d1a;--co2:#ffc436;--body:#a4ec3b;--body2:#3ddc8a;--mind:#33cdf3;--mind2:#5c8cff;
@@ -544,3 +544,17 @@ input[type=checkbox]:checked{background-color:var(--acc);border-color:var(--acc)
 .outcomes .btn{white-space:normal;min-width:0;padding:8px 6px;text-align:center}
 .rings-card .rg .ctr span{font-size:10px;letter-spacing:.1em}
 @media(min-width:1000px){.rings-card .rg .ctr span{font-size:11.5px}}
+
+/* capture */
+.iconbtn.capbtn{font-size:26px;font-weight:400;color:var(--acc-ink);background:var(--acc);border-color:var(--acc);line-height:1}
+.capgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.capopt{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--bg3);border:1px solid var(--line2);border-radius:14px;padding:12px;color:var(--acc)}
+.capopt span{display:flex;flex-direction:column;gap:2px}.capopt b{color:var(--text);font-size:15px}.capopt i{font-style:normal;font-size:12.5px;color:var(--muted);line-height:1.35}
+.capopt:active{background:var(--bg4)}
+.p1{font-family:var(--disp);font-size:11.5px;font-weight:700;color:var(--bad);border:1px solid rgba(255,79,94,.5);border-radius:5px;padding:0 4px;letter-spacing:.04em}
+/* contrast floor: small text never uses the faintest grey */
+.xs.dim,.small.dim,.tl .t,.coach .ref,.vbx span,.lc text,.heatwrap .dl,.wk7 .n,.rec .rs,.disp .dw{color:var(--muted)}
+.dim{color:var(--dim)}
+.card-t,.sec-h,.lab{color:var(--muted)}
+.ck.on .lbl,.ck.done .lbl{color:var(--muted)}
+input::placeholder,textarea::placeholder{color:#7d857d}

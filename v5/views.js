@@ -79,7 +79,7 @@ function renderTop() {
   else if (view === 'ask') sub.textContent = 'your playbook + your numbers';
   else sub.textContent = 'v' + APP_VERSION + ' · ' + syncSummary().short;
   const nav = (view === 'now' || view === 'train' || view === 'week' || view === 'food') ? `<div class="datenav"><button onclick="shiftDay(-1)" aria-label="Previous day">‹</button><div class="cur" onclick="goToday()">${isToday(curDate) ? 'Today' : fmtShort(curDate)}<small>${DAY_SHORT[dow(curDate)]}</small></div><button onclick="shiftDay(1)" aria-label="Next day">›</button></div>` : '';
-  $('top-right').innerHTML = nav + (view === 'ask' ? '' : `<button class="iconbtn askbtn" onclick="show('ask')" title="Ask" aria-label="Ask">${ic('chat', 19)}${inboxUnread() ? `<i class="dot"></i>` : ''}</button>`) + (view === 'food' ? '' : `<button class="iconbtn" onclick="openSpend()" title="Spent cash" aria-label="Spent cash">${ic('wallet', 19)}</button>`);
+  $('top-right').innerHTML = nav + (view === 'ask' ? '' : `<button class="iconbtn askbtn" onclick="show('ask')" title="Ask" aria-label="Ask">${ic('chat', 19)}${inboxUnread() ? `<i class="dot"></i>` : ''}</button>`) + `<button class="iconbtn capbtn" onclick="openCapture()" title="Add (task, idea, note, spend, meal)" aria-label="Add">+</button>`;
 }
 function renderRail() {
   const el = $('rail'); if (!el) return; if (['now', 'stats', 'food', 'cal', 'book'].includes(view)) { el.innerHTML = ''; return; }
@@ -140,7 +140,7 @@ function renderNow() {
   parts.morning = routineCard('morning', d, o, ph === 'morning' || ph === 'future');
   parts.evening = routineCard('evening', d, o, ph === 'evening');
   parts.study = sec('study', 'Study &amp; deep work', `${Number(o.counters.bac) || 0} min BAC · ${Number(o.counters.deep) || 0} deep`, countersBody(o, d), (() => { const b = blocksFor(d).find((x) => (x.kind === 'bac' || x.kind === 'agency') && tmin(x.start) <= nm && nm < tmin(x.end)); return !!b && today; })());
-  parts.top3 = top3Card(o, k, d);
+  parts.top3 = todayTasksCard(d);
   parts.standards = standardsCard(o);
   parts.money = moneyCard(o, d);
   parts.log = sec('log', 'Sleep · bed and wake time', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : 'feeds the sleep intel'}`, sleepMoneyBody(o), false);
@@ -149,7 +149,7 @@ function renderNow() {
   parts.coach = !today ? '' : ph === 'morning' ? coachLine('morning') : ph === 'evening' ? coachLine('evening') : (tg ? (v >= tg ? coachLine('hit') : nm >= 15 * 60 ? coachLine('behind') : coachLine('study')) : coachLine('weekend'));
   // A: what to do now · B: today's checklist · C: where you stand
   parts.week = weekCard(d);
-  const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'callbacks', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'callbacks', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'hero', 'callbacks', 'rings', 'quick', 'week'], past: ['rings', 'quick', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
+  const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'callbacks', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'callbacks', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'callbacks', 'rings', 'quick', 'week'], past: ['rings', 'quick', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
   const B = { morning: ['top3', 'change', 'morning', 'study', 'standards', 'money', 'evening', 'log', 'debrief', 'coach'], day: ['top3', 'standards', 'study', 'money', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief', 'coach'], evening: ['standards', 'money', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change', 'coach'], past: ['weigh', 'money', 'standards', 'study', 'top3', 'debrief', 'morning', 'evening', 'log'], future: ['top3', 'weigh', 'morning', 'evening', 'standards', 'log'] }[ph];
   const _ss = syncSummary(), C = (inboxUnread() ? inboxCard(2) : '') + (today && !_ss.ok ? `<div class="card flat" onclick="moreTab='home';show('me')" style="cursor:pointer;border-color:rgba(255,165,31,.4)"><div class="row sb"><div><div class="lab" style="color:var(--acc)">Sync: ${_ss.short}</div><div class="small muted" style="margin-top:3px">Phone and laptop are not linked yet. Tap to link them.</div></div><span class="pill warn">fix</span></div></div>` : '') + rankCard() + gradeStreaksCard(d) + (today ? upNextCard() : '') + campaignCard() + nextMedalsCard();
   $('view-now').innerHTML = `<div class="hq"><div class="hq-a">${A.map((p) => parts[p] || '').join('')}</div><div class="hq-b">${B.map((p) => parts[p] || '').join('')}</div><div class="hq-c">${C}</div></div>`;
@@ -193,7 +193,7 @@ function renderMe() {
       <div class="kv"><span>Big date</span><input type="date" value="${S.settings.bigDate}" onchange="S.settings.bigDate=this.value;S.settings._u=Date.now();save()"></div>
       <div class="kv"><span>Currency</span><input value="${esc(S.settings.currency)}" onchange="S.settings.currency=this.value||'MDL';S.settings._u=Date.now();save()"></div></div>
       ${tdCard()}
-      ${/\/v5\//.test(location.pathname) ? `<div class="card flat"><div class="row sb"><div><div style="font-weight:600">Back to the current app (v4)</div><div class="xs muted">This is the v5 preview. Same data on this device, so nothing is lost either way.</div></div><a class="btn sm" href="../">Open</a></div></div>` : `<div class="card flat"><div class="row sb"><div><div style="font-weight:600">Classic War Room</div><div class="xs muted">The old version, same data.</div></div><a class="btn sm" href="./classic/">Open</a></div></div>`}
+      
       <div class="xs dim" style="text-align:center;margin:10px 0">War Room v${APP_VERSION} · data on this device${sync.code ? ' + cloud' : ''}${Q ? ` · queue ${qItems().length} agencies` : ''}</div>`;
   } else if (t === 'weight') html += renderWeight();
   else if (t === 'stakes') html += renderStakes();
@@ -221,6 +221,7 @@ else calFetch(true);
 setInterval(() => { if (document.visibilityState === 'visible') calFetch(true); }, 10 * 60000);
 setInterval(devHeartbeat, 5 * 60000);
 if (tdOn()) { tdFlush(); tdPull(true); }
+setInterval(() => { if (tdOn() && document.visibilityState === 'visible') tdPull(true); }, 5 * 60000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); bPull(true); } calFetch(true); if (tdOn()) { tdFlush(); tdPull(true); } } });
 setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea') && !$('modal-bg').classList.contains('open')) render(); }, 60000);
 document.addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || $('modal-bg').classList.contains('open') || (e.target && e.target.matches && e.target.matches('input,textarea,select'))) return; const i = '1234567890'.indexOf(e.key); if (i >= 0 && e.key.length === 1 && NAV[i]) { show(NAV[i][0]); } else if (e.key === '/') { e.preventDefault(); show('ask'); setTimeout(() => { const a = $('ask-in'); if (a) a.focus(); }, 50); } else if (e.key === 't' || e.key === 'T') goToday(); });
