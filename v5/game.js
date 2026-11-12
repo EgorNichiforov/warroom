@@ -45,7 +45,7 @@ const RING_C = { co: ['#ff7d1a', '#ffc436'], body: ['#3ddc8a', '#a4ec3b'], mind:
 function foodTargets() { const f = S.food || {}; return { kcal: Number(f.kcal) || 3400, p: Number(f.p) || 170 }; }
 function foodTotals(k) { const o = S.days[typeof k === 'string' ? k : dk(k)]; const t = { kcal: 0, p: 0, c: 0, f: 0, n: 0 }; ((o && o.meals) || []).forEach((m) => { t.kcal += Number(m.kcal) || 0; t.p += Number(m.p) || 0; t.c += Number(m.c) || 0; t.f += Number(m.f) || 0; t.n++; }); return t; }
 function counterDef(id) { return S.counters.items.find((c) => c.id === id); }
-function dialTarget(d) { const c = counterDef('dials'); return c ? c.targets[dow(d)] || 0 : 0; }
+function dialTarget(d) { return dialTargetFor(d); }
 /* The three rings for one day. Company = the dial target (deep work on days with no dials).
    Body = train + weigh-in + protein. Mind = BAC minutes. */
 function ringsFor(d) {
@@ -63,7 +63,7 @@ function ringsCard(d, compact) {
   const r = ringsFor(d), closed = [r.co, r.body, r.mind].filter((x) => x.p >= 1).length;
   const svg = ringsSvg([{ p: r.co.p, c1: RING_C.co[0], c2: RING_C.co[1] }, { p: r.body.p, c1: RING_C.body[0], c2: RING_C.body[1] }, { p: r.mind.p, c1: RING_C.mind[0], c2: RING_C.mind[1] }], 200, compact ? 20 : 19, 4);
   const row = (cls, nm, x, go) => `<div class="r" onclick="${go}"><div class="h"><span class="nm ${cls}">${nm}</span><span class="v">${x.v}${x.t ? `<small>/ ${x.t} ${x.u}</small>` : `<small>${x.u}</small>`}</span></div><div class="d">${x.d}</div></div>`;
-  return `<div class="card rings-card"><div class="rg">${svg}<div class="ctr"><b>${closed}/3</b><span>closed</span></div></div><div class="rleg">${row('c-co', 'Company', r.co, "show('dial')")}${row('c-body', 'Body', r.body, "show('food')")}${row('c-mind', 'Mind', r.mind, "startTimer('bac',25)")}</div></div>`;
+  return `<div class="card rings-card"><div class="rg">${svg}<div class="ctr"><b>${closed}/3</b><span>closed</span></div></div><div class="rleg">${row('c-co', 'Company', r.co, "show('dial')")}${row('c-body', 'Body', r.body, "show('food')")}${row('c-mind', 'Mind', r.mind, 'goStudy()')}</div></div>`;
 }
 
 /* ───────── XP · ranks · medals ───────── */
@@ -119,44 +119,30 @@ function openRank() {
 }
 
 /* ───────── HQ cards ───────── */
+function goStudy() { secOpen.study = true; if (view !== 'now') { view = 'now'; } render(); const e = document.getElementById('sec-study'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+function gradeInfo() { openModal(`<h2>Day grade</h2><div class="hint" style="margin-bottom:12px">The score is the share of the day's checklist that got done: the morning and evening routines, the 7 standards, the day's targets (dials, BAC, deep work) and your top 3.</div><div class="kv"><span>A</span><span class="v">85% and up</span></div><div class="kv"><span>B</span><span class="v">70%+</span></div><div class="kv"><span>C</span><span class="v">50%+</span></div><div class="kv"><span>D</span><span class="v">30%+</span></div><div class="kv"><span>F</span><span class="v">under 30%</span></div><div class="xs muted" style="margin-top:10px">A day that misses the minimum (${S.settings.minDials} dials on a dial day and ${S.settings.minBac} min of BAC) cannot grade above D, whatever else was done.</div>`, true); }
 function gradeStreaksCard(d) {
   const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
   const col = g === 'A' ? 'var(--body)' : g === 'B' ? 'var(--co2)' : g === 'C' ? 'var(--acc)' : 'var(--bad)';
   const st = [[streakMinimum(), 'minimum days'], [streakWeigh(), 'weigh-ins'], [streakMorning(), 'full mornings'], [streakBed(), 'bed on time']];
-  return `<div class="card"><div class="grade-row"><div class="g" style="color:${col}">${g}</div><div class="grow"><div class="lab">Day grade · ${sc}%</div><div class="small muted" style="margin-top:3px">${m.met ? 'Minimum met. The streak is alive.' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}</div></div></div>
+  return `<div class="card"><div class="grade-row" onclick="gradeInfo()" style="cursor:pointer"><div class="g" style="color:${col}">${g}</div><div class="grow"><div class="lab">Day grade · ${sc}% · <span style="text-transform:none;letter-spacing:0">how?</span></div><div class="small muted" style="margin-top:3px">${m.met ? 'Minimum met. The streak is alive.' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}</div></div></div>
     <div class="streaks">${st.map(([n, l]) => `<div class="s ${n > 0 ? 'on' : ''}"><div class="n">${ic('flame')}${n}</div><div class="l">${l}</div></div>`).join('')}</div></div>`;
 }
 function weekCard(d) {
   const m = monday(d), dc = counterDef('dials'), wkT = dc ? dc.weekly : 150, wk = counterWeek('dials', d), tk = dk(new Date());
-  const cols = ALL.map((i) => { const dd = addDays(m, i - 1), k = dk(dd), tg = dc ? dc.targets[i] || 0 : 0, v = Number(((S.days[k] || {}).counters || {}).dials) || 0, past = k < tk;
+  const cols = ALL.map((i) => { const dd = addDays(m, i - 1), k = dk(dd), tg = dialTargetFor(dd), v = Number(((S.days[k] || {}).counters || {}).dials) || 0, past = k < tk;
     const cls = !tg && !v ? 'off' : tg && v >= tg ? 'hit' : past && tg ? 'miss' : '';
-    return `<div class="d ${k === tk ? 'today' : ''} ${k === dk(d) ? 'sel' : ''}" onclick="curDate=pd('${k}');render()"><div class="v">${v || (tg ? '0' : '·')}${tg ? `<small>/${tg}</small>` : ''}</div><div class="col ${cls}"><i style="height:${v ? Math.max(6, Math.min(100, (v / (tg || v)) * 100)) : (cls === 'miss' ? 4 : 0)}%"></i></div><div class="n">${DAY_SHORT[i]}</div><div class="gr">${S.days[k] && k <= tk ? gradeFor(dd) : '–'}</div></div>`; }).join('');
+    return `<div class="d ${k === tk ? 'today' : ''} ${k === dk(d) ? 'sel' : ''}" onclick="curDate=pd('${k}');render()"><div class="v">${v || (tg ? '0' : '·')}${tg ? `<small>/${tg}</small>` : ''}</div><div class="col ${cls}"><i style="height:${v ? Math.max(6, Math.min(100, (v / (tg || v)) * 100)) : (cls === 'miss' ? 4 : 0)}%"></i></div><div class="n">${DAY_SHORT[i]}</div></div>`; }).join('');
   const op = weekOp(d);
   return `<div class="card wkc"><div class="card-h"><div class="card-t">Operation · week ${isoWeek(d)}</div><div class="card-r"><b>${wk}</b> / ${wkT} dials</div></div><div class="wk7">${cols}</div><div class="bar" style="margin-top:12px"><i style="width:${clamp((wk / (wkT || 1)) * 100, 0, 100)}%;background:${op.done ? 'linear-gradient(90deg,var(--body2),var(--body))' : 'linear-gradient(90deg,var(--co),var(--co2))'}"></i></div><div class="small muted" style="margin-top:9px">${op.line}</div></div>`;
 }
-function missionCard() {
-  const left = daysUntil(S.settings.bigDate); let m = 0; try { m = mrr(); } catch (e) { }
-  const owners = counterTotal('owners'), og = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners'), oT = og ? og.target : 100;
-  const we = weightEntries(), a7 = avgWeight(7), wNow = a7 || (we.length ? we[we.length - 1].w : null), w0 = we.length ? we[0].w : null, wT = S.settings.weightTarget;
-  const wp = wNow != null && w0 != null && wT !== w0 ? clamp(((wNow - w0) / (wT - w0)) * 100, 0, 100) : 0;
-  const P = (l, v, pct, cls) => `<div class="prog"><div class="h"><span class="l">${l}</span><span class="v">${v}</span></div><div class="bar"><i class="${cls || ''}" style="width:${pct}%"></i></div></div>`;
-  return `<div class="card"><div class="dday"><div class="n">${left}<small>DAYS</small></div><div class="t">to ${fmtShort(pd(S.settings.bigDate))} ${pd(S.settings.bigDate).getFullYear()}<br><b style="color:var(--sub)">$20k MRR · BAC · ${wT} kg</b></div></div>
-    ${P('MRR', `$${fmt(m)}<small> / $20,000</small>`, clamp((m / 20000) * 100, 0, 100))}
-    ${P('Owner conversations', `${owners}<small> / ${oT}</small>`, clamp((owners / oT) * 100, 0, 100))}
-    ${P('Weight', wNow != null ? `${fmt(wNow, 1)}<small> → ${wT} kg</small>` : `—<small> → ${wT} kg</small>`, wp, 'body')}</div>`;
-}
-function quickCard() {
-  const o = day(new Date()), tg = dialTarget(new Date()), v = Number(o.counters.dials) || 0, noW = o.weight == null || o.weight === '';
-  const B = (icn, l, fn, hot) => `<button class="${hot ? 'hot' : ''}" onclick="${fn}">${ic(icn, 22)}${l}</button>`;
-  return `<div class="quick">${B('dial', 'Dial', 'startSession()', tg && v < tg)}${B('camera', 'Meal', 'foodSnap()')}${B('scale', 'Weigh', "goToday();editWeight()", noW)}${B('timer', 'BAC 25', "startTimer('bac',25)")}${B('wallet', 'Spend', 'openSpend()')}</div>`;
-}
-
 /* ───────── one-tap schedule control: cancel or move a block for one day ───────── */
 function findBlock(id, k) { const o = S.days[k], once = o && o.sched && (o.sched.add || []).find((x) => x.id === id); return once ? Object.assign({}, once, { once: true }) : S.schedule.blocks.find((x) => x.id === id); }
 function blockSheet(id, k) {
   k = k || dk(curDate); const b = findBlock(id, k); if (!b) return; const d = pd(k), tm = dk(addDays(d, 1)), dur = tmin(b.end) - tmin(b.start);
   const setDay = (v) => `document.getElementById('bm-date').value='${v}';document.querySelectorAll('#bm-q .chip').forEach(c=>c.classList.toggle('on',c===this))`;
   openModal(`<h2>${esc(b.title)}</h2><div class="small muted" style="margin:-6px 0 14px">${fmtDate(d)} · ${b.start}–${b.end === '24:00' ? '…' : b.end}${b.once ? ' · this day only' : ' · every ' + b.days.map((i) => DAY_SHORT[i]).join(', ')}</div>
+    ${b.kind === 'dials' ? `<div class="field"><label>Dial target for ${isToday(d) ? 'today' : fmtShort(d)} only</label><div class="inline"><input type="number" inputmode="numeric" id="bm-tg" value="${dialTargetFor(d)}"><button class="btn" onclick="setDayDialTarget('${k}')">Set</button></div><div class="xs muted" style="margin-top:6px">Moving dials between days? Raise one day and lower the other. The weekly ${(counterDef('dials') || {}).weekly || 150} stays.</div></div>` : ''}
     <button class="btn lg block danger" onclick="blockCancel('${id}','${k}')">Cancel it for ${isToday(d) ? 'today' : fmtShort(d)}</button>
     <div class="sec-h" style="margin-top:18px">Or move it · this time only</div>
     <div class="chips" id="bm-q" style="margin-bottom:10px"><span class="chip" onclick="${setDay(k)}">Same day</span><span class="chip on" onclick="${setDay(tm)}">${isToday(d) ? 'Tomorrow' : 'Next day'}</span><span class="chip" onclick="${setDay(dk(addDays(d, 2)))}">${DAY_LONG[dow(addDays(d, 2))]}</span></div>
@@ -165,6 +151,7 @@ function blockSheet(id, k) {
     <div class="xs muted">The weekly plan stays as it is. Only this one day changes.</div>
     <div class="actions"><button class="btn" onclick="curDate=pd('${k}');closeModal();editBlock('${id}')">Edit every week</button><button class="btn primary" onclick="blockMove('${id}','${k}')">Move it</button></div>`, true);
 }
+function setDayDialTarget(k) { const v = $('bm-tg').value, o = day(k); o.targets = o.targets || {}; o.targets.dials = Math.max(0, Math.round(Number(v) || 0)); touch(o); closeModal(); render(); toast(`Dial target for ${fmtShort(pd(k))}: ${o.targets.dials}`); }
 function blockDrop(id, k) { const o = day(k); if (!o.sched) o.sched = { skip: [], add: [] }; const sc = o.sched; sc.skip = sc.skip || []; sc.add = sc.add || []; if (sc.add.some((x) => x.id === id)) sc.add = sc.add.filter((x) => x.id !== id); else if (!sc.skip.includes(id)) sc.skip.push(id); touch(o); }
 function schedSnap(keys) { const snap = {}; keys.forEach((k) => (snap[k] = JSON.stringify((S.days[k] || {}).sched || null))); return () => { keys.forEach((k) => { const o = day(k), v = JSON.parse(snap[k]); if (v) o.sched = v; else delete o.sched; touch(o); }); render(); }; }
 function blockCancel(id, k) { const b = findBlock(id, k); if (!b) return; const undo = schedSnap([k]); blockDrop(id, k); closeModal(); render(); toast(`${b.title} · cancelled for ${isToday(pd(k)) ? 'today' : fmtShort(pd(k))}`, 'Undo', undo); }

@@ -27,14 +27,14 @@ function migrateV5() {
 /* ───────── coach lines (paraphrased from Egor's own KB summaries; [#N] = knowledge/video_index.md) ───────── */
 function coachLine(ctx) {
   const L = {
-    behind: ['Volume negates luck. Judge yourself on the inputs you control: dials, not outcomes.', '#1 · #8'],
-    hit: ['Target hit. Patience is a behavior: do the obvious thing for an unusually long time.', '#9 · #16'],
-    morning: ['Real work starts when motivation runs out. Tap Done, then the next one.', '#168'],
-    weekend: ['New ideas look best exactly when you hit the hard level. Ignore the shiny object; prep the queue.', '#126 · #230'],
-    evening: ["Jocko's idea: own the loss, name the fix. One sentence each, then phone out.", 'mentors/INDEX'],
-    study: ['Most productivity systems are guilt-free procrastination. Do only the task you set out to do.', '#46 · #75'],
+    behind: ['Hormozi', 'Volume negates luck. Judge yourself on the inputs you control: dials, not outcomes.', '#1 · #8'],
+    hit: ['Hormozi', 'Target hit. Patience is a behavior: do the obvious thing for an unusually long time.', '#9 · #16'],
+    morning: ['Hormozi', 'Real work starts when motivation runs out. Tap Done, then the next one.', '#168'],
+    weekend: ['Hormozi', 'New ideas look best exactly when you hit the hard level. Ignore the shiny object; prep the queue.', '#126 · #230'],
+    evening: ['Jocko', 'Own the loss, name the fix. One sentence each, then phone out.', 'mentors/INDEX'],
+    study: ['Hormozi', 'Most productivity systems are guilt-free procrastination. Do only the task you set out to do.', '#46 · #75'],
   }[ctx];
-  return L ? `<div class="coach">His idea: <b>${esc(L[0])}</b> <span class="ref">[${L[1]}]</span></div>` : '';
+  return L ? `<div class="coach" title="From your notes: ${L[2]}">${L[0]}'s idea, from your notes: <b>${esc(L[1])}</b></div>` : '';
 }
 
 /* ───────── navigation ───────── */
@@ -56,19 +56,19 @@ function renderNav() {
   $('nav').innerHTML = phone.map(([v, icn, l]) => `<button class="${view === v || (v === 'me' && view === 'week') ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 23)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('');
   // desktop: sidebar
   const r = rankInfo(), left = daysUntil(S.settings.bigDate), t = new Date();
-  $('side').innerHTML = `<div class="brand"><div class="mk">${ic('hq', 20)}</div><div><b>WAR ROOM</b><span>CAREGIVER BENCH</span></div></div>
+  $('side').innerHTML = `<div class="brand"><div class="mk">${ic('hq', 20)}</div><div><b>WAR ROOM</b><span>$20K MRR · ${fmtShort(pd(S.settings.bigDate)).toUpperCase()} ${pd(S.settings.bigDate).getFullYear()}</span></div></div>
     <div class="dd"><b>D-${left}</b><span>${DAY_SHORT[dow(t)]} ${t.getDate()} ${t.toLocaleDateString('en-GB', { month: 'short' })}<br>week ${isoWeek(t)}</span></div>
     <nav>${NAV.map(([v, icn, l]) => `<button class="${view === v ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 20)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('')}</nav>
     <div class="sp"></div>
     <div class="srank" onclick="openRank()"><div class="rank"><div class="ins">${insignia(r.i)}</div><div class="bd"><div class="nm">${r.name}</div><div class="lv">Level ${r.i + 1}</div></div></div><div class="xpbar"><i style="width:${r.pct}%"></i></div><div class="ft"><span>${fmt(r.xp)} XP</span><span>${r.next != null ? fmt(r.toNext) + ' to go' : 'top rank'}</span></div></div>
-    <div class="sync ${syncReady() ? syncState.status : ''}"><i></i>v${APP_VERSION} · ${syncReady() ? 'cloud ' + syncLabel() : 'this device only'}</div>`;
+    <div class="sync ${syncReady() ? syncState.status : ''}" onclick="moreTab='sync';view='me';render()" style="cursor:pointer" title="Sync and backup"><i></i>v${APP_VERSION} · ${syncReady() ? 'cloud ' + syncLabel() : 'this device only'}</div>`;
 }
 function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 86400000 + 1) / 7); }
 function renderTop() {
   const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
   $('top-title').innerHTML = view === 'now' && isToday(curDate) ? '<span class="only-phone">HQ</span><span class="only-desk">Headquarters</span>' : esc(titles[view]);
   const sub = $('top-sub'), t = new Date();
-  if (view === 'now') sub.textContent = `${DAY_SHORT[dow(curDate)]} ${curDate.getDate()} ${curDate.toLocaleDateString('en-GB', { month: 'short' })}${window.innerWidth >= 700 ? ' · week ' + isoWeek(curDate) : ''} · D-${daysUntil(S.settings.bigDate)}` + (isToday(curDate) || window.innerWidth < 700 ? '' : ' · not today');
+  if (view === 'now') sub.textContent = `${DAY_SHORT[dow(curDate)]} ${curDate.getDate()} ${curDate.toLocaleDateString('en-GB', { month: 'short' })}${window.innerWidth >= 1000 ? ' · week ' + isoWeek(curDate) : ' · D-' + daysUntil(S.settings.bigDate)}` + (isToday(curDate) || window.innerWidth < 700 ? '' : ' · not today');
   else if (view === 'dial') { const dc = counterDef('dials'); sub.textContent = `${counterWeek('dials', t)} / ${dc ? dc.weekly : 150} this week · ${counterTotal('owners')} owner talks`; }
   else if (view === 'train') sub.textContent = fmtDate(curDate);
   else if (view === 'food') { const ft = foodTotals(curDate), tt = foodTargets(); sub.textContent = ft.kcal >= tt.kcal ? `target hit · ${Math.round(ft.p)} / ${tt.p} g protein` : `${fmt(tt.kcal - ft.kcal)} kcal · ${Math.max(0, Math.round(tt.p - ft.p))} g P left`; }
@@ -98,7 +98,7 @@ function heroCard(d) {
   const next = bl.find((b) => tmin(b.start) > nm);
   const wake = tmin(S.settings.wake), bed = tmin(S.settings.bed); const pct = clamp(((nm - wake) / (bed - wake)) * 100, 0, 100);
   const left = cur ? tmin(cur.end) - nm : null;
-  const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dc ? dc.targets[w] || 0 : 0, v = Number(o.counters.dials) || 0;
+  const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dialTargetFor(d), v = Number(o.counters.dials) || 0;
   const kind = cur ? cur.kind : 'free';
   let action = '', line = '';
   if (nm >= tmin(S.settings.shutdown || '20:45')) { action = `<button class="btn primary lg block" onclick="startShutdown()">🌙 Start shutdown</button>`; }
@@ -119,19 +119,7 @@ function heroCard(d) {
     ${action ? `<div class="action">${action}</div>` : ''}
     ${line ? `<div class="next">${line}</div>` : ''}
     ${next ? `<div class="next">Then <b>${esc(next.title)}</b> at ${next.start} <span class="dim">(in ${tmin(next.start) - nm} min)</span> · <a href="#" onclick="blockSheet('${next.id}','${dk(d)}');return false">cancel / move</a></div>` : ''}
-    <div class="dayline" title="${Math.round(pct)}% of the day"><i style="width:${pct}%"></i></div></div>`;
-}
-function tilesCard(o, d) {
-  const w = dow(d), dc = S.counters.items.find((c) => c.id === 'dials'), bc = S.counters.items.find((c) => c.id === 'bac');
-  const tg = dc ? dc.targets[w] || 0 : 0, v = Number(o.counters.dials) || 0, bt = bc ? bc.targets[w] || 0 : 0, bv = Number(o.counters.bac) || 0;
-  const owners = counterTotal('owners'), og = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners');
-  const wt = o.weight != null && o.weight !== '' ? Number(o.weight) : null, lw = latestWeight(dk(d));
-  const past = dk(d) < dk(new Date());
-  return `<div class="tiles">
-    <div class="tile ${tg && v >= tg ? 'hit' : (past && tg && v < tg ? 'miss' : '')}" onclick="show('dial')"><div class="n num">${v}<small>/${tg || '—'}</small></div><div class="l">dials</div></div>
-    <div class="tile" onclick="show('dial')"><div class="n num">${owners}<small>/${og ? og.target : 100}</small></div><div class="l">owners</div></div>
-    <div class="tile ${bt && bv >= bt ? 'hit' : (past && bt && bv < bt ? 'miss' : '')}" onclick="toggleSec('study');var e=document.getElementById('sec-study');e&&e.scrollIntoView({behavior:'smooth',block:'center'})"><div class="n num">${bv}<small>/${bt || '—'}</small></div><div class="l">BAC min</div></div>
-    <div class="tile" onclick="editWeight()"><div class="n num">${wt != null ? fmt(wt, 1) : (lw ? `<span class="muted">${fmt(lw.w, 1)}</span>` : '—')}</div><div class="l">${wt != null ? 'kg today' : 'kg · last'}</div></div></div>`;
+    <div class="dayline"><i style="width:${pct}%"></i></div><div class="daycap"><span>${Math.round(pct)}% of the day used</span><span>${(() => { const m = tmin(S.settings.shutdown || '20:45') - nm; return m > 0 ? `${m >= 60 ? Math.floor(m / 60) + ' h ' : ''}${m % 60} min to shutdown` : 'shutdown time'; })()}</span></div></div>`;
 }
 function renderNow() {
   const d = curDate, k = dk(d), o = day(k), today = isToday(d), ph = phaseFor(d), nm = nowMin(), w = dow(d);
@@ -141,6 +129,7 @@ function renderNow() {
   parts.weigh = weighCard(o, k, d);
   parts.focus = ph === 'morning' ? focusMorning(o, d) : '';
   parts.hero = today && ph !== 'morning' ? heroCard(d) : '';
+  parts.callbacks = today ? callbacksCard() : '';
   parts.rings = ringsCard(d);
   parts.quick = ordersCard(d);
   parts.shutdown = (ph === 'evening' || ph === 'past') ? shutdownCard(o, d) : '';
@@ -151,13 +140,13 @@ function renderNow() {
   parts.top3 = top3Card(o, k, d);
   parts.standards = standardsCard(o);
   parts.money = moneyCard(o, d);
-  parts.log = sec('log', 'Sleep times', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : ''}`, sleepMoneyBody(o), false);
+  parts.log = sec('log', 'Sleep · bed and wake time', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : 'feeds the sleep intel'}`, sleepMoneyBody(o), false);
   parts.debrief = sec('debrief', 'Debrief', o.win || o.loss || o.fix ? '✓' : '30 seconds, honest', debriefBody(o), ph === 'evening' || ph === 'past');
   const tg = dialTarget(d), v = Number(o.counters.dials) || 0;
   parts.coach = !today ? '' : ph === 'morning' ? coachLine('morning') : ph === 'evening' ? coachLine('evening') : (tg ? (v >= tg ? coachLine('hit') : nm >= 15 * 60 ? coachLine('behind') : coachLine('study')) : coachLine('weekend'));
   // A: what to do now · B: today's checklist · C: where you stand
   parts.week = weekCard(d);
-  const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'hero', 'rings', 'quick', 'week'], past: ['rings', 'quick', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
+  const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'callbacks', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'callbacks', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'hero', 'callbacks', 'rings', 'quick', 'week'], past: ['rings', 'quick', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
   const B = { morning: ['top3', 'change', 'morning', 'study', 'standards', 'money', 'evening', 'log', 'debrief', 'coach'], day: ['top3', 'standards', 'study', 'money', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief', 'coach'], evening: ['standards', 'money', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change', 'coach'], past: ['weigh', 'money', 'standards', 'study', 'top3', 'debrief', 'morning', 'evening', 'log'], future: ['top3', 'weigh', 'morning', 'evening', 'standards', 'log'] }[ph];
   const C = rankCard() + gradeStreaksCard(d) + (today ? upNextCard() : '') + campaignCard() + nextMedalsCard();
   $('view-now').innerHTML = `<div class="hq"><div class="hq-a">${A.map((p) => parts[p] || '').join('')}</div><div class="hq-b">${B.map((p) => parts[p] || '').join('')}</div><div class="hq-c">${C}</div></div>`;
@@ -180,7 +169,7 @@ function renderTrainView() { $('view-train').innerHTML = renderTrain(); }
 function renderWeek() {
   const tabs = [['plan', 'Plan'], ['tasks', `Tasks${(() => { const n = tasksList().filter((t) => !t.done && t.due && t.due <= dk(new Date())).length; return n ? ' · ' + n : ''; })()}`], ['goals', 'Goals'], ['review', 'Review']];
   const head = `<div class="chips" style="margin-bottom:12px">${tabs.map(([v, l]) => `<span class="chip ${weekTab === v ? 'on' : ''}" onclick="weekTab='${v}';render()">${l}</span>`).join('')}</div>`;
-  const body = weekTab === 'plan' ? renderPlan() : weekTab === 'tasks' ? renderTasks() + (tdOn() ? `<div class="xs muted" style="text-align:center;margin:6px 0">Todoist · ${esc(tdLabel())} · <a href="#" onclick="tdPull(false);return false">sync</a></div>` : `<div class="xs muted" style="text-align:center;margin:6px 0"><a href="#" onclick="moreTab='home';show('me');return false">Connect Todoist</a> to keep tasks in both places.</div>`) : weekTab === 'goals' ? renderGoals() : businessCard() + renderReview();
+  const body = weekTab === 'plan' ? renderPlan() : weekTab === 'tasks' ? renderTasks() + (tdOn() ? `<div class="xs muted" style="text-align:center;margin:6px 0">Todoist · ${esc(tdLabel())} · <a href="#" onclick="tdPull(false);return false">sync</a></div>` : `<div class="xs muted" style="text-align:center;margin:6px 0"><a href="#" onclick="moreTab='home';show('me');return false">Connect Todoist</a> to keep tasks in both places.</div>`) : weekTab === 'goals' ? renderGoals() : weekReportCard(curDate) + businessCard() + renderReview();
   $('view-week').innerHTML = head + body;
 }
 
@@ -227,6 +216,7 @@ if (syncReady()) pullCloud(true);
 if (tdOn()) { tdFlush(); tdPull(true); }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); bPull(true); } if (tdOn()) { tdFlush(); tdPull(true); } } });
 setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea') && !$('modal-bg').classList.contains('open')) render(); }, 60000);
+document.addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || $('modal-bg').classList.contains('open') || (e.target && e.target.matches && e.target.matches('input,textarea,select'))) return; const i = '1234567'.indexOf(e.key); if (i >= 0 && e.key.length === 1) { show(NAV[i][0]); } else if (e.key === 't' || e.key === 'T') goToday(); });
 if ('serviceWorker' in navigator) {
   let wrReloaded = false; const hadSW = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (wrReloaded || !hadSW) return; wrReloaded = true; location.reload(); });
   navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready', 'Reload', () => location.reload()); }); }); }).catch(() => {});

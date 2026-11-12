@@ -221,7 +221,7 @@ function renderDial() {
   const modeBar = `<div class="chips" style="margin-bottom:12px"><span class="chip ${benchMode === 'owners' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='owners';render()">☏ Owners</span><span class="chip ${benchMode === 'caregivers' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='caregivers';render()">🧑‍⚕️ Caregivers${B && cgNext().length ? ' · ' + cgNext().length : ''}</span></div>`;
   if (benchMode === 'caregivers') { $('view-dial').innerHTML = modeBar + (B ? renderBench() : '<div class="card"><div class="empty">Loading the bench…</div></div>'); return; }
   const d = new Date(), k = dk(d), o = day(k), w = dow(d), nm = nowMin();
-  const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dc ? dc.targets[w] || 0 : 0, weekly = dc ? dc.weekly : 225;
+  const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dialTargetFor(d), weekly = dc ? dc.weekly : 150;
   const v = Number(o.counters.dials) || 0, wk = counterWeek('dials', d), owners = counterTotal('owners'), ow = Number(o.counters.owners) || 0;
   const ownersGoal = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners');
   const need = dc ? paceNeed(dc, d) : null;
@@ -277,7 +277,7 @@ function renderDial() {
   const scriptCard = `<div class="card"><div class="card-h" onclick="scriptOpen=!scriptOpen;render()" style="cursor:pointer"><div class="card-t">Script v3 · filled for this call</div><div class="card-r">${scriptOpen ? '▾' : '▸'}</div></div>${scriptOpen ? scriptHtml(x) : '<div class="small muted">Opener with the hook, the problem question, the ask, objections.</div>'}</div>`;
 
   const ownersDone = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners');
-  const gate = ownersDone ? `<div class="coach">Rule from the plan: <b>no new business ideas until ${ownersDone.target} owner conversations</b> (${owners} so far · review ${ownersDone.deadline ? fmtShort(pd(ownersDone.deadline)) : '8 Dec'}). His idea: volume negates luck <span class="ref">[#1]</span>.</div>` : '';
+  const gate = ownersDone ? `<div class="coach">Rule from the plan: <b>no new business ideas until ${ownersDone.target} owner conversations</b> (${owners} so far · review ${ownersDone.deadline ? fmtShort(pd(ownersDone.deadline)) : '8 Dec'}). Hormozi’s idea: volume negates luck <span class="ref">[#1]</span>.</div>` : '';
 
   const clients = qItems().filter((x) => ['booked', 'trial', 'member', 'bulletin'].includes(x.status));
   const clientsHtml = clients.length ? `<div class="card"><div class="card-h"><div class="card-t">Pipeline · ${clients.length}</div><div class="card-r">MRR <b>$${mrr().toLocaleString()}</b></div></div>${clients.map((x) => `<div class="qrow" onclick="pipelineModal(${x.id})"><div class="grow"><div class="a">${esc(x.agency)}</div><div class="m">${x.status === 'member' ? (PLANS[x.plan] || [''])[0] + (x.memberSince ? ' since ' + fmtShort(pd(x.memberSince)) : '') : x.status === 'trial' ? 'trial day ' + Math.round((now() - pd(x.trialStart || dk(new Date()))) / 86400000) + (x.case ? ' · ' + esc(x.case) : '') : x.next_step ? esc(x.next_step) : x.status}</div></div><span class="st ${x.status}">${x.status === 'member' ? 'paying' : x.status}</span></div>`).join('')}<div class="xs muted" style="margin-top:8px">Tap an agency to move it: trial started · first shift · paying · lost.</div></div>` : '';
