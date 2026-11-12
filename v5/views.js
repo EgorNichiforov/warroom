@@ -61,7 +61,7 @@ function renderNav() {
     <nav>${NAV.map(([v, icn, l]) => `<button class="${view === v ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 20)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('')}</nav>
     <div class="sp"></div>
     <div class="srank" onclick="openRank()"><div class="rank"><div class="ins">${insignia(r.i)}</div><div class="bd"><div class="nm">${r.name}</div><div class="lv">Level ${r.i + 1}</div></div></div><div class="xpbar"><i style="width:${r.pct}%"></i></div><div class="ft"><span>${fmt(r.xp)} XP</span><span>${r.next != null ? fmt(r.toNext) + ' to go' : 'top rank'}</span></div></div>
-    <div class="sync ${syncReady() ? syncState.status : ''}" onclick="moreTab='sync';view='me';render()" style="cursor:pointer" title="Sync and backup"><i></i>v${APP_VERSION} · ${syncReady() ? 'cloud ' + syncLabel() : 'this device only'}</div>`;
+    <div class="sync ${syncSummary().ok ? 'ok' : 'err'}" onclick="moreTab='home';view='me';render()" style="cursor:pointer" title="Devices and sync"><i></i>v${APP_VERSION} · ${syncSummary().short}</div>`;
 }
 function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 86400000 + 1) / 7); }
 function renderTop() {
@@ -74,7 +74,7 @@ function renderTop() {
   else if (view === 'food') { const ft = foodTotals(curDate), tt = foodTargets(); sub.textContent = ft.kcal >= tt.kcal ? `target hit · ${Math.round(ft.p)} / ${tt.p} g protein` : `${fmt(tt.kcal - ft.kcal)} kcal · ${Math.max(0, Math.round(tt.p - ft.p))} g P left`; }
   else if (view === 'stats') sub.textContent = `${fmt(counterTotal('dials'))} dials · ${counterTotal('owners')} owner talks · ${rankInfo().name}`;
   else if (view === 'week') sub.textContent = 'Week of ' + fmtShort(monday(curDate));
-  else sub.textContent = 'v' + APP_VERSION + (syncReady() ? ' · cloud ' + syncLabel() : ' · this device only');
+  else sub.textContent = 'v' + APP_VERSION + ' · ' + syncSummary().short;
   const nav = (view === 'now' || view === 'train' || view === 'week' || view === 'food') ? `<div class="datenav"><button onclick="shiftDay(-1)" aria-label="Previous day">‹</button><div class="cur" onclick="goToday()">${isToday(curDate) ? 'Today' : fmtShort(curDate)}<small>${DAY_SHORT[dow(curDate)]}</small></div><button onclick="shiftDay(1)" aria-label="Next day">›</button></div>` : '';
   $('top-right').innerHTML = nav + (view === 'food' ? '' : `<button class="iconbtn" onclick="openSpend()" title="Spent cash" aria-label="Spent cash">${ic('wallet', 19)}</button>`);
 }
@@ -148,7 +148,7 @@ function renderNow() {
   parts.week = weekCard(d);
   const A = { morning: ['timer', 'stake', 'weigh', 'focus', 'callbacks', 'rings', 'quick', 'week'], day: ['timer', 'stake', 'hero', 'callbacks', 'rings', 'quick', 'week'], evening: ['timer', 'stake', 'shutdown', 'hero', 'callbacks', 'rings', 'quick', 'week'], past: ['rings', 'quick', 'shutdown', 'week'], future: ['rings', 'week'] }[ph];
   const B = { morning: ['top3', 'change', 'morning', 'study', 'standards', 'money', 'evening', 'log', 'debrief', 'coach'], day: ['top3', 'standards', 'study', 'money', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief', 'coach'], evening: ['standards', 'money', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change', 'coach'], past: ['weigh', 'money', 'standards', 'study', 'top3', 'debrief', 'morning', 'evening', 'log'], future: ['top3', 'weigh', 'morning', 'evening', 'standards', 'log'] }[ph];
-  const C = rankCard() + gradeStreaksCard(d) + (today ? upNextCard() : '') + campaignCard() + nextMedalsCard();
+  const _ss = syncSummary(), C = (today && !_ss.ok ? `<div class="card flat" onclick="moreTab='home';show('me')" style="cursor:pointer;border-color:rgba(255,165,31,.4)"><div class="row sb"><div><div class="lab" style="color:var(--acc)">Sync: ${_ss.short}</div><div class="small muted" style="margin-top:3px">Phone and laptop are not linked yet. Tap to link them.</div></div><span class="pill warn">fix</span></div></div>` : '') + rankCard() + gradeStreaksCard(d) + (today ? upNextCard() : '') + campaignCard() + nextMedalsCard();
   $('view-now').innerHTML = `<div class="hq"><div class="hq-a">${A.map((p) => parts[p] || '').join('')}</div><div class="hq-b">${B.map((p) => parts[p] || '').join('')}</div><div class="hq-c">${C}</div></div>`;
 }
 
@@ -179,7 +179,7 @@ function renderMe() {
   const back = t === 'home' ? '' : `<button class="btn sm ghost" style="margin-bottom:10px" onclick="moreTab='home';render()">‹ Back</button>`;
   let html = back;
   if (t === 'home') {
-    html += `<div class="card only-phone">${[['plan', 'Week plan', 'the schedule, block by block'], ['tasks', 'Tasks', 'everything with a due date'], ['goals', 'Goals', 'long, month and week targets'], ['review', 'Sunday review', 'the only place the plan changes']].map(([v, a, b]) => `<div class="setting-row" onclick="show('${v}')"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>` + rankCard() + `<div class="card"><div class="setting-row" onclick="openManual()"><div><div class="t">How it works</div><div class="d">the whole app on one screen</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodAiModal()"><div><div class="t">Food photo AI</div><div class="d">${aiOn() ? 'on · key saved on this device' : 'off · add a key so photos fill calories and macros'}</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodSavedModal()"><div><div class="t">Food targets &amp; saved meals</div><div class="d">${foodTargets().kcal} kcal · ${foodTargets().p} g protein a day</div></div><div class="arr">›</div></div></div>`;
+    html += devicesCard() + `<div class="card only-phone">${[['plan', 'Week plan', 'the schedule, block by block'], ['tasks', 'Tasks', 'everything with a due date'], ['goals', 'Goals', 'long, month and week targets'], ['review', 'Sunday review', 'the only place the plan changes']].map(([v, a, b]) => `<div class="setting-row" onclick="show('${v}')"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>` + rankCard() + `<div class="card"><div class="setting-row" onclick="openManual()"><div><div class="t">How it works</div><div class="d">the whole app on one screen</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodAiModal()"><div><div class="t">Food photo AI</div><div class="d">${aiOn() ? 'on · key saved on this device' : 'off · add a key so photos fill calories and macros'}</div></div><div class="arr">›</div></div><div class="setting-row" onclick="foodSavedModal()"><div><div class="t">Food targets &amp; saved meals</div><div class="d">${foodTargets().kcal} kcal · ${foodTargets().p} g protein a day</div></div><div class="arr">›</div></div></div>`;
     html += `<div class="card">${[['weight', 'Weight history', 'chart, averages, pace to ' + S.settings.weightTarget + ' kg'], ['stakes', 'Stakes & minimum day', stakesOwed() ? fmt(stakesOwed()) + ' ' + S.settings.currency + ' owed' : 'never zero · ' + S.settings.stake + ' ' + S.settings.currency + ' per missed day'], ['routines', 'Routines & standards', 'edit the morning / evening lists and the 7 standards'], ['counters', 'Daily targets', 'dials, BAC minutes, deep work, per weekday'], ['programs', 'Training programs & split', 'edit the weekly programs and which day gets which'], ['sync', 'Sync & backup', sync.code ? 'connected · ' + syncLabel() : 'phone ↔ laptop'], ['install', 'Install on home screen', 'iPhone & Android steps']].map(([v, a, b]) => `<div class="setting-row" onclick="moreTab='${v}';render()"><div><div class="t">${a}</div><div class="d">${b}</div></div><div class="arr">›</div></div>`).join('')}</div>
       <div class="card"><div class="card-t" style="margin-bottom:8px">Settings</div>
       <div class="kv"><span>Wake</span><input type="time" value="${S.settings.wake}" onchange="S.settings.wake=this.value;S.settings._u=Date.now();save()"></div>
@@ -209,10 +209,12 @@ const _qs = location.search;
 if (/[?&]dial\b/.test(_qs)) view = 'dial';
 if (/[?&]meal\b/.test(_qs)) view = 'food';
 render();
+linkFromUrl();
 if (/[?&]spend\b/.test(_qs)) setTimeout(openSpend, 150);
 if (_qs) history.replaceState(null, '', location.pathname);
 qLoad(); bLoad();
-if (syncReady()) pullCloud(true);
+if (syncReady()) pullCloud(true).then(devHeartbeat);
+setInterval(devHeartbeat, 5 * 60000);
 if (tdOn()) { tdFlush(); tdPull(true); }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { const t = new Date(); t.setHours(0, 0, 0, 0); if (view === 'now' && dk(curDate) < dk(t) && dk(curDate) === dk(addDays(t, -1)) && t.getHours() < 12) curDate = t; evaluateStakes(); render(); if (syncReady()) { pullCloud(true); qPull(true); bPull(true); } if (tdOn()) { tdFlush(); tdPull(true); } } });
 setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea') && !$('modal-bg').classList.contains('open')) render(); }, 60000);

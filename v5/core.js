@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.2.1';
+const APP_VERSION = '5.3.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -727,13 +727,17 @@ async function pullCloud(silent) {
 }
 async function pushCloud() {
   if (!syncReady()) return; const s = S.settings.sync; clearTimeout(pushTimer);
-  try { const r = await fetch(`${s.url}/rest/v1/warroom_sync`, { method: 'POST', headers: Object.assign(hdr(), { Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ id: s.code, data: S, updated_at: new Date().toISOString() }) });
+  try {
+    // read-merge-write: another device may have written since this one last pulled, so fold that in first
+    try { const g = await fetch(`${s.url}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(s.code)}&select=data`, { headers: hdr() }); if (g.ok) { const rows = await g.json(); if (rows.length && rows[0].data && merge(rows[0].data)) { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { } setTimeout(render, 0); } } } catch (e) { }
+    if (typeof devStamp === 'function') devStamp();
+    const r = await fetch(`${s.url}/rest/v1/warroom_sync`, { method: 'POST', headers: Object.assign(hdr(), { Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ id: s.code, data: S, updated_at: new Date().toISOString() }) });
     if (!r.ok) throw new Error('HTTP ' + r.status); syncState.status = 'ok'; syncState.last = now(); syncState.msg = ''; }
   catch (e) { syncState.status = 'err'; syncState.msg = String(e.message || e); }
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
 function merge(remote) {
-  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes'];
+  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices'];
   for (const k of singles) if (remote[k] && (remote[k]._u || 0) > ((S[k] && S[k]._u) || 0)) { const keepSync = k === 'settings' ? S.settings.sync : null; S[k] = remote[k]; if (keepSync) S.settings.sync = keepSync; changed = true; }
   for (const k of maps) { if (!remote[k]) continue; if (!S[k]) S[k] = {}; for (const id in remote[k]) { const r = remote[k][id], l = S[k][id]; if (!l || (r._u || 0) > (l._u || 0)) { S[k][id] = r; changed = true; } } }
   return changed;
