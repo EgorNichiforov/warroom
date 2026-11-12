@@ -558,3 +558,4 @@ input[type=checkbox]:checked{background-color:var(--acc);border-color:var(--acc)
 .card-t,.sec-h,.lab{color:var(--muted)}
 .ck.on .lbl,.ck.done .lbl{color:var(--muted)}
 input::placeholder,textarea::placeholder{color:#7d857d}
+.btn.danger{border-color:rgba(255,79,94,.55);color:#ff8a94}.btn.danger:hover{background:rgba(255,79,94,.12)}
