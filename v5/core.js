@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.10.3';
+const APP_VERSION = '5.11.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -785,7 +785,7 @@ function renderSync() {
 function genCode() { const a = new Uint8Array(18); crypto.getRandomValues(a); return Array.from(a, (b) => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join(''); }
 function connectSync() { const code = $('s-code').value.trim(); if (code.length < 16) { toast('Code must be 16+ characters'); return; } const u = $('s-url'), k = $('s-key'); S.settings.sync = { url: (u ? u.value.trim() : S.settings.sync.url).replace(/\/$/, ''), key: k ? k.value.trim() : S.settings.sync.key, code }; save(true); pullCloud(false); }
 function disconnectSync() { S.settings.sync.code = ''; syncState.status = 'off'; save(true); render(); }
-function exportData() { const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'warroom_' + dk(new Date()) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+function exportData() { S.settings.lastExport = now(); S.settings._u = now(); save(); const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'warroom_' + dk(new Date()) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 function importData(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if (!d.days) throw 0; merge(d); save(true); render(); toast('Imported'); } catch { toast('Not a War Room backup'); } }; r.readAsText(f); e.target.value = ''; }
 function resetAll() { if (!confirm('Delete ALL local data and restore the defaults? Export first if unsure.')) return; localStorage.removeItem(STORE); S = seed(); save(true); moreTab = 'home'; show('today'); }
 
