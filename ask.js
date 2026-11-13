@@ -36,15 +36,15 @@ Answer from his playbook and his numbers below. Rules:
 
 async function aiText(system, msgs) {
   const c = aiCfg(); if (!c.key) throw new Error('No AI key yet');
-  const list = [c.model].concat(c.alts || []).filter((x, i, a) => x && a.indexOf(x) === i); let last = null;
+  const list = [c.model].concat(c.alts || [], c.provider === 'anthropic' ? [] : AI_FAST).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, 4); let last = null;
   for (const model of list) {
     try {
       if (c.provider === 'anthropic') {
-        const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: 1200, system, messages: msgs.map((x) => ({ role: x.role, content: x.text })) }) });
+        const r = await aiFetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: 1200, system, messages: msgs.map((x) => ({ role: x.role, content: x.text })) }) }, 60000);
         const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
         return (j.content || []).filter((x) => x.type === 'text').map((x) => x.text).join('').trim();
       }
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: msgs.map((x) => ({ role: x.role === 'assistant' ? 'model' : 'user', parts: [{ text: x.text }] })), generationConfig: { temperature: 0.4 } }) });
+      const r = await aiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: msgs.map((x) => ({ role: x.role === 'assistant' ? 'model' : 'user', parts: [{ text: x.text }] })), generationConfig: { temperature: 0.4 } }) }, 60000);
       const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
       const cand = (j.candidates || [])[0] || {}, text = ((cand.content || {}).parts || []).filter((x) => !x.thought).map((x) => x.text || '').join('').trim();
       if (!text) throw new Error('Empty answer' + (cand.finishReason ? ' (' + cand.finishReason + ')' : ''));

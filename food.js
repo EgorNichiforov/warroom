@@ -55,17 +55,25 @@ function aiExplain(msg) {
   if (/credit|billing|balance/i.test(m)) return 'The account has no credit. Add credit in the provider console, then try again.';
   return 'The AI service answered with an error. Send Claude the grey text below (never the key).';
 }
+/* every AI request has a hard time limit, so the screen can never hang: a slow model is dropped and the next one is tried */
+let aiAbort = null;
+function aiFetch(url, opt, ms) { const ctl = new AbortController(); aiAbort = ctl; const t = setTimeout(() => ctl.abort('timeout'), ms || 35000); return fetch(url, Object.assign({}, opt, { signal: ctl.signal })).catch((e) => { const err = new Error(ctl.signal.aborted ? (ctl.signal.reason === 'cancel' ? 'Cancelled' : 'TIMEOUT: no answer in ' + Math.round((ms || 35000) / 1000) + ' s') : String(e.message || e)); err.status = ctl.signal.aborted ? 408 : 0; throw err; }).finally(() => clearTimeout(t)); }
+function aiCancel() { if (aiAbort) aiAbort.abort('cancel'); }
+const AI_FAST = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'];
 async function aiCall(c, b64, hint, model) {
   const prompt = AI_PROMPT + (hint ? `\nThe person adds: "${hint}". Trust this over what you see.` : '') + (b64 ? '' : '\nThere is no photo. Estimate from the description only.');
   if (c.provider === 'anthropic') {
     const content = []; if (b64) content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } }); content.push({ type: 'text', text: prompt });
-    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: 900, messages: [{ role: 'user', content }] }) });
+    const r = await aiFetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: 900, messages: [{ role: 'user', content }] }) });
     const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
     return aiParse((j.content || []).filter((x) => x.type === 'text').map((x) => x.text).join(''));
   }
   const parts = []; if (b64) parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }); parts.push({ text: prompt });
-  const send = (cfg) => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify(Object.assign({ contents: [{ parts }] }, cfg ? { generationConfig: cfg } : {})) });
-  let r = await send({ temperature: 0.2, responseMimeType: 'application/json' }), j = await r.json().catch(() => ({}));
+  const send = (cfg) => aiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify(Object.assign({ contents: [{ parts }] }, cfg ? { generationConfig: cfg } : {})) }, 35000);
+  // thinking makes nutrition answers slow without making them better: keep it to the minimum the model allows
+  const think = /gemini-2\.5/.test(model) ? { thinkingConfig: { thinkingBudget: /pro/.test(model) ? 128 : 0 } } : /gemini-[3-9]/.test(model) ? { thinkingConfig: { thinkingLevel: 'low' } } : {};
+  let r = await send(Object.assign({ temperature: 0.2, responseMimeType: 'application/json' }, think)), j = await r.json().catch(() => ({}));
+  if (r.status === 400 && /think|budget|level/i.test((j.error && j.error.message) || '')) { r = await send({ temperature: 0.2, responseMimeType: 'application/json' }); j = await r.json().catch(() => ({})); }
   if (r.status === 400 && /mime|generation_?config|response_?mime/i.test((j.error && j.error.message) || '')) { r = await send(null); j = await r.json().catch(() => ({})); }
   if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
   const cand = (j.candidates || [])[0] || {}, text = ((cand.content || {}).parts || []).filter((x) => !x.thought).map((x) => x.text || '').join('');
@@ -75,11 +83,12 @@ async function aiCall(c, b64, hint, model) {
 /* Try the saved model, then the alternates. A model that is missing or out of quota is skipped; a bad key stops at once. */
 async function aiEstimate(b64, hint, cfgOverride) {
   const c = cfgOverride || aiCfg(); if (!c.key) throw new Error('Photo AI is not set up yet');
-  const list = [c.model].concat(c.alts || []).filter((x, i, a) => x && a.indexOf(x) === i); if (!list.length) list.push(c.provider === 'anthropic' ? 'claude-haiku-5-5' : 'gemini-flash-latest');
+  const list = [c.model].concat(c.alts || [], c.provider === 'anthropic' ? ['claude-haiku-5-5'] : AI_FAST).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, 5);
   let last = null;
   for (const m of list) {
-    try { const out = await aiCall(c, b64, hint, m); if (!cfgOverride && m !== c.model) { c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } } out.model = m; return out; }
-    catch (e) { last = e; last.model = m; if (/API key not valid|API_KEY_INVALID|location is not supported/i.test(e.message) || !(e.status === 404 || e.status === 429 || e.status === 503 || e.status === 500 || e.status === 400 || /not found|quota|overloaded|unavailable/i.test(e.message))) break; }
+    aiStatus.model = m; aiStatus.tries++; aiTick();
+    try { const t0 = Date.now(); const out = await aiCall(c, b64, hint, m); out.ms = Date.now() - t0; if (!cfgOverride && m !== c.model) { c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } if (c.shared) { try { aiShare(c, true); } catch (e) { } } } out.model = m; return out; }
+    catch (e) { last = e; last.model = m; if (/Cancelled/.test(e.message) || /API key not valid|API_KEY_INVALID|location is not supported/i.test(e.message) || !(e.status === 404 || e.status === 408 || e.status === 429 || e.status === 503 || e.status === 500 || e.status === 400 || e.status === 0 || /not found|quota|overloaded|unavailable|TIMEOUT|JSON|empty/i.test(e.message))) break; }
   }
   throw last || new Error('No model answered');
 }
@@ -131,11 +140,17 @@ async function foodFile(file) {
 }
 async function foodAnalyze(hint) {
   const d = foodDraft; if (!d) return;
-  openModal(`<h2>Reading your plate</h2>${d.photo ? `<img class="fphoto" src="${d.photo}" alt="">` : ''}<div class="scan"><div class="sp"></div><div class="lab">Estimating calories and macros…</div></div>`, true);
+  aiStatus = { t0: Date.now(), model: '', tries: 0 };
+  openModal(`<h2>${d.photo ? 'Reading your plate' : 'Estimating your meal'}</h2>${d.photo ? `<img class="fphoto" src="${d.photo}" alt="">` : ''}<div class="scan"><div class="sp"></div><div class="lab" id="ai-prog">Estimating calories and macros…</div></div>
+    <div class="row" style="gap:8px;margin-top:12px"><button class="btn grow" onclick="aiCancel()">Cancel</button><button class="btn grow" onclick="aiCancel();setTimeout(()=>{foodDraft&&(delete foodDraft.err);foodForm()},50)">Type it instead</button></div>`, true);
+  clearInterval(aiTimer); aiTimer = setInterval(aiTick, 1000);
   try { const r = await aiEstimate(d.photo ? d.photo.split(',')[1] : '', hint || d.hint || ''); if (foodDraft !== d) return;
     Object.assign(d, { name: r.name, kcal: r.kcal, p: r.p, c: r.c, f: r.f, items: r.items, conf: r.conf, note: r.note, base: { kcal: r.kcal, p: r.p, c: r.c, f: r.f }, mult: 1, src: 'ai', hint: hint || d.hint || '' }); foodForm();
-  } catch (e) { if (foodDraft !== d) return; d.err = aiExplain(e.message) + ' (' + String(e.message || e).slice(0, 140) + ')'; foodForm(); }
+  } catch (e) { if (foodDraft !== d) return; if (/Cancelled/.test(e.message)) { clearInterval(aiTimer); return; } d.err = (/TIMEOUT/.test(e.message) ? 'No model answered in time. Check the internet connection, then tap Estimate again.' : aiExplain(e.message)) + ' (' + (e.model ? e.model + ': ' : '') + String(e.message || e).slice(0, 140) + ')'; foodForm(); }
+  clearInterval(aiTimer);
 }
+let aiStatus = { t0: 0, model: '', tries: 0 }, aiTimer = null;
+function aiTick() { const el = $('ai-prog'); if (!el) return; const s = Math.round((Date.now() - aiStatus.t0) / 1000); el.textContent = s < 6 ? 'Estimating calories and macros…' : `Waiting for ${aiStatus.model || 'the AI'} · ${s} s${aiStatus.tries > 1 ? ' · try ' + aiStatus.tries : ''}`; }
 function foodForm() {
   const d = foodDraft; if (!d) return; const sv = foodState().saved, ai = aiOn();
   const head = d.isNew ? (d.src === 'ai' ? 'Looks like' : 'Log a meal') : 'Edit meal';
