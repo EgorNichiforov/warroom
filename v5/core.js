@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.11.0';
+const APP_VERSION = '5.12.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -766,7 +766,7 @@ async function pushCloud() {
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
 function merge(remote) {
-  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices', 'playbook', 'inbox', 'meetings'];
+  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets', 'doctrine'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices', 'playbook', 'inbox', 'meetings', 'campaigns', 'decisions', 'experiments', 'focus'];
   for (const k of singles) if (remote[k] && (remote[k]._u || 0) > ((S[k] && S[k]._u) || 0)) { const keepSync = k === 'settings' ? S.settings.sync : null; S[k] = remote[k]; if (keepSync) S.settings.sync = keepSync; changed = true; }
   for (const k of maps) { if (!remote[k]) continue; if (!S[k]) S[k] = {}; for (const id in remote[k]) { const r = remote[k][id], l = S[k][id]; if (!l || (r._u || 0) > (l._u || 0)) { S[k][id] = r; changed = true; } } }
   return changed;
