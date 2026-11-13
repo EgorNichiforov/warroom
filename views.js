@@ -14,14 +14,22 @@ function migrateV4() {
   S.migrations.m20261109 = t; save(true);
 }
 
-/* ───────── v5 migration: the 150-dial week (Mon 5 · Tue 50 · Wed 5 · Thu 70 · Fri 20), food state ───────── */
+/* ───────── v5 migrations: dial-week targets, food state ───────── */
 function migrateV5() {
   S.migrations = S.migrations || {}; foodState();
-  if (S.migrations.m20261112) return;
-  const t = now(), dc = S.counters.items.find((c) => c.id === 'dials');
-  if (dc && dc.weekly === 225) { dc.targets = [0, 5, 50, 5, 70, 20, 0, 0]; dc.weekly = 150; S.counters._u = t; }
-  for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week' && g.target === 225) { g.title = '150 dials'; g.target = 150; g._u = t; } }
-  S.migrations.m20261112 = t; save(true);
+  if (!S.migrations.m20261112) {
+    const t = now(), dc = S.counters.items.find((c) => c.id === 'dials');
+    if (dc && dc.weekly === 225) { dc.targets = [0, 5, 50, 5, 70, 20, 0, 0]; dc.weekly = 150; S.counters._u = t; }
+    for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week' && g.target === 225) { g.title = '150 dials'; g.target = 150; g._u = t; } }
+    S.migrations.m20261112 = t; save(true);
+  }
+  /* 13 Nov 2026: the 110-a-day week. Mon 10 · Tue 100 · Wed 10 · Thu 150 · Fri 160 · Sat 160 = 590 */
+  if (!S.migrations.m20261113) {
+    const t = now(), dc = S.counters.items.find((c) => c.id === 'dials');
+    if (dc) { dc.targets = [0, 10, 100, 10, 150, 160, 160, 0]; dc.weekly = 590; S.counters._u = t; }
+    for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week') { g.title = '590 dials'; g.target = 590; g._u = t; } }
+    S.migrations.m20261113 = t; save(true);
+  }
 }
 
 /* ───────── coach lines (paraphrased from Egor's own KB summaries; [#N] = knowledge/video_index.md) ───────── */

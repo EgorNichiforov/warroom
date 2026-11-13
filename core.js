@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.9.5';
+const APP_VERSION = '5.9.6';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -147,7 +147,7 @@ function seed() {
     G('BAC average 9+ (Română, Istorie by exam; English + IT certificates)', 'long', 9, 'avg', '2027-06-30'),
     G('Weight 77 kg by end of November', 'month', 77, 'kg', '2026-11-30', 'weight'), G('Book the Python ITS exam (UTM, Dec 14–18)', 'month', 1, '', '2026-11-15', 'check'),
     G('Python ITS exam: 700/1000', 'month', 700, 'pts', '2026-12-18'),
-    G('150 dials', 'week', 150, 'dials', '', 'counter:dials:week'), G('20 h BAC study', 'week', 1200, 'min', '', 'counter:bac:week'), G('6 training days', 'week', 6, 'days', '', 'workouts:week'),
+    G('590 dials', 'week', 590, 'dials', '', 'counter:dials:week'), G('20 h BAC study', 'week', 1200, 'min', '', 'counter:bac:week'), G('6 training days', 'week', 6, 'days', '', 'workouts:week'),
   ].forEach((g) => (goals[g.id] = g));
   return {
     v: 1,
@@ -158,7 +158,7 @@ function seed() {
       evening: [R('dials', '📞 Dials + owner conversations logged', WK), R('bacmin', '📚 BAC minutes logged', ALL), R('tomorrow', '📅 Tomorrow checked: first action is 05:30 train', ALL), R('mag', '💊 Magnesium + water', ALL), R('phone', '📵 Phone charging outside the bedroom', ALL), R('bed', '😴 In bed by 21:00', ALL)] },
     habits: { _u: t, items: [{ id: 'meal', title: '🥗 Ate the plan' }, { id: 'water', title: '💧 2 L+ water' }, { id: 'noshorts', title: '🚫 No short videos' }, { id: 'screens', title: '📴 Screens off 20:45' }, { id: 'read', title: '📖 Read 10 min' }, { id: 'word', title: '🤝 Kept my word today' }] },
     counters: { _u: t, items: [
-      { id: 'dials', title: 'Dials', unit: '', targets: [0, 5, 50, 5, 70, 20, 0, 0], weekly: 150, steps: [1, 5, 10], color: 'bad' },
+      { id: 'dials', title: 'Dials', unit: '', targets: [0, 10, 100, 10, 150, 160, 160, 0], weekly: 590, steps: [1, 5, 10], color: 'bad' },
       { id: 'owners', title: 'Owner conversations', unit: '', targets: [0, 0, 0, 0, 0, 0, 0, 0], weekly: 0, steps: [1], color: 'acc' },
       { id: 'bac', title: 'BAC study', unit: 'min', targets: [0, 75, 75, 75, 165, 165, 200, 230], weekly: 1200, steps: [15, 25, 50], color: 'info' },
       { id: 'applicants', title: 'Applicant calls', unit: '', targets: [0, 0, 0, 0, 0, 0, 0, 0], weekly: 0, steps: [1], color: 'ok' },
