@@ -10,12 +10,44 @@ function sessionVolume(s) { return Object.values(s.sets || {}).reduce((a, x) => 
 /* schedule blocks today that look like training and have no session yet */
 function unloggedBlocks(d) {
   const o = S.days[dk(d)], ss = sessionsRO(o), nm = nowMin(), today = isToday(d);
-  return blocksFor(d).filter((b) => (b.kind === 'train' || b.kind === 'tennis') && !/lesson|grupa|lessons|🚗|→|spre|drive|ride/i.test(b.title) && (!today || tmin(b.start) <= nm) && !ss.some((s) => s.block === b.id || (s.blockTitle && s.blockTitle === b.title) || (b.kind === 'train' && s.kind === 'program' && (s.done || s.skipped))));
+  return blocksFor(d).filter((b) => (b.kind === 'train' || b.kind === 'tennis') && !/lesson|grupa|lessons|🚗|→|spre|drive|ride/i.test(b.title) && (!today || tmin(b.start) <= nm) && !ss.some((s) => ((s.block === b.id || (s.blockTitle && s.blockTitle === b.title)) && (s.done || s.skipped)) || (b.kind === 'train' && s.kind === 'program' && !s.block && (s.done || s.skipped))));
+}
+/* 13 Nov: tap a training block anywhere (HQ, plan, up next) → straight to its tracking page with the right program,
+   last time's sets and history. One session per block, reused when you come back. */
+function blockById(id, k) { return blocksFor(pd(k)).find((x) => x.id === id) || (typeof findBlock === 'function' ? findBlock(id, k) : null); }
+function isTrainBlock(b) { return !!b && (b.kind === 'train' || (b.kind === 'tennis' && !/lesson|grupa|lessons|🚗|→|spre|drive|ride/i.test(b.title))); }
+function blockProgram(b, d) {
+  const live = (id) => id && S.programs[id] && !S.programs[id]._del;
+  if (b.kind === 'train') { if (/mobility/i.test(b.title) && live('mobility')) return 'mobility'; return S.programByDay.map[dow(d)] || ''; }
+  if (/OFP/i.test(b.title)) return S.programByDay.map[dow(d)] || '';
+  return null; // TT etc: tennis session, no program
+}
+function openBlockTraining(id, k) {
+  k = k || dk(new Date()); const d = pd(k), b = blockById(id, k); if (!b) return;
+  curDate = d; const o = day(k), ss = sessionsOf(o), prog = blockProgram(b, d), empty = (s) => !Object.keys(s.sets || {}).length;
+  let i = ss.findIndex((s) => s.block === b.id || (s.blockTitle && s.blockTitle === b.title));
+  if (i < 0 && prog) i = ss.findIndex((s) => s.kind === 'program' && s.program === prog && !s.block);
+  if (i < 0 && prog != null) i = ss.findIndex((s) => s.kind === 'program' && !s.done && !s.skipped && !s.block && !s.label && empty(s));
+  if (i >= 0) { const s = ss[i]; if (!s.block) { s.block = b.id; s.blockTitle = b.title; } if (prog != null && s.kind === 'program' && empty(s) && !s.done) s.program = prog; if (!s.startedAt) s.startedAt = b.start; }
+  else { ss.push(prog != null ? { id: uid(), kind: 'program', program: prog, label: '', block: b.id, blockTitle: b.title, sets: {}, done: false, note: '', startedAt: b.start } : { id: uid(), kind: 'tennis', program: '', label: b.title.replace(/^[^\w]+/, '').trim(), block: b.id, blockTitle: b.title, sets: {}, done: false, note: '', startedAt: b.start }); i = ss.length - 1; }
+  touch(o); trainSel = i; show('train');
+}
+/* tap any schedule block → the page where that thing is actually done; anything else → cancel / move sheet */
+function tapBlock(id, k) {
+  k = k || dk(curDate); const b = blockById(id, k); if (!b) { blockSheet(id, k); return; }
+  const today = k === dk(new Date());
+  if (isTrainBlock(b)) return openBlockTraining(id, k);
+  if (b.kind === 'dials' && today && typeof startSession === 'function') return startSession();
+  if (b.kind === 'food') { curDate = pd(k); return show('food'); }
+  if (b.kind === 'routine' && /weigh/i.test(b.title) && typeof weightModal === 'function') return weightModal();
+  if (b.kind === 'routine' && /shutdown/i.test(b.title) && today && typeof startShutdown === 'function') return startShutdown();
+  blockSheet(id, k);
 }
 function logBlock(id, happened) {
   const o = day(curDate), b = blocksFor(curDate).find((x) => x.id === id); if (!b) return; const ss = sessionsOf(o);
   if (happened) {
-    let s = ss.find((x) => x.kind === 'program' && !x.done && !x.skipped && !x.block && b.kind === 'train');
+    let s = ss.find((x) => x.block === b.id && !x.done) || ss.find((x) => x.kind === 'program' && !x.done && !x.skipped && !x.block && b.kind === 'train');
+    if (s) delete s.skipped;
     if (s) { s.block = b.id; s.blockTitle = b.title; s.done = true; s.startedAt = b.start; s.endedAt = b.end === '24:00' ? '23:59' : b.end; }
     else ss.push({ id: uid(), kind: b.kind === 'train' ? 'program' : 'tennis', program: b.kind === 'train' ? (S.programByDay.map[dow(curDate)] || '') : '', label: b.kind === 'train' ? '' : b.title.replace(/^[^\w]+/, ''), block: b.id, blockTitle: b.title, sets: {}, done: true, note: '', startedAt: b.start, endedAt: b.end === '24:00' ? '23:59' : b.end });
     toast('Logged: ' + b.title);
@@ -58,10 +90,11 @@ function renderTrain() {
   const unl = unloggedBlocks(curDate);
   let html = '';
   // unlogged scheduled training
-  if (unl.length) html += `<div class="card"><div class="card-t" style="margin-bottom:8px">On the plan, not logged yet</div>${unl.map((b) => `<div class="row sb unl" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><div style="font-weight:600">${esc(b.title)}</div><div class="xs muted">${b.start}–${b.end}</div></div><div class="row" style="gap:6px"><button class="btn sm ok" onclick="logBlock('${b.id}',true)">Done ✓</button><button class="btn sm ghost" onclick="logBlock('${b.id}',false)">Didn't happen</button></div></div>`).join('')}</div>`;
+  if (unl.length) html += `<div class="card"><div class="card-t" style="margin-bottom:8px">On the plan, not logged yet</div>${unl.map((b) => `<div class="row sb unl" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><div style="font-weight:600">${esc(b.title)}</div><div class="xs muted">${b.start}–${b.end}</div></div><div class="row" style="gap:6px"><button class="btn sm primary" onclick="openBlockTraining('${b.id}','${k}')">Log sets ›</button><button class="btn sm ok" onclick="logBlock('${b.id}',true)">Done ✓</button><button class="btn sm ghost" onclick="logBlock('${b.id}',false)">Didn't happen</button></div></div>`).join('')}</div>`;
   // sessions strip
   const tabs = ss.map((s, i) => `<span class="chip ${s === wo ? 'on' : ''} ${s.done ? 'ok' : s.skipped ? 'bad' : ''}" onclick="trainSel=${i};render()">${kindIcon(s.kind)} ${esc(sessionLabel(s))}${s.done ? ' ✓' : s.skipped ? ' –' : ''}</span>`).join('');
   html += `<div class="card ac"><div class="card-h"><div class="card-t">${DAY_LONG[w]} · ${ss.filter((s) => s.done).length} of ${ss.length} session${ss.length > 1 ? 's' : ''} done</div><div class="card-r">${restPill()}</div></div>
+    ${wo.block ? `<div class="xs muted" style="margin:-4px 0 8px">From the plan: <b>${esc(wo.blockTitle || '')}</b> · <a href="#" onclick="blockSheet('${wo.block}','${k}');return false">cancel / move</a></div>` : ''}
     <div class="chips" style="margin-bottom:10px">${tabs}<span class="chip" onclick="addSessionModal()">+ Add session</span></div>
     ${wo.kind === 'program' ? `<div class="field" style="margin-bottom:8px"><select onchange="setProgram(this.value)"><option value="">— no program (free session) —</option>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<option value="${id}" ${id === wo.program ? 'selected' : ''}>${esc(S.programs[id].name)}</option>`).join('')}</select></div>
       ${p ? `<div class="row" style="gap:6px;margin-bottom:8px"><button class="btn sm grow" onclick="editSession()">✎ Today only${wo.ex ? ' · edited' : ''}</button><button class="btn sm grow" onclick="editProgram('${wo.program}')">✎ Every week</button><button class="btn sm" onclick="editSessionMeta('${wo.id}')">⋯</button></div>` : `<div class="row" style="gap:6px;margin-bottom:8px"><button class="btn sm grow" onclick="editSession()">✎ Add exercises for today</button><button class="btn sm" onclick="editSessionMeta('${wo.id}')">⋯</button></div>`}
