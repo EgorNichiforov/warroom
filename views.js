@@ -30,6 +30,13 @@ function migrateV5() {
     for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week') { g.title = '550 dials'; g.target = 550; g._u = t; } }
     S.migrations.m20261113b = t; save(true);
   }
+  /* 14 Nov 2026 (4-AI review): 350 a week while the new number warms up; Saturday 10:00–11:30 Florida = caregiver supply. */
+  if (!S.migrations.m20261114a) {
+    const t = now(), dc = S.counters.items.find((c) => c.id === 'dials');
+    if (dc) { dc.targets = [0, 10, 100, 10, 100, 50, 80, 0]; dc.weekly = 350; S.counters._u = t; }
+    for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week') { g.title = '350 dials'; g.target = 350; g._u = t; } }
+    S.migrations.m20261114a = t; save(true);
+  }
 }
 
 /* ───────── coach lines (paraphrased from Egor's own KB summaries; [#N] = knowledge/video_index.md) ───────── */

@@ -40,7 +40,7 @@ One job: what you need to see without opening a phone. Rewritten every Sunday: *
 | Spent cash | **+ → Spent cash** | Money out by category; the sheet copies it |` },
 { id: 'audit', cat: 'system', title: 'System status · 13 Nov', body: `## Done
 - War Room v5 is the app (Android app 1.1 + web). v4 retired.
-- Morning brief (06:00), close the day (20:40), Sunday review (10:40): all on the 550 week.
+- Morning brief (06:00), close the day (20:40), Sunday review (10:40): all on the 350 week (since 14 Nov).
 - Hourly sheet sync and Monday Bulletin draft: on the new sync row.
 - Old check-ins and the Todoist DIAL BLOCK task: retired.
 - Calendar: no overlaps (checked 16–22 Nov and 7–13 Dec). From 1 Dec the BAC morning block is 06:15–07:30.
@@ -67,19 +67,17 @@ One job: what you need to see without opening a phone. Rewritten every Sunday: *
 
 ## Priority order
 The company is #1. When things clash, the cut order decides (see Rules → When the day doesn't fit).` },
-{ id: 'backward', cat: 'mission', title: 'The plan backward', body: `Read from the bottom up: for the top line to be true, every line below it must be true by its date.
+{ id: 'backward', cat: 'mission', title: 'The plan backward', body: `Read from the bottom up: for the top line to be true, every line below it must be true by its date. **Proof first, then retainers.**
 
-## Company: MRR checkpoints
+## Company: checkpoints
 | By | Must be true |
-| 30 Jun 2027 | **$20,000+ MRR** (8 Priority Bench + 3 Multi-site) |
-| 31 May | $18,000 · screener #3 |
-| 30 Apr | $15,000 |
-| 31 Mar | $12,000 · screener #2. **Reality rule 1 Mar: under $3,750 MRR = the July target becomes $10,000** |
-| 26 Feb | $9,000 |
-| 29 Jan | $6,000 · first Multi-site trial |
-| 31 Dec | $3,000 (2 Priority Bench) · 4 trials running · screener #1 hired |
-| 1 Dec | A way to charge cards works and the agreement is lawyer-checked. No card is charged before both |
+| 30 Jun 2027 | **$20,000 MRR** (8 Priority Bench + 3 Multi-site). Reality rule 1 Mar: under $3,750 MRR = the July target becomes $10,000 |
+| 31 Mar | $9,000 MRR · screener #1 |
+| 28 Feb | $4,500 MRR (3 Priority Bench) |
+| 31 Jan | **3 agencies where my caregiver worked** · first $750 deal · first Priority Bench offered |
+| 31 Dec | **First caregiver worked 5 shifts + first invoice paid** ($500) · 2,000+ dials |
 | 8 Dec | 100 owner conversations (then, and only then, new ideas are allowed) |
+| 30 Nov | **15 screened caregivers in Tampa Bay** · payment route working · number clean (no Spam Likely) · lawyer check booked |
 
 ## Body: weekly average weight
 | End of | Nov | Dec | Jan | Feb | Mar | Apr | May | Jun |
@@ -89,52 +87,67 @@ Every 2 weeks: gaining under 0.25 kg a week = +200 kcal. Over 0.5 kg a week = �
 
 ## BAC: the hard dates
 See Body & BAC → BAC deadlines.` },
-{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# Reset 13 Nov (overrides anything older)
-0 owner conversations so far. The plan is done. The work is dialing.
+{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# Reset 14 Nov (overrides anything older)
+Reviewed by Claude, ChatGPT, Grok and Perplexity on 14 Nov. All four agreed on the same three things: **supply first, one simple offer, a way to get paid.** 0 owner conversations so far. The plan is done. The work is dialing and screening.
 
-## The week: 550 dials (110 per weekday on average)
+## The week: 350 dials + a caregiver block
 | Day | Dials | When (Moldova) | Florida |
 | Mon | 10 | 20:30–20:45 | 13:30 |
 | Tue | 100 | 15:30–16:55 + 17:00–17:55 | 8:30–10:55 |
 | Wed | 10 | 20:30–20:45 | 13:30 |
-| Thu | 150 | 15:00–18:20 | 8:00–11:20 |
+| Thu | 100 | 15:00–18:20 (spare time: emails, callbacks, caregivers) | 8:00–11:20 |
 | Fri | 50 | 19:30–20:40 | 12:30–13:40 |
-| Sat | 230 | 15:00–17:00 + 17:00–18:30 + 18:45–20:30 | 8:00–13:30 |
+| Sat | 80 | 15:00–17:00 | 8:00–10:00 |
+| Sat | **Caregivers** | 17:00–18:30: Tampa Bay ads + screening calls | 10:00–11:30 |
 | Sun | 0 | No cold calls. Plan, BAC, applicants, meal prep | |
 
-**Floor on a broken day: 10 dials. Never 0.** Sick: silent prep (owner names, script) counts as the minimum; rest the voice.
+**Why 350 and not 550:** a brand-new US number that jumps to 200+ calls a day gets labelled "Spam Likely" within days, and then nobody picks up. **Max 100 dials a day per number** for the first 2 weeks. From 30 Nov, if the number is clean and the bench has 15 caregivers: Thursday back to 150 (= 400), then a second number for 550.
+
+**Floor on a broken day: 10 dials. Never 0.**
+
+## One metro first: Tampa Bay
+Tampa, St. Pete, Clearwater, Brandon and around: ~750 licensed agencies, the biggest metro in Florida, English-speaking caregivers, one time zone. The dialer puts Tampa Bay leads at the top automatically. Caregiver ads go to Tampa Bay only. Agencies and caregivers in the same place = you can actually deliver.
+
+## This week's 5 moves, in order
+1. **Bench:** 15 phone-screened caregivers in Tampa Bay by 30 Nov. No promise of interviews within 48 hours until then.
+2. **Get paid:** talk to dad this week. His company signs the agreement and invoices in USD to its account, with his accountant's OK. A US LLC can come later, once money comes in. (Stripe does not support Moldova: don't plan on it.)
+3. **One offer on the phone:** the Founding Offer (Business → What we sell). The monthly plans are not mentioned on cold calls.
+4. **Calling setup:** CloudTalk number with a Tampa area code (813), registered on freecallerregistry.com, max 100 dials a day. Voicemail: 20 seconds, then a same-day email.
+5. **Measure 4 numbers daily:** dials, owner conversations, interested owners, caregivers screened.
 
 ## Kept on purpose
 Own tennis Mon/Wed/Fri (paid, ~€250 a month). Sleep 21:00–05:20. School. All groups.
-
-## The tools that make 550 possible
-- **Leads:** ~3,500 open in War Room Dial (Florida home health + homemaker & companion), 6,741 in the Lead DB sheet. Running low → ask Claude to load the next batch.
-- **Owner names:** Claude fills them from Sunbiz (Florida company register). Sunbiz writes surnames first.
-- **Power dialer:** needed for ~45 dials an hour (by hand ~25). PhoneBurner refuses sign-ups from Moldova without a phone call; CloudTalk works (14 days free, no card): sign up with Google, then Claude sets it up.
-- **Texting:** no cold texts (carrier rules). Email after every owner conversation instead.
 
 ## Feature freeze
 No new War Room features until **1,000 dials or the first paying client.** Changes to the plan only at the Sunday review.
 
 ## Still missing
 1. A person who sees my dial number every day. Name them.
-2. A way to get paid (who invoices US clients, whose account). Talk to dad before the first yes.` },
-{ id: 'proposals', cat: 'mission', title: 'Decisions · 13 Nov', body: `## Decided
-| Question | Decision |
-| Dials per week | **550** (was 150). Calendar rebuilt to fit, tennis kept |
-| Weekends | Saturday is the biggest dial day. Sunday: no cold calls |
-| Dialer | Power dialer: CloudTalk trial first (PhoneBurner blocks Moldova sign-ups) |
-| Leads | Whole state of Florida, home health + homemaker & companion. Nurse registries parked (1099) |
-| Texting | No cold SMS. Texting only after a yes, and only with a registered business number (needs a company with a tax ID) |
-| Cold email | After the first client or ~1,000 dials: 2 spare domains, 4 inboxes, Instantly (~$75–100/mo), 3–4 weeks warm-up. Never from caregiverbench.com |
+2. The payment route (move 2 above).
+3. A one-page check by a Florida healthcare lawyer (~$300–500) before the first invoice.` },
+{ id: 'proposals', cat: 'mission', title: 'Decisions · 14 Nov', body: `## Decided 14 Nov (4-AI review: Claude, ChatGPT, Grok, Perplexity)
+| Question | Decision | Who agreed |
+| First paying client by 31 Jan? | ~25% as the plan was. ~45% with the changes below | ChatGPT 30% · Grok 15–25% · Perplexity 35–45% |
+| Biggest risk | **No caregivers to deliver.** 15 screened in Tampa Bay by 30 Nov | All four |
+| Offer on the phone | **One Founding Offer:** $500 per caregiver, paid after 5 worked shifts, first 5 agencies. Monthly plans only after proof | All four: simplify. Price: ChatGPT $500, Grok $500–600, Perplexity $750 |
+| Funnel | Plan with **~2,000 dials per paying client** (was 900) | ChatGPT ~3,300 · Grok 1,500–2,500 · Perplexity 1,200–2,500 |
+| Dials | **350 a week** for 2 weeks (number warm-up), then 400, then 550 with a second number | ChatGPT 250–300 · Perplexity 300 · Grok 150–200 · Claude 350 |
+| Saturday 230 | Cut to 80. Saturday 10:00–11:30 Florida = caregiver screening | All four |
+| Metro | **Tampa Bay first** (~750 agencies, biggest metro) | Claude, from the lead data. ChatGPT, Grok: "one metro" |
+| Getting paid | Dad's company invoices in USD now; US LLC later | ChatGPT, Perplexity. Grok preferred a US LLC now |
+| Calling | US local number, Free Caller Registry, max 100/day/number, manual dialing, 20-sec voicemail + email | All four |
+| Lawyer | One-page check by a Florida healthcare lawyer before the first invoice | Grok, ChatGPT, Perplexity |
+
+## Decided 13 Nov (still true)
+| Leads | Whole state of Florida, home health + homemaker & companion. Nurse registries parked (1099). 2,059 licensed home health agencies added 14 Nov |
+| Texting | No cold SMS. Texting only after a yes, and only with a registered business number |
+| Cold email | After the first client or ~1,000 dials: 2 spare domains, 4 inboxes, 3–4 weeks warm-up. Never from caregiverbench.com |
 | War Room | Feature freeze until 1,000 dials or the first client |
-| Breakfast tick | Ticks only. Food is logged by hand in Food |
 
 ## Still open (Sunday review)
 - **Accountability partner:** who sees the dial number every night?
-- **Payment route:** talk to dad about invoicing and the account.
-- **Team:** a commission caller or setter once the script converts (after ~20 owner conversations).
-- **Offer test:** "5 screened caregiver interviews in 14 days, free" as the opener. Test it on 100 dials, compare with the current one.` },
+- **Team:** a commission caller only after one paid placement (ChatGPT: not before).
+- **Age check:** if I am under 18, I can't register a business myself in Moldova or the US. Dad's company is the route either way for now.` },
 
 /* ───────── RULES ───────── */
 { id: 'daily8', cat: 'rules', title: 'The Daily 8 and the minimum day', body: `| # | What | In War Room |
@@ -144,7 +157,7 @@ No new War Room features until **1,000 dials or the first paying client.** Chang
 | 4 | **Sun:** 10+ minutes outside before 10:00 | Sun |
 | 5 | **Digital protocol:** blockers on, no phone in study blocks | Digital |
 | 6 | **BAC:** today's block + Anki | BAC minutes |
-| 7 | **Dials:** today's number (550 a week) | Dial tab |
+| 7 | **Dials:** today's number (350 a week) | Dial tab |
 | 8 | **Honor:** I did what I said I would do today | Honor |
 
 ## The minimum day
@@ -180,8 +193,10 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 - **Calls:** 8am–8pm their time, max 3 calls per number per 24 hours, no prerecorded voicemails, "don't call me" = do-not-call immediately.
 - **Fair job ads:** no words about age, sex, origin, religion, family or health.
 - **Nurse registries (1099 contractors):** not for now.
-- **The agreement** is reviewed by a Florida lawyer before anyone signs.
-- **Payments:** not on a friend's card. An adult family member as account holder until I can take them myself.` },
+- **The agreement** is reviewed by a Florida lawyer before anyone signs. One page that says: we recruit employees for the agency; nothing is paid for patients, clients or referrals; the agency does its own Level 2 screening, I-9 and E-Verify.
+- **Telemarketing registration:** Florida exempts most business-to-business calls, but the exemption has conditions. Ask the lawyer in the same check. Calling-hour and 3-calls-a-day limits apply either way.
+- **Caregiver data:** names and phones of caregivers stay in War Room and go to an agency only with the caregiver's OK. Ask dad's accountant whether Moldova's data law needs anything for sending them to the US.
+- **Payments:** not on a friend's card. Dad's company invoices and receives USD, with his accountant's OK, until I can take them myself. The agency gets a W-8BEN-E from that company, not a W-9. Stripe does not work for Moldova.` },
 
 /* ───────── SCRIPTS (the dialer reads these) ───────── */
 { id: 'script-owner', cat: 'scripts', title: 'Owner call script', body: `Shown in the dialer for every call. {name}, {hook} and {town} fill in from the agency you are calling.
@@ -200,12 +215,11 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 > When a new case comes in and you're short a caregiver, what do you do today: pull someone from your team, post on Indeed, or something else?
 
 ## 5 · One sentence + a no-oriented ask
-> **I help private-pay agencies get interviews with screened caregivers for live-in and weekend cases within 48 hours, without paying anything unless a caregiver actually works a shift.** I run my own ads, call every caregiver myself, confirm them twice before the interview. The first 30 days are free. **Would you be against me recruiting for that case this week and sending you a couple of profiles?**
+> **I recruit and phone-screen caregivers for agencies around {town}. You pay $500 only after one of them has worked 5 shifts for you. Nothing up front, no monthly fee.** I run my own ads, call every caregiver myself, confirm them twice before the interview. **What's the hardest shift you're trying to cover right now? Would you be against me recruiting for that one this week?**
 
-## 6 · Yes → route + book
-> In a normal month, how many caregivers do you hire?
-- 0–1 → Pay When They Work · 2+ → 30-day trial · several offices → Multi-site
-> Let's do 10 minutes on the case: town, hours, pay, must-haves. Now, or tomorrow at [time]?
+## 6 · Yes → the case
+> Let's do 10 minutes on the case: town, hours, pay, must-haves, who interviews. Now, or tomorrow at [time]?
+- Then: "If I can't send you 2 screened candidates within 7 days, you owe nothing." Email the one-page agreement the same day.
 
 ## 7 · Not now
 > Fair enough. Every Monday I send a short email with the screened caregivers I have, by town and shift, no names. Would it be a bad idea if I added you?
@@ -214,7 +228,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 > Who's the one agency around here you'd guess is having the hardest time staffing right now?
 
 ## Voicemail
-> Hi {name}, Egor with Caregiver Bench. {hook}. I recruit caregivers in your area, live-in and weekends especially, and the first 30 days are free. I'll try you again on [day]. If it's easier, I'm at 561-556-0536.` },
+> Hi {name}, Egor with Caregiver Bench. {hook}. I recruit caregivers in your area, live-in and weekends especially, and you only pay once a caregiver has worked 5 shifts. I'll try you again on [day]. If it's easier, I'm at 561-556-0536.` },
 { id: 'script-al', cat: 'scripts', title: 'Assisted living opener', body: `Shown in the dialer for assisted living and memory care (tier AL).
 
 > Hi, is this the Executive Director? This is Egor with Caregiver Bench. We've never spoken. I recruit caregivers and CNAs in Collier and Lee. I know a lot of communities end up paying agency staff to cover shifts. Is that something you deal with, or are you fully staffed?
@@ -291,7 +305,15 @@ Within 1 hour: a one-page recap by email (the case, the plan, the dates).` },
 6. Hit the number, or the block ends, whichever comes later. Never stop at 0.
 7. End session. Anything you couldn't answer: write it down, ask Claude.
 
-Florida = Moldova − 7 h (the Panhandle, west of the Apalachicola River, is − 8 h). Call 8am–8pm their time. Owners pick up best mid-morning Florida time (check Stats → Intel once 50 calls are logged).` },
+Florida = Moldova − 7 h (the Panhandle, west of the Apalachicola River, is − 8 h). Call 8am–8pm their time. Owners pick up best mid-morning Florida time (check Stats → Intel once 50 calls are logged).
+
+## Calling setup (so they pick up)
+- **A real US local number** in the area code you call (Tampa Bay: 813 / 727). Never spoof, never hide the number.
+- **Register it** on freecallerregistry.com (feeds AT&T, T-Mobile, Verizon's spam filters). Ask the provider for STIR/SHAKEN "A" attestation.
+- **Max 100 dials a day per number** for the first 2 weeks, then up to 200. A sudden jump gets the number labelled "Spam Likely".
+- **Check the label weekly:** call your own phone from it. If it says Spam Likely: stop that number, get a new one.
+- **Dial by hand** (click to call), one number at a time. No automatic dialer that picks numbers by itself until a lawyer has looked at it.
+- **Voicemail:** 20 seconds, then the same-day email that mentions it.` },
 { id: 'sop-after-yes', cat: 'sops', title: 'After an owner says yes', body: `| When | What happens |
 | Case call (10 min) | Town, hours, live-in, pay, must-haves, start date, who interviews. W-2 confirmed |
 | Within 1 hour | One-page recap by email |
@@ -318,7 +340,7 @@ Caregivers apply to 10–20 agencies at once. **Speed wins:** interviewed within
 4. Look at tomorrow: the first action is 05:30 train.
 5. Phone charges outside the bedroom. **Bed 21:00.**` },
 { id: 'sop-review', cat: 'sops', title: 'Sunday review (11:00, 30 min)', body: `1. Open **Plan → Review**. The week report is at the top.
-2. Dials vs 550, owner conversations, trials, MRR. Open leads left (under 1,100 = ask Claude for more).
+2. Dials vs 350, owner conversations, interested owners, caregivers screened (Tampa Bay, /15 by 30 Nov), money collected. Open leads left (under 700 = ask Claude for more).
 3. BAC hours and the Saturday test score.
 4. Training days. Weight vs the checkpoint.
 5. Money made vs spent.
@@ -353,7 +375,19 @@ Cold email to strangers waits for the warmed-up spare domains. Never send cold e
 /* ───────── BUSINESS ───────── */
 { id: 'offer', cat: 'business', title: 'What we sell', body: `**Screened caregivers for private-pay Florida home care agencies and assisted living.** They hire, we recruit.
 
-## Routing question
+## On the phone now: the Founding Offer (first 5 agencies)
+> **$500 per caregiver, invoiced only after they've worked 5 shifts for you.** Nothing up front, no monthly fee, no contract length. If I can't send you 2 screened candidates for your open case within 7 days, you owe nothing. All I ask: an honest review if it works.
+
+- One price for every case while I collect proof. Live-in and 24/7 too.
+- Why 5 shifts, not 1: the owner's real fear is the caregiver who quits in week one. Paying after 5 shifts removes it.
+- Why $500: proof beats price. Five agencies saying "he delivered" is worth more than $250 more per hire (Hormozi: proof beats promise [#102]).
+- **Qualifying question:** "What's the hardest caregiver shift you're struggling to cover right now?" Sell that one case, not a plan.
+- **No 48-hour or 24-hour promises** until the Tampa Bay bench has 15 screened caregivers.
+
+## After proof (3 caregivers who worked, or 5 founding agencies): the full ladder below
+Monthly plans are offered only to agencies where at least 2 of my caregivers already worked. Never on a cold call.
+
+## Routing question (after proof)
 > In a normal month, how many caregivers do you hire?
 
 | Answer | Offer |
@@ -374,21 +408,26 @@ One agency at a time per caregiver. No fee if the caregiver applied to them dire
 
 ## Hard cases
 24/7, live-in, overnight, weekends-only, bilingual required, Marco Island, Sanibel and remote areas.` },
-{ id: 'funnel', cat: 'business', title: 'The funnel math', body: `**Plan estimates. Your real rates replace these in Stats → Intel after 30 dials.**
+{ id: 'funnel', cat: 'business', title: 'The funnel math', body: `**Plan estimates (reset 14 Nov after the 4-AI review). Your real rates replace these in Stats → Intel after 100 dials.**
 
-Safe planning numbers (pessimistic on purpose: ~900 dials per paying client).
+Planning number: **~2,000 dials per paying client.** (ChatGPT said ~3,300, Grok 1,500–2,500, Perplexity 1,200–2,500. The old plan said 900: too optimistic for a new number calling from abroad.)
 
-| Step | Rate | Per 550-dial week |
-| Dials | — | 550 |
-| Owner conversations | ~4% | ~22 |
-| "Show me caregivers" | ~20% | ~4 |
-| Trials started | ~25% | ~1 |
-| Paying client | ~55% | ~0.6 |
+| Step | Rate | Per 350-dial week |
+| Dials | — | 350 |
+| Owner conversations | ~2.5% | ~9 |
+| "Send me candidates" | ~15% | ~1.3 |
+| Case taken (agreement sent) | ~40% | ~0.5 |
+| Caregiver works 5 shifts → paid | ~35% | ~0.2 |
 
-At 550 a week that is ~20 clients by July: $20k with room to spare. If the real rates are better, the slack goes to bigger deals, not fewer dials. The only real risks: **I stop dialing**, or caregivers don't start and stay.
+About **1 paying agency every 5–6 weeks at 350**, every 3–4 weeks at 550. First paid placement by 31 Dec is realistic only if the bench exists by 30 Nov.
+
+## The real levers (bigger than more dials)
+1. **Pickup rate:** a clean local number (Free Caller Registry, ≤100/day) can double owner conversations.
+2. **Delivery:** every yes that I can't staff in 7 days is lost. Bench first.
+3. **Proof:** the first 3 agencies who say "he delivered" make every next call easier.
 
 ## What $20k means
-8 Priority Bench ($12,000) + 3 Multi-site ($9,000) = $21,000. About 32 caregivers working a month, 3 screeners.` },
+8 Priority Bench ($12,000) + 3 Multi-site ($9,000) = $21,000. That is ~45 caregiver starts a month (ChatGPT's point): a real delivery operation with screeners, not just 11 sales. The July target stands; the 1 March reality rule decides if it moves to $10,000.` },
 { id: 'pricewhy', cat: 'business', title: 'Why the price makes sense', body: `- **$750 is under a third** of the ~$2,600 it costs to replace a caregiver.
 - Indeed costs about **$561 per hire**, and they still do all the calling and chasing.
 - One caregiver at 25 hours a week brings the agency about **$350 a week** of margin. $750 pays back in about 2 weeks.
@@ -424,9 +463,9 @@ Owner (revenue, not turning down cases) · Administrator · **Scheduler** (tonig
 { id: 'aboutme', cat: 'business', title: 'Questions about me', body: `| They ask | I say |
 | "Who are you?" | "I'm Egor. I run Caregiver Bench, a caregiver recruiting service for private-pay home care agencies in Florida." |
 | "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local; only the recruiting and screening is remote." |
-| "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why the first 30 days are free." |
+| "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why you pay nothing until a caregiver has worked 5 shifts." |
 | "Do you have insurance?" | "The caregivers are your employees, covered by your insurance and your screening." |
-| "Where do I pay?" | "Nothing is charged during the 30-day trial. After that, an invoice." |
+| "Where do I pay?" | "Nothing until the caregiver has worked 5 shifts. Then one invoice, by bank transfer in USD." |
 | "References?" | "Not yet. After 30 days I'd love you to be my reference, if I earn it." |
 | "Can we meet?" | "On a video call, any time. In person, not before mid-2027." |
 | "Is this AI?" | "No, it's me, Egor. I make my own calls." |

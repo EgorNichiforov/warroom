@@ -63,7 +63,8 @@ function pipeShift(id) {
   x.log.push({ at: new Date().toISOString(), r: `FIRST SHIFT · ${cg || 'caregiver'} · ${hard ? 'hard case' : 'standard'}`, note: what });
   const base = pd(date); const Dd = (n) => dk(addDays(base, n));
   [1, 3, 7, 14, 30].forEach((n) => addTaskAuto(`Shield call day ${n}: ${cg || 'caregiver'} @ ${x.agency}`, Dd(n), 'How is it going? Anything the owner should know? Short note to the owner after.'));
-  addTaskAuto(`Invoice ${x.agency}: ${x.status === 'member' ? 'included / extra caregiver' : hard ? '$1,200 hard case' : '$750'} for ${cg || 'caregiver'}`, Dd(1), 'Pay When They Work unless they are on a plan.');
+  const founding = x.status !== 'member' && new Set(placements().map((p) => p.agency)).size <= 5; /* Founding Offer (14 Nov): $500 after 5 worked shifts, first 5 agencies */
+  addTaskAuto(`Invoice ${x.agency}: ${x.status === 'member' ? 'included / extra caregiver' : founding ? '$500 Founding Offer (only once 5 shifts are worked: confirm with the caregiver)' : hard ? '$1,200 hard case' : '$750'} for ${cg || 'caregiver'}`, founding ? Dd(7) : Dd(1), founding ? 'Founding Offer: invoice after the 5th worked shift. Ask for the review in the same email.' : 'Pay When They Work unless they are on a plan.');
   qSave(); closeModal(); toast('Logged. 6 tasks created. That is proof now.'); render();
 }
 function pipeMember(id) {
