@@ -140,17 +140,17 @@ function gradeInfo() { openModal(`<h2>Day grade</h2><div class="hint" style="mar
 function gradeStreaksCard(d) {
   const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
   const col = g === 'A' ? 'var(--body)' : g === 'B' ? 'var(--co2)' : g === 'C' ? 'var(--acc)' : 'var(--bad)';
-  const st = [[streakMinimum(), 'minimum days'], [streakWeigh(), 'weigh-ins'], [streakMorning(), 'full mornings'], [streakBed(), 'bed on time']];
+  const st = [[streakMinimum(), 'minimum days', "metricDetail('dials')"], [streakWeigh(), 'weigh-ins', "metricDetail('weight')"], [streakMorning(), 'full mornings', "metricDetail('score')"], [streakBed(), 'bed on time', "metricDetail('sleep')"]];
   return `<div class="card"><div class="grade-row" onclick="gradeInfo()" style="cursor:pointer"><div class="g" style="color:${col}">${g}</div><div class="grow"><div class="lab">Day grade · ${sc}% · <span style="text-transform:none;letter-spacing:0">how?</span></div><div class="small muted" style="margin-top:3px">${m.met ? 'Minimum met. The streak is alive.' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}</div></div></div>
-    <div class="streaks">${st.map(([n, l]) => `<div class="s ${n > 0 ? 'on' : ''}"><div class="n">${ic('flame')}${n}</div><div class="l">${l}</div></div>`).join('')}</div></div>`;
+    <div class="streaks">${st.map(([n, l, go]) => `<div class="s ${n > 0 ? 'on' : ''} go" onclick="${go}"><div class="n">${ic('flame')}${n}</div><div class="l">${l}</div></div>`).join('')}</div></div>`;
 }
 function weekCard(d) {
   const m = monday(d), dc = counterDef('dials'), wkT = dc ? dc.weekly : 150, wk = counterWeek('dials', d), tk = dk(new Date());
   const cols = ALL.map((i) => { const dd = addDays(m, i - 1), k = dk(dd), tg = dialTargetFor(dd), v = Number(((S.days[k] || {}).counters || {}).dials) || 0, past = k < tk;
     const cls = !tg && !v ? 'off' : tg && v >= tg ? 'hit' : past && tg ? 'miss' : '';
-    return `<div class="d ${k === tk ? 'today' : ''} ${k === dk(d) ? 'sel' : ''}" onclick="curDate=pd('${k}');render()"><div class="v">${v || (tg ? '0' : '·')}${tg ? `<small>/${tg}</small>` : ''}</div><div class="col ${cls}"><i style="height:${v ? Math.max(6, Math.min(100, (v / (tg || v)) * 100)) : (cls === 'miss' ? 4 : 0)}%"></i></div><div class="n">${DAY_SHORT[i]}</div></div>`; }).join('');
+    return `<div class="d ${k === tk ? 'today' : ''} ${k === dk(d) ? 'sel' : ''}" onclick="dayDetail('${k}')"><div class="v">${v || (tg ? '0' : '·')}${tg ? `<small>/${tg}</small>` : ''}</div><div class="col ${cls}"><i style="height:${v ? Math.max(6, Math.min(100, (v / (tg || v)) * 100)) : (cls === 'miss' ? 4 : 0)}%"></i></div><div class="n">${DAY_SHORT[i]}</div></div>`; }).join('');
   const op = weekOp(d);
-  return `<div class="card wkc"><div class="card-h"><div class="card-t">Operation · week ${isoWeek(d)}</div><div class="card-r"><b>${wk}</b> / ${wkT} dials</div></div><div class="wk7">${cols}</div><div class="bar" style="margin-top:12px"><i style="width:${clamp((wk / (wkT || 1)) * 100, 0, 100)}%;background:${op.done ? 'linear-gradient(90deg,var(--body2),var(--body))' : 'linear-gradient(90deg,var(--co),var(--co2))'}"></i></div><div class="small muted" style="margin-top:9px">${op.line}</div></div>`;
+  return `<div class="card wkc"><div class="card-h go" onclick="weekDetail('${dk(m)}')"><div class="card-t">Operation · week ${isoWeek(d)} ›</div><div class="card-r"><b>${wk}</b> / ${wkT} dials</div></div><div class="wk7">${cols}</div><div class="bar" style="margin-top:12px"><i style="width:${clamp((wk / (wkT || 1)) * 100, 0, 100)}%;background:${op.done ? 'linear-gradient(90deg,var(--body2),var(--body))' : 'linear-gradient(90deg,var(--co),var(--co2))'}"></i></div><div class="small muted" style="margin-top:9px">${op.line}</div></div>`;
 }
 /* ───────── one-tap schedule control: cancel or move a block for one day ───────── */
 function findBlock(id, k) { const o = S.days[k], once = o && o.sched && (o.sched.add || []).find((x) => x.id === id); return once ? Object.assign({}, once, { once: true }) : S.schedule.blocks.find((x) => x.id === id); }
@@ -193,7 +193,7 @@ function nextMedalsCard() {
 function vbars(items, opt) {
   opt = opt || {}; const mx = Math.max(1, opt.max || 0, ...items.map((x) => Math.max(x.v || 0, x.t || 0)));
   const every = opt.every || 1;
-  return `<div class="vb" style="height:${opt.h || 150}px">${items.map((x) => { const h = ((x.v || 0) / mx) * 100; return `<div class="c ${x.v ? '' : 'z'}" style="--h:${h.toFixed(1)}%;--t:${(((x.t || 0) / mx) * 100).toFixed(1)}%" title="${esc(x.tip || '')}">${x.top != null && x.v ? `<span class="tv">${x.top}</span>` : ''}${x.t ? '<span class="tg"></span>' : ''}<div class="b ${x.cls || ''}" style="height:${h.toFixed(1)}%"></div></div>`; }).join('')}</div><div class="vbx">${items.map((x, i) => `<span class="${x.today ? 't' : ''}">${i % every === 0 || x.today ? x.l : ''}</span>`).join('')}</div>`;
+  return `<div class="vb" style="height:${opt.h || 150}px">${items.map((x) => { const h = ((x.v || 0) / mx) * 100; return `<div class="c ${x.v ? '' : 'z'} ${x.go ? 'go' : ''}" ${x.go ? `onclick="event.stopPropagation();${x.go}"` : ''} style="--h:${h.toFixed(1)}%;--t:${(((x.t || 0) / mx) * 100).toFixed(1)}%" title="${esc(x.tip || '')}">${x.top != null && x.v ? `<span class="tv">${x.top}</span>` : ''}${x.t ? '<span class="tg"></span>' : ''}<div class="b ${x.cls || ''}" style="height:${h.toFixed(1)}%"></div></div>`; }).join('')}</div><div class="vbx">${items.map((x, i) => `<span class="${x.today ? 't' : ''}">${i % every === 0 || x.today ? x.l : ''}</span>`).join('')}</div>`;
 }
 /* line chart: pts [{x (0..1), v}], optional second series and target */
 function lineChart(o) {

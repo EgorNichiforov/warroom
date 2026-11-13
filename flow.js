@@ -48,7 +48,7 @@ function weightModal(id) {
   const o = day(curDate), last = latestWeight(dk(curDate)), v = o.weight != null && o.weight !== '' ? o.weight : (last ? last.w : 75);
   openModal(`<h2>⚖️ Weigh in</h2><div class="small muted" style="margin:-4px 0 10px">${last ? `last ${fmt(last.w, 1)} kg · ${fmtShort(pd(last.k))}` : 'first entry'} · before food and water</div>
     <div class="weigh-big"><button class="stepbtn" onclick="stepWeight(-0.1)">−</button><input id="w-inp" type="number" inputmode="decimal" step="0.1" value="${Number(v).toFixed(1)}" onkeydown="if(event.key==='Enter')weightSave('${id || ''}')"><span class="unit">kg</span><button class="stepbtn" onclick="stepWeight(0.1)">+</button></div>
-    <button class="btn primary block lg" onclick="weightSave('${id || ''}')">Save</button>`, true);
+    <button class="btn primary block lg" onclick="weightSave('${id || ''}')">Save</button><button class="btn ghost block" style="margin-top:6px" onclick="metricDetail('weight',84)">Weight history &amp; trend ›</button>`, true);
   setTimeout(() => { const i = $('w-inp'); if (i) { i.focus(); i.select(); } }, 80);
 }
 function weightSave(id) {

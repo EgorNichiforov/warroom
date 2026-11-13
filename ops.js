@@ -91,9 +91,10 @@ function records() {
     if (dl) { const w = weekKey(d); wk[w] = (wk[w] || 0) + dl; }
     const ok = (dl || ba) && minimumMet(d).met; if (ok) { run = prev && dk(addDays(pd(prev), 1)) === k ? run + 1 : 1; best = Math.max(best, run); prev = k; } else if (S.days[k]) { run = 0; prev = null; } });
   const bw = Math.max(0, ...Object.values(wk)), on = (k) => (k ? fmtShort(pd(k)) : 'not set yet');
-  return [['Most dials in a day', bd[0], on(bd[1])], ['Most dials in a week', bw, bw ? 'best week' : 'not set yet'], ['Most owner talks in a day', bo[0], on(bo[1])], ['Longest minimum streak', best, best ? 'days in a row' : 'not set yet'], ['Most XP in a day', fmt(bx[0]), on(bx[1])], ['Best day score', bs[0] + '%', on(bs[1])]];
+  const bwk = Object.keys(wk).sort((a, b) => wk[b] - wk[a])[0], dgo = (k, m) => (k ? `dayDetail('${k}')` : `metricDetail('${m}')`);
+  return [['Most dials in a day', bd[0], on(bd[1]), dgo(bd[1], 'dials')], ['Most dials in a week', bw, bw ? 'best week' : 'not set yet', "metricDetail('dials',84)"], ['Most owner talks in a day', bo[0], on(bo[1]), dgo(bo[1], 'owners')], ['Longest minimum streak', best, best ? 'days in a row' : 'not set yet', "metricDetail('score',84)"], ['Most XP in a day', fmt(bx[0]), on(bx[1]), dgo(bx[1], 'xp')], ['Best day score', bs[0] + '%', on(bs[1]), dgo(bs[1], 'score')]];
 }
-function statsRecords() { return `<div class="card"><div class="card-h"><div class="card-t">Records</div><div class="card-r">yours to beat</div></div><div class="recs">${records().map(([l, v, s]) => `<div class="rec"><div class="rv">${v}</div><div class="rl">${l}</div><div class="rs">${s}</div></div>`).join('')}</div></div>`; }
+function statsRecords() { return `<div class="card"><div class="card-h"><div class="card-t">Records</div><div class="card-r">yours to beat</div></div><div class="recs">${records().map(([l, v, s, go]) => `<div class="rec go" onclick="${go}"><div class="rv">${v}</div><div class="rl">${l}</div><div class="rs">${s}</div></div>`).join('')}</div></div>`; }
 
 /* ───────── calls: what happens when you dial (from the call log) ───────── */
 function callLog() { const out = []; try { qItems().forEach((x) => (x.log || []).forEach((e) => out.push(e))); } catch (e) { } return out; }
@@ -105,12 +106,12 @@ function statsCalls() {
   if (n >= 20) { const by = {}; log.forEach((e) => { const h = flHour(e.at); if (h == null) return; by[h] = by[h] || { c: 0, o: 0 }; by[h].c++; if (e.d && e.d.owners) by[h].o++; }); const hs = Object.keys(by).map(Number).sort((a, b) => a - b);
     hours = `<div class="sec-h" style="margin:16px 0 0">Calls by Florida hour · green = an owner picked up</div>${vbars(hs.map((h) => ({ l: h + 'h', v: by[h].c, cls: by[h].o ? 'hit' : 'dim', top: by[h].o ? by[h].o + '★' : '' })), { h: 90 })}`; }
   return `<div class="card"><div class="card-h"><div class="card-t">What happens when you dial</div><div class="card-r">${n} logged call${n === 1 ? '' : 's'}</div></div>
-    ${n ? `<div class="funnel">${kinds.map((k) => `<div class="f"><span class="l">${k}</span><div class="bar">${cnt[k] ? `<i style="width:${(cnt[k] / mx) * 100}%;${k === 'Owner' ? 'background:linear-gradient(90deg,var(--body2),var(--body))' : ''}"></i>` : ''}</div><span class="v">${cnt[k]}</span></div>`).join('')}</div>${hours || `<div class="xs muted" style="margin-top:8px">The by-hour view opens at 20 logged calls (${n} so far).</div>`}` : `<div class="empty" style="padding:26px 0">Nothing logged yet. Every outcome you tap in Dial lands here by itself.</div>`}</div>`;
+    ${n ? `<div class="funnel">${kinds.map((k) => `<div class="f go" onclick="callsDetail('${k}')"><span class="l">${k}</span><div class="bar">${cnt[k] ? `<i style="width:${(cnt[k] / mx) * 100}%;${k === 'Owner' ? 'background:linear-gradient(90deg,var(--body2),var(--body))' : ''}"></i>` : ''}</div><span class="v">${cnt[k]}</span></div>`).join('')}</div>${hours || `<div class="xs muted" style="margin-top:8px">The by-hour view opens at 20 logged calls (${n} so far).</div>`}` : `<div class="empty" style="padding:26px 0">Nothing logged yet. Every outcome you tap in Dial lands here by itself.</div>`}</div>`;
 }
 function statsXp() {
-  const n = Math.min(statsRange, 28), tk = dk(new Date()), items = rangeDays(n).map((d) => ({ l: dow(d) === 1 ? d.getDate() + '.' + pad(d.getMonth() + 1) : '', v: dayXp(dk(d)), cls: '', today: dk(d) === tk }));
+  const n = Math.min(statsRange, 28), tk = dk(new Date()), items = rangeDays(n).map((d) => ({ l: dow(d) === 1 ? d.getDate() + '.' + pad(d.getMonth() + 1) : '', v: dayXp(dk(d)), cls: '', today: dk(d) === tk, go: `dayDetail('${dk(d)}')` }));
   items.forEach((x) => { if (x.today) x.l = 'today'; }); const tot = items.reduce((a, x) => a + x.v, 0), r = rankInfo(), wk = rangeDays(7).reduce((a, d) => a + dayXp(dk(d)), 0), per = wk / 7;
-  return `<div class="card"><div class="card-h"><div class="card-t">XP · by day</div><div class="card-r">${n} days</div></div>
+  return `<div class="card"><div class="card-h go" onclick="metricDetail('xp')"><div class="card-t">XP · by day ›</div><div class="card-r">${n} days</div></div>
     <div class="statline"><div><div class="sub-n">${fmt(tot)}</div><div class="l">XP in ${n} days</div></div><div><div class="sub-n">${fmt(per)}</div><div class="l">a day this week</div></div><div><div class="sub-n">${r.next != null && per > 0 ? Math.ceil(r.toNext / per) + '<small>d</small>' : '—'}</div><div class="l">${r.next != null ? 'to ' + r.nextName : 'top rank'}</div></div></div>${vbars(items, { h: 110 })}</div>`;
 }
 
