@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.9.9';
+const APP_VERSION = '5.9.10';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -182,6 +182,7 @@ function load() {
   if (!S.stakes) S.stakes = {}; if (!S.session) S.session = { _u: 0, active: false };
   migrate();
   migrateHabits();
+  migrateTrain1113();
 }
 /* ───────── money: same categories as the War Room Google Sheet ───────── */
 const MONEY_IN = [['tennis', 'Tennis'], ['agency', 'Agency']];
@@ -278,6 +279,35 @@ function migrateHabits() {
     { id: 'digital', title: '📴 Digital Protocol' }, { id: 'honor', title: '🤝 Honor Check' },
     { id: 'deep', title: '🏗 Deep Work (company)' }];
   S.habits._u = now(); S.migrations.m20261108b = now(); save(true);
+}
+/* 13 Nov 2026: programs synced to the training plan remade on 12 Nov (calendar "OFP" + "🏋️ Train" events).
+   Mon/Wed/Fri = team OFP 15:30 (real gym strength · club room speed · real gym power + upper body).
+   Mon/Wed/Fri 05:30 = light mobility + neck (kept as its own program). Old home programs stay, unscheduled on M/W/F. */
+function migrateTrain1113() {
+  if (S.migrations.m20261113t) return;
+  const t = now(), ex = (n, s, r, note) => ({ n, s, r, note: note || '' });
+  const rules = 'Legs low-volume, never to failure: TT is right after. Add a little weight or one rep every week. Fast reps, power over size, both sides even. If the team does something different, follow the team and keep these rules. 1 L water + electrolytes.';
+  S.programs.ofpMon = { _u: t, name: 'OFP Mon · real gym · strength', note: rules, ex: [
+    ex('Trap-bar deadlift or squat', 3, '5'), ex('Bulgarian split squat', 3, '6 /leg'), ex('Weighted pull-ups', 4, '5'),
+    ex('Dumbbell overhead press', 3, '6'), ex('Farmer carries', 3, '30 m'), ex('Neck curls + extensions', 2, '15') ] };
+  S.programs.ofpWed = { _u: t, name: 'OFP Wed · club room · speed', note: rules, ex: [
+    ex('Sprints', 6, '10–20 m', 'Full rest between.'), ex('Side bounds + broad jumps', 3, '5'), ex('Kettlebell swings (15 kg)', 3, '10', 'Fast.'),
+    ex('Rotational throws, both sides', 3, '6', 'If there is a med ball.'), ex('Back extensions', 2, '12') ] };
+  S.programs.ofpFri = { _u: t, name: 'OFP Fri · real gym · power + upper body', note: rules, ex: [
+    ex('Box jumps', 4, '3'), ex('Front squat, moderate weight, fast reps', 3, '5'), ex('Cable woodchops', 3, '8 /side'),
+    ex('Heavy rows', 4, '6–8'), ex('Incline dumbbell press', 3, '8'), ex('Shrugs + face pulls', 3, '10 + 15', 'Face pulls 2 sets.') ] };
+  S.programs.mobility = { _u: t, name: 'Mobility + neck (05:30, light)', note: '15–20 min, LIGHT: save everything for OFP + TT. Warm-up: foam roll upper back 1 min · 3 world\'s greatest stretch/side · 15 band pull-aparts. Bad day: A only.', ex: [
+    ex('A Mobility: couch stretch · 90/90 hips · open book · sleeper stretch · ankle rocks', 1, '8 min'),
+    ex('B Wrist curls + reverse curls + rotations', 2, '15 each', 'Light dumbbell.'),
+    ex('C Neck nods off the bed edge, face up + face down', 2, '15 each', 'No weight, no jerking.'), ex('D Dead hang', 2, '30–60 s') ] };
+  Object.assign(S.programByDay.map, { 1: 'ofpMon', 3: 'ofpWed', 5: 'ofpFri' }); S.programByDay._u = t;
+  for (const b of S.schedule.blocks) {
+    if (b.kind === 'tennis' && /^OFP/.test(b.title)) { b.title = 'OFP (team)'; b.note = 'Mon: real gym strength · Wed: club room speed · Fri: real gym power + upper body.'; }
+    if (b.kind === 'train' && b.start === '05:30' && b.days.some((d) => [1, 3, 5].includes(d))) b.days = b.days.filter((d) => ![1, 3, 5].includes(d));
+  }
+  S.schedule.blocks = S.schedule.blocks.filter((b) => !(b.kind === 'train' && b.start === '05:30' && !b.days.length));
+  S.schedule.blocks.push({ id: uid(), title: '🏋️ Train: Mobility + neck (light)', start: '05:30', end: '06:00', days: [1, 3, 5], kind: 'train', note: 'Light. The real session is OFP at 15:30.' });
+  S.schedule._u = t; S.migrations.m20261113t = t; save(true);
 }
 let saveTimer = null;
 function save(immediate) {
