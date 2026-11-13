@@ -574,3 +574,8 @@ input::placeholder,textarea::placeholder{color:#7d857d}
 .mact{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px;cursor:pointer}.mact input{width:20px;height:20px;margin-top:1px;flex:none}.mact i{color:var(--muted);font-style:normal}.mact.done span{color:var(--muted)}
 @media (min-width:1000px){.rec-banner{margin:0 24px 12px}}
 .rec-banner .rec-dot{flex:0 0 12px;width:12px;height:12px}.rec-banner .spin{flex:0 0 14px}
+.rec-banner.paused,.rec-big.paused{opacity:1}.rec-banner.paused .rec-dot,.rec-big.paused .rec-dot{animation:none;background:#8a928a}.rec-banner.paused{background:#17191a;border-color:var(--line2,rgba(255,255,255,.18))}
+.scr-cats{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:13px;color:var(--sub)}.scr-cats i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:0}
+.scr-app{display:grid;grid-template-columns:minmax(90px,1.2fr) 2fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}.scr-app .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.scr-app .bar{height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}.scr-app .bar i{display:block;height:100%;border-radius:4px}.scr-app .v{color:var(--sub);font-variant-numeric:tabular-nums}
+.sub-n.bad{color:var(--bad)}
+.chip.static,.tile.static{cursor:default}

@@ -19,11 +19,13 @@ import java.io.File;
 
 /** Records the microphone in a foreground service, so it keeps going with the screen off or another app open. */
 public class RecorderService extends Service {
-    public static final String ACTION_START = "wr.rec.START", ACTION_STOP = "wr.rec.STOP";
+    public static final String ACTION_START = "wr.rec.START", ACTION_STOP = "wr.rec.STOP", ACTION_PAUSE = "wr.rec.PAUSE", ACTION_RESUME = "wr.rec.RESUME";
     static final String CH = "wr_rec", PREFS = "wr_rec";
     static final int NID = 4711;
     static volatile boolean recording = false;
-    static volatile long startedAt = 0;
+    static volatile long startedAt = 0, pausedAt = 0, pausedTotal = 0;
+    static volatile boolean paused = false;
+    static long elapsed() { long now = System.currentTimeMillis(); return Math.max(0, (paused ? pausedAt : now) - startedAt - pausedTotal); }
     static volatile String path = null, title = "";
     private MediaRecorder rec;
     private PowerManager.WakeLock wl;
@@ -34,10 +36,12 @@ public class RecorderService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         String a = intent != null ? intent.getAction() : null;
         if (ACTION_STOP.equals(a)) { finish(); return START_NOT_STICKY; }
+        if (ACTION_PAUSE.equals(a) && recording && !paused) { try { rec.pause(); paused = true; pausedAt = System.currentTimeMillis(); refresh(); } catch (Exception ignored) { } return START_NOT_STICKY; }
+        if (ACTION_RESUME.equals(a) && recording && paused) { try { rec.resume(); pausedTotal += System.currentTimeMillis() - pausedAt; paused = false; refresh(); } catch (Exception ignored) { } return START_NOT_STICKY; }
         if (ACTION_START.equals(a) && !recording) {
             title = intent.getStringExtra("title"); if (title == null) title = "";
             File dir = new File(getFilesDir(), "recordings"); dir.mkdirs();
-            startedAt = System.currentTimeMillis();
+            startedAt = System.currentTimeMillis(); pausedAt = 0; pausedTotal = 0; paused = false;
             path = new File(dir, "rec-" + startedAt + ".m4a").getAbsolutePath();
             Notification n = note();
             if (Build.VERSION.SDK_INT >= 30) ServiceCompat.startForeground(this, NID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
@@ -69,7 +73,7 @@ public class RecorderService extends Service {
     private SharedPreferences prefs() { return getSharedPreferences(PREFS, MODE_PRIVATE); }
 
     private void finish() {
-        long dur = System.currentTimeMillis() - startedAt;
+        long dur = elapsed();
         try { if (rec != null) { rec.stop(); } } catch (Exception ignored) { }
         try { if (rec != null) rec.release(); } catch (Exception ignored) { }
         rec = null;
@@ -78,12 +82,14 @@ public class RecorderService extends Service {
             // the finished file waits here until the app picks it up
             prefs().edit().putBoolean("active", false).putString("pending", path).putLong("pendingDur", dur).putLong("pendingAt", startedAt).putString("pendingTitle", title).apply();
         }
-        recording = false;
+        recording = false; paused = false;
         stopForeground(true);
         stopSelf();
     }
 
     @Override public void onDestroy() { if (recording) finish(); super.onDestroy(); }
+
+    private void refresh() { ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).notify(NID, note()); }
 
     private Notification note() {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -95,16 +101,20 @@ public class RecorderService extends Service {
         int fl = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
         Intent stop = new Intent(this, RecorderService.class).setAction(ACTION_STOP);
         PendingIntent pStop = PendingIntent.getService(this, 1, stop, fl);
+        Intent pr = new Intent(this, RecorderService.class).setAction(paused ? ACTION_RESUME : ACTION_PAUSE);
+        PendingIntent pPr = PendingIntent.getService(this, 3, pr, fl);
         Intent open = new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra("wr_open", "rec");
         PendingIntent pOpen = PendingIntent.getActivity(this, 2, open, fl);
         return new NotificationCompat.Builder(this, CH)
             .setSmallIcon(R.drawable.ic_stat_wr)
-            .setContentTitle("War Room is recording")
+            .setContentTitle(paused ? "Recording paused" : "War Room is recording")
             .setContentText(title.isEmpty() ? "Tap Stop when the conversation ends" : title)
             .setOngoing(true)
-            .setUsesChronometer(true)
-            .setWhen(startedAt)
+            .setUsesChronometer(!paused)
+            .setShowWhen(!paused)
+            .setWhen(System.currentTimeMillis() - elapsed())
             .setContentIntent(pOpen)
+            .addAction(0, paused ? "Resume" : "Pause", pPr)
             .addAction(0, "Stop & summarize", pStop)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build();

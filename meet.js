@@ -6,10 +6,11 @@
 
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 /* Talk to the native plugin through the bridge Capacitor injects into the page (no build step needed on the web side). */
-const WRN = NATIVE && window.Capacitor.nativePromise ? ['start', 'stop', 'status', 'ack', 'read', 'remove', 'list', 'keepAwake', 'info', 'takeLaunch'].reduce((o, m) => { o[m] = (a) => window.Capacitor.nativePromise('WrNative', m, a || {}); return o; }, { addListener: (ev, cb) => window.Capacitor.addListener('WrNative', ev, cb) }) : null;
-let recState = { on: false, startedAt: 0, title: '', web: null, chunks: [], busy: false, step: '', err: '', pending: null };
+const WRN = NATIVE && window.Capacitor.nativePromise ? ['start', 'stop', 'pause', 'resume', 'usage', 'usageAccess', 'openUsageSettings', 'status', 'ack', 'read', 'remove', 'list', 'keepAwake', 'info', 'takeLaunch'].reduce((o, m) => { o[m] = (a) => window.Capacitor.nativePromise('WrNative', m, a || {}); return o; }, { addListener: (ev, cb) => window.Capacitor.addListener('WrNative', ev, cb) }) : null;
+let recState = { on: false, paused: false, pausedAt: 0, pausedTotal: 0, nativeElapsed: null, nativeAt: 0, startedAt: 0, title: '', web: null, chunks: [], busy: false, step: '', err: '', pending: null };
 let recTick = null;
 
+function recElapsed() { if (recState.nativeElapsed != null) return recState.nativeElapsed + (recState.paused ? 0 : now() - recState.nativeAt); return Math.max(0, (recState.paused ? recState.pausedAt : now()) - recState.startedAt - recState.pausedTotal); }
 function meetList() { return Object.values(S.meetings || {}).filter((m) => !m._del).sort((a, b) => b.at - a.at); }
 function fmtDur(ms) { const s = Math.round((ms || 0) / 1000), m = Math.floor(s / 60); return m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : m ? `${m} min ${pad(s % 60)} s` : `${s} s`; }
 
@@ -30,7 +31,7 @@ async function recStart() {
   try {
     if (WRN) {
       const st = await WRN.start({ title });
-      recState = Object.assign(recState, { on: !!st.recording, startedAt: st.startedAt || now(), title, err: '' });
+      recState = Object.assign(recState, { on: !!st.recording, startedAt: st.startedAt || now(), title, err: '', paused: false, nativeElapsed: 0, nativeAt: now() });
     } else {
       if (!navigator.mediaDevices || !window.MediaRecorder) throw new Error('This browser cannot record audio. Use Import instead.');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
@@ -38,7 +39,7 @@ async function recStart() {
       const mr = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : undefined);
       recState.chunks = []; mr.ondataavailable = (e) => { if (e.data && e.data.size) recState.chunks.push(e.data); };
       mr.start(5000); try { await navigator.wakeLock.request('screen').then((w) => { recState.wake = w; }); } catch (e) { }
-      recState = Object.assign(recState, { on: true, startedAt: now(), title, web: mr, err: '' });
+      recState = Object.assign(recState, { on: true, startedAt: now(), title, web: mr, err: '', paused: false, pausedAt: 0, pausedTotal: 0, nativeElapsed: null });
     }
     closeModal(); recTicker(); render(); toast('Recording');
   } catch (e) { toast(String(e.message || e).slice(0, 140)); }
@@ -49,7 +50,7 @@ async function recStop() {
     if (WRN) {
       await WRN.stop(); recState.on = false; recTicker(); await recCheckPending(true);
     } else if (recState.web) {
-      const mr = recState.web, dur = now() - recState.startedAt;
+      const mr = recState.web, dur = recElapsed();
       await new Promise((res) => { mr.onstop = res; mr.stop(); });
       mr.stream.getTracks().forEach((t) => t.stop()); try { recState.wake && recState.wake.release(); } catch (e) { }
       const blob = new Blob(recState.chunks, { type: mr.mimeType || 'audio/webm' }); recState.chunks = []; recState.web = null; recState.on = false; recTicker();
@@ -58,14 +59,26 @@ async function recStop() {
   } catch (e) { toast('Stop failed: ' + String(e.message || e).slice(0, 120)); }
   render();
 }
-function recOpen() {
-  openModal(`<h2>Recording</h2><div class="rec-big"><span class="rec-dot"></span><b id="rec-clock">${fmtDur(now() - recState.startedAt)}</b></div>${recState.title ? `<div class="small muted" style="text-align:center;margin-bottom:12px">${esc(recState.title)}</div>` : ''}
-    <button class="btn primary block" onclick="closeModal();recStop()">■ Stop &amp; summarize</button>
-    <div class="xs muted" style="margin-top:10px;text-align:center">${NATIVE ? 'You can lock the phone. It keeps recording.' : 'Keep this page open while recording.'}</div>`, true);
+async function recPause() {
+  if (!recState.on || recState.paused) return;
+  try { if (WRN) { const st = await WRN.pause(); recSyncNative(st); } else if (recState.web) { recState.web.pause(); recState.paused = true; recState.pausedAt = now(); } } catch (e) { toast('Pause failed'); }
+  recRefreshUi(); toast('Paused. Nothing is recorded until you resume.');
 }
-function recTicker() { clearInterval(recTick); if (!recState.on) return; recTick = setInterval(() => { const el = $('rec-clock'); if (el) el.textContent = fmtDur(now() - recState.startedAt); const b = $('rec-banner-t'); if (b) b.textContent = fmtDur(now() - recState.startedAt); }, 1000); }
+async function recResume() {
+  if (!recState.on || !recState.paused) return;
+  try { if (WRN) { const st = await WRN.resume(); recSyncNative(st); } else if (recState.web) { recState.web.resume(); recState.pausedTotal += now() - recState.pausedAt; recState.paused = false; } } catch (e) { toast('Resume failed'); }
+  recRefreshUi(); toast('Recording again');
+}
+function recSyncNative(st) { if (!st) return; recState.on = !!st.recording; recState.paused = !!st.paused; recState.nativeElapsed = Number(st.elapsed) || 0; recState.nativeAt = now(); }
+function recRefreshUi() { render(); if ($('rec-clock')) recOpen(); }
+function recOpen() {
+  openModal(`<h2>${recState.paused ? 'Paused' : 'Recording'}</h2><div class="rec-big ${recState.paused ? 'paused' : ''}"><span class="rec-dot"></span><b id="rec-clock">${fmtDur(recElapsed())}</b></div>${recState.title ? `<div class="small muted" style="text-align:center;margin-bottom:12px">${esc(recState.title)}</div>` : ''}
+    <div class="row" style="gap:8px"><button class="btn lg grow" onclick="${recState.paused ? 'recResume()' : 'recPause()'}">${recState.paused ? '● Resume' : '❚❚ Pause'}</button><button class="btn primary lg grow" onclick="closeModal();recStop()">■ Stop &amp; summarize</button></div>
+    <div class="xs muted" style="margin-top:10px;text-align:center">${NATIVE ? 'You can lock the phone. It keeps recording. Pause and resume from here or from the notification.' : 'Keep this page open while recording.'}</div>`, true);
+}
+function recTicker() { clearInterval(recTick); if (!recState.on) return; let n = 0; recTick = setInterval(() => { const t = fmtDur(recElapsed()), el = $('rec-clock'); if (el) el.textContent = t; const b = $('rec-banner-t'); if (b) b.textContent = t; if (WRN && ++n % 4 === 0) WRN.status().then((st) => { const was = recState.paused; recSyncNative(st); if (!st.recording) { recTicker(); recCheckPending(false); } else if (was !== recState.paused) recRefreshUi(); }).catch(() => { }); }, 1000); }
 function recBanner() {
-  if (recState.on) return `<div class="rec-banner" onclick="recOpen()"><span class="rec-dot"></span><b>Recording</b> <span id="rec-banner-t">${fmtDur(now() - recState.startedAt)}</span><button class="btn sm" onclick="event.stopPropagation();recStop()">Stop</button></div>`;
+  if (recState.on) return `<div class="rec-banner ${recState.paused ? 'paused' : ''}" onclick="recOpen()"><span class="rec-dot"></span><b>${recState.paused ? 'Paused' : 'Recording'}</b> <span id="rec-banner-t">${fmtDur(recElapsed())}</span><button class="btn sm" onclick="event.stopPropagation();${recState.paused ? 'recResume()' : 'recPause()'}">${recState.paused ? 'Resume' : 'Pause'}</button><button class="btn sm" onclick="event.stopPropagation();recStop()">Stop</button></div>`;
   if (recState.busy) return `<div class="rec-banner busy"><span class="spin"></span><b>Summarizing</b> <span>${esc(recState.step)}</span></div>`;
   if (recState.pending && !recState.busy) return `<div class="rec-banner warn" onclick="recCheckPending(true)"><b>A recording is waiting</b><span>${recState.err ? esc(recState.err.slice(0, 60)) : 'tap to summarize'}</span></div>`;
   return '';
@@ -75,7 +88,7 @@ async function recCheckPending(go) {
   if (!WRN) return;
   try {
     const st = await WRN.status();
-    if (st.recording) { if (!recState.on) { recState.on = true; recState.startedAt = st.startedAt; recState.title = st.title || ''; recTicker(); render(); } return; }
+    if (st.recording) { const was = recState.on; recState.startedAt = st.startedAt; recState.title = st.title || recState.title; recSyncNative(st); if (!was) { recTicker(); } render(); return; }
     if (recState.on) { recState.on = false; recTicker(); }
     recState.pending = st.pending || null;
     if (st.pending && (go || aiOn()) && !recState.busy) await meetProcess({ native: st.pending, mime: st.pending.mime || 'audio/mp4', dur: st.pending.durMs, at: st.pending.at || now(), title: st.pending.title || '' });
@@ -214,8 +227,8 @@ async function nativeBoot() {
   if (!WRN) return;
   document.documentElement.classList.add('native');
   try { WRN.addListener('shared', () => recCheckPending(true)); WRN.addListener('launch', () => nativeLaunch()); } catch (e) { }
-  try { window.Capacitor.addListener('App', 'resume', () => { recCheckPending(false); nativeLaunch(); }); } catch (e) { }
-  await recCheckPending(false); nativeLaunch();
+  try { window.Capacitor.addListener('App', 'resume', () => { recCheckPending(false); nativeLaunch(); scrPull(true); }); } catch (e) { }
+  await recCheckPending(false); nativeLaunch(); scrPull(true);
   setInterval(nativeAwake, 5000); nativeAwake();
 }
 async function nativeLaunch() {

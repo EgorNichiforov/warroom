@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.7.1';
+const APP_VERSION = '5.8.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -328,16 +328,16 @@ function sec(id, title, right, body, open) { const isOpen = secOpen[id] != null 
 
 function weighCard(o, k, d) {
   const last = latestWeight(k), avg7 = avgWeight(7, k), prev7 = avgWeight(7, dk(addDays(d, -7)));
-  if (o.weighEdit || (o.weight == null && !o.weightSkipped && phaseFor(d) === 'morning')) {
+  if (o.weighEdit) {
     const start = o.weight != null && o.weight !== '' ? o.weight : (last ? last.w : 75);
     return `<div class="card ac"><div class="card-h"><div class="card-t">⚖️ Morning weigh-in</div><div class="card-r">${last ? `last <b>${fmt(last.w, 1)}</b> · ${fmtShort(pd(last.k))}` : 'first entry'}</div></div>
       <div class="weigh-big"><button class="stepbtn" onclick="stepWeight(-0.1)">−</button><input id="w-inp" type="number" inputmode="decimal" step="0.1" value="${Number(start).toFixed(1)}" onkeydown="if(event.key==='Enter')saveWeight()"><span class="unit">kg</span><button class="stepbtn" onclick="stepWeight(0.1)">+</button></div>
       <div class="weigh-stats"><span>7-day avg <b>${avg7 ? fmt(avg7, 1) : '—'}</b></span><span>target <b>${S.settings.weightTarget}</b></span><span>to go <b>${avg7 ? fmt(S.settings.weightTarget - avg7, 1) : (last ? fmt(S.settings.weightTarget - last.w, 1) : '—')}</b> kg</span><span>🔥 <b>${streakWeigh()}</b>d</span></div>
       <div class="row"><button class="btn primary grow" onclick="saveWeight()">Save weight</button>${o.weighEdit ? `<button class="btn ghost" onclick="cancelWeight()">Cancel</button>` : `<button class="btn ghost" onclick="skipWeight()">Skip</button>`}</div></div>`;
   }
-  if (o.weight == null || o.weight === '') return `<div class="card warn" onclick="editWeight()" style="cursor:pointer;padding:10px 16px"><div class="row sb"><div class="small"><b class="amber">No weigh-in</b> <span class="muted">· tap to add</span></div><div class="dim">✎</div></div></div>`;
+  if (o.weight == null || o.weight === '') return `<div class="card warn" onclick="weightModal()" style="cursor:pointer;padding:10px 16px"><div class="row sb"><div class="small"><b class="amber">No weigh-in</b> <span class="muted">· tap to add</span></div><div class="dim">✎</div></div></div>`;
   const diff = avg7 && prev7 ? avg7 - prev7 : null;
-  return `<div class="card" onclick="editWeight()" style="cursor:pointer;padding:12px 16px"><div class="weigh-compact"><div class="val">${fmt(o.weight, 1)}<small>kg</small></div><div class="grow small muted">7-day avg <b class="acc">${avg7 ? fmt(avg7, 1) : '—'}</b>${diff != null ? ` · <span class="${diff >= 0 ? 'ok' : 'bad'}">${diff >= 0 ? '+' : ''}${fmt(diff, 1)}</span> vs last week` : ''}<br>${fmt(S.settings.weightTarget - (avg7 || o.weight), 1)} kg to ${S.settings.weightTarget} · 🔥 ${streakWeigh()}-day streak</div><div class="dim">✎</div></div></div>`;
+  return `<div class="card" onclick="weightModal()" style="cursor:pointer;padding:12px 16px"><div class="weigh-compact"><div class="val">${fmt(o.weight, 1)}<small>kg</small></div><div class="grow small muted">7-day avg <b class="acc">${avg7 ? fmt(avg7, 1) : '—'}</b>${diff != null ? ` · <span class="${diff >= 0 ? 'ok' : 'bad'}">${diff >= 0 ? '+' : ''}${fmt(diff, 1)}</span> vs last week` : ''}<br>${fmt(S.settings.weightTarget - (avg7 || o.weight), 1)} kg to ${S.settings.weightTarget} · 🔥 ${streakWeigh()}-day streak</div><div class="dim">✎</div></div></div>`;
 }
 function stepWeight(s) { const i = $('w-inp'); i.value = (Number(i.value || 0) + s).toFixed(1); }
 function saveWeight() { const v = num($('w-inp').value); if (v == null || v < 30 || v > 200) { toast('Enter a weight between 30 and 200 kg'); return; } const o = day(curDate); o.weight = Math.round(v * 10) / 10; delete o.weighEdit; delete o.weightSkipped; S.routines.morning.filter((r) => r.link === 'weight').forEach((r) => (o.routine[r.id] = 1)); touch(o); toast('Saved · ' + fmt(v, 1) + ' kg. Next: train.'); render(); }
@@ -348,8 +348,8 @@ function focusMorning(o, d) {
   const items = routineFor(S.routines.morning, d); const idx = items.findIndex((r) => !rState(o, r.id)); if (idx < 0) return '';
   const cur = items[idx], next = items[idx + 1]; const nm = nowMin(); const blk = blocksFor(d).find((b) => tmin(b.start) <= nm && nm < tmin(b.end));
   return `<div class="card ac focus"><div class="card-h"><div class="card-t">Step ${idx + 1} of ${items.length}</div><div class="card-r">${blk ? `now: ${esc(blk.title)} · until ${blk.end}` : ''}</div></div>
-    <div class="focus-t">${esc(cur.title)}</div>
-    <div class="row" style="margin-top:12px;gap:8px"><button class="btn primary lg grow" onclick="toggleRoutine('${cur.id}')">Done ✓</button><button class="btn lg" onclick="skipRoutine('${cur.id}')">Skip</button></div>
+    <div class="focus-t">${esc(cur.title)}</div>${stepHint(cur) ? `<div class="small muted" style="margin-top:4px">One tap ${stepHint(cur)} and ticks the step.</div>` : ''}
+    <div class="row" style="margin-top:12px;gap:8px"><button class="btn primary lg grow" onclick="routineDo('${cur.id}')">${{ weight: 'Enter weight', train: 'Done ✓', meal: 'Ate it ✓', bac: 'Log minutes', dials: 'Confirm numbers' }[stepKind(cur)] || 'Done ✓'}</button><button class="btn lg" onclick="skipRoutine('${cur.id}')">Skip</button></div>
     <div class="row sb small muted" style="margin-top:10px"><span>${next ? `Next: <b>${esc(next.title)}</b>` : 'Last step. Then out the door.'}</span><a href="#" class="xs dim" onclick="skipRestOfMorning();return false">overslept · skip the rest</a></div></div>`;
 }
 function paceNeed(c, d) { const w = dow(d); const rem = ALL.filter((x) => x >= w && (c.targets[x] || 0) > 0).length; if (!rem || !c.weekly) return null; return Math.ceil(Math.max(0, c.weekly - counterWeek(c.id, d)) / rem); }
@@ -361,7 +361,7 @@ function shutdownCard(o, d) {
 function oneChangeBanner(d) { const prev = S.reviews[weekKey(addDays(monday(d), -7))]; if (!prev || !prev.change) return ''; return `<div class="card" style="padding:10px 16px;border-color:rgba(169,140,255,.4)"><div class="xs purple" style="letter-spacing:.1em;text-transform:uppercase;font-weight:700">This week's one change</div><div class="small">${esc(prev.change)}</div></div>`; }
 function routineCard(key, d, o, open) {
   const items = routineFor(S.routines[key], d); if (!items.length) return ''; const done = items.filter((r) => rState(o, r.id) === 'done').length, skipped = items.filter((r) => rState(o, r.id) === 'skip').length; const curIdx = items.findIndex((r) => !rState(o, r.id));
-  return sec(key, `${key} routine`, `<b>${done}</b>/${items.length - skipped}${skipped ? ` <span class="dim">· ${skipped} skipped</span>` : ''} ${done === items.length - skipped ? '✓' : ''}`, items.map((r, i) => { const st = rState(o, r.id); return `<div class="ck ${st === 'done' ? 'on' : ''} ${st === 'skip' ? 'done' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}"><div class="box ${st === 'skip' ? 'round' : ''}" onclick="toggleRoutine('${r.id}')">${st === 'done' ? '✓' : st === 'skip' ? '–' : ''}</div><div class="lbl" onclick="toggleRoutine('${r.id}')">${esc(r.title)}${st === 'skip' ? `<span class="sub">skipped${rSkipReason(o, r.id) ? ' · ' + esc(rSkipReason(o, r.id)) : ''}</span>` : ''}</div>${st ? '' : `<button class="edit" title="Skip" onclick="skipRoutine('${r.id}')">↷</button>`}</div>`; }).join(''), open);
+  return sec(key, `${key} routine`, `<b>${done}</b>/${items.length - skipped}${skipped ? ` <span class="dim">· ${skipped} skipped</span>` : ''} ${done === items.length - skipped ? '✓' : ''}`, items.map((r, i) => { const st = rState(o, r.id); return `<div class="ck ${st === 'done' ? 'on' : ''} ${st === 'skip' ? 'done' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}" onclick="routineDo('${r.id}')"><div class="box ${st === 'skip' ? 'round' : ''}">${st === 'done' ? '✓' : st === 'skip' ? '–' : ''}</div><div class="lbl">${esc(r.title)}${!st && stepHint(r) ? `<span class="sub">${stepHint(r)}</span>` : ''}${st === 'skip' ? `<span class="sub">skipped${rSkipReason(o, r.id) ? ' · ' + esc(rSkipReason(o, r.id)) : ''}</span>` : ''}</div>${st ? '' : `<button class="edit" title="Skip" onclick="event.stopPropagation();skipRoutine('${r.id}')">↷</button>`}</div>`; }).join(''), open);
 }
 function scoreboardCard(o, d) {
   const w = dow(d); const cs = S.counters.items.filter((c) => !['dials', 'owners'].includes(c.id)).filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners'); if (!cs.length) return '';

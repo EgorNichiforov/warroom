@@ -13,7 +13,7 @@ function ordersFor(d) {
   else L.push({ id: 'deep', icon: 'bolt', t: `${deepT} min deep work`, v: deep, of: deepT, u: ' min', xp: 60, go: "startTimer('deep',50)" });
   L.push({ id: 'bac', icon: 'timer', t: `Study ${bt} min`, v: bac, of: bt, u: ' min', xp: 40, go: "startTimer('bac',25)" });
   L.push({ id: 'train', icon: 'train', t: 'Train', v: trained ? 1 : 0, of: 1, xp: 40, go: "show('train')" });
-  L.push({ id: 'weigh', icon: 'scale', t: 'Weigh in', v: weighed ? 1 : 0, of: 1, xp: 20, go: 'goToday();editWeight()' });
+  L.push({ id: 'weigh', icon: 'scale', t: 'Weigh in', v: weighed ? 1 : 0, of: 1, xp: 20, go: 'goToday();weightModal()' });
   L.push({ id: 'fuel', icon: 'food', t: `Eat ${tt.p} g protein`, v: Math.round(ft.p), of: tt.p, u: ' g', xp: 40, go: 'foodSnap()' });
   L.forEach((x) => (x.done = x.v >= x.of));
   return L;
@@ -40,7 +40,7 @@ function weekReportCard(d) {
   return `<div class="card"><div class="card-h"><div class="card-t">Week report · ${fmtShort(m)} – ${fmtShort(days[6])}</div><div class="card-r">from what you logged</div></div><div class="recs">
     ${R(dials, 'dials', 'target ' + wkT, hit(dials, wkT))}${R(owners, 'owner conversations', dials ? '1 per ' + Math.round(dials / Math.max(1, owners)) + ' dials' : 'no dials')}${R((bac / 60).toFixed(1) + 'h', 'BAC study', bT ? 'target ' + (bT / 60).toFixed(1) + 'h' : '', hit(bac, bT))}${R(deep + 'm', 'deep work', 'company')}
     ${R(tr, 'training days', 'target 6', hit(tr, 6))}${R(sc + '%', 'average day score', logged.length + ' days logged')}${R(wE && wS ? (wE - wS >= 0 ? '+' : '') + fmt(wE - wS, 1) : '—', 'kg vs last week', wE ? '7-day avg ' + fmt(wE, 1) : 'no weigh-ins')}${R(fd.length ? fmt(kc) : '—', 'kcal a day', fd.length ? Math.round(pr) + ' g protein · ' + fd.length + ' days' : 'no meals logged', fd.length ? hit(kc, tt.kcal * 0.9) : '')}
-    ${R('+' + fmt(xp), 'XP earned', rankInfo().name)}${R(fmt(inc - sp), 'net ' + S.settings.currency, `made ${fmt(inc)} · spent ${fmt(sp)}`)}</div>
+    ${R('+' + fmt(xp), 'XP earned', rankInfo().name)}${R(fmt(inc - sp), 'net ' + S.settings.currency, `made ${fmt(inc)} · spent ${fmt(sp)}`)}${(() => { const w = scrWeek(m); return w.avg != null ? R(hm(w.avg), 'screen a day', 'distracting ' + hm(w.dist) + '/day', w.dist > 90 ? 'bad' : '') : ''; })()}</div>
     <div class="hint" style="margin-top:12px"><b>Biggest gap this week:</b> ${miss[0] >= 1 ? 'none. Every tracked target was met.' : miss[1] + '. Start the review there.'}</div></div>`;
 }
 

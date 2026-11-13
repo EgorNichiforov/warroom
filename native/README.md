@@ -8,6 +8,8 @@ Native powers (plugin `WrNative`, `android/app/src/main/java/com/egornichiforov/
   Stop from the app or the notification; the file waits until the app summarizes it (meet.js).
 - "Share → Summarize in War Room" for audio/video files from other apps (e.g. the Recorder app).
 - Home-screen shortcuts: Record a conversation · Start dialing · Log a meal.
+- Pause / resume a recording (in the app or from the notification).
+- Screen time: reads Android usage access (same data as Digital Wellbeing) → daily per-app totals (screen.js).
 - Keeps the screen on during a dial session.
 
 Build: `npm i && npx cap sync android && cd android && ./gradlew assembleRelease`

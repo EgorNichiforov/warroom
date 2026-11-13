@@ -1,6 +1,15 @@
 package com.egornichiforov.warroom;
 
 import android.Manifest;
+import android.app.AppOpsManager;
+import android.app.usage.UsageEvents;
+import android.app.usage.UsageStatsManager;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.provider.Settings;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -110,10 +119,20 @@ public class WrNativePlugin extends Plugin {
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> call.resolve(status()), 900);
     }
 
+    @PluginMethod
+    public void pause(PluginCall call) { send(RecorderService.ACTION_PAUSE); new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> call.resolve(status()), 250); }
+
+    @PluginMethod
+    public void resume(PluginCall call) { send(RecorderService.ACTION_RESUME); new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> call.resolve(status()), 250); }
+
+    private void send(String action) { if (RecorderService.recording) getContext().startService(new Intent(getContext(), RecorderService.class).setAction(action)); }
+
     private JSObject status() {
         SharedPreferences p = prefs(); JSObject o = new JSObject();
         o.put("recording", RecorderService.recording);
         o.put("startedAt", RecorderService.recording ? RecorderService.startedAt : 0);
+        o.put("paused", RecorderService.recording && RecorderService.paused);
+        o.put("elapsed", RecorderService.recording ? RecorderService.elapsed() : 0);
         o.put("title", RecorderService.recording ? RecorderService.title : "");
         String pend = p.getString("pending", null);
         if (pend != null && new File(pend).exists()) {
@@ -167,4 +186,80 @@ public class WrNativePlugin extends Plugin {
 
     @PluginMethod
     public void info(PluginCall call) { JSObject o = new JSObject(); o.put("sdk", Build.VERSION.SDK_INT); o.put("model", Build.MANUFACTURER + " " + Build.MODEL); o.put("version", "1.0"); call.resolve(o); }
+
+    /* ───────── screen time (Android usage access) ───────── */
+    private boolean usageAllowed() {
+        AppOpsManager ops = (AppOpsManager) getContext().getSystemService(Context.APP_OPS_SERVICE);
+        int mode = Build.VERSION.SDK_INT >= 29 ? ops.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getContext().getPackageName())
+            : ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getContext().getPackageName());
+        return mode == AppOpsManager.MODE_ALLOWED;
+    }
+
+    @PluginMethod
+    public void usageAccess(PluginCall call) { JSObject o = new JSObject(); o.put("allowed", usageAllowed()); call.resolve(o); }
+
+    @PluginMethod
+    public void openUsageSettings(PluginCall call) {
+        Intent i = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try { getContext().startActivity(i); } catch (Exception e) { getContext().startActivity(new Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); }
+        call.resolve();
+    }
+
+    /** Foreground time per app per day, from the same events Digital Wellbeing uses. days = how many days back (incl. today). */
+    @PluginMethod
+    public void usage(PluginCall call) {
+        if (!usageAllowed()) { call.reject("NO_ACCESS"); return; }
+        int days = Math.max(1, Math.min(30, call.getInt("days", 8)));
+        UsageStatsManager um = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
+        PackageManager pm = getContext().getPackageManager();
+        String self = getContext().getPackageName();
+        Map<String, String> labels = new HashMap<>();
+        JSArray out = new JSArray();
+        Calendar c = Calendar.getInstance(); c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0); c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        long todayStart = c.getTimeInMillis();
+        for (int d = days - 1; d >= 0; d--) {
+            Calendar s0 = Calendar.getInstance(); s0.setTimeInMillis(todayStart); s0.add(Calendar.DAY_OF_YEAR, -d);
+            Calendar e0 = (Calendar) s0.clone(); e0.add(Calendar.DAY_OF_YEAR, 1);
+            long start = s0.getTimeInMillis(), end = Math.min(e0.getTimeInMillis(), System.currentTimeMillis());
+            // look back 3 h so an app already open at midnight is counted from midnight
+            UsageEvents ev = um.queryEvents(start - 3 * 3600 * 1000L, end);
+            Map<String, Long> fg = new HashMap<>(), open = new HashMap<>();
+            int unlocks = 0; String cur = null;
+            UsageEvents.Event e = new UsageEvents.Event();
+            while (ev.hasNextEvent()) {
+                ev.getNextEvent(e);
+                long t = e.getTimeStamp(); String pk = e.getPackageName(); int ty = e.getEventType();
+                if (ty == 1) { // ACTIVITY_RESUMED
+                    if (cur != null && open.containsKey(cur) && !cur.equals(pk)) { add(fg, cur, Math.max(start, open.get(cur)), Math.min(t, end)); open.remove(cur); }
+                    open.put(pk, t); cur = pk;
+                } else if (ty == 2 || ty == 23) { // ACTIVITY_PAUSED / STOPPED
+                    if (open.containsKey(pk)) { add(fg, pk, Math.max(start, open.get(pk)), Math.min(t, end)); open.remove(pk); }
+                    if (pk.equals(cur)) cur = null;
+                } else if (ty == 16 || ty == 26) { // SCREEN_NON_INTERACTIVE / DEVICE_SHUTDOWN: everything stops
+                    for (Map.Entry<String, Long> x : open.entrySet()) add(fg, x.getKey(), Math.max(start, x.getValue()), Math.min(t, end));
+                    open.clear(); cur = null;
+                } else if (ty == 18 && t >= start) unlocks++; // KEYGUARD_HIDDEN = phone unlocked
+            }
+            if (d == 0) for (Map.Entry<String, Long> x : open.entrySet()) add(fg, x.getKey(), Math.max(start, x.getValue()), end);
+            JSObject day = new JSObject(); JSArray apps = new JSArray(); long total = 0;
+            for (Map.Entry<String, Long> x : fg.entrySet()) {
+                long ms = x.getValue(); if (ms < 30000) continue;
+                String pk = x.getKey(); if (isLauncher(pm, pk)) continue;
+                String lb = labels.get(pk);
+                if (lb == null) { try { ApplicationInfo ai = pm.getApplicationInfo(pk, 0); lb = String.valueOf(pm.getApplicationLabel(ai)); } catch (Exception ex) { lb = pk; } labels.put(pk, lb); }
+                JSObject a = new JSObject(); a.put("pkg", pk); a.put("name", lb); a.put("ms", ms); a.put("self", pk.equals(self)); apps.put(a); total += ms;
+            }
+            day.put("start", start); day.put("total", total); day.put("unlocks", unlocks); day.put("apps", apps); day.put("partial", d == 0);
+            out.put(day);
+        }
+        JSObject o = new JSObject(); o.put("days", out); call.resolve(o);
+    }
+    private static void add(Map<String, Long> m, String k, long a, long b) { if (b > a) m.put(k, (m.containsKey(k) ? m.get(k) : 0L) + (b - a)); }
+    private Map<String, Boolean> launcherCache = new HashMap<>();
+    private boolean isLauncher(PackageManager pm, String pk) {
+        Boolean b = launcherCache.get(pk); if (b != null) return b;
+        Intent i = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
+        boolean r = false; for (android.content.pm.ResolveInfo ri : pm.queryIntentActivities(i, 0)) if (ri.activityInfo != null && pk.equals(ri.activityInfo.packageName)) r = true;
+        r = r || pk.equals("com.android.systemui"); launcherCache.put(pk, r); return r;
+    }
 }

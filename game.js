@@ -73,22 +73,32 @@ function ringsCard(d, compact) {
 /* ───────── XP · ranks · medals ───────── */
 const XP = { dial: 10, owner: 100, bac: 2, deep: 2, workout: 150, weigh: 20, standard: 15, meal: 10, minimum: 50, trial: 1000, client: 5000 };
 const RANKS = [['Recruit', 0], ['Private', 1500], ['Corporal', 5000], ['Sergeant', 12000], ['Staff Sergeant', 25000], ['Lieutenant', 45000], ['Captain', 75000], ['Major', 110000], ['Colonel', 150000], ['General', 200000]];
-function dayXp(k) {
-  const o = S.days[k]; if (!o) return 0; const c = o.counters || {}; let x = 0;
-  x += (Number(c.dials) || 0) * XP.dial + (Number(c.owners) || 0) * XP.owner + (Number(c.bac) || 0) * XP.bac + (Number(c.deep) || 0) * XP.deep;
-  x += sessionsRO(o).filter((s) => s.done).length * XP.workout;
-  if (o.weight != null && o.weight !== '') x += XP.weigh;
-  x += S.habits.items.filter((h) => o.habits && o.habits[h.id]).length * XP.standard;
-  x += Math.min(5, (o.meals || []).length) * XP.meal;
-  if ((Number(c.dials) || Number(c.bac)) && minimumMet(pd(k)).met) x += XP.minimum;
-  x += ordersXp(pd(k));
-  return x;
+/* XP is never stored: it is recomputed from what you logged, so editing or undoing anything moves XP with it,
+   and every device shows the same number after sync. Daily caps stop farming (tapping +1 forever earns nothing). */
+const XP_CAP = { dials: 150, bac: 300, deep: 240, workouts: 1, meals: 5 };
+function dayXpParts(k) {
+  const o = S.days[k]; if (!o) return { total: 0 }; const c = o.counters || {}; const p = {};
+  const dials = Math.min(Number(c.dials) || 0, XP_CAP.dials), owners = Math.min(Number(c.owners) || 0, Number(c.dials) || 0);
+  p.dials = dials * XP.dial; p.owners = owners * XP.owner;
+  p.study = Math.min(Number(c.bac) || 0, XP_CAP.bac) * XP.bac + Math.min(Number(c.deep) || 0, XP_CAP.deep) * XP.deep;
+  p.workout = Math.min(XP_CAP.workouts, sessionsRO(o).filter((s) => s.done).length) * XP.workout;
+  p.weigh = o.weight != null && o.weight !== '' ? XP.weigh : 0;
+  p.standards = S.habits.items.filter((h) => o.habits && o.habits[h.id]).length * XP.standard;
+  p.meals = Math.min(XP_CAP.meals, (o.meals || []).length) * XP.meal;
+  p.minimum = (Number(c.dials) || Number(c.bac)) && minimumMet(pd(k)).met ? XP.minimum : 0;
+  p.orders = ordersXp(pd(k));
+  p.total = Object.values(p).reduce((a, x) => a + x, 0); return p;
 }
+function dayXp(k) { return dayXpParts(k).total; }
 function xpTotal() { let x = 0; for (const k in S.days) x += dayXp(k); try { x += trials().length * XP.trial + members().length * XP.client; } catch (e) { } return x; }
+/* Ranks need XP AND a real result. XP alone stops at the gate: you cannot click your way to officer. */
+function gateStats() { let m = 0, tr = 0, cl = 0; try { m = mrr(); tr = trials().length + members().length; cl = members().length; } catch (e) { } return { owners: counterTotal('owners'), dials: counterTotal('dials'), trials: tr, clients: cl, mrr: m }; }
+const RANK_GATES = [null, null, ['dials', 300, '300 dials logged'], ['owners', 25, '25 owner conversations'], ['trials', 1, 'first agency on a 30-Day Trial'], ['clients', 1, 'first paying client'], ['mrr', 5000, '$5,000 MRR'], ['mrr', 10000, '$10,000 MRR'], ['mrr', 15000, '$15,000 MRR'], ['mrr', 20000, '$20,000 MRR: the goal']];
+function gateMet(i, g) { const r = RANK_GATES[i]; return !r || (g[r[0]] || 0) >= r[1]; }
 function rankInfo() {
-  const xp = xpTotal(); let i = 0; while (i < RANKS.length - 1 && xp >= RANKS[i + 1][1]) i++;
-  const cur = RANKS[i][1], next = i < RANKS.length - 1 ? RANKS[i + 1][1] : null;
-  return { xp, i, name: RANKS[i][0], next, nextName: next != null ? RANKS[i + 1][0] : '', pct: next != null ? clamp(((xp - cur) / (next - cur)) * 100, 0, 100) : 100, toNext: next != null ? next - xp : 0, today: dayXp(dk(new Date())) };
+  const xp = xpTotal(), g = gateStats(); let i = 0; while (i < RANKS.length - 1 && xp >= RANKS[i + 1][1] && gateMet(i + 1, g)) i++;
+  const cur = RANKS[i][1], next = i < RANKS.length - 1 ? RANKS[i + 1][1] : null, gate = next != null ? RANK_GATES[i + 1] : null, locked = next != null && xp >= next && !gateMet(i + 1, g);
+  return { xp, i, name: RANKS[i][0], next, nextName: next != null ? RANKS[i + 1][0] : '', pct: next != null ? clamp(((xp - cur) / (next - cur)) * 100, 0, 100) : 100, toNext: next != null ? Math.max(0, next - xp) : 0, today: dayXp(dk(new Date())), gate: gate ? { what: gate[2], have: g[gate[0]] || 0, need: gate[1], met: gateMet(i + 1, g) } : null, locked };
 }
 function insignia(i) {
   // enlisted: chevrons · officers: bars · senior: stars
@@ -100,7 +110,7 @@ function insignia(i) {
 }
 function rankCard() {
   const r = rankInfo();
-  return `<div class="card rk" onclick="openRank()"><div class="rank"><div class="ins">${insignia(r.i)}</div><div class="bd"><div class="top"><span class="nm">${r.name}</span><span class="lv">Level ${r.i + 1}</span></div><div class="xpbar"><i style="width:${r.pct}%"></i></div><div class="ft"><span><b>${fmt(r.xp)}</b>${r.next != null ? ' / ' + fmt(r.next) : ''} XP</span><span>${r.today ? `<span class="up">+${fmt(r.today)} today</span>` : (r.next != null ? fmt(r.toNext) + ' to ' + r.nextName : 'top rank')}</span></div></div></div></div>`;
+  return `<div class="card rk" onclick="openRank()"><div class="rank"><div class="ins">${insignia(r.i)}</div><div class="bd"><div class="top"><span class="nm">${r.name}</span><span class="lv">Level ${r.i + 1}</span></div><div class="xpbar"><i style="width:${r.pct}%"></i></div><div class="ft"><span><b>${fmt(r.xp)}</b>${r.next != null ? ' / ' + fmt(r.next) : ''} XP</span><span>${r.today ? `<span class="up">+${fmt(r.today)} today</span>` : (r.locked ? 'locked: ' + r.gate.what : r.next != null ? fmt(r.toNext) + ' to ' + r.nextName : 'top rank')}</span></div></div></div></div>`;
 }
 function weekDialsBest() { const byW = {}; for (const k in S.days) { const v = Number((S.days[k].counters || {}).dials) || 0; if (v) { const wk = weekKey(pd(k)); byW[wk] = (byW[wk] || 0) + v; } } return Math.max(0, ...Object.values(byW)); }
 function bestWorkoutWeek() { const byW = {}; for (const k in S.days) if (dayTrained(S.days[k])) { const wk = weekKey(pd(k)); byW[wk] = (byW[wk] || 0) + 1; } return Math.max(0, ...Object.values(byW)); }
@@ -119,7 +129,9 @@ function openRank() {
   openModal(`<h2>Rank</h2><div class="card rk" style="margin-bottom:14px"><div class="rank" style="cursor:default"><div class="ins">${insignia(r.i)}</div><div class="bd"><div class="top"><span class="nm">${r.name}</span><span class="lv">Level ${r.i + 1}</span></div><div class="xpbar"><i style="width:${r.pct}%"></i></div><div class="ft"><span><b>${fmt(r.xp)}</b>${r.next != null ? ' / ' + fmt(r.next) : ''} XP</span><span>${r.next != null ? fmt(r.toNext) + ' to ' + r.nextName : 'top rank'}</span></div></div></div></div>
     <div class="sec-h">How XP is earned</div><div class="hint" style="margin-bottom:14px">Dial <b>+${XP.dial}</b> · Owner conversation <b>+${XP.owner}</b> · Agency on trial <b>+${fmt(XP.trial)}</b> · Paying client <b>+${fmt(XP.client)}</b><br>BAC or deep work <b>+${XP.bac}</b> a minute · Workout <b>+${XP.workout}</b> · Weigh-in <b>+${XP.weigh}</b> · Standard kept <b>+${XP.standard}</b> · Meal logged <b>+${XP.meal}</b> · Minimum day <b>+${XP.minimum}</b><br>Each order of the day <b>+20 to +100</b> · Clean sweep (all orders) <b>+${SWEEP_XP}</b><br><span class="dim">Counted from what you log. Nothing else moves it.</span></div>
     <div class="sec-h">Medals · ${md.filter((x) => x[2]).length} of ${md.length}</div><div class="medals" style="margin-bottom:14px">${md.map(([t, d, on, icn]) => `<div class="medal ${on ? 'on' : ''}"><div class="i">${ic(icn, 24)}</div><div class="t">${t}</div><div class="d">${d}</div></div>`).join('')}</div>
-    <div class="sec-h">Ranks</div><div class="ranklist">${RANKS.map(([n, x], i) => `<div class="rw ${i < r.i ? 'got' : i === r.i ? 'cur' : ''}">${insignia(i)}<span class="n">${n}</span><span class="x">${fmt(x)} XP</span></div>`).join('')}</div>`, true);
+    <div class="sec-h">Today · +${fmt(r.today)} XP</div><div class="hint" style="margin-bottom:14px">${(() => { const p = dayXpParts(dk(new Date())), L = [['dials', 'Dials'], ['owners', 'Owner talks'], ['study', 'BAC + deep work'], ['workout', 'Workout'], ['weigh', 'Weigh-in'], ['standards', 'Standards'], ['meals', 'Meals logged'], ['minimum', 'Minimum met'], ['orders', 'Orders + sweep']].filter(([k]) => p[k]); return L.length ? L.map(([k, l]) => `${l} <b>+${fmt(p[k])}</b>`).join(' · ') : 'Nothing logged yet today.'; })()}</div>
+    <div class="sec-h">The rules</div><div class="hint" style="margin-bottom:14px">XP is recalculated from what you logged, never stored: undo or edit something and the XP follows. Daily caps: ${XP_CAP.dials} dials, ${XP_CAP.bac} min BAC, ${XP_CAP.deep} min deep work, ${XP_CAP.workouts} workout, ${XP_CAP.meals} meals. Owner talks can't exceed dials. A missed day costs no XP; it breaks your streaks and, once you have an accountability partner, costs the stake.<br><b>Ranks need XP and a real result.</b> From Corporal up, each rank has a gate: XP alone stops you at the gate.</div>
+    <div class="sec-h">Ranks</div><div class="ranklist">${RANKS.map(([n, x], i) => { const gt = RANK_GATES[i]; return `<div class="rw ${i < r.i ? 'got' : i === r.i ? 'cur' : ''}">${insignia(i)}<span class="n">${n}${gt ? `<small style="display:block;color:var(--muted);font-weight:500;font-size:12px">${gt[2]}${i > r.i && gateMet(i, gateStats()) ? ' ✓' : ''}</small>` : ''}</span><span class="x">${fmt(x)} XP</span></div>`; }).join('')}</div>`, true);
 }
 
 /* ───────── HQ cards ───────── */
