@@ -91,6 +91,7 @@ function render() {
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
   ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk })[view]();
   renderRail();
+  const rs = $('rec-slot'); if (rs) rs.innerHTML = recBanner();
   checkGame();
 }
 
@@ -216,7 +217,7 @@ render();
 linkFromUrl();
 if (/[?&]spend\b/.test(_qs)) setTimeout(openSpend, 150);
 if (_qs) history.replaceState(null, '', location.pathname);
-qLoad(); bLoad();
+qLoad(); bLoad(); nativeBoot();
 if (syncReady()) pullCloud(true).then(() => { devHeartbeat(); aiAutoShare(); calFetch(true); });
 else calFetch(true);
 setInterval(() => { if (document.visibilityState === 'visible') calFetch(true); }, 10 * 60000);
