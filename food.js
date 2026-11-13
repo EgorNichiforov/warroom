@@ -30,10 +30,11 @@ function dataUrlBlob(u) { const [h, b] = u.split(','), bin = atob(b), a = new Ui
 function aiCfg() { let c = {}; try { c = JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); } catch (e) { } if (!c.key && S && S.secrets && S.secrets.ai && S.secrets.ai.key) c = Object.assign({}, S.secrets.ai, { shared: true }); return c; }
 function aiShare(cfg, on) { if (on) { S.secrets = { _u: now(), ai: { provider: cfg.provider, key: cfg.key, model: cfg.model, alts: cfg.alts || [] } }; } else if (S.secrets && S.secrets.ai) { S.secrets = { _u: now() }; } save(true); if (syncReady()) pushCloud(); }
 function aiOn() { const c = aiCfg(); return !!(c.key && c.provider); }
-const AI_PROMPT = `You estimate nutrition for a meal log. Identify each food item, estimate its portion in grams (use the plate, cutlery and hands for scale), then its calories and macros. Count oils, sauces, dressings and drinks you can see. Be realistic, not cautious: give your single best estimate.
+const AI_PROMPT = `You estimate nutrition for a meal log. Accuracy matters more than speed.
+Method: 1) identify every food and drink, including hidden ones (cooking oil, butter, sauces, dressings, sugar in drinks). 2) Estimate each portion in grams using what is in the photo for scale (plate ~26 cm, fork ~19 cm, hand, packaging labels). 3) Use standard nutrition values per 100 g (USDA-style) for the cooked or raw state you see. 4) Add up. If the person describes the meal, their quantities and brands beat what you see.
 Return ONLY a JSON object, no other text:
-{"name": "short name of the meal", "items": [{"name": "item", "grams": 0, "kcal": 0, "protein": 0, "carbs": 0, "fat": 0}], "kcal": 0, "protein": 0, "carbs": 0, "fat": 0, "confidence": "low|medium|high", "note": "one short sentence on the biggest uncertainty"}
-Totals must equal the sum of the items. Protein, carbs and fat are in grams. If there is no food, return {"error": "no food found"}.`;
+{"name": "short name of the meal", "items": [{"name": "item", "grams": 0, "kcal": 0, "protein": 0, "carbs": 0, "fat": 0}], "kcal": 0, "protein": 0, "carbs": 0, "fat": 0, "confidence": "low|medium|high", "note": "one short sentence on the biggest uncertainty (usually a portion size or the oil)"}
+Totals must equal the sum of the items. Protein, carbs and fat are in grams. Give your single best estimate, not a cautious one. If there is no food, return {"error": "no food found"}.`;
 function aiParse(text) { const a = text.indexOf('{'), b = text.lastIndexOf('}'); if (a < 0 || b < 0) throw new Error('The AI did not return numbers'); const j = JSON.parse(text.slice(a, b + 1)); if (j.error) throw new Error(j.error); const n = (v) => Math.max(0, Math.round(Number(v) || 0)); return { name: String(j.name || 'Meal').slice(0, 60), kcal: n(j.kcal), p: n(j.protein), c: n(j.carbs), f: n(j.fat), conf: String(j.confidence || ''), note: String(j.note || '').slice(0, 200), items: (Array.isArray(j.items) ? j.items : []).slice(0, 12).map((x) => ({ name: String(x.name || '').slice(0, 50), g: n(x.grams), kcal: n(x.kcal), p: n(x.protein) })) }; }
 /* Which Gemini models to try, best first. Free-tier quota differs per model, so one refusing is not the end. */
 async function aiGeminiModels(key) {
@@ -57,9 +58,9 @@ function aiExplain(msg) {
 }
 /* every AI request has a hard time limit, so the screen can never hang: a slow model is dropped and the next one is tried */
 let aiAbort = null;
-function aiFetch(url, opt, ms) { const ctl = new AbortController(); aiAbort = ctl; const t = setTimeout(() => ctl.abort('timeout'), ms || 35000); return fetch(url, Object.assign({}, opt, { signal: ctl.signal })).catch((e) => { const err = new Error(ctl.signal.aborted ? (ctl.signal.reason === 'cancel' ? 'Cancelled' : 'TIMEOUT: no answer in ' + Math.round((ms || 35000) / 1000) + ' s') : String(e.message || e)); err.status = ctl.signal.aborted ? 408 : 0; throw err; }).finally(() => clearTimeout(t)); }
+function aiFetch(url, opt, ms) { const ctl = new AbortController(); aiAbort = ctl; const t = setTimeout(() => ctl.abort('timeout'), ms || 60000); return fetch(url, Object.assign({}, opt, { signal: ctl.signal })).catch((e) => { const err = new Error(ctl.signal.aborted ? (ctl.signal.reason === 'cancel' ? 'Cancelled' : 'TIMEOUT: no answer in ' + Math.round((ms || 60000) / 1000) + ' s') : String(e.message || e)); err.status = ctl.signal.aborted ? 408 : 0; throw err; }).finally(() => clearTimeout(t)); }
 function aiCancel() { if (aiAbort) aiAbort.abort('cancel'); }
-const AI_FAST = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'];
+const AI_FAST = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest'];
 async function aiCall(c, b64, hint, model) {
   const prompt = AI_PROMPT + (hint ? `\nThe person adds: "${hint}". Trust this over what you see.` : '') + (b64 ? '' : '\nThere is no photo. Estimate from the description only.');
   if (c.provider === 'anthropic') {
@@ -69,9 +70,9 @@ async function aiCall(c, b64, hint, model) {
     return aiParse((j.content || []).filter((x) => x.type === 'text').map((x) => x.text).join(''));
   }
   const parts = []; if (b64) parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }); parts.push({ text: prompt });
-  const send = (cfg) => aiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify(Object.assign({ contents: [{ parts }] }, cfg ? { generationConfig: cfg } : {})) }, 35000);
-  // thinking makes nutrition answers slow without making them better: keep it to the minimum the model allows
-  const think = /gemini-2\.5/.test(model) ? { thinkingConfig: { thinkingBudget: /pro/.test(model) ? 128 : 0 } } : /gemini-[3-9]/.test(model) ? { thinkingConfig: { thinkingLevel: 'low' } } : {};
+  const send = (cfg) => aiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify(Object.assign({ contents: [{ parts }] }, cfg ? { generationConfig: cfg } : {})) }, 60000);
+  // accuracy first: the model keeps its full reasoning (portion sizes are where estimates go wrong); the time limit + fallback protect against hangs
+  const think = /gemini-2\.5/.test(model) && !/lite/.test(model) ? { thinkingConfig: { thinkingBudget: 2048 } } : {};
   let r = await send(Object.assign({ temperature: 0.2, responseMimeType: 'application/json' }, think)), j = await r.json().catch(() => ({}));
   if (r.status === 400 && /think|budget|level/i.test((j.error && j.error.message) || '')) { r = await send({ temperature: 0.2, responseMimeType: 'application/json' }); j = await r.json().catch(() => ({})); }
   if (r.status === 400 && /mime|generation_?config|response_?mime/i.test((j.error && j.error.message) || '')) { r = await send(null); j = await r.json().catch(() => ({})); }
