@@ -16,7 +16,7 @@ function stepKind(r) {
   return '';
 }
 function routineAll() { return S.routines.morning.concat(S.routines.evening); }
-function stepHint(r) { return { weight: 'enter weight', train: 'logs today’s session', meal: 'logs the planned breakfast', bac: 'adds the minutes', sun: 'ticks Sun', dials: 'confirm today’s numbers' }[stepKind(r)] || ''; }
+function stepHint(r) { return { weight: 'opens the weight box', train: 'logs today’s session', meal: 'logs your planned breakfast', bac: 'adds the study minutes', sun: 'ticks the Sun standard', dials: 'confirms today’s numbers' }[stepKind(r)] || ''; }
 
 /* the single entry point for tapping a step */
 function routineDo(id) {
