@@ -90,7 +90,7 @@ function inboxCard(limit) {
 function renderAsk() {
   const ai = aiOn(), chips = ['What should I do right now?', 'How is my week going?', 'What do I say if they ask the price?', 'Gatekeeper script?', "What's my next deadline?", 'Why am I doing this?'];
   const msgs = askLog.map((x) => `<div class="msg ${x.role} ${x.err ? 'err' : ''}">${x.role === 'assistant' ? pbRender(x.text) : esc(x.text)}</div>`).join('') + (askBusy ? '<div class="msg assistant"><div class="typing"><i></i><i></i><i></i></div></div>' : '');
-  $('view-ask').innerHTML = `${inboxCard(3)}<div class="card askcard"><div class="card-h"><div class="card-t">Ask your War Room</div><div class="card-r">${ai ? 'answers from your playbook + numbers' : '<span class="acc">needs the AI key for in-app answers</span>'}${askLog.length ? ` · <a href="#" onclick="askClear();return false">clear</a>` : ''}</div></div>
+  $('view-ask').innerHTML = `${meetCard(3)}${inboxCard(3)}<div class="card askcard"><div class="card-h"><div class="card-t">Ask your War Room</div><div class="card-r">${ai ? 'answers from your playbook + numbers' : '<span class="acc">needs the AI key for in-app answers</span>'}${askLog.length ? ` · <a href="#" onclick="askClear();return false">clear</a>` : ''}</div></div>
     <div class="chat">${msgs || `<div class="empty" style="padding:18px 0">Ask anything about your plan, scripts, numbers or what to do next. It reads your whole playbook and today's numbers before answering.</div>`}</div>
     <div class="chips" style="margin:10px 0">${chips.map((c) => `<span class="chip" onclick="askSend('${c.replace(/'/g, "\\'")}')">${c}</span>`).join('')}</div>
     <div class="askbar"><textarea id="ask-in" rows="2" placeholder="Ask anything…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askSend(this.value)}"></textarea><button class="btn primary" onclick="askSend(document.getElementById('ask-in').value)" ${askBusy ? 'disabled' : ''}>Ask</button></div>
@@ -107,6 +107,7 @@ function openCapture() {
       ${B('check', 'Task', 'Todoist · dates like “fri 10am” work', "capDo('task')")}
       ${B('bolt', 'Idea', 'parked in Todoist “Later”, looked at on Sunday', "capDo('idea')")}
       ${B('pen', 'Note', 'kept in Playbook → My notes', "capDo('note')")}
+      ${B('mic', 'Record a talk', 'stop it → summary, key points, actions', 'closeModal();recSheet()')}
       ${B('wallet', 'Spent cash', 'money out, by category', 'closeModal();openSpend()')}
       ${B('camera', 'Meal', 'photo → calories', 'closeModal();foodSnap()')}
       ${B('scale', 'Weight', 'morning weigh-in', "closeModal();goToday();view='now';editWeight()")}

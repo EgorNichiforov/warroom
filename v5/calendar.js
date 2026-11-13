@@ -93,6 +93,7 @@ function gClientId() { return (S.settings && S.settings.gClientId) || ''; }
 function gEditOn() { return !!gClientId(); }
 function gLoad() { return new Promise((res, rej) => { if (window.google && google.accounts && google.accounts.oauth2) return res(); const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = () => res(); s.onerror = () => rej(new Error('could not load Google sign-in (offline?)')); document.head.appendChild(s); }); }
 async function gToken() {
+  if (typeof NATIVE !== 'undefined' && NATIVE) throw new Error('Google does not allow its sign-in inside apps. Edit here from Chrome on the laptop, or tap Open in Google Calendar');
   if (gTok && gTok.exp > Date.now() + 60000) return gTok.t;
   await gLoad();
   return new Promise((res, rej) => {
