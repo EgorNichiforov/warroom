@@ -21,7 +21,7 @@ const PB_SEED = [
 - **Todoist ⇄ War Room:** "To do today" on HQ and Plan → Tasks are your Todoist. Tick or add in either place; both update. Every 5 minutes.
 - **War Room → Sheets:** hourly copy, so the sheet is a readable archive. Don't type in it.
 - **Phone ⇄ laptop:** the same War Room on both (More → Devices & sync).
-- **Claude:** 06:00 brief, 20:40 close-the-day, Sunday 10:40 review. Each leaves a note in the app.
+- **Claude:** 06:00 morning brief, 20:40 close the day, Sunday 10:40 review (each leaves a note in Ask), hourly sheet sync, new-applicant alerts, Monday Bulletin draft. Also: lead loading and owner names on request.
 
 ## The physical whiteboard
 One job: what you need to see without opening a phone. Rewritten every Sunday: **this week's dial number, the ONE change, the next 3 hard deadlines.** Nothing else, so it never goes stale.` },
@@ -34,30 +34,23 @@ One job: what you need to see without opening a phone. Rewritten every Sunday: *
 | Planning the week | **Sunday 11:00, Plan → Review** | The week report shows every number against its target. Change the calendar blocks, write ONE change, rewrite the whiteboard |
 | A new project with tasks and deadlines | **Todoist: a project** with dated tasks | It shows up in War Room Tasks grouped by project. Its goal number (if it has one) goes in Plan → Goals |
 | I finished a task | **Tick it** (HQ, Tasks or Todoist) | Closed in both. Logged work (dials, meals, workouts) counts toward XP and stats by itself |
-| Review goals and progress | **Stats** (numbers, Intel), **HQ → Campaign** (the ladder to $20k) | Sunday's Claude review writes the summary |
+| Review goals and progress | **Stats** (numbers, Intel, funnel) and **Mission → The plan backward** (the ladder to $20k) | Sunday's Claude review writes the summary |
 | An idea I don't want to forget | **+ → Idea** | Parked in Todoist "Later". Looked at only on Sunday. No new business ideas until 100 owner conversations |
 | Something to remember (a fact, a name, a number) | **+ → Note** | Kept in Playbook → My notes, searchable |
 | Spent cash | **+ → Spent cash** | Money out by category; the sheet copies it |` },
-{ id: 'audit', cat: 'system', title: 'System audit · 12 Nov', body: `What was checked: the War Room app (v4 in use, v5 preview), Google Calendar, Todoist, every Google Sheet, the plan docs, all 10 Claude scheduled tasks, the sync database.
+{ id: 'audit', cat: 'system', title: 'System status · 13 Nov', body: `## Done
+- War Room v5 is the app (Android app 1.1 + web). v4 retired.
+- Morning brief (06:00), close the day (20:40), Sunday review (10:40): all on the 550 week.
+- Hourly sheet sync and Monday Bulletin draft: on the new sync row.
+- Old check-ins and the Todoist DIAL BLOCK task: retired.
+- Calendar: no overlaps (checked 16–22 Nov and 7–13 Dec). From 1 Dec the BAC morning block is 06:15–07:30.
+- HQ trimmed: rings, campaign, medals, coach quote, money card gone.
+- Lead DB (all Florida) + 3,500 open leads in Dial.
 
-## Fixed tonight (in the v5 preview)
-- **Todoist "Failed to fetch":** Todoist shut down the old API the app used; it answers with an error the browser can't read. Moved to Todoist's new API, which accepts calls from the app. Old links between tasks are kept.
-- **Three task lists → one.** Todoist is the list. HQ "Top 3" is replaced by "To do today" (from Todoist). Old Top 3 entries are kept in the data, not deleted.
-- **Two schedules → one.** When the calendar is connected, HQ and Plan show the calendar. The app's own copy is only a fallback.
-- **"Back to the current app (v4)" link removed.** It was a safety exit while v5 was a test version. Not part of the product.
-- **One "+" button** for anything new (task, idea, note, spend, meal, weight), each going to its one home.
-- **Readability:** brighter secondary text, no faint grey for words, placeholders readable.
-- **Claude check-ins** (morning, close-the-day, Sunday) were reading the old sync row after you re-linked devices. Fixed.
-
-## Needs your OK (Sunday)
-1. **Switch:** make v5 the app on your home screen. v4 kept as a backup at /v4/ for 30 days.
-2. **Two ghost calendar blocks** "DIALS: 20" on Mon and Wed 18:00 sit on top of Red 2. With the calendar driving targets they'd add 20 dials to those days. Delete them?
-3. **Retire 3 old check-ins** (14:47 pre-call, 18:05 mid-day, Sunday 11:05). They use the old 225 targets and duplicate the 06:00, 20:40 and Sunday 10:40 ones.
-4. **Fix 2 check-ins** (hourly sheet sync, Monday Bulletin) to use the new sync row. Until then the sheet doesn't get new logs.
-5. **Retire the Todoist daily "DIAL BLOCK" task.** The calendar block and Today's orders already say it.
-6. **Archive old sheets** (Dubai leads, DaviDan research, 5 gym trackers, 100 Days, MasterTracker, Bench tracker) into one Archive folder. Moved, not deleted.
-7. **EGOR OS doc:** mark it "frozen, the live plan is the War Room Playbook" so there's one plan.
-8. **The whiteboard:** send a photo; I'll set its one job.` },
+## Open
+- Archive the old sheets (Dubai leads, DaviDan, 5 gym trackers, 100 Days, MasterTracker, Bench tracker) into one Archive folder.
+- The whiteboard: this week's dial number, the ONE change, the next 3 deadlines.
+- CloudTalk sign-up (2 minutes, Google + code).` },
 /* ───────── MISSION ───────── */
 { id: 'why', cat: 'mission', title: 'Why I do this', body: `Read before the first block every day.
 
@@ -96,40 +89,52 @@ Every 2 weeks: gaining under 0.25 kg a week = +200 kcal. Over 0.5 kg a week = �
 
 ## BAC: the hard dates
 See Body & BAC → BAC deadlines.` },
-{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# Reset 12 Nov (overrides anything older)
-The system was never the problem: 0 owner dials logged, all 212 agencies still new. One thing changed, because the old 225-dial week was physically impossible (lessons sat on top of dial blocks).
+{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# Reset 13 Nov (overrides anything older)
+0 owner conversations so far. The plan is done. The work is dialing.
 
-## The week that fits: 150 dials
-| Day | Dials | When (Moldova) |
-| Mon | 5 | 20:30 |
-| Tue | 50 | 15:30–17:55 |
-| Wed | 5 | 20:30 |
-| Thu | 70 | 15:00–18:20 |
-| Fri | 20 | 19:30–20:40 |
+## The week: 550 dials (110 per weekday on average)
+| Day | Dials | When (Moldova) | Florida |
+| Mon | 10 | 20:30–20:45 | 13:30 |
+| Tue | 100 | 15:30–16:55 + 17:00–17:55 | 8:30–10:55 |
+| Wed | 10 | 20:30–20:45 | 13:30 |
+| Thu | 150 | 15:00–18:20 | 8:00–11:20 |
+| Fri | 50 | 19:30–20:40 | 12:30–13:40 |
+| Sat | 230 | 15:00–17:00 + 17:00–18:30 + 18:45–20:30 | 8:00–13:30 |
+| Sun | 0 | No cold calls. Plan, BAC, applicants, meal prep | |
 
-**Floor on a broken day: 10 dials (5 on Mon/Wed). Never 0.**
+**Floor on a broken day: 10 dials. Never 0.** Sick: silent prep (owner names, script) counts as the minimum; rest the voice.
 
-## One job per tool
-- **Calendar** = when.
-- **War Room** = the only place I log. Playbook = the only place I look things up.
-- **Todoist** = one p1 a day (the dial block). Projects: Company, BAC, Later.
-- **Claude** = spar before the block, numbers at 06:00 and 20:40, review Sunday 10:40.
+## Kept on purpose
+Own tennis Mon/Wed/Fri (paid, ~€250 a month). Sleep 21:00–05:20. School. All groups.
 
-## From 13 Nov
-Plan and system changes happen **only at the Sunday review**. Monday to Saturday is for doing the work.
+## The tools that make 550 possible
+- **Leads:** ~3,500 open in War Room Dial (Florida home health + homemaker & companion), 6,741 in the Lead DB sheet. Running low → ask Claude to load the next batch.
+- **Owner names:** Claude fills them from Sunbiz (Florida company register). Sunbiz writes surnames first.
+- **Power dialer:** needed for ~45 dials an hour (by hand ~25). PhoneBurner refuses sign-ups from Moldova without a phone call; CloudTalk works (14 days free, no card): sign up with Google, then Claude sets it up.
+- **Texting:** no cold texts (carrier rules). Email after every owner conversation instead.
+
+## Feature freeze
+No new War Room features until **1,000 dials or the first paying client.** Changes to the plan only at the Sunday review.
 
 ## Still missing
-A person who sees my dial number every day. Name them.` },
-{ id: 'proposals', cat: 'mission', title: 'On the table for Sunday 15 Nov', body: `**Not adopted. Decide at the Sunday review, one change at a time.** From the second research report (12 Nov).
+1. A person who sees my dial number every day. Name them.
+2. A way to get paid (who invoices US clients, whose account). Talk to dad before the first yes.` },
+{ id: 'proposals', cat: 'mission', title: 'Decisions · 13 Nov', body: `## Decided
+| Question | Decision |
+| Dials per week | **550** (was 150). Calendar rebuilt to fit, tennis kept |
+| Weekends | Saturday is the biggest dial day. Sunday: no cold calls |
+| Dialer | Power dialer: CloudTalk trial first (PhoneBurner blocks Moldova sign-ups) |
+| Leads | Whole state of Florida, home health + homemaker & companion. Nurse registries parked (1099) |
+| Texting | No cold SMS. Texting only after a yes, and only with a registered business number (needs a company with a tax ID) |
+| Cold email | After the first client or ~1,000 dials: 2 spare domains, 4 inboxes, Instantly (~$75–100/mo), 3–4 weeks warm-up. Never from caregiverbench.com |
+| War Room | Feature freeze until 1,000 dials or the first client |
+| Breakfast tick | Ticks only. Food is logged by hand in Food |
 
-- **Offer:** a one-sided "caregiver interview engine": 5 screened caregiver interviews on your calendar in 14 days, free; then $1,250 a month per location.
-- **Hours:** sleep 23:00–07:00 to unlock about 18 Florida hours a week (about 450 dials a week).
-- **Stay in school.**
-- **Cut:** the 05:30 training and my own tennis on Mon/Fri.
-- **Accountability:** a friend gets the verified dial number every night. Focusmate for dial blocks.
-- **Outreach:** autonomous cold email after the domain warm-up.
-- **Team:** a setter from February.
-- **Odds the report gave:** about 50% for roughly $10k MRR, about 90% for roughly $2.5k, with full execution.` },
+## Still open (Sunday review)
+- **Accountability partner:** who sees the dial number every night?
+- **Payment route:** talk to dad about invoicing and the account.
+- **Team:** a commission caller or setter once the script converts (after ~20 owner conversations).
+- **Offer test:** "5 screened caregiver interviews in 14 days, free" as the opener. Test it on 100 dials, compare with the current one.` },
 
 /* ───────── RULES ───────── */
 { id: 'daily8', cat: 'rules', title: 'The Daily 8 and the minimum day', body: `| # | What | In War Room |
@@ -139,11 +144,11 @@ A person who sees my dial number every day. Name them.` },
 | 4 | **Sun:** 10+ minutes outside before 10:00 | Sun |
 | 5 | **Digital protocol:** blockers on, no phone in study blocks | Digital |
 | 6 | **BAC:** today's block + Anki | BAC minutes |
-| 7 | **Dials:** today's number (150 a week) | Dial tab |
+| 7 | **Dials:** today's number (550 a week) | Dial tab |
 | 8 | **Honor:** I did what I said I would do today | Honor |
 
 ## The minimum day
-**10 minutes of training + 25 minutes of Anki + 10 dials (5 on Mon/Wed) + bed at 21:00.** A minimum day is a win. A zero day is the only loss.
+**10 minutes of training + 25 minutes of Anki + 10 dials + bed at 21:00.** Sick: silent lead prep replaces the 10 dials. A minimum day is a win. A zero day is the only loss.
 
 ## The 2-minute rule
 The first action of every block happens within 2 minutes. No messages first.` },
@@ -159,7 +164,7 @@ The first action of every block happens within 2 minutes. No messages first.` },
 8. My own tennis training (TT)
 
 Behind for 2 months in a row = use the cut order, not more hours.` },
-{ id: 'rules', cat: 'rules', title: 'House rules', body: `- **One plan:** this playbook and EGOR OS. Old plans live in the archive.
+{ id: 'rules', cat: 'rules', title: 'House rules', body: `- **One plan:** this playbook. EGOR OS is frozen. Old plans live in the archive.
 - **Changes only on Sunday.** One change per week, written in Plan → Review.
 - **No new business ideas until 100 owner conversations** (review 8 Dec).
 - **A slip is not a reset.** Three honest lines (what happened, the real cause, the one fix), then the next right action.
@@ -171,7 +176,8 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 - **Caregivers never pay us anything.** Ever.
 - **No reference or background checks.** The agency runs them (Level 2, I-9, E-Verify). We pass on only what the caregiver tells us and what we observe (FCRA).
 - **No call recording.** Florida needs everyone's consent.
-- **No text messages** without consent and a registered business number.
+- **No text messages** without consent and a registered business number (A2P 10DLC). No cold texts, no texting after a voicemail.
+- **Calls:** 8am–8pm their time, max 3 calls per number per 24 hours, no prerecorded voicemails, "don't call me" = do-not-call immediately.
 - **Fair job ads:** no words about age, sex, origin, religion, family or health.
 - **Nurse registries (1099 contractors):** not for now.
 - **The agreement** is reviewed by a Florida lawyer before anyone signs.
@@ -208,7 +214,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 > Who's the one agency around here you'd guess is having the hardest time staffing right now?
 
 ## Voicemail
-> Hi {name}, Egor with Caregiver Bench. {hook}. I recruit caregivers in Collier and Lee, live-in and weekends especially, and the first 30 days are free. I'll try you again on [day]. If it's easier, I'm at 561-556-0536.` },
+> Hi {name}, Egor with Caregiver Bench. {hook}. I recruit caregivers in your area, live-in and weekends especially, and the first 30 days are free. I'll try you again on [day]. If it's easier, I'm at 561-556-0536.` },
 { id: 'script-al', cat: 'scripts', title: 'Assisted living opener', body: `Shown in the dialer for assisted living and memory care (tier AL).
 
 > Hi, is this the Executive Director? This is Egor with Caregiver Bench. We've never spoken. I recruit caregivers and CNAs in Collier and Lee. I know a lot of communities end up paying agency staff to cover shifts. Is that something you deal with, or are you fully staffed?
@@ -218,7 +224,9 @@ Residents (not clients), community or building (not agency), shifts, the floor. 
 
 ## If they use temps
 > Then every caregiver you hire permanently cuts that bill. How much agency staffing did you pay last month?` },
-{ id: 'script-gatekeeper', cat: 'scripts', title: 'Gatekeeper', body: `> I recruit caregivers for agencies in Collier and Lee. Who handles caregiver hiring there?
+{ id: 'script-gatekeeper', cat: 'scripts', title: 'Gatekeeper', body: `> I recruit caregivers for home care agencies in Florida. Who handles caregiver hiring there?
+
+If you have the owner's name (from Sunbiz): "Is Maria in?" beats "Who's the owner?".
 
 If they're not in:
 > Thank you. When is the best time to reach her? And may I have her email so I can send her the caregivers I have this week?
@@ -279,11 +287,11 @@ Within 1 hour: a one-page recap by email (the case, the plan, the dates).` },
 2. **First dial inside 2 minutes.**
 3. Callbacks due first, then the queue top-down.
 4. Tap the outcome after every call. That logs the dial and the owner talk.
-5. **5-minute break every 20 dials.**
+5. **5-minute break every 50 dials** (water, stand up).
 6. Hit the number, or the block ends, whichever comes later. Never stop at 0.
 7. End session. Anything you couldn't answer: write it down, ask Claude.
 
-Florida = Moldova − 7 h. Owners pick up best mid-morning Florida time (check Stats → Intel once 50 calls are logged).` },
+Florida = Moldova − 7 h (the Panhandle, west of the Apalachicola River, is − 8 h). Call 8am–8pm their time. Owners pick up best mid-morning Florida time (check Stats → Intel once 50 calls are logged).` },
 { id: 'sop-after-yes', cat: 'sops', title: 'After an owner says yes', body: `| When | What happens |
 | Case call (10 min) | Town, hours, live-in, pay, must-haves, start date, who interviews. W-2 confirmed |
 | Within 1 hour | One-page recap by email |
@@ -297,7 +305,7 @@ Florida = Moldova − 7 h. Owners pick up best mid-morning Florida time (check S
 | Every Friday | One page: "your hiring this week" |
 | Day 25 | Results call + written reminder |
 | Day 30 | A caregiver worked → the plan starts. None did → they pay nothing, ever |` },
-{ id: 'sop-bench', cat: 'sops', title: 'Building the bench', body: `1. **Ads:** Facebook job ads in the Employment category, English and Spanish, Collier and Lee. Free backups: Indeed posts, local job groups, CNA schools.
+{ id: 'sop-bench', cat: 'sops', title: 'Building the bench', body: `1. **Ads:** Facebook job ads in the Employment category, English and Spanish, Collier and Lee, plus the county of every agency that says yes (recruit for their case). Free backups: Indeed posts, local job groups, CNA schools.
 2. **Application:** 1-minute form. Consent to share the profile with employers.
 3. **Instant reply:** every applicant gets a link to book a 10-minute call.
 4. **Screening call:** see Scripts → Caregiver screening call.
@@ -310,11 +318,11 @@ Caregivers apply to 10–20 agencies at once. **Speed wins:** interviewed within
 4. Look at tomorrow: the first action is 05:30 train.
 5. Phone charges outside the bedroom. **Bed 21:00.**` },
 { id: 'sop-review', cat: 'sops', title: 'Sunday review (11:00, 30 min)', body: `1. Open **Plan → Review**. The week report is at the top.
-2. Dials vs 150, owner conversations, trials, MRR.
+2. Dials vs 550, owner conversations, trials, MRR. Open leads left (under 1,100 = ask Claude for more).
 3. BAC hours and the Saturday test score.
 4. Training days. Weight vs the checkpoint.
 5. Money made vs spent.
-6. Read Mission → On the table. Decide.
+6. Read Mission → Decisions → Still open. Decide one.
 7. Write **ONE change** for next week. That's the only change allowed.
 
 Monthly, first Sunday: compare with the plan backward. Behind 2 months in a row = cut order, not more hours.` },
@@ -322,9 +330,26 @@ Monthly, first Sunday: compare with the plan backward. Behind 2 months in a row 
 05:30 train (bad day: 10 minutes).
 06:00 shower.
 06:15 BAC: Anki, 25 minutes. Phone in another room.
-06:40 company deep work: call list, script, screener. Never planning.
+06:40 lead prep: owner names for today's calls (until 30 Nov). From 1 Dec: BAC 06:15–07:30 instead.
 07:30 breakfast. 07:50 sunlight, 10 minutes. Pack lunch, snack, dinner, 1 L water.` },
 
+{ id: 'sop-referral', cat: 'sops', title: 'Referrals', body: `Ask at three moments. Never pay for a referral (legal lines).
+
+| When | Say |
+| Every "not a fit" | "Who's the one agency around here you'd guess is having the hardest time staffing right now?" |
+| Day 30 of a trial, after a caregiver worked | "Who else do you know who'd want this? I'll take care of them the same way." |
+| Any thank-you | "Glad it helped. Is there one owner you'd introduce me to?" |
+
+## Then
+- Same day: call or email the name. Open with "[Name] suggested I call."
+- Write who referred them in the agency's notes (and the Lead DB column "Referred by").
+- Tell the referrer when the intro turned into a conversation. A thank-you, never money.` },
+{ id: 'sop-followup', cat: 'sops', title: 'After every owner conversation', body: `1. **Log it** in Dial (outcome + one line: name, case, next step, date).
+2. **Email within 1 hour,** from my main address, 3 lines: what they said, what I'll do, the next date. No attachments.
+3. **Callback in the queue** on the day they named.
+4. **Not now** → ask to add them to the Monday Bench Bulletin.
+
+Cold email to strangers waits for the warmed-up spare domains. Never send cold email from caregiverbench.com.` },
 /* ───────── BUSINESS ───────── */
 { id: 'offer', cat: 'business', title: 'What we sell', body: `**Screened caregivers for private-pay Florida home care agencies and assisted living.** They hire, we recruit.
 
@@ -351,14 +376,16 @@ One agency at a time per caregiver. No fee if the caregiver applied to them dire
 24/7, live-in, overnight, weekends-only, bilingual required, Marco Island, Sanibel and remote areas.` },
 { id: 'funnel', cat: 'business', title: 'The funnel math', body: `**Plan estimates. Your real rates replace these in Stats → Intel after 30 dials.**
 
-| Step | Rate | Per 150-dial week |
-| Dials | — | 150 |
-| Owner conversations | ~8% | ~12 |
-| "Show me caregivers" | ~25% | ~3 |
-| Trials started | ~50% | ~1.5 |
-| Paying client | ~55% | ~0.8 |
+Safe planning numbers (pessimistic on purpose: ~900 dials per paying client).
 
-The plan needs about **1 new trial a week**. The only real risks: **I stop dialing**, or caregivers don't start and stay.
+| Step | Rate | Per 550-dial week |
+| Dials | — | 550 |
+| Owner conversations | ~4% | ~22 |
+| "Show me caregivers" | ~20% | ~4 |
+| Trials started | ~25% | ~1 |
+| Paying client | ~55% | ~0.6 |
+
+At 550 a week that is ~20 clients by July: $20k with room to spare. If the real rates are better, the slack goes to bigger deals, not fewer dials. The only real risks: **I stop dialing**, or caregivers don't start and stay.
 
 ## What $20k means
 8 Priority Bench ($12,000) + 3 Multi-site ($9,000) = $21,000. About 32 caregivers working a month, 3 screeners.` },
@@ -375,7 +402,7 @@ The plan needs about **1 new trial a week**. The only real risks: **I stop diali
 | Nurse Registry | 1099 contractors | **Not for now** |
 | Assisted living / memory care | One building, fixed shifts | Second buyer |
 
-About 372 providers in Collier + Lee. Ask early: "Are your caregivers W-2 employees?"
+Florida (state list, 13 Nov): 2,716 home health agencies, 2,768 homemaker & companion, 1,257 nurse registries (parked). Ask early: "Are your caregivers W-2 employees?"
 
 ## The numbers you'll quote
 | Fact | Number |
@@ -395,7 +422,7 @@ About 372 providers in Collier + Lee. Ask early: "Are your caregivers W-2 employ
 ## Who picks up
 Owner (revenue, not turning down cases) · Administrator · **Scheduler** (tonight's shifts, your ally) · Recruiter/HR · Receptionist (gatekeeper) · Executive Director (assisted living).` },
 { id: 'aboutme', cat: 'business', title: 'Questions about me', body: `| They ask | I say |
-| "Who are you?" | "I'm Egor. I run Caregiver Bench, a caregiver recruiting service for private-pay agencies in Collier and Lee." |
+| "Who are you?" | "I'm Egor. I run Caregiver Bench, a caregiver recruiting service for private-pay home care agencies in Florida." |
 | "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local; only the recruiting and screening is remote." |
 | "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why the first 30 days are free." |
 | "Do you have insurance?" | "The caregivers are your employees, covered by your insurance and your screening." |
