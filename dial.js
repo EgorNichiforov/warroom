@@ -289,7 +289,7 @@ function renderDial() {
 
   const clients = qItems().filter((x) => ['booked', 'trial', 'member', 'bulletin'].includes(x.status));
   const clientsHtml = clients.length ? `<div class="card"><div class="card-h"><div class="card-t">Pipeline · ${clients.length}</div><div class="card-r">MRR <b>$${mrr().toLocaleString()}</b></div></div>${clients.map((x) => `<div class="qrow" onclick="pipelineModal(${x.id})"><div class="grow"><div class="a">${esc(x.agency)}</div><div class="m">${x.status === 'member' ? (PLANS[x.plan] || [''])[0] + (x.memberSince ? ' since ' + fmtShort(pd(x.memberSince)) : '') : x.status === 'trial' ? 'trial day ' + Math.round((now() - pd(x.trialStart || dk(new Date()))) / 86400000) + (x.case ? ' · ' + esc(x.case) : '') : x.next_step ? esc(x.next_step) : x.status}</div></div><span class="st ${x.status}">${x.status === 'member' ? 'paying' : x.status}</span></div>`).join('')}<div class="xs muted" style="margin-top:8px">Tap an agency to move it: trial started · first shift · paying · lost.</div></div>` : '';
-  $('view-dial').innerHTML = modeBar + tiles + sessHtml + nextCard + lastEntryHtml() + clientsHtml + scriptCard + listHtml + gate;
+  $('view-dial').innerHTML = modeBar + tiles + sessHtml + (typeof radarCard === 'function' && !sess ? radarCard(5) : '') + nextCard + lastEntryHtml() + clientsHtml + scriptCard + listHtml + gate;
   clearInterval(sessTimer); if (sess) sessTimer = setInterval(() => { const el = $('sess-el'); if (!el) { clearInterval(sessTimer); return; } el.textContent = fmtEl(Math.floor((now() - sess.start) / 1000)); }, 1000);
 }
 function dialListHtml(list) {

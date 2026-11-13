@@ -27,8 +27,35 @@ function scaleImage(im, max, q) { const s = Math.min(1, max / Math.max(im.width,
 function dataUrlBlob(u) { const [h, b] = u.split(','), bin = atob(b), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: (h.match(/:(.*?);/) || [, 'image/jpeg'])[1] }); }
 
 /* ───────── AI: runs straight from this device with your own key ───────── */
-function aiCfg() { let c = {}; try { c = JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); } catch (e) { } if (!c.key && S && S.secrets && S.secrets.ai && S.secrets.ai.key) c = Object.assign({}, S.secrets.ai, { shared: true }); return c; }
-function aiShare(cfg, on) { if (on) { S.secrets = { _u: now(), ai: { provider: cfg.provider, key: cfg.key, model: cfg.model, alts: cfg.alts || [] } }; } else if (S.secrets && S.secrets.ai) { S.secrets = { _u: now() }; } save(true); if (syncReady()) pushCloud(); }
+/* 14 Nov 2026: a shared key lives ONLY on the server (public.warroom_secret, readable by no browser).
+   Synced data carries just {provider, model, server:true}; requests go through the warroom-ai function, which adds the key.
+   A key kept "on this device only" stays in this device's localStorage and is used directly. */
+const AI_SERVER = '__server__';
+function aiCfg() { let c = {}; try { c = JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); } catch (e) { } if (c.key) return c; const sa = S && S.secrets && S.secrets.ai; if (sa && sa.provider && (sa.server || sa.key)) return { provider: sa.provider, model: sa.model, alts: sa.alts || [], key: AI_SERVER, shared: true, server: true }; return c; }
+async function aiProxy(payload) { if (!syncReady()) throw new Error('Link this device first (More → Devices & sync): the shared AI key lives on the War Room server'); const s = S.settings.sync; return fetch(`${s.url}/functions/v1/warroom-ai`, { method: 'POST', headers: hdr(), body: JSON.stringify(payload), signal: payload.signal }); }
+/* every AI request goes through here: with the server key it is relayed by the warroom-ai function, otherwise sent directly */
+function aiNet(url, opt) {
+  opt = opt || {}; const h = Object.assign({}, opt.headers || {}); const k = h['x-goog-api-key'] || h['x-api-key'];
+  if (k !== AI_SERVER) return fetch(url, opt);
+  delete h['x-goog-api-key']; delete h['x-api-key']; delete h['anthropic-dangerous-direct-browser-access'];
+  const s = S.settings.sync; return fetch(`${s.url}/functions/v1/warroom-ai`, { method: 'POST', headers: hdr(), signal: opt.signal, body: JSON.stringify({ op: 'call', url, method: opt.method || 'GET', headers: h, body: opt.body == null ? null : String(opt.body) }) });
+}
+async function aiShare(cfg, on) {
+  if (on) {
+    if (cfg.key === AI_SERVER) return; const r = await aiProxy({ op: 'store', provider: cfg.provider, key: cfg.key, model: cfg.model, alts: cfg.alts || [] }); const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'Could not save the key on the server (HTTP ' + r.status + ')');
+    S.secrets = { _u: now(), ai: { provider: cfg.provider, model: cfg.model, alts: cfg.alts || [], server: true } };
+  } else { if (syncReady()) { try { await aiProxy({ op: 'forget' }); } catch (e) { } } S.secrets = { _u: now() }; }
+  save(true); if (syncReady()) pushCloud();
+}
+/* one-time move for War Rooms that still carry the key inside the synced data: the server copies it, then it is removed from the data */
+async function aiMoveKeyToServer() {
+  const sa = S.secrets && S.secrets.ai; if (!sa || !sa.key || !syncReady()) return;
+  try { const r = await aiProxy({ op: 'status' }); const j = await r.json().catch(() => ({})); if (!r.ok || !j.server) return;
+    S.secrets = { _u: now(), ai: { provider: sa.provider, model: sa.model, alts: sa.alts || [], server: true } };
+    try { const c = JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); if (c.key && c.shared) localStorage.removeItem(FOOD_AI_KEY); } catch (e) { }
+    save(true); pushCloud(); } catch (e) { }
+}
 function aiOn() { const c = aiCfg(); return !!(c.key && c.provider); }
 const AI_PROMPT = `You estimate nutrition for a meal log. Accuracy matters more than speed.
 Method: 1) identify every food and drink, including hidden ones (cooking oil, butter, sauces, dressings, sugar in drinks). 2) Estimate each portion in grams using what is in the photo for scale (plate ~26 cm, fork ~19 cm, hand, packaging labels). 3) Use standard nutrition values per 100 g (USDA-style) for the cooked or raw state you see. 4) Add up. If the person describes the meal, their quantities and brands beat what you see.
@@ -38,7 +65,7 @@ Totals must equal the sum of the items. Protein, carbs and fat are in grams. Giv
 function aiParse(text) { const a = text.indexOf('{'), b = text.lastIndexOf('}'); if (a < 0 || b < 0) throw new Error('The AI did not return numbers'); const j = JSON.parse(text.slice(a, b + 1)); if (j.error) throw new Error(j.error); const n = (v) => Math.max(0, Math.round(Number(v) || 0)); return { name: String(j.name || 'Meal').slice(0, 60), kcal: n(j.kcal), p: n(j.protein), c: n(j.carbs), f: n(j.fat), conf: String(j.confidence || ''), note: String(j.note || '').slice(0, 200), items: (Array.isArray(j.items) ? j.items : []).slice(0, 12).map((x) => ({ name: String(x.name || '').slice(0, 50), g: n(x.grams), kcal: n(x.kcal), p: n(x.protein) })) }; }
 /* Which Gemini models to try, best first. Free-tier quota differs per model, so one refusing is not the end. */
 async function aiGeminiModels(key) {
-  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } });
+  const r = await aiNet('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
   const names = (j.models || []).filter((m) => (m.supportedGenerationMethods || []).includes('generateContent')).map((m) => m.name.replace('models/', ''));
@@ -59,7 +86,7 @@ function aiExplain(msg) {
 }
 /* every AI request has a hard time limit, so the screen can never hang: a slow model is dropped and the next one is tried */
 const aiCtls = new Set();
-function aiFetch(url, opt, ms, grp) { const ctl = new AbortController(); aiCtls.add(ctl); if (grp) grp.add(ctl); const t = setTimeout(() => ctl.abort('timeout'), ms || 60000); return fetch(url, Object.assign({}, opt, { signal: ctl.signal })).catch((e) => { const err = new Error(ctl.signal.aborted ? (ctl.signal.reason === 'cancel' ? 'Cancelled' : 'TIMEOUT: no answer in ' + Math.round((ms || 60000) / 1000) + ' s') : String(e.message || e)); err.status = ctl.signal.aborted ? 408 : 0; throw err; }).finally(() => { clearTimeout(t); aiCtls.delete(ctl); if (grp) grp.delete(ctl); }); }
+function aiFetch(url, opt, ms, grp) { const ctl = new AbortController(); aiCtls.add(ctl); if (grp) grp.add(ctl); const t = setTimeout(() => ctl.abort('timeout'), ms || 60000); return aiNet(url, Object.assign({}, opt, { signal: ctl.signal })).catch((e) => { const err = new Error(ctl.signal.aborted ? (ctl.signal.reason === 'cancel' ? 'Cancelled' : 'TIMEOUT: no answer in ' + Math.round((ms || 60000) / 1000) + ' s') : String(e.message || e)); err.status = ctl.signal.aborted ? 408 : 0; throw err; }).finally(() => { clearTimeout(t); aiCtls.delete(ctl); if (grp) grp.delete(ctl); }); }
 function aiCancel() { aiCtls.forEach((c) => c.abort('cancel')); }
 const AI_FAST = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest'];
 async function aiCall(c, b64, hint, model, grp) {
@@ -96,7 +123,7 @@ async function aiEstimate(b64, hint, cfgOverride) {
     const launch = () => {
       if (done || idx >= list.length) return false; const m = list[idx++], grp = new Set(); groups.push(grp); running++; aiStatus.model = m; aiStatus.tries++; aiTick();
       one(m, grp).then((out) => { if (done) return; groups.splice(groups.indexOf(grp), 1); out.ms = Date.now() - t0; out.model = m;
-        if (!cfgOverride && m !== c.model && primaryFailed) { /* remember the model that actually answers */ c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } if (c.shared) { try { aiShare(c, true); } catch (e) { } } }
+        if (!cfgOverride && m !== c.model && primaryFailed) { /* remember the model that actually answers */ c.alts = list.filter((x) => x !== m); c.model = m; if (c.server) { if (S.secrets && S.secrets.ai) { S.secrets.ai.model = m; S.secrets.ai.alts = c.alts; S.secrets._u = now(); save(); } } else { try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } if (c.shared) aiShare(c, true).catch(() => { }); } }
         finish(resolve, out); })
         .catch((e) => { running--; if (done) return; last = e; e.model = m; if (m === list[0]) primaryFailed = true; if (aiFatal(e)) { finish(reject, e); return; } if (!launch() && running === 0) finish(reject, last); });
       return true;
@@ -113,7 +140,7 @@ function foodAiModal() {
     <div class="field"><label>API key</label><input id="ai-key" type="password" autocomplete="off" autocapitalize="off" placeholder="${c.key ? 'saved · paste a new one to replace' : 'paste the key here'}"></div>
     <div class="field"><label>Model (leave empty for automatic)</label><input id="ai-model" autocapitalize="off" autocomplete="off" value="${esc(c.model || '')}" placeholder="automatic"></div>
     <div class="hint" id="ai-help"></div>
-    <label class="row small" style="gap:8px;margin:12px 0 2px;cursor:pointer"><input type="checkbox" id="ai-share" ${c.key && !c.shared ? '' : 'checked'}> Use this key on my linked devices too (phone and laptop)</label><div class="xs muted">It travels with your synced War Room, protected by your sync code. Untick to keep it on this device only.</div>
+    <label class="row small" style="gap:8px;margin:12px 0 2px;cursor:pointer"><input type="checkbox" id="ai-share" ${c.key && !c.shared ? '' : 'checked'}> Use this key on my linked devices too (phone and laptop)</label><div class="xs muted">It is stored on the War Room server, never inside your synced data: linked devices use it through the server and no device can read it back. Untick to keep it on this device only.</div>
     <div id="ai-err"></div>
     <div class="actions">${c.key ? `<button class="btn danger" onclick="aiClear()">Remove key</button>` : `<button class="btn" onclick="closeModal()">Later</button>`}<button class="btn primary" id="ai-save" onclick="aiSave()">Save &amp; test</button></div>`, true);
   aiPick(prov);
@@ -129,14 +156,14 @@ async function aiSave() {
     const cfg = { provider: _aiProv, key, model: models[0], alts: models.slice(1) };
     const t = await aiEstimate('', 'one medium banana', cfg);
     cfg.alts = models.filter((x) => x !== t.model); cfg.model = t.model;
-    const share = !$('ai-share') || $('ai-share').checked; cfg.shared = share; localStorage.setItem(FOOD_AI_KEY, JSON.stringify(cfg)); aiShare(cfg, share);
+    const share = (!$('ai-share') || $('ai-share').checked) && syncReady(); cfg.shared = share; if (share) { await aiShare(cfg, true); localStorage.removeItem(FOOD_AI_KEY); } else { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(cfg)); }
     closeModal(); render(); toast(`Photo AI is on${share ? ' on all linked devices' : ''} · test: banana ≈ ${t.kcal} kcal`);
   } catch (e) {
     btn.disabled = false; btn.textContent = 'Save & test'; const msg = String(e.message || e).split(key).join('•••').slice(0, 400);
     box.innerHTML = `<div class="hint" style="margin-top:10px;border:1px solid rgba(255,79,94,.45)"><b class="bad">It did not work.</b> ${esc(aiExplain(msg))}<div class="xs muted" style="margin-top:8px;word-break:break-word">${e.model ? 'Model: ' + esc(e.model) + ' · ' : ''}${esc(msg)}</div></div>`;
   }
 }
-function aiClear() { const was = aiCfg().shared; localStorage.removeItem(FOOD_AI_KEY); if (was || (S.secrets && S.secrets.ai)) aiShare({}, false); closeModal(); render(); toast(was ? 'Key removed from all linked devices' : 'Key removed from this device'); }
+function aiClear() { const was = aiCfg().shared; localStorage.removeItem(FOOD_AI_KEY); if (was || (S.secrets && S.secrets.ai)) aiShare({}, false).catch(() => { }); closeModal(); render(); toast(was ? 'Key removed from all linked devices' : 'Key removed from this device'); }
 
 /* ───────── capture → estimate → confirm ───────── */
 let foodDraft = null;

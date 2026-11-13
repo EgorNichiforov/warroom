@@ -125,14 +125,14 @@ async function nativeBytes(f) {
 }
 function normMime(m, name) { m = String(m || '').split(';')[0]; if (/^audio\/(x-)?m4a$|^audio\/aac$|^video\/mp4$/.test(m)) return 'audio/mp4'; if (m === 'audio/x-wav') return 'audio/wav'; if (m) return m; return /\.mp3$/i.test(name || '') ? 'audio/mp3' : 'audio/mp4'; }
 async function geminiUpload(key, blob, mime, name) {
-  const start = await fetch('https://generativelanguage.googleapis.com/upload/v1beta/files', { method: 'POST', headers: { 'x-goog-api-key': key, 'X-Goog-Upload-Protocol': 'resumable', 'X-Goog-Upload-Command': 'start', 'X-Goog-Upload-Header-Content-Length': String(blob.size), 'X-Goog-Upload-Header-Content-Type': mime, 'Content-Type': 'application/json' }, body: JSON.stringify({ file: { display_name: name || 'conversation' } }) });
+  const start = await aiNet('https://generativelanguage.googleapis.com/upload/v1beta/files', { method: 'POST', headers: { 'x-goog-api-key': key, 'X-Goog-Upload-Protocol': 'resumable', 'X-Goog-Upload-Command': 'start', 'X-Goog-Upload-Header-Content-Length': String(blob.size), 'X-Goog-Upload-Header-Content-Type': mime, 'Content-Type': 'application/json' }, body: JSON.stringify({ file: { display_name: name || 'conversation' } }) });
   if (!start.ok) { const j = await start.json().catch(() => ({})); const e = new Error((j.error && j.error.message) || 'upload start HTTP ' + start.status); e.status = start.status; throw e; }
   const url = start.headers.get('x-goog-upload-url'); if (!url) throw new Error('Google did not return an upload address');
   recState.step = 'uploading'; render();
   const up = await fetch(url, { method: 'POST', headers: { 'X-Goog-Upload-Offset': '0', 'X-Goog-Upload-Command': 'upload, finalize' }, body: blob });
   const j = await up.json().catch(() => ({})); if (!up.ok || !j.file) throw new Error((j.error && j.error.message) || 'upload HTTP ' + up.status);
   let f = j.file, tries = 0;
-  while (f.state === 'PROCESSING' && tries++ < 60) { recState.step = 'Google is processing the audio'; render(); await new Promise((r) => setTimeout(r, 3000)); const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/${f.name}`, { headers: { 'x-goog-api-key': key } }); f = await g.json().catch(() => f); }
+  while (f.state === 'PROCESSING' && tries++ < 60) { recState.step = 'Google is processing the audio'; render(); await new Promise((r) => setTimeout(r, 3000)); const g = await aiNet(`https://generativelanguage.googleapis.com/v1beta/${f.name}`, { headers: { 'x-goog-api-key': key } }); f = await g.json().catch(() => f); }
   if (f.state === 'FAILED') throw new Error('Google could not process this audio file');
   return f;
 }
@@ -147,7 +147,7 @@ async function meetAi(blob, mime, title) {
   for (const model of list) {
     try {
       recState.step = 'listening and summarizing'; render();
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify({ contents: [{ parts: [part, { text: MEET_PROMPT + (title ? `\nEgor called this recording: "${title}".` : '') }] }], generationConfig: { temperature: 0.2, responseMimeType: 'application/json', maxOutputTokens: 16384 } }) });
+      const r = await aiNet(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify({ contents: [{ parts: [part, { text: MEET_PROMPT + (title ? `\nEgor called this recording: "${title}".` : '') }] }], generationConfig: { temperature: 0.2, responseMimeType: 'application/json', maxOutputTokens: 16384 } }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
       const cand = (j.candidates || [])[0] || {}, text = ((cand.content || {}).parts || []).filter((x) => !x.thought).map((x) => x.text || '').join('');
       if (!text) throw new Error('Empty answer' + (cand.finishReason ? ' (' + cand.finishReason + ')' : ''));

@@ -32,7 +32,7 @@ function devicesCard() {
     <div class="small ${s.ok ? 'muted' : ''}" style="margin-bottom:10px">${s.line}</div>
     ${list.length ? list.map((x) => `<div class="kv"><span>${x.me ? '<b>This device</b> · ' : ''}${esc(x.name)}${x.me ? ` <a href="#" onclick="devRename();return false">rename</a>` : ''}</span><span class="small muted">${x.me ? 'v' + APP_VERSION : 'synced ' + agoText(x.seen) + (x.v ? ' · v' + esc(x.v) : '')}</span></div>`).join('') : ''}
     <div class="kv"><span>Sync code on this device</span><span class="v mono">${codeTail()}</span></div>
-    <div class="kv"><span>Food photo AI</span><span class="small ${ai.key ? 'ok' : 'muted'}">${ai.key ? (ai.shared ? 'on · shared with linked devices' : `on · this device only · <a href="#" onclick="aiShareNow();return false">share it</a>`) : 'off · add the key on the device where it works'}</span></div>
+    <div class="kv"><span>Food photo AI</span><span class="small ${ai.key ? 'ok' : 'muted'}">${ai.key ? (ai.shared ? 'on · key kept on the server, shared with linked devices' : `on · this device only · <a href="#" onclick="aiShareNow();return false">share it</a>`) : 'off · add the key on the device where it works'}</span></div>
     <div class="row" style="gap:8px;margin-top:12px"><button class="btn primary grow" onclick="linkModal()">Link a device</button><button class="btn" onclick="devSyncNow()">Sync now</button></div></div>`;
 }
 function devRename() { const d = devInfo(), n = prompt('Name for this device', d.name); if (!n) return; d.name = n.trim().slice(0, 30); try { localStorage.setItem(DEV_KEY, JSON.stringify(d)); } catch (e) { } devStamp(); save(true); render(); }
@@ -70,6 +70,6 @@ function linkFromUrl() {
 }
 /* heartbeat: once every 10 minutes while open, so the other device sees this one as alive */
 /* A key saved before sharing existed (no choice recorded) goes to the linked devices, as asked. An explicit "this device only" is respected. */
-function aiAutoShare() { try { const c = JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); if (c.key && c.shared === undefined && syncReady() && !(S.secrets && S.secrets.ai)) { c.shared = true; localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); aiShare(c, true); toast('Photo AI key shared with your linked devices'); } } catch (e) { } }
-function aiShareNow() { const c = aiCfg(); if (!c.key) return; c.shared = true; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } aiShare(c, true); render(); toast('Shared. The other device turns it on at its next sync.'); }
+function aiAutoShare() { aiMoveKeyToServer(); }
+async function aiShareNow() { const c = aiCfg(); if (!c.key || c.server) return; try { await aiShare(c, true); c.shared = true; localStorage.removeItem(FOOD_AI_KEY); render(); toast('Saved on the War Room server. Linked devices use it from there.'); } catch (e) { toast(String(e.message || e).slice(0, 140)); } }
 function devHeartbeat() { if (!syncReady()) return; const me = (S.devices || {})[devInfo().id]; if (!me || now() - me.seen > 10 * 60000 || me.v !== APP_VERSION) { devStamp(); save(); } }
