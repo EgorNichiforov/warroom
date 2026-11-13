@@ -58,20 +58,20 @@ function aiExplain(msg) {
   return 'The AI service answered with an error. Send Claude the grey text below (never the key).';
 }
 /* every AI request has a hard time limit, so the screen can never hang: a slow model is dropped and the next one is tried */
-let aiAbort = null;
-function aiFetch(url, opt, ms) { const ctl = new AbortController(); aiAbort = ctl; const t = setTimeout(() => ctl.abort('timeout'), ms || 60000); return fetch(url, Object.assign({}, opt, { signal: ctl.signal })).catch((e) => { const err = new Error(ctl.signal.aborted ? (ctl.signal.reason === 'cancel' ? 'Cancelled' : 'TIMEOUT: no answer in ' + Math.round((ms || 60000) / 1000) + ' s') : String(e.message || e)); err.status = ctl.signal.aborted ? 408 : 0; throw err; }).finally(() => clearTimeout(t)); }
-function aiCancel() { if (aiAbort) aiAbort.abort('cancel'); }
+const aiCtls = new Set();
+function aiFetch(url, opt, ms, grp) { const ctl = new AbortController(); aiCtls.add(ctl); if (grp) grp.add(ctl); const t = setTimeout(() => ctl.abort('timeout'), ms || 60000); return fetch(url, Object.assign({}, opt, { signal: ctl.signal })).catch((e) => { const err = new Error(ctl.signal.aborted ? (ctl.signal.reason === 'cancel' ? 'Cancelled' : 'TIMEOUT: no answer in ' + Math.round((ms || 60000) / 1000) + ' s') : String(e.message || e)); err.status = ctl.signal.aborted ? 408 : 0; throw err; }).finally(() => { clearTimeout(t); aiCtls.delete(ctl); if (grp) grp.delete(ctl); }); }
+function aiCancel() { aiCtls.forEach((c) => c.abort('cancel')); }
 const AI_FAST = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest'];
-async function aiCall(c, b64, hint, model) {
+async function aiCall(c, b64, hint, model, grp) {
   const prompt = AI_PROMPT + (hint ? `\nThe person adds: "${hint}". Trust this over what you see.` : '') + (b64 ? '' : '\nThere is no photo. Estimate from the description only.');
   if (c.provider === 'anthropic') {
     const content = []; if (b64) content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } }); content.push({ type: 'text', text: prompt });
-    const r = await aiFetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: 900, messages: [{ role: 'user', content }] }) });
+    const r = await aiFetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': c.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: 900, messages: [{ role: 'user', content }] }) }, 30000, grp);
     const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.status = r.status; throw e; }
     return aiParse((j.content || []).filter((x) => x.type === 'text').map((x) => x.text).join(''));
   }
   const parts = []; if (b64) parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } }); parts.push({ text: prompt });
-  const send = (cfg) => aiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify(Object.assign({ contents: [{ parts }] }, cfg ? { generationConfig: cfg } : {})) }, 60000);
+  const send = (cfg) => aiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify(Object.assign({ contents: [{ parts }] }, cfg ? { generationConfig: cfg } : {})) }, 30000, grp);
   // accuracy first: the model keeps its full reasoning (portion sizes are where estimates go wrong); the time limit + fallback protect against hangs
   const think = /gemini-2\.5/.test(model) && !/lite/.test(model) ? { thinkingConfig: { thinkingBudget: 2048 } } : {};
   let r = await send(Object.assign({ temperature: 0.2, responseMimeType: 'application/json' }, think)), j = await r.json().catch(() => ({}));
@@ -82,17 +82,28 @@ async function aiCall(c, b64, hint, model) {
   if (!text) throw new Error('The model sent an empty answer' + (cand.finishReason ? ' (' + cand.finishReason + ')' : ''));
   return aiParse(text);
 }
-/* Try the saved model, then the alternates. A model that is missing or out of quota is skipped; a bad key stops at once. */
+/* Fast and accurate at once: the best model starts first; if it has not answered in 9 s a second model starts in parallel,
+   and the first good answer wins (the other request is cancelled). Overload gets one quick retry; a bad key stops at once. */
+const AI_HEDGE_MS = 9000;
+function aiFatal(e) { return /Cancelled/.test(e.message) || /API key not valid|API_KEY_INVALID|location is not supported/i.test(e.message) || !(e.status === 404 || e.status === 408 || e.status === 429 || e.status === 503 || e.status === 500 || e.status === 400 || e.status === 0 || /not found|quota|overloaded|unavailable|high demand|TIMEOUT|JSON|empty/i.test(e.message)); }
 async function aiEstimate(b64, hint, cfgOverride) {
   const c = cfgOverride || aiCfg(); if (!c.key) throw new Error('Photo AI is not set up yet');
-  const list = [c.model].concat(c.alts || [], c.provider === 'anthropic' ? ['claude-haiku-5-5'] : AI_FAST).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, 5);
-  let last = null;
-  for (const m of list) {
-    aiStatus.model = m; aiStatus.tries++; aiTick();
-    try { const t0 = Date.now(); let out; try { out = await aiCall(c, b64, hint, m); } catch (e1) { if (!(e1.status === 503 || /high demand|overloaded|UNAVAILABLE/i.test(e1.message))) throw e1; await new Promise((r) => setTimeout(r, 1500)); out = await aiCall(c, b64, hint, m); } out.ms = Date.now() - t0; if (!cfgOverride && m !== c.model) { c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } if (c.shared) { try { aiShare(c, true); } catch (e) { } } } out.model = m; return out; }
-    catch (e) { last = e; last.model = m; if (/Cancelled/.test(e.message) || /API key not valid|API_KEY_INVALID|location is not supported/i.test(e.message) || !(e.status === 404 || e.status === 408 || e.status === 429 || e.status === 503 || e.status === 500 || e.status === 400 || e.status === 0 || /not found|quota|overloaded|unavailable|TIMEOUT|JSON|empty/i.test(e.message))) break; }
-  }
-  throw last || new Error('No model answered');
+  const list = [c.model].concat(c.alts || [], c.provider === 'anthropic' ? ['claude-haiku-5-5'] : AI_FAST).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, 4);
+  const one = async (m, grp) => { try { return await aiCall(c, b64, hint, m, grp); } catch (e1) { if (!(e1.status === 503 || /high demand|overloaded|UNAVAILABLE/i.test(e1.message))) throw e1; await new Promise((r) => setTimeout(r, 1200)); return aiCall(c, b64, hint, m, grp); } };
+  return new Promise((resolve, reject) => {
+    let idx = 0, running = 0, done = false, last = null, primaryFailed = false; const groups = []; const t0 = Date.now();
+    const finish = (fn, v) => { if (done) return; done = true; clearInterval(hedge); groups.forEach((g) => g.forEach((x) => x.abort('cancel'))); fn(v); };
+    const launch = () => {
+      if (done || idx >= list.length) return false; const m = list[idx++], grp = new Set(); groups.push(grp); running++; aiStatus.model = m; aiStatus.tries++; aiTick();
+      one(m, grp).then((out) => { if (done) return; groups.splice(groups.indexOf(grp), 1); out.ms = Date.now() - t0; out.model = m;
+        if (!cfgOverride && m !== c.model && primaryFailed) { /* remember the model that actually answers */ c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } if (c.shared) { try { aiShare(c, true); } catch (e) { } } }
+        finish(resolve, out); })
+        .catch((e) => { running--; if (done) return; last = e; e.model = m; if (m === list[0]) primaryFailed = true; if (aiFatal(e)) { finish(reject, e); return; } if (!launch() && running === 0) finish(reject, last); });
+      return true;
+    };
+    const hedge = setInterval(() => { if (!done && running < 2) launch(); }, AI_HEDGE_MS);
+    launch();
+  });
 }
 function foodAiModal() {
   const c = aiCfg(), prov = c.provider || 'gemini';
@@ -134,7 +145,7 @@ function foodSnap() { foodInputs(); $('food-cam').click(); }
 function foodPick() { foodInputs(); $('food-lib').click(); }
 async function foodFile(file) {
   let im; try { im = await loadImage(file); } catch (e) { toast('Could not read that photo'); return; }
-  const big = scaleImage(im, 1280, 0.82), thumb = scaleImage(im, 420, 0.8);
+  const big = scaleImage(im, 1024, 0.82), thumb = scaleImage(im, 420, 0.8);
   foodDraft = { id: uid(), name: '', kcal: '', p: '', c: '', f: '', mult: 1, items: [], photo: big, thumb, src: 'photo', isNew: true };
   if (view !== 'food') { view = 'food'; curDate = new Date(); curDate.setHours(0, 0, 0, 0); render(); }
   if (!aiOn()) { foodForm(); return; }
@@ -144,14 +155,25 @@ async function foodAnalyze(hint) {
   const d = foodDraft; if (!d) return;
   aiStatus = { t0: Date.now(), model: '', tries: 0 };
   openModal(`<h2>${d.photo ? 'Reading your plate' : 'Estimating your meal'}</h2>${d.photo ? `<img class="fphoto" src="${d.photo}" alt="">` : ''}<div class="scan"><div class="sp"></div><div class="lab" id="ai-prog">Estimating calories and macros…</div></div>
-    <div class="row" style="gap:8px;margin-top:12px"><button class="btn grow" onclick="aiCancel()">Cancel</button><button class="btn grow" onclick="aiCancel();setTimeout(()=>{foodDraft&&(delete foodDraft.err);foodForm()},50)">Type it instead</button></div>`, true);
+    <button class="btn primary block" style="margin-top:12px" onclick="foodBg()">Put the phone away · I'll log it when ready</button>
+    <div class="row" style="gap:8px;margin-top:8px"><button class="btn grow" onclick="aiCancel()">Cancel</button><button class="btn grow" onclick="aiCancel();setTimeout(()=>{foodDraft&&(delete foodDraft.err);foodForm()},50)">Type it instead</button></div>`, true);
   clearInterval(aiTimer); aiTimer = setInterval(aiTick, 1000);
-  try { const r = await aiEstimate(d.photo ? d.photo.split(',')[1] : '', hint || d.hint || ''); if (foodDraft !== d) return;
-    Object.assign(d, { name: r.name, kcal: r.kcal, p: r.p, c: r.c, f: r.f, items: r.items, conf: r.conf, note: r.note, base: { kcal: r.kcal, p: r.p, c: r.c, f: r.f }, mult: 1, src: 'ai', hint: hint || d.hint || '' }); foodForm();
-  } catch (e) { if (foodDraft !== d) return; if (/Cancelled/.test(e.message)) { clearInterval(aiTimer); return; } d.err = (/TIMEOUT/.test(e.message) ? 'No model answered in time. Check the internet connection, then tap Estimate again.' : aiExplain(e.message)) + ' (' + (e.model ? e.model + ': ' : '') + String(e.message || e).slice(0, 140) + ')'; foodForm(); }
+  try { const r = await aiEstimate(d.photo ? d.photo.split(',')[1] : '', hint || d.hint || '');
+    Object.assign(d, { name: r.name, kcal: r.kcal, p: r.p, c: r.c, f: r.f, items: r.items, conf: r.conf, note: r.note, base: { kcal: r.kcal, p: r.p, c: r.c, f: r.f }, mult: 1, src: 'ai', hint: hint || d.hint || '' });
+    if (d.bg) { foodBgDone(d); clearInterval(aiTimer); return; } if (foodDraft !== d) return; foodForm();
+  } catch (e) { if (d.bg) { clearInterval(aiTimer); foodBgFail(d, e); return; } if (foodDraft !== d) return; if (/Cancelled/.test(e.message)) { clearInterval(aiTimer); return; } d.err = (/TIMEOUT/.test(e.message) ? 'No model answered in time. Check the internet connection, then tap Estimate again.' : aiExplain(e.message)) + ' (' + (e.model ? e.model + ': ' : '') + String(e.message || e).slice(0, 140) + ')'; foodForm(); }
   clearInterval(aiTimer);
 }
-let aiStatus = { t0: 0, model: '', tries: 0 }, aiTimer = null;
+let aiStatus = { t0: 0, model: '', tries: 0 }, aiTimer = null, foodBgN = 0;
+/* background estimate: close the sheet, keep going; when the answer lands the meal is logged and a toast lets you check it */
+function foodBg() { const d = foodDraft; if (!d) return; d.bg = true; d.day = dk(curDate); foodBgN++; foodDraft = null; closeModal(); render(); toast('Estimating in the background. You\u2019ll get a note when it\u2019s logged.'); }
+function foodBgDone(d) {
+  foodBgN = Math.max(0, foodBgN - 1); const t = new Date(), rec = { id: d.id, t: pad(t.getHours()) + ':' + pad(t.getMinutes()), name: d.name || 'Meal', kcal: Number(d.kcal) || 0, p: Number(d.p) || 0, c: Number(d.c) || 0, f: Number(d.f) || 0, src: 'ai' };
+  if (d.photo) rec.ph = 1; meals(d.day).push(rec); if (d.thumb) phPut(d.id, dataUrlBlob(d.thumb)); touch(day(d.day)); render();
+  try { navigator.vibrate && navigator.vibrate([20, 40, 20]); } catch (e) { }
+  toast(`Logged: ${rec.name} · ${rec.kcal} kcal · ${rec.p} g protein`, 'Check', () => { curDate = pd(d.day); show('food'); foodEdit(rec.id); });
+}
+function foodBgFail(d, e) { foodBgN = Math.max(0, foodBgN - 1); render(); d.bg = false; d.err = aiExplain(e.message) + ' (' + (e.model ? e.model + ': ' : '') + String(e.message || e).slice(0, 120) + ')'; toast('The meal estimate failed', 'Fix it', () => { foodDraft = d; show('food'); foodForm(); }); }
 function aiTick() { const el = $('ai-prog'); if (!el) return; const s = Math.round((Date.now() - aiStatus.t0) / 1000); el.textContent = s < 6 ? 'Estimating calories and macros…' : `Waiting for ${aiStatus.model || 'the AI'} · ${s} s${aiStatus.tries > 1 ? ' · try ' + aiStatus.tries : ''}`; }
 function foodForm() {
   const d = foodDraft; if (!d) return; const sv = foodState().saved, ai = aiOn();
@@ -217,6 +239,7 @@ function renderFood() {
   const days = []; for (let i = 6; i >= 0; i--) { const d = addDays(curDate, -i), t = foodTotals(d); days.push({ l: DAY_SHORT[dow(d)], v: t.kcal, t: tt.kcal, cls: t.kcal >= tt.kcal * 0.9 ? 'hit' : '', top: t.kcal ? (t.kcal / 1000).toFixed(1) + 'k' : '', go: `dayDetail('${dk(d)}')`, today: dk(d) === dk(new Date()) }); }
   const hit = days.filter((x) => x.v >= tt.kcal * 0.9).length;
   const week = `<div class="card"><div class="card-h go" onclick="metricDetail('kcal')"><div class="card-t">Last 7 days · calories ›</div><div class="card-r"><b>${hit}</b>/7 on target</div></div>${vbars(days, { h: 130, max: tt.kcal * 1.1 })}<div class="legend"><span><i class="ln" style="background:var(--text);opacity:.5"></i>${fmt(tt.kcal)} kcal target</span><span><i style="background:var(--body)"></i>within 10%</span></div></div>`;
-  $('view-food').innerHTML = `<div class="fgrid"><div>${foodSummaryCard(k)}${add}</div><div>${log}${week}</div></div>`;
+  const bgc = foodBgN ? `<div class="card flat" style="border-color:rgba(255,165,31,.4)"><div class="row" style="gap:10px"><span class="spin"></span><div class="small">Estimating ${foodBgN} meal${foodBgN > 1 ? 's' : ''} in the background…</div></div></div>` : '';
+  $('view-food').innerHTML = `<div class="fgrid"><div>${bgc}${foodSummaryCard(k)}${add}</div><div>${log}${week}</div></div>`;
   hydratePhotos();
 }
