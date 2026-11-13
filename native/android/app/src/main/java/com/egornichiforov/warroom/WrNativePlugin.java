@@ -254,6 +254,36 @@ public class WrNativePlugin extends Plugin {
         }
         JSObject o = new JSObject(); o.put("days", out); call.resolve(o);
     }
+    /** Sleep guess per night: the longest screen-off stretch that starts 19:00–05:00 and ends 03:00–14:00.
+     *  Uses only SCREEN_INTERACTIVE / NON_INTERACTIVE events (no app names). days = nights back incl. last night. */
+    @PluginMethod
+    public void sleepGuess(PluginCall call) {
+        if (!usageAllowed()) { call.reject("NO_ACCESS"); return; }
+        int days = Math.max(1, Math.min(14, call.getInt("days", 7)));
+        UsageStatsManager um = (UsageStatsManager) getContext().getSystemService(Context.USAGE_STATS_SERVICE);
+        Calendar c = Calendar.getInstance(); c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0); c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        long today0 = c.getTimeInMillis(), nowMs = System.currentTimeMillis();
+        JSArray out = new JSArray();
+        for (int d = days - 1; d >= 0; d--) {
+            Calendar m0 = Calendar.getInstance(); m0.setTimeInMillis(today0); m0.add(Calendar.DAY_OF_YEAR, -d);
+            long mid = m0.getTimeInMillis(), from = mid - 5 * 3600 * 1000L, to = Math.min(mid + 14 * 3600 * 1000L, nowMs);
+            if (to <= from) continue;
+            UsageEvents ev = um.queryEvents(from, to); UsageEvents.Event e = new UsageEvents.Event();
+            long offAt = -1, bestA = -1, bestB = -1; boolean sawOn = false;
+            while (ev.hasNextEvent()) {
+                ev.getNextEvent(e); int ty = e.getEventType(); long t = e.getTimeStamp();
+                if (ty == 16 || ty == 26) { if (offAt < 0) offAt = t; }
+                else if (ty == 15 || ty == 18 || ty == 27) {
+                    sawOn = true;
+                    if (offAt >= 0) { long a = offAt, b = t; if (b - a > bestB - bestA && a <= mid + 5 * 3600 * 1000L && b >= mid + 3 * 3600 * 1000L) { bestA = a; bestB = b; } }
+                    offAt = -1;
+                }
+            }
+            if (bestA < 0 || bestB - bestA < 2 * 3600 * 1000L) continue;
+            JSObject n = new JSObject(); n.put("day", mid); n.put("off", bestA); n.put("on", bestB); n.put("events", sawOn); out.put(n);
+        }
+        JSObject o = new JSObject(); o.put("nights", out); call.resolve(o);
+    }
     private static void add(Map<String, Long> m, String k, long a, long b) { if (b > a) m.put(k, (m.containsKey(k) ? m.get(k) : 0L) + (b - a)); }
     private Map<String, Boolean> launcherCache = new HashMap<>();
     private boolean isLauncher(PackageManager pm, String pk) {

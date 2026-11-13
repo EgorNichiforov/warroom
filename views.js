@@ -143,7 +143,8 @@ function renderNow() {
   parts.callbacks = today ? callbacksCard() : '';
   parts.rings = ringsCard(d);
   parts.quick = ordersCard(d);
-  parts.shutdown = (ph === 'evening' || ph === 'past') ? shutdownCard(o, d) : '';
+  const _yd = addDays(d, -1), _night = today && new Date().getHours() < 5 && !(S.days[dk(_yd)] || {}).shutdownAt;
+  parts.shutdown = (ph === 'evening' || ph === 'past') ? shutdownCard(o, d) : _night ? shutdownCard(day(_yd), _yd) : '';
   parts.change = oneChangeBanner(d);
   parts.morning = routineCard('morning', d, o, ph === 'morning' || ph === 'future');
   parts.evening = routineCard('evening', d, o, ph === 'evening');
@@ -151,14 +152,14 @@ function renderNow() {
   parts.top3 = todayTasksCard(d);
   parts.standards = standardsCard(o);
   parts.money = moneyCard(o, d);
-  parts.log = sec('log', 'Sleep · bed and wake time', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : 'feeds the sleep intel'}`, sleepMoneyBody(o), false);
+  parts.log = sec('log', 'Sleep', `${o.bedAt && o.wokeAt ? sleepDur(o.bedAt, o.wokeAt) : 'tap Lights out tonight'}`, sleepMoneyBody(o), false);
   parts.debrief = sec('debrief', 'Debrief', o.win || o.loss || o.fix ? '✓' : '30 seconds, honest', debriefBody(o), ph === 'evening' || ph === 'past');
   const tg = dialTarget(d), v = Number(o.counters.dials) || 0;
   parts.coach = !today ? '' : ph === 'morning' ? coachLine('morning') : ph === 'evening' ? coachLine('evening') : (tg ? (v >= tg ? coachLine('hit') : nm >= 15 * 60 ? coachLine('behind') : coachLine('study')) : coachLine('weekend'));
   // A: what to do now · B: today's checklist · C: where you stand
   parts.week = weekCard(d);
   // HQ answers in this order: what do I do now → today's orders (the number) → to do today → the rest. Scores live lower (column C).
-  const A = { morning: ['timer', 'stake', 'focus', 'quick', 'top3', 'callbacks'], day: ['timer', 'stake', 'hero', 'quick', 'top3', 'callbacks'], evening: ['timer', 'stake', 'shutdown', 'quick', 'callbacks'], past: ['quick', 'shutdown'], future: ['quick', 'top3'] }[ph];
+  const A = { morning: ['timer', 'shutdown', 'stake', 'focus', 'quick', 'top3', 'callbacks'], day: ['timer', 'stake', 'hero', 'quick', 'top3', 'callbacks'], evening: ['timer', 'stake', 'shutdown', 'quick', 'callbacks'], past: ['quick', 'shutdown'], future: ['quick', 'top3'] }[ph];
   const B = { morning: ['change', 'morning', 'study', 'standards', 'evening', 'log', 'debrief'], day: ['standards', 'study', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief'], evening: ['standards', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change'], past: ['weigh', 'standards', 'study', 'top3', 'debrief', 'morning', 'evening', 'log'], future: ['weigh', 'morning', 'evening', 'standards', 'log'] }[ph];
   const _ss = syncSummary(), C = (inboxUnread() ? inboxCard(2) : '') + (today && !_ss.ok ? `<div class="card flat" onclick="moreTab='home';show('me')" style="cursor:pointer;border-color:rgba(255,165,31,.4)"><div class="row sb"><div><div class="lab" style="color:var(--acc)">Sync: ${_ss.short}</div><div class="small muted" style="margin-top:3px">Phone and laptop are not linked yet. Tap to link them.</div></div><span class="pill warn">fix</span></div></div>` : '') + (today ? upNextCard() : '') + `<div class="lab" style="margin:4px 2px 8px">Scoreboard</div>` + parts.week + rankCard();
   $('view-now').innerHTML = `<div class="hq"><div class="hq-a">${A.map((p) => parts[p] || '').join('')}</div><div class="hq-b">${B.map((p) => parts[p] || '').join('')}</div><div class="hq-c">${C}</div></div>`;
