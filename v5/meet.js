@@ -6,7 +6,7 @@
 
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 /* Talk to the native plugin through the bridge Capacitor injects into the page (no build step needed on the web side). */
-const WRN = NATIVE && window.Capacitor.nativePromise ? ['start', 'stop', 'pause', 'resume', 'usage', 'usageAccess', 'openUsageSettings', 'status', 'ack', 'read', 'remove', 'list', 'keepAwake', 'info', 'takeLaunch'].reduce((o, m) => { o[m] = (a) => window.Capacitor.nativePromise('WrNative', m, a || {}); return o; }, { addListener: (ev, cb) => window.Capacitor.addListener('WrNative', ev, cb) }) : null;
+const WRN = NATIVE && window.Capacitor.nativePromise ? ['start', 'stop', 'pause', 'resume', 'usage', 'sleepGuess', 'usageAccess', 'openUsageSettings', 'status', 'ack', 'read', 'remove', 'list', 'keepAwake', 'info', 'takeLaunch'].reduce((o, m) => { o[m] = (a) => window.Capacitor.nativePromise('WrNative', m, a || {}); return o; }, { addListener: (ev, cb) => window.Capacitor.addListener('WrNative', ev, cb) }) : null;
 let recState = { on: false, paused: false, pausedAt: 0, pausedTotal: 0, nativeElapsed: null, nativeAt: 0, startedAt: 0, title: '', web: null, chunks: [], busy: false, step: '', err: '', pending: null };
 let recTick = null;
 
@@ -227,8 +227,8 @@ async function nativeBoot() {
   if (!WRN) return;
   document.documentElement.classList.add('native');
   try { WRN.addListener('shared', () => recCheckPending(true)); WRN.addListener('launch', () => nativeLaunch()); } catch (e) { }
-  try { window.Capacitor.addListener('App', 'resume', () => { recCheckPending(false); nativeLaunch(); scrPull(true); }); } catch (e) { }
-  await recCheckPending(false); nativeLaunch(); scrPull(true);
+  try { window.Capacitor.addListener('App', 'resume', () => { recCheckPending(false); nativeLaunch(); scrPull(true); sleepPull(true); }); } catch (e) { }
+  await recCheckPending(false); nativeLaunch(); scrPull(true); sleepPull(true);
   setInterval(nativeAwake, 5000); nativeAwake();
 }
 async function nativeLaunch() {
