@@ -67,6 +67,8 @@
 - Roll back the AI proxy: delete function `warroom-ai`; `drop table public.warroom_secret;` The app falls back to a key on the device.
 - Data: More → Backup → Export (JSON). Import restores it. The System status card shows the last export.
 
+- **Look (5.13 MONOLITH):** visual only. Rollback per device: More → Appearance → Classic. For everyone: default `lookGet()` to `classic`. Spec: `MONOLITH.md`.
+
 ## 7. Tests
 
 `python3 -m http.server 8765 &` then `python3 tests/run.py` (51 checks: XP, sync merge, radar/CRM, briefing honesty, AI routing + validation, link security, tomorrow planner, command, intel, lockdown, every screen renders).

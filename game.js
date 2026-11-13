@@ -38,14 +38,15 @@ function ringsSvg(rs, size, sw, gap) {
   size = size || 200; sw = sw || 19; gap = gap == null ? 4 : gap; const c = size / 2, uid2 = ++_ringSeq; let defs = '', out = '';
   rs.forEach((r, i) => {
     const rad = c - sw / 2 - i * (sw + gap), C = 2 * Math.PI * rad, p = clamp(r.p || 0, 0, 1), id = `rg${uid2}_${i}`;
-    defs += `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${r.c2}"/><stop offset="1" stop-color="${r.c1}"/></linearGradient>`;
-    out += `<circle cx="${c}" cy="${c}" r="${rad}" fill="none" stroke="${r.c1}" stroke-opacity=".17" stroke-width="${sw}"/>`;
-    if (p > 0) out += `<circle cx="${c}" cy="${c}" r="${rad}" fill="none" stroke="url(#${id})" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${c} ${c})"/>`;
-    else out += `<circle cx="${c}" cy="${c - rad}" r="${sw / 2 - 2}" fill="${r.c1}" fill-opacity=".55"/>`;
+    defs += `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:${r.c2}"/><stop offset="1" style="stop-color:${r.c1}"/></linearGradient>`;
+    out += `<circle cx="${c}" cy="${c}" r="${rad}" fill="none" class="rtrack" style="stroke:${r.c1}" stroke-opacity=".17" stroke-width="${sw}"/>`;
+    if (p > 0) out += `<circle cx="${c}" cy="${c}" r="${rad}" fill="none" class="rarc" stroke="url(#${id})" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${c} ${c})"/>`;
+    else out += `<circle cx="${c}" cy="${c - rad}" r="${sw / 2 - 2}" class="rdot" style="fill:${r.c1}" fill-opacity=".55"/>`;
   });
   return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Today's rings"><defs>${defs}</defs>${out}</svg>`;
 }
-const RING_C = { co: ['#ff7d1a', '#ffc436'], body: ['#3ddc8a', '#a4ec3b'], mind: ['#5c8cff', '#33cdf3'] };
+/* Ring colours are CSS variables so the theme decides them (fallbacks = the classic look). */
+const RING_C = { co: ['var(--ring-co1,#ff7d1a)', 'var(--ring-co2,#ffc436)'], body: ['var(--ring-body1,#3ddc8a)', 'var(--ring-body2,#a4ec3b)'], mind: ['var(--ring-mind1,#5c8cff)', 'var(--ring-mind2,#33cdf3)'] };
 function foodTargets() { const f = S.food || {}; return { kcal: Number(f.kcal) || 3400, p: Number(f.p) || 170 }; }
 function foodTotals(k) { const o = S.days[typeof k === 'string' ? k : dk(k)]; const t = { kcal: 0, p: 0, c: 0, f: 0, n: 0 }; ((o && o.meals) || []).forEach((m) => { t.kcal += Number(m.kcal) || 0; t.p += Number(m.p) || 0; t.c += Number(m.c) || 0; t.f += Number(m.f) || 0; t.n++; }); return t; }
 function counterDef(id) { return S.counters.items.find((c) => c.id === id); }

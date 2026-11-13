@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.12.1';
+const APP_VERSION = '5.13.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -517,7 +517,7 @@ function renderTasks() {
   const nodate = open.filter((t) => !t.due).sort((a, b) => String(a.proj || '').localeCompare(String(b.proj || '')) || (b._u || 0) - (a._u || 0));
   const done = ts.filter((t) => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)).slice(0, 15);
   const sec = (title, list, cls) => list.length ? `<div class="sec-h ${cls || ''}">${title} · ${list.length}</div><div class="card" style="padding:4px 14px">${list.map((t) => taskRow(t)).join('')}</div>` : '';
-  return `${tdOn() ? '' : `<div class="card flat" style="border-color:rgba(255,165,31,.4)"><div class="small"><b class="acc">Todoist is not connected on this device.</b> Tasks added here stay here, without reminders. Connect it in More → Todoist.</div></div>`}<div class="task-add"><input id="task-inp" placeholder="New task: “Call Maria tomorrow 10am #Company”" onkeydown="if(event.key==='Enter'){captureTask(this.value,'');this.value=''}"><button class="btn primary" onclick="captureTask(document.getElementById('task-inp').value,'')">Add</button></div>
+  return `${tdOn() ? '' : `<div class="card flat" style="border-color:rgb(var(--acc-rgb) / .4)"><div class="small"><b class="acc">Todoist is not connected on this device.</b> Tasks added here stay here, without reminders. Connect it in More → Todoist.</div></div>`}<div class="task-add"><input id="task-inp" placeholder="New task: “Call Maria tomorrow 10am #Company”" onkeydown="if(event.key==='Enter'){captureTask(this.value,'');this.value=''}"><button class="btn primary" onclick="captureTask(document.getElementById('task-inp').value,'')">Add</button></div>
     ${!open.length ? '<div class="empty">No open tasks.</div>' : ''}
     ${sec('Overdue', overdue, 'bad')}${sec('Today', todayT)}${sec('Tomorrow', tmrw)}${sec('Upcoming', later)}${sec('No date', nodate)}${sec('Done recently', done)}`;
 }

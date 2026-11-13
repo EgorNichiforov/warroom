@@ -217,7 +217,7 @@ function earlyWarnings() {
   members().forEach((x) => { const c = x.client || {}; if (c.renewal && c.renewal <= dk(addDays(t, 7))) W.push({ level: 'med', title: `${x.agency}: renewal ${fmtShort(pd(c.renewal))}`, act: `clientOpen(${x.id})` }); if ((c.invoices || []).some((i) => !i.paid && i.due && i.due < k)) W.push({ level: 'high', title: `${x.agency}: invoice overdue`, act: `clientOpen(${x.id})` }); });
   return W;
 }
-function warningsBanner() { const w = earlyWarnings().filter((x) => x.level === 'high'); if (!w.length) return ''; return `<div class="card flat" style="border-color:rgba(255,79,94,.5);padding:10px 14px">${w.slice(0, 2).map((x) => `<div class="small" style="cursor:pointer;padding:2px 0" onclick="${x.act}">⚠️ <b>${esc(x.title)}</b></div>`).join('')}</div>`; }
+function warningsBanner() { const w = earlyWarnings().filter((x) => x.level === 'high'); if (!w.length) return ''; return `<div class="card flat warnbar" style="border-color:rgb(var(--bad-rgb) / .5);padding:10px 14px">${w.slice(0, 2).map((x) => `<div class="small wline" style="cursor:pointer;padding:2px 0" onclick="${x.act}">⚠️ <b>${esc(x.title)}</b></div>`).join('')}</div>`; }
 
 /* ═════════ 8 · Campaigns, decisions, experiments (records) ═════════ */
 const DOCTRINE_SEED = [
