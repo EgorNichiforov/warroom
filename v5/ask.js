@@ -110,7 +110,7 @@ function openCapture() {
       ${B('mic', 'Record a talk', 'stop it → summary, key points, actions', 'closeModal();recSheet()')}
       ${B('wallet', 'Spent cash', 'money out, by category', 'closeModal();openSpend()')}
       ${B('camera', 'Meal', 'photo → calories', 'closeModal();foodSnap()')}
-      ${B('scale', 'Weight', 'morning weigh-in', "closeModal();goToday();view='now';editWeight()")}
+      ${B('scale', 'Weight', 'morning weigh-in', "closeModal();goToday();weightModal()")}
     </div>
     <div class="xs muted" style="margin-top:10px">Something at a set time (an appointment, a lesson) goes in Google Calendar. <a href="https://calendar.google.com/calendar/u/0/r/eventedit" target="_blank" rel="noopener">New calendar event ↗</a></div>`);
 }

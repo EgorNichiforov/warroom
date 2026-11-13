@@ -239,16 +239,16 @@ function renderDial() {
 
   const tiles = `<div class="tiles">
     <div class="tile ${tg && v >= tg ? 'hit' : ''}" onclick="setToday('dials')"><div class="n num">${v}<small>/${tg || '—'}</small></div><div class="l">today · tap to fix</div></div>
-    <div class="tile"><div class="n num">${wk}<small>/${weekly}</small></div><div class="l">week</div></div>
+    <div class="tile" onclick="show('stats')"><div class="n num">${wk}<small>/${weekly}</small></div><div class="l">week · by day</div></div>
     <div class="tile" onclick="setToday('owners')"><div class="n num">${owners}<small>/${ownersGoal ? ownersGoal.target : 100}</small></div><div class="l">owner talks</div></div>
-    <div class="tile"><div class="n num">${Math.max(0, weekly - wk)}</div><div class="l">left · week</div></div></div>`;
+    <div class="tile static"><div class="n num">${Math.max(0, weekly - wk)}</div><div class="l">left · week</div></div></div>`;
 
   const sessHtml = sess ? `<div class="card ac flat"><div class="row sb"><div><div class="card-t">Session · <span class="mono" id="sess-el">${fmtEl(Math.floor((now() - sess.start) / 1000))}</span></div><div class="small">${v - sess.d0} dials · ${ow - sess.o0} owner talks · ${v - sess.d0 ? Math.round(((ow - sess.o0) / (v - sess.d0)) * 100) : 0}% reach${blk ? ` · block ends ${blk.end} (${tmin(blk.end) - nm} min)` : ''}</div></div><button class="btn sm danger" onclick="endSession()">End</button></div></div>`
     : `<div class="card flat"><div class="row sb"><div class="small muted">${blk ? `<b class="acc">Dial block now</b> · until ${blk.end} · Florida ${florida(nm)}` : nextBlk ? `Next dial block <b>${nextBlk.start}</b> (${esc(nextBlk.title)}) · Florida now ${florida(nm)}` : `No dial block left today · Florida now ${florida(nm)}`}</div><button class="btn sm primary" onclick="startSession()">▶ Start session</button></div></div>`;
 
   const nextCard = !Q ? `<div class="card"><div class="empty">Loading the call queue…</div></div>` : !x ? `<div class="card"><div class="empty">Nothing left in this filter. Switch filter or add an agency.</div></div>` : (() => {
     const last = (x.log || []).slice(-1)[0]; const tel = telHref(x.phone); const note = phoneNote(x.phone);
-    const tierChip = x.tier === 'T1' ? '<span class="chip on">TIER 1</span>' : x.tier === 'AL' ? '<span class="chip info">Assisted living</span>' : x.tier === 'AL2' ? '<span class="chip info">AL · chain</span>' : '';
+    const tierChip = x.tier === 'T1' ? '<span class="chip static on" style="cursor:default">TIER 1</span>' : x.tier === 'AL' ? '<span class="chip static info" style="cursor:default">Assisted living</span>' : x.tier === 'AL2' ? '<span class="chip static info" style="cursor:default">AL · chain</span>' : '';
     const stChip = x.status === 'callback' ? `<span class="chip ${x.next_at <= k ? 'on' : ''}">↩ callback ${x.next_at ? fmtShort(pd(x.next_at)) : ''}</span>` : x.status === 'voicemail' ? '<span class="chip">voicemail left</span>' : x.status === 'gatekeeper' ? '<span class="chip">gatekeeper</span>' : '';
     return `<div class="card ac" id="dial-next">
       <div class="card-h"><div class="card-t">Next call · #${x.id}${x.attempts ? ` · attempt ${x.attempts + 1}` : ''}</div><div class="row" style="gap:6px"><button class="btn sm ghost" onclick="editQueueItem(${x.id})">✎</button><button class="btn sm ghost" onclick="outcome(${x.id},'skip')">Skip ›</button></div></div>
