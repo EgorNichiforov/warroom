@@ -8,7 +8,7 @@ function stepKind(r) {
   if (!r) return '';
   if (r.link === 'weight' || /weigh/i.test(r.title)) return 'weight';
   if (r.link === 'train' || r.id === 'train' || /🏋|^\W*train\b/i.test(r.title)) return 'train';
-  if (r.id === 'eat' || /breakfast|mic dejun/i.test(r.title)) return 'meal';
+  /* 13 Nov 2026: ticking Breakfast only ticks it. Food is logged in the Food tab, by hand, with what was actually eaten. */
   if (r.id === 'bac' || /BAC study/i.test(r.title)) return 'bac';
   if (r.id === 'bacmin' || /BAC minutes/i.test(r.title)) return 'bac';
   if (r.id === 'sun' || /sunlight|☀/i.test(r.title)) return 'sun';
@@ -16,7 +16,7 @@ function stepKind(r) {
   return '';
 }
 function routineAll() { return S.routines.morning.concat(S.routines.evening); }
-function stepHint(r) { return { weight: 'opens the weight box', train: 'logs today’s session', meal: 'logs your planned breakfast', bac: 'adds the study minutes', sun: 'ticks the Sun standard', dials: 'confirms today’s numbers' }[stepKind(r)] || ''; }
+function stepHint(r) { return { weight: 'opens the weight box', train: 'logs today’s session', bac: 'adds the study minutes', sun: 'ticks the Sun standard', dials: 'confirms today’s numbers' }[stepKind(r)] || ''; }
 
 /* the single entry point for tapping a step */
 function routineDo(id) {
