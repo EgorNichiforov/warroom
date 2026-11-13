@@ -5,7 +5,8 @@
 
 const ASK_KEY = 'wr-ask';
 let askLog = []; try { askLog = JSON.parse(localStorage.getItem(ASK_KEY) || '[]'); } catch (e) { askLog = []; }
-let askBusy = false, askFocus = '';
+let askBusy = false, askFocus = '', askRole = 'commander';
+const ASK_ROLES = { commander: 'ROLE: COMMANDER. Prioritise, organise, explain and recommend the next concrete action. Every number must come from the data; if the data does not have it, say so.', red: 'ROLE: RED TEAM. Challenge his assumptions and plans with the numbers in the data. Find risks, weak assumptions and productive procrastination. Be constructive and specific; if the data is too thin, say "not enough data".' };
 function askSave() { try { localStorage.setItem(ASK_KEY, JSON.stringify(askLog.slice(-30))); } catch (e) { } }
 
 /* everything the assistant knows, as plain text */
@@ -59,7 +60,7 @@ async function askSend(text) {
   askLog.push({ role: 'user', text, at: now() }); askBusy = true; askSave(); render();
   try {
     const hist = askLog.filter((x) => !x.sys && !x.err).slice(-10).map((x) => ({ role: x.role, text: x.text }));
-    const sys = ASK_SYSTEM + '\n\n' + askContext(false) + (askFocus ? `\n\nHe is asking from the playbook page "${(pb(askFocus) || {}).title || askFocus}".` : '');
+    const sys = ASK_SYSTEM + '\n\n' + ASK_ROLES[askRole] + '\n\n' + askContext(false) + (askFocus ? `\n\nHe is asking from the playbook page "${(pb(askFocus) || {}).title || askFocus}".` : '');
     const a = await aiText(sys, hist);
     askLog.push({ role: 'assistant', text: a, at: now() });
   } catch (e) { askLog.push({ role: 'assistant', text: aiExplain(e.message) + ' (' + String(e.message).slice(0, 120) + ')', at: now(), err: true }); }
@@ -92,7 +93,7 @@ function renderAsk() {
   const msgs = askLog.map((x) => `<div class="msg ${x.role} ${x.err ? 'err' : ''}">${x.role === 'assistant' ? pbRender(x.text) : esc(x.text)}</div>`).join('') + (askBusy ? '<div class="msg assistant"><div class="typing"><i></i><i></i><i></i></div></div>' : '');
   $('view-ask').innerHTML = `${meetCard(3)}${inboxCard(3)}<div class="card askcard"><div class="card-h"><div class="card-t">Ask your War Room</div><div class="card-r">${ai ? 'answers from your playbook + numbers' : '<span class="acc">needs the AI key for in-app answers</span>'}${askLog.length ? ` · <a href="#" onclick="askClear();return false">clear</a>` : ''}</div></div>
     <div class="chat">${msgs || `<div class="empty" style="padding:18px 0">Ask anything about your plan, scripts, numbers or what to do next. It reads your whole playbook and today's numbers before answering.</div>`}</div>
-    <div class="chips" style="margin:10px 0">${chips.map((c) => `<span class="chip" onclick="askSend('${c.replace(/'/g, "\\'")}')">${c}</span>`).join('')}</div>
+    <div class="chips" style="margin:10px 0 4px">${[['commander', '🎖 Commander'], ['red', '🟥 Red team']].map(([k, l]) => `<span class="chip ${askRole === k ? 'on' : ''}" onclick="askRole='${k}';render()">${l}</span>`).join('')}</div><div class="chips" style="margin:4px 0 10px">${chips.map((c) => `<span class="chip" onclick="askSend('${c.replace(/'/g, "\\'")}')">${c}</span>`).join('')}</div>
     <div class="askbar"><textarea id="ask-in" rows="2" placeholder="Ask anything…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askSend(this.value)}"></textarea><button class="btn primary" onclick="askSend(document.getElementById('ask-in').value)" ${askBusy ? 'disabled' : ''}>Ask</button></div>
     <div class="row sb" style="margin-top:10px;gap:8px;flex-wrap:wrap"><span class="xs muted">${ai ? `In-app answers use your ${aiCfg().provider === 'anthropic' ? 'Claude' : 'Gemini'} key.` : 'Add the AI key (More → Food photo AI) for in-app answers.'} For bigger things, changes to your calendar or plan, ask Claude.</span><button class="btn sm" onclick="askClaude()">Ask Claude ↗</button></div></div>`;
   const box = document.querySelector('.chat'); if (box) box.scrollTop = box.scrollHeight;
