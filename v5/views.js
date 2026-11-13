@@ -23,12 +23,12 @@ function migrateV5() {
     for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week' && g.target === 225) { g.title = '150 dials'; g.target = 150; g._u = t; } }
     S.migrations.m20261112 = t; save(true);
   }
-  /* 13 Nov 2026: the 110-a-day week. Mon 10 · Tue 100 · Wed 10 · Thu 150 · Fri 160 · Sat 160 = 590 */
-  if (!S.migrations.m20261113) {
+  /* 13 Nov 2026: the 110-a-day week, tennis kept. Mon 10 · Tue 100 · Wed 10 · Thu 150 · Fri 50 · Sat 230 = 550 */
+  if (!S.migrations.m20261113b) {
     const t = now(), dc = S.counters.items.find((c) => c.id === 'dials');
-    if (dc) { dc.targets = [0, 10, 100, 10, 150, 160, 160, 0]; dc.weekly = 590; S.counters._u = t; }
-    for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week') { g.title = '590 dials'; g.target = 590; g._u = t; } }
-    S.migrations.m20261113 = t; save(true);
+    if (dc) { dc.targets = [0, 10, 100, 10, 150, 50, 230, 0]; dc.weekly = 550; S.counters._u = t; }
+    for (const id in S.goals) { const g = S.goals[id]; if (g && !g._del && g.source === 'counter:dials:week') { g.title = '550 dials'; g.target = 550; g._u = t; } }
+    S.migrations.m20261113b = t; save(true);
   }
 }
 

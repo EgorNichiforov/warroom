@@ -75,7 +75,7 @@ const XP = { dial: 10, owner: 100, bac: 2, deep: 2, workout: 150, weigh: 20, sta
 const RANKS = [['Recruit', 0], ['Private', 1500], ['Corporal', 5000], ['Sergeant', 12000], ['Staff Sergeant', 25000], ['Lieutenant', 45000], ['Captain', 75000], ['Major', 110000], ['Colonel', 150000], ['General', 200000]];
 /* XP is never stored: it is recomputed from what you logged, so editing or undoing anything moves XP with it,
    and every device shows the same number after sync. Daily caps stop farming (tapping +1 forever earns nothing). */
-const XP_CAP = { dials: 200, bac: 300, deep: 240, workouts: 1, meals: 5 };
+const XP_CAP = { dials: 230, bac: 300, deep: 240, workouts: 1, meals: 5 };
 function dayXpParts(k) {
   const o = S.days[k]; if (!o) return { total: 0 }; const c = o.counters || {}; const p = {};
   const dials = Math.min(Number(c.dials) || 0, XP_CAP.dials), owners = Math.min(Number(c.owners) || 0, Number(c.dials) || 0);
