@@ -37,7 +37,8 @@ function devicesCard() {
 }
 function devRename() { const d = devInfo(), n = prompt('Name for this device', d.name); if (!n) return; d.name = n.trim().slice(0, 30); try { localStorage.setItem(DEV_KEY, JSON.stringify(d)); } catch (e) { } devStamp(); save(true); render(); }
 async function devSyncNow() { if (!syncReady()) { linkModal(); return; } devStamp(); await pushCloud(); await pullCloud(false); try { await qPull(true); await bPull(true); } catch (e) { } render(); }
-function linkUrl() { return location.origin + location.pathname + '?link=' + encodeURIComponent(S.settings.sync.code); }
+/* The code rides in the #fragment, never in ?query: a fragment is not sent to the web server, so it stays out of server logs (14 Nov security fix). */
+function linkUrl() { return location.origin + location.pathname + '#link=' + encodeURIComponent(S.settings.sync.code); }
 function linkModal() {
   if (!syncReady()) { const s = S.settings.sync; s.code = s.code || genCode(); save(true); pullCloud(true).then(() => { devStamp(); save(true); linkModal(); }); return; }
   openModal(`<h2>Link a device</h2>
@@ -52,7 +53,7 @@ function linkModal() {
 function linkCopy() { const i = $('lk-url'); try { navigator.clipboard.writeText(i.value).then(() => toast('Link copied')); } catch (e) { i.select(); document.execCommand('copy'); toast('Link copied'); } }
 function linkShare() { if (navigator.share) navigator.share({ title: 'War Room link', url: $('lk-url').value }).catch(() => { }); else linkCopy(); }
 async function linkJoin(raw) {
-  let code = String(raw || '').trim(); const m = code.match(/[?&]link=([^&\s]+)/); if (m) code = decodeURIComponent(m[1]);
+  let code = String(raw || '').trim(); const m = code.match(/[?&#]link=([^&\s]+)/); if (m) code = decodeURIComponent(m[1]);
   if (code.length < 16) { toast('That code is too short'); return; }
   if (/[\/:\s]/.test(code)) { toast('That is not a War Room link. Copy it from More → Devices & sync → Link a device on the other device.'); return; }
   if (code === S.settings.sync.code) { closeModal(); toast('This device is already on that War Room'); return; }
@@ -62,7 +63,7 @@ async function linkJoin(raw) {
   render(); toast(syncState.status === 'err' ? 'Could not reach the cloud: ' + syncState.msg : 'Linked. This device now shares the same War Room.');
 }
 function linkFromUrl() {
-  const m = location.search.match(/[?&]link=([^&]+)/); if (!m) return; const code = decodeURIComponent(m[1]); history.replaceState(null, '', location.pathname);
+  const m = (location.hash + '&' + location.search).match(/[?&#]link=([^&]+)/); if (!m) return; const code = decodeURIComponent(m[1]); history.replaceState(null, '', location.pathname);
   if (code === S.settings.sync.code) { toast('Already linked'); return; }
   openModal(`<h2>Join this War Room?</h2><div class="hint" style="margin-bottom:12px">This device ${syncReady() ? `is on another sync code (${codeTail()})` : 'is not synced yet'}. Joining merges what is here with the linked War Room, keeps the newest version of every entry, and keeps both devices in sync from now on.</div>
     <div class="actions"><button class="btn" onclick="closeModal()">Not now</button><button class="btn primary" onclick="linkJoin('${esc(code)}')">Join and merge</button></div>`, true);
