@@ -45,12 +45,15 @@ async function qLoad() {
 function qItems() { return Q ? Object.values(Q.items).filter((x) => !x._del) : []; }
 const Q_OPEN = ['new', 'callback', 'gatekeeper', 'voicemail'];
 const TIER_RANK = { T1: 0, '': 1, AL: 2, AL2: 3 };
+/* Focus metro (decision 14 Nov): dial one metro first so caregivers and agencies sit in the same place. */
+const FOCUS_METRO = /^(Tampa|St\.? Petersburg|Saint Petersburg|Clearwater|Brandon|Largo|Riverview|Wesley Chapel|Palm Harbor|New Port Richey|Lutz|Spring Hill|Seminole|Pinellas Park|Valrico|Land O Lakes|Plant City|Dunedin|Tarpon Springs|Oldsmar|Ruskin|Apollo Beach|Sun City Center|Zephyrhills|Hudson|Holiday|Odessa|Temple Terrace|Seffner|Gibsonton|Brooksville|Port Richey|Safety Harbor|Lithia|Wimauma|Thonotosassa|Dade City)$/i;
+function inFocus(x) { return FOCUS_METRO.test(String(x.city || '').trim()); }
 function qPriority(x, tk) {
   if (x.status === 'callback' && x.next_at && x.next_at <= tk) return 0;        // due callbacks first
   if (x.status === 'callback') return 5;                                       // not due yet
   if (!x.phone) return 6;                                                      // no number: find it first
-  if (x.status === 'gatekeeper' || x.status === 'voicemail') return 1 + (TIER_RANK[x.tier] ?? 1) * 0.1 + Math.min(x.attempts, 3) * 0.3;
-  return 2 + (TIER_RANK[x.tier] ?? 1);
+  if (x.status === 'gatekeeper' || x.status === 'voicemail') return 1 + (TIER_RANK[x.tier] ?? 1) * 0.1 + Math.min(x.attempts, 3) * 0.3 - (inFocus(x) ? 0.05 : 0);
+  return 2 + (TIER_RANK[x.tier] ?? 1) - (inFocus(x) ? 0.5 : 0);
 }
 function qNextList(filter) {
   const tk = dk(new Date());
