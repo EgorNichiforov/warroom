@@ -159,6 +159,7 @@ function blockSheet(id, k) {
   const setDay = (v) => `document.getElementById('bm-date').value='${v}';document.querySelectorAll('#bm-q .chip').forEach(c=>c.classList.toggle('on',c===this))`;
   openModal(`<h2>${esc(b.title)}</h2><div class="small muted" style="margin:-6px 0 14px">${fmtDate(d)} · ${b.start}–${b.end === '24:00' ? '…' : b.end}${b.once ? ' · this day only' : ' · every ' + b.days.map((i) => DAY_SHORT[i]).join(', ')}</div>
     ${b.kind === 'dials' ? `<div class="field"><label>Dial target for ${isToday(d) ? 'today' : fmtShort(d)} only</label><div class="inline"><input type="number" inputmode="numeric" id="bm-tg" value="${dialTargetFor(d)}"><button class="btn" onclick="setDayDialTarget('${k}')">Set</button></div><div class="xs muted" style="margin-top:6px">Moving dials between days? Raise one day and lower the other. The weekly ${(counterDef('dials') || {}).weekly || 150} stays.</div></div>` : ''}
+    ${isTrainBlock(b) ? `<button class="btn primary lg block" style="margin-bottom:10px" onclick="closeModal();openBlockTraining('${id}','${k}')">🏋️ Open workout · log sets</button>` : ''}
     <button class="btn lg block danger" onclick="blockCancel('${id}','${k}')">Cancel it for ${isToday(d) ? 'today' : fmtShort(d)}</button>
     <div class="sec-h" style="margin-top:18px">Or move it · this time only</div>
     <div class="chips" id="bm-q" style="margin-bottom:10px"><span class="chip" onclick="${setDay(k)}">Same day</span><span class="chip on" onclick="${setDay(tm)}">${isToday(d) ? 'Tomorrow' : 'Next day'}</span><span class="chip" onclick="${setDay(dk(addDays(d, 2)))}">${DAY_LONG[dow(addDays(d, 2))]}</span></div>
@@ -181,7 +182,7 @@ function blockMove(id, k) {
 }
 function upNextCard() {
   const d = new Date(), nm = nowMin(), bl = blocksFor(d).filter((b) => tmin(b.end) > nm && b.kind !== 'sleep').slice(0, 5); if (!bl.length) return '';
-  return `<div class="card"><div class="card-h"><div class="card-t">Up next</div><div class="card-r">tap to cancel or move · <a href="#" onclick="show('plan');return false">full plan</a></div></div><div class="tl">${bl.map((b) => `<div class="blk tap ${tmin(b.start) <= nm ? 'now' : ''}" onclick="blockSheet('${b.id}','${dk(d)}')"><div class="t">${b.start}–${b.end === '24:00' ? '…' : b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div></div>`;
+  return `<div class="card"><div class="card-h"><div class="card-t">Up next</div><div class="card-r">tap to open · <a href="#" onclick="show('plan');return false">full plan</a></div></div><div class="tl">${bl.map((b) => `<div class="blk tap ${tmin(b.start) <= nm ? 'now' : ''}" onclick="tapBlock('${b.id}','${dk(d)}')"><div class="t">${b.start}–${b.end === '24:00' ? '…' : b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div></div>`;
 }
 function nextMedalsCard() {
   const md = medalsList(), got = md.filter((x) => x[2]).length, next = md.filter((x) => !x[2]).slice(0, 3); if (!next.length) return '';
