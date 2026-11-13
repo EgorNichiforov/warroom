@@ -58,7 +58,7 @@ function renderTrain() {
   const unl = unloggedBlocks(curDate);
   let html = '';
   // unlogged scheduled training
-  if (unl.length) html += `<div class="card"><div class="card-t" style="margin-bottom:8px">On the plan, not logged yet</div>${unl.map((b) => `<div class="row sb" style="padding:6px 0;border-bottom:1px solid var(--line)"><div><div style="font-weight:600">${esc(b.title)}</div><div class="xs muted">${b.start}–${b.end}</div></div><div class="row" style="gap:6px"><button class="btn sm ok" onclick="logBlock('${b.id}',true)">Done ✓</button><button class="btn sm ghost" onclick="logBlock('${b.id}',false)">Didn't happen</button></div></div>`).join('')}</div>`;
+  if (unl.length) html += `<div class="card"><div class="card-t" style="margin-bottom:8px">On the plan, not logged yet</div>${unl.map((b) => `<div class="row sb unl" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><div style="font-weight:600">${esc(b.title)}</div><div class="xs muted">${b.start}–${b.end}</div></div><div class="row" style="gap:6px"><button class="btn sm ok" onclick="logBlock('${b.id}',true)">Done ✓</button><button class="btn sm ghost" onclick="logBlock('${b.id}',false)">Didn't happen</button></div></div>`).join('')}</div>`;
   // sessions strip
   const tabs = ss.map((s, i) => `<span class="chip ${s === wo ? 'on' : ''} ${s.done ? 'ok' : s.skipped ? 'bad' : ''}" onclick="trainSel=${i};render()">${kindIcon(s.kind)} ${esc(sessionLabel(s))}${s.done ? ' ✓' : s.skipped ? ' –' : ''}</span>`).join('');
   html += `<div class="card ac"><div class="card-h"><div class="card-t">${DAY_LONG[w]} · ${ss.filter((s) => s.done).length} of ${ss.length} session${ss.length > 1 ? 's' : ''} done</div><div class="card-r">${restPill()}</div></div>

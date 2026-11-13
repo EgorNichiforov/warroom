@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '5.9.0';
+const APP_VERSION = '5.9.1';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -348,7 +348,7 @@ function focusMorning(o, d) {
   const items = routineFor(S.routines.morning, d); const idx = items.findIndex((r) => !rState(o, r.id)); if (idx < 0) return '';
   const cur = items[idx], next = items[idx + 1]; const nm = nowMin(); const blk = blocksFor(d).find((b) => tmin(b.start) <= nm && nm < tmin(b.end));
   return `<div class="card ac focus"><div class="card-h"><div class="card-t">Step ${idx + 1} of ${items.length}</div><div class="card-r">${blk ? `now: ${esc(blk.title)} · until ${blk.end}` : ''}</div></div>
-    <div class="focus-t">${esc(cur.title)}</div>${stepHint(cur) ? `<div class="small muted" style="margin-top:4px">One tap ${stepHint(cur)} and ticks the step.</div>` : ''}
+    <div class="focus-t">${esc(cur.title)}</div>${stepHint(cur) ? `<div class="small muted" style="margin-top:4px">One tap ${stepHint(cur)} and ticks this step.</div>` : ''}
     <div class="row" style="margin-top:12px;gap:8px"><button class="btn primary lg grow" onclick="routineDo('${cur.id}')">${{ weight: 'Enter weight', train: 'Done ✓', meal: 'Ate it ✓', bac: 'Log minutes', dials: 'Confirm numbers' }[stepKind(cur)] || 'Done ✓'}</button><button class="btn lg" onclick="skipRoutine('${cur.id}')">Skip</button></div>
     <div class="row sb small muted" style="margin-top:10px"><span>${next ? `Next: <b>${esc(next.title)}</b>` : 'Last step. Then out the door.'}</span><a href="#" class="xs dim" onclick="skipRestOfMorning();return false">overslept · skip the rest</a></div></div>`;
 }
@@ -358,7 +358,7 @@ function shutdownCard(o, d) {
   if (o.shutdownAt) return `<div class="card"><div class="row sb"><div><div style="font-weight:700">Day closed · grade ${g}</div><div class="small muted">${m.met ? 'Minimum met. ' : `<span class="bad">Minimum missed.</span> `}Magnesium, phone out, bed ${S.settings.bed}.</div></div><button class="btn sm" onclick="startShutdown()">Reopen</button></div></div>`;
   return `<div class="card ac"><div class="card-h"><div class="card-t">🌙 Shutdown</div><div class="card-r">5 minutes</div></div><div class="small muted" style="margin-bottom:10px">Log the numbers, tick the standards, a 30-second debrief, look at tomorrow, then phone out.${!m.met ? ` <span class="bad">Minimum not met yet: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC.</span>` : ''}</div><button class="btn primary lg block" onclick="startShutdown()">Start shutdown</button></div>`;
 }
-function oneChangeBanner(d) { const prev = S.reviews[weekKey(addDays(monday(d), -7))]; if (!prev || !prev.change) return ''; return `<div class="card" style="padding:10px 16px;border-color:rgba(169,140,255,.4)"><div class="xs purple" style="letter-spacing:.1em;text-transform:uppercase;font-weight:700">This week's one change</div><div class="small">${esc(prev.change)}</div></div>`; }
+function oneChangeBanner(d) { const prev = S.reviews[weekKey(addDays(monday(d), -7))]; if (!prev || !prev.change) return ''; return `<div class="card" style="padding:10px 16px;border-color:rgba(169,140,255,.4)"><div class="xs purple" style="letter-spacing:.1em;font-weight:700">This week's one change</div><div class="small">${esc(prev.change)}</div></div>`; }
 function routineCard(key, d, o, open) {
   const items = routineFor(S.routines[key], d); if (!items.length) return ''; const done = items.filter((r) => rState(o, r.id) === 'done').length, skipped = items.filter((r) => rState(o, r.id) === 'skip').length; const curIdx = items.findIndex((r) => !rState(o, r.id));
   return sec(key, `${key} routine`, `<b>${done}</b>/${items.length - skipped}${skipped ? ` <span class="dim">· ${skipped} skipped</span>` : ''} ${done === items.length - skipped ? '✓' : ''}`, items.map((r, i) => { const st = rState(o, r.id); return `<div class="ck ${st === 'done' ? 'on' : ''} ${st === 'skip' ? 'done' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}" onclick="routineDo('${r.id}')"><div class="box ${st === 'skip' ? 'round' : ''}">${st === 'done' ? '✓' : st === 'skip' ? '–' : ''}</div><div class="lbl">${esc(r.title)}${!st && stepHint(r) ? `<span class="sub">${stepHint(r)}</span>` : ''}${st === 'skip' ? `<span class="sub">skipped${rSkipReason(o, r.id) ? ' · ' + esc(rSkipReason(o, r.id)) : ''}</span>` : ''}</div>${st ? '' : `<button class="edit" title="Skip" onclick="event.stopPropagation();skipRoutine('${r.id}')">↷</button>`}</div>`; }).join(''), open);
