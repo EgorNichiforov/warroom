@@ -1,0 +1,20 @@
+{
+  "appId": "com.egornichiforov.warroom",
+  "appName": "War Room",
+  "webDir": "www",
+  "server": {
+    "url": "https://egornichiforov.github.io/warroom/v5/",
+    "errorPath": "index.html",
+    "allowNavigation": [
+      "egornichiforov.github.io",
+      "*.supabase.co",
+      "generativelanguage.googleapis.com",
+      "api.todoist.com",
+      "accounts.google.com",
+      "www.googleapis.com"
+    ]
+  },
+  "android": {
+    "backgroundColor": "#060707"
+  }
+}

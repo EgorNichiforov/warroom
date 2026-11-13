@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+  <shortcut android:shortcutId="rec" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_rec" android:shortcutLongLabel="@string/sc_rec">
+    <intent android:action="android.intent.action.VIEW" android:data="warroom://rec" android:targetPackage="com.egornichiforov.warroom" android:targetClass="com.egornichiforov.warroom.MainActivity" />
+  </shortcut>
+  <shortcut android:shortcutId="dial" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_dial" android:shortcutLongLabel="@string/sc_dial">
+    <intent android:action="android.intent.action.VIEW" android:data="warroom://dial" android:targetPackage="com.egornichiforov.warroom" android:targetClass="com.egornichiforov.warroom.MainActivity" />
+  </shortcut>
+  <shortcut android:shortcutId="meal" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_meal" android:shortcutLongLabel="@string/sc_meal">
+    <intent android:action="android.intent.action.VIEW" android:data="warroom://meal" android:targetPackage="com.egornichiforov.warroom" android:targetClass="com.egornichiforov.warroom.MainActivity" />
+  </shortcut>
+</shortcuts>

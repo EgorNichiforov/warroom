@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">War Room</string>
+    <string name="title_activity_main">War Room</string>
+    <string name="package_name">com.egornichiforov.warroom</string>
+    <string name="custom_url_scheme">com.egornichiforov.warroom</string>
+    <string name="sc_rec">Record a conversation</string>
+    <string name="sc_dial">Start dialing</string>
+    <string name="sc_meal">Log a meal</string>
+</resources>
