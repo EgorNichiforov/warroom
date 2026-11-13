@@ -53,7 +53,7 @@ function coachLine(ctx) {
 }
 
 /* ───────── navigation ───────── */
-const NAV = [['now', 'hq', 'HQ'], ['dial', 'dial', 'Dial'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan'], ['me', 'me', 'Me']];
+const NAV = [['now', 'hq', 'Now'], ['dial', 'dial', 'Ops'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan'], ['me', 'me', 'Me']];
 let moreTab = 'home', weekTab = 'plan';
 function show(v) {
   const map = { today: 'now', hq: 'now', more: 'me', plan: 'week', goals: 'week', tasks: 'week', review: 'week' };
@@ -67,8 +67,8 @@ function dialBadge() { const d = new Date(), o = day(d), tg = dialTarget(d), lef
 function renderNav() {
   const badge = dialBadge();
   // phone: five screens + More (Plan and Me live behind it)
-  const phone = NAV.slice(0, 5).concat([['me', 'more', 'More']]);
-  $('nav').innerHTML = phone.map(([v, icn, l]) => `<button class="${view === v || (v === 'me' && ['week', 'cal', 'book', 'ask'].includes(view)) ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 23)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('');
+  const phone = [['now', 'hq', 'Now'], ['dial', 'dial', 'Ops'], ['train', 'train', 'Personal'], ['intel', 'target', 'Intel'], ['me', 'more', 'More']]; /* 7.0: four areas + More */
+  $('nav').innerHTML = phone.map(([v, icn, l]) => `<button class="${view === v || (v === 'me' && ['week', 'cal', 'book', 'ask'].includes(view)) || (v === 'train' && ['food', 'stats'].includes(view)) ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 23)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('');
   // desktop: sidebar
   const r = rankInfo(), left = daysUntil(S.settings.bigDate), t = new Date();
   $('side').innerHTML = `<div class="brand"><div class="mk">${ic('hq', 20)}</div><div><b>WAR ROOM</b><span>$20K MRR · ${fmtShort(pd(S.settings.bigDate)).toUpperCase()} ${pd(S.settings.bigDate).getFullYear()}</span></div></div>
@@ -80,7 +80,7 @@ function renderNav() {
 }
 function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 86400000 + 1) / 7); }
 function renderTop() {
-  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
+  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', intel: 'Intel', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
   $('top-title').innerHTML = view === 'now' && isToday(curDate) ? '<span class="only-phone">HQ</span><span class="only-desk">Headquarters</span>' : esc(titles[view]);
   const sub = $('top-sub'), t = new Date();
   if (view === 'now') sub.textContent = `${DAY_SHORT[dow(curDate)]} ${curDate.getDate()} ${curDate.toLocaleDateString('en-GB', { month: 'short' })}${window.innerWidth >= 1000 ? ' · week ' + isoWeek(curDate) : ' · D-' + daysUntil(S.settings.bigDate)}` + (isToday(curDate) || window.innerWidth < 700 ? '' : ' · not today');
@@ -92,19 +92,21 @@ function renderTop() {
   else if (view === 'cal') sub.textContent = calOn() ? (calUsesSchedule() ? 'Google Calendar · HQ follows it' : 'Google Calendar') : 'not connected yet';
   else if (view === 'book') sub.textContent = `${pbAll().length} pages · plan, rules, scripts, SOPs`;
   else if (view === 'ask') sub.textContent = 'your playbook + your numbers';
+  else if (view === 'intel') sub.textContent = 'the brain · every number from your log';
   else sub.textContent = 'v' + APP_VERSION + ' · ' + syncSummary().short;
   const nav = (view === 'now' || view === 'train' || view === 'week' || view === 'food') ? `<div class="datenav"><button onclick="shiftDay(-1)" aria-label="Previous day">‹</button><div class="cur" onclick="goToday()">${isToday(curDate) ? 'Today' : fmtShort(curDate)}<small>${DAY_SHORT[dow(curDate)]}</small></div><button onclick="shiftDay(1)" aria-label="Next day">›</button></div>` : '';
-  $('top-right').innerHTML = nav + (view === 'ask' ? '' : `<button class="iconbtn askbtn" onclick="show('ask')" title="Ask" aria-label="Ask">${ic('chat', 19)}${inboxUnread() ? `<i class="dot"></i>` : ''}</button>`) + `<button class="iconbtn capbtn" onclick="openCapture()" title="Add (task, idea, note, spend, meal)" aria-label="Add">+</button>`;
+  $('top-right').innerHTML = nav + (view === 'ask' ? '' : `<button class="iconbtn askbtn" onclick="show('ask')" title="Ask" aria-label="Ask">${ic('chat', 19)}${inboxUnread() ? `<i class="dot"></i>` : ''}</button>`) + `<button class="iconbtn" onclick="cmdOpen()" title="Command (press /)" aria-label="Command" style="font-weight:800">⌘</button>` + `<button class="iconbtn capbtn" onclick="openCapture()" title="Add (task, idea, note, spend, meal)" aria-label="Add">+</button>`;
 }
 function renderRail() {
-  const el = $('rail'); if (!el) return; if (['now', 'stats', 'food', 'cal', 'book'].includes(view)) { el.innerHTML = ''; return; }
+  const el = $('rail'); if (!el) return; if (['now', 'stats', 'food', 'cal', 'book', 'intel'].includes(view)) { el.innerHTML = ''; return; }
   const t = new Date(); el.innerHTML = ringsCard(t, true) + rankCard() + weekCard(t);
 }
 function render() {
   document.body.dataset.view = view;
   renderNav(); renderTop();
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
-  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk })[view]();
+  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel })[view]();
+  if (['train', 'food', 'stats'].includes(view)) { const pv = $('view-' + view); if (pv) pv.insertAdjacentHTML('afterbegin', `<div class="chips" style="margin-bottom:12px">${[['train', 'Train'], ['food', 'Food'], ['stats', 'Stats & body']].map(([v, l]) => `<span class="chip ${view === v ? 'on' : ''}" style="flex:1;text-align:center" onclick="show('${v}')">${l}</span>`).join('')}<span class="chip" style="flex:1;text-align:center" onclick="moreTab='weight';show('me')">Weight</span></div>`); }
   renderRail();
   const rs = $('rec-slot'); if (rs) rs.innerHTML = recBanner();
   checkGame();
@@ -167,8 +169,11 @@ function renderNow() {
   parts.week = weekCard(d);
   parts.briefing = today && (ph === 'morning' || ph === 'day') && typeof briefingCard === 'function' ? briefingCard(d) : '';
   parts.loops = today && typeof openLoopsCard === 'function' ? openLoopsCard() : '';
+  parts.warn = today && typeof warningsBanner === 'function' ? warningsBanner() : '';
+  parts.lock = today && typeof lockBanner === 'function' ? lockBanner() + recoveryCard() : '';
+  parts.tools = today && typeof lockStart === 'function' ? `<div class="row" style="gap:8px;margin-bottom:12px"><button class="btn grow" onclick="lockStart()">🔒 Lockdown</button><button class="btn grow" onclick="intelTab='nba';show('intel')">→ Next action</button><button class="btn grow" onclick="recoveryOn()">🩹 Day broke</button></div>` : '';
   // HQ answers in this order: what do I do now → today's orders (the number) → to do today → the rest. Scores live lower (column C).
-  const A = { morning: ['timer', 'shutdown', 'stake', 'briefing', 'focus', 'quick', 'loops', 'top3'], day: ['timer', 'stake', 'briefing', 'hero', 'loops', 'quick', 'top3'], evening: ['timer', 'stake', 'shutdown', 'loops', 'quick'], past: ['quick', 'shutdown'], future: ['quick', 'top3'] }[ph];
+  const A = { morning: ['lock', 'timer', 'shutdown', 'warn', 'stake', 'briefing', 'tools', 'focus', 'quick', 'loops', 'top3'], day: ['lock', 'timer', 'warn', 'stake', 'briefing', 'tools', 'hero', 'loops', 'quick', 'top3'], evening: ['lock', 'timer', 'stake', 'shutdown', 'loops', 'quick'], past: ['quick', 'shutdown'], future: ['quick', 'top3'] }[ph];
   const B = { morning: ['change', 'morning', 'study', 'standards', 'evening', 'log', 'debrief'], day: ['standards', 'study', 'change', 'weigh', 'morning', 'evening', 'log', 'debrief'], evening: ['standards', 'debrief', 'study', 'top3', 'weigh', 'evening', 'morning', 'log', 'change'], past: ['weigh', 'standards', 'study', 'top3', 'debrief', 'morning', 'evening', 'log'], future: ['weigh', 'morning', 'evening', 'standards', 'log'] }[ph];
   const _ss = syncSummary(), C = (inboxUnread() ? inboxCard(2) : '') + (today && !_ss.ok ? `<div class="card flat" onclick="moreTab='home';show('me')" style="cursor:pointer;border-color:rgba(255,165,31,.4)"><div class="row sb"><div><div class="lab" style="color:var(--acc)">Sync: ${_ss.short}</div><div class="small muted" style="margin-top:3px">Phone and laptop are not linked yet. Tap to link them.</div></div><span class="pill warn">fix</span></div></div>` : '') + (today ? upNextCard() : '') + `<div class="lab" style="margin:4px 2px 8px">Scoreboard</div>` + parts.week + rankCard();
   $('view-now').innerHTML = `<div class="hq"><div class="hq-a">${A.map((p) => parts[p] || '').join('')}</div><div class="hq-b">${B.map((p) => parts[p] || '').join('')}</div><div class="hq-c">${C}</div></div>`;

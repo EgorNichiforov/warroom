@@ -18,7 +18,7 @@ function askContext(short) {
 TODAY: dials ${Number(c.dials) || 0}/${dialTarget(t)}, owner talks ${Number(c.owners) || 0}, BAC ${Number(c.bac) || 0} min, deep work ${Number(c.deep) || 0} min, trained ${dayTrained(o) ? 'yes' : 'no'}, weight ${o.weight || 'not logged'}, food ${fmt(ft.kcal)}/${fmt(tt.kcal)} kcal and ${Math.round(ft.p)}/${tt.p} g protein, day score ${dayScore(t)}%, minimum ${minimumMet(t).met ? 'met' : 'not met'}.
 WEEK: ${op.wk}/${op.wkT} dials${op.need ? `, needs ${op.need} a day on ${op.n} dial days left` : ''}. Training days ${workoutsWeek(t)}/6.
 ALL TIME: ${counterTotal('dials')} dials, ${counterTotal('owners')} owner conversations, MRR $${m}, ${mem} paying, ${tri} on trial, ${cb} callbacks due, ${fresh} agencies never called. Weight 7-day avg ${a7 ? fmt(a7, 1) : 'n/a'} kg (goal ${S.settings.weightTarget}). Rank ${r.name}, ${fmt(r.xp)} XP.
-REST OF TODAY: ${bl || 'nothing scheduled'}.`;
+REST OF TODAY: ${bl || 'nothing scheduled'}.` + (typeof intelFacts === 'function' ? '\n' + intelFacts() : '');
   if (short) return nums;
   const pages = pbAll().map((p) => `### ${p.title}\n${p.body}`).join('\n\n');
   return nums + '\n\nPLAYBOOK (his own plan, rules, scripts and SOPs):\n' + pages;

@@ -103,8 +103,47 @@ with sync_playwright() as p:
       tmrUndo(tk); const undone = wakeFor(pd(tk)) !== '08:30' && !blocksFor(pd(tk)).some((b) => b.title === 'Moved'); closeModal(); return { applied, undone }; }""")
     check('Tomorrow planner: apply', r['applied']); check('Tomorrow planner: undo', r['undone'])
 
+
+    # ── 7.0: Command, Intel, records ──
+    r = pg.evaluate("""() => { const k = dk(new Date()), o = day(k); o.counters.dials = 0; o.counters.owners = 0; touch(o);
+      const a = cmdParse('35 dials and 4 owners'); const b = cmdParse('I weighed 78.4 kg'); const c = cmdParse('studied for 50 minutes'); const d = cmdParse('spent 120 on food');
+      const g = cmdParse('show me overdue follow-ups'), h = cmdParse('replay yesterday'), n = cmdParse('what should I do with the next 20 minutes?');
+      cmdPending = a.concat(b, c, d); cmdConfirm(); const after = { dials: o.counters.dials, owners: o.counters.owners, w: o.weight, bac: o.counters.bac, food: (o.money || {}).food };
+      cmdOpen(); cmdUndoLast(); const undone = { dials: day(k).counters.dials, w: day(k).weight };
+      cmdPending = [{ type: 'add', counter: 'owners', n: 9, label: 'x' }]; cmdConfirm(); const capped = day(k).counters.owners <= day(k).counters.dials;
+      return { a: a.map(x => x.counter + x.n), b: b[0] && b[0].kg, c: c[0] && c[0].n, d: d[0] && d[0].cat, g: g[0].to, h: h[0].to, n: n[0] && n[0].minutes, after, undone, capped }; }""")
+    check('Command: parses dials + owners', r['a'] == ['dials35', 'owners4'], r['a'])
+    check('Command: parses weight', r['b'] == 78.4); check('Command: parses study minutes', r['c'] == 50); check('Command: parses spend', r['d'] == 'food')
+    check('Command: read-only intents route (radar/replay/next 20 min)', r['g'] == 'radar' and r['h'] == 'replay' and r['n'] == 20)
+    check('Command: confirm writes through existing trackers', r['after']['dials'] == 35 and r['after']['owners'] == 4 and r['after']['w'] == '78.4' and r['after']['bac'] == 50 and r['after']['food'] == 120, r['after'])
+    check('Command: undo restores', r['undone']['dials'] == 0 and r['undone']['w'] in (None, '') , r['undone'])
+    check('Command: owner talks capped at dials', r['capped'])
+    r = pg.evaluate("""async () => { window.aiOn = () => true; window.aiText = async () => '{"actions":[{"type":"add","counter":"dials","n":5},{"type":"delete_everything"},{"type":"add","counter":"xp","n":999}]}';
+      const ok = await cmdAi('did five'); window.aiText = async () => 'not json at all'; let bad = ''; try { await cmdAi('x'); } catch (e) { bad = e.message; }
+      window.aiText = async () => '{"actions":[{"type":"drop_db"}]}'; let rej = ''; try { await cmdAi('x'); } catch (e) { rej = e.message; }
+      return { ok: ok.map(a => a.type + a.counter + a.n), bad, rej }; }""")
+    check('AI command: only allowed actions survive validation', r['ok'] == ['adddials5'], r)
+    check('AI command: malformed output rejected', 'not valid JSON' in r['bad'], r['bad'])
+    check('AI command: disallowed actions rejected', 'does not allow' in r['rej'], r['rej'])
+    r = pg.evaluate("""() => { seedCampaigns(); const C = live(S.campaigns); msToggle(C[0].id, 0); const p = campaignProgress(S.campaigns[C[0].id]);
+      const id = 'x1'; S.experiments[id] = { id, _u: 1, title: 't', metric: 'dials per day', start: dk(addDays(new Date(), -3)), end: dk(new Date()) }; const m = expMeasure(S.experiments[id], 'now');
+      const wg = wgRun(wgDefaults(), 1), wl = wgRun(wgDefaults(), 0.8); const fut = futureEgor(); const w = earlyWarnings();
+      recoveryOn(true); const rec = dialTargetFor(new Date()) <= 10; recoveryOff(); const back = !day(new Date()).recovery;
+      const ev = replayEvents(dk(new Date())); const nb = nbaList(30); const ms = memSearch('tampa'); const d = doctrineCheck('blocks');
+      return { n: C.length, p, m: m && m.unit, wgOrder: wl.mrr <= wg.mrr, fut: Array.isArray(fut), w: Array.isArray(w), rec, back, ev: Array.isArray(ev), nb: Array.isArray(nb), ms: Array.isArray(ms), d: typeof d }; }""")
+    check('Campaigns: 3 drafts + milestone progress', r['n'] == 3 and r['p'] > 0, r)
+    check('Experiments: metric measured', r['m'] == '/day'); check('Wargame: conservative ≤ expected', r['wgOrder'])
+    check('Recovery mode on/off', r['rec'] and r['back'])
+    check('Intel functions run (future, warnings, replay, NBA, search, doctrine)', all([r['fut'], r['w'], r['ev'], r['nb'], r['ms'], r['d'] == 'string']))
+    for t in ['home', 'nba', 'funnel', 'sales', 'wargame', 'campaigns', 'decisions', 'experiments', 'replay', 'future', 'friction', 'clients', 'map', 'memory', 'doctrine']:
+        try: pg.evaluate(f"intelTab='{t}';show('intel')"); pg.wait_for_timeout(80)
+        except Exception as e: errs.append('intel ' + t + ': ' + str(e)[:120])
+    check('Intel: all 15 tabs render', not [e for e in errs if e.startswith('intel')], [e for e in errs if e.startswith('intel')][:3])
+    r = pg.evaluate("""() => { lockStart(); document.querySelector('#lk-mode .chip[data-v=study]').click(); document.getElementById('lk-mis').value='BAC'; lockGo(); const a = !!lockActive(); lockEnd(); document.getElementById('lk-res').value='30'; lockClose(); return { a, closed: !lockActive(), saved: live(S.focus).some(x => x.result === 30) }; }""")
+    check('Lockdown: start, end, review saved', r['a'] and r['closed'] and r['saved'], r)
+
     # ── Every screen renders without errors ──
-    for v in ['now', 'dial', 'train', 'food', 'stats', 'plan', 'me']:
+    for v in ['now', 'dial', 'train', 'food', 'stats', 'plan', 'me', 'intel', 'book', 'ask', 'cal']:
         try: pg.evaluate(f"show('{v}')"); pg.wait_for_timeout(150)
         except Exception as e: errs.append(v + ': ' + str(e)[:120])
     pg.evaluate("moreTab='home';show('me')"); pg.wait_for_timeout(200)
