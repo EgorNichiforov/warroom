@@ -50,6 +50,7 @@ function aiExplain(msg) {
   const m = String(msg || '');
   if (/API key not valid|API_KEY_INVALID|invalid api key|invalid x-api-key|authentication/i.test(m)) return 'The key was not accepted. Copy it again: the whole line, nothing before or after it.';
   if (/location is not supported|not available in your (country|region)|FAILED_PRECONDITION/i.test(m)) return 'Google does not offer the free key in your region on this account. The other route is an Anthropic key (paid).';
+  if (/high demand|overloaded|UNAVAILABLE|503/i.test(m)) return 'Google\u2019s AI servers are overloaded right now (their side, not yours). The app already tried the backup models. Wait a minute and tap Estimate again.';
   if (/limit: 0|quota|RESOURCE_EXHAUSTED|429|rate/i.test(m)) return 'Google refused on quota: this account has no free allowance for the models tried, or the allowance is used up for now.';
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'This device could not reach the AI service. Check the connection, and switch off any VPN or ad blocker for this page.';
   if (/not found|404|not supported for generateContent/i.test(m)) return 'That model name does not exist for this key. Clear the Model field and try again.';
@@ -88,7 +89,7 @@ async function aiEstimate(b64, hint, cfgOverride) {
   let last = null;
   for (const m of list) {
     aiStatus.model = m; aiStatus.tries++; aiTick();
-    try { const t0 = Date.now(); const out = await aiCall(c, b64, hint, m); out.ms = Date.now() - t0; if (!cfgOverride && m !== c.model) { c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } if (c.shared) { try { aiShare(c, true); } catch (e) { } } } out.model = m; return out; }
+    try { const t0 = Date.now(); let out; try { out = await aiCall(c, b64, hint, m); } catch (e1) { if (!(e1.status === 503 || /high demand|overloaded|UNAVAILABLE/i.test(e1.message))) throw e1; await new Promise((r) => setTimeout(r, 1500)); out = await aiCall(c, b64, hint, m); } out.ms = Date.now() - t0; if (!cfgOverride && m !== c.model) { c.alts = list.filter((x) => x !== m); c.model = m; try { localStorage.setItem(FOOD_AI_KEY, JSON.stringify(c)); } catch (e) { } if (c.shared) { try { aiShare(c, true); } catch (e) { } } } out.model = m; return out; }
     catch (e) { last = e; last.model = m; if (/Cancelled/.test(e.message) || /API key not valid|API_KEY_INVALID|location is not supported/i.test(e.message) || !(e.status === 404 || e.status === 408 || e.status === 429 || e.status === 503 || e.status === 500 || e.status === 400 || e.status === 0 || /not found|quota|overloaded|unavailable|TIMEOUT|JSON|empty/i.test(e.message))) break; }
   }
   throw last || new Error('No model answered');
