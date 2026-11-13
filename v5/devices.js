@@ -54,6 +54,7 @@ function linkShare() { if (navigator.share) navigator.share({ title: 'War Room l
 async function linkJoin(raw) {
   let code = String(raw || '').trim(); const m = code.match(/[?&]link=([^&\s]+)/); if (m) code = decodeURIComponent(m[1]);
   if (code.length < 16) { toast('That code is too short'); return; }
+  if (/[\/:\s]/.test(code)) { toast('That is not a War Room link. Copy it from More → Devices & sync → Link a device on the other device.'); return; }
   if (code === S.settings.sync.code) { closeModal(); toast('This device is already on that War Room'); return; }
   S.settings.sync.code = code; save(true); closeModal(); toast('Joining…');
   await pullCloud(true); devStamp(); save(true); await pushCloud();
