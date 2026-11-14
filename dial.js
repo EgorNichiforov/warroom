@@ -229,7 +229,7 @@ function scriptHtmlOld(x) {
 /* ───────── the Dial view ───────── */
 function florida(nm) { const f = (nm - 7 * 60 + 1440) % 1440; return pad(Math.floor(f / 60)) + ':' + pad(f % 60); }
 function renderDial() {
-  const modeBar = `<div class="chips" style="margin-bottom:12px"><span class="chip ${benchMode === 'owners' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='owners';render()">☏ Owners</span><span class="chip ${benchMode === 'caregivers' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='caregivers';render()">🧑‍⚕️ Caregivers${B && cgNext().length ? ' · ' + cgNext().length : ''}</span><span class="chip" style="flex:1;text-align:center" onclick="intelTab='clients';show('intel')">💼 Clients</span></div>`;
+  const modeBar = `<div class="chips" style="margin-bottom:12px"><span class="chip ${benchMode === 'owners' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='owners';render()">☏ Owners</span><span class="chip ${benchMode === 'caregivers' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='caregivers';render()">🧑‍⚕️ Caregivers${B && cgNext().length ? ' · ' + cgNext().length : ''}</span><span class="chip" style="flex:1;text-align:center" onclick="intelTab='clients';show('intel')">💼 Clients</span><span class="chip" style="flex:1;text-align:center" onclick="nvPeek('reactor')">Reactor</span></div>`;
   if (benchMode === 'caregivers') { $('view-dial').innerHTML = modeBar + (B ? renderBench() : '<div class="card"><div class="empty">Loading the bench…</div></div>'); return; }
   const d = new Date(), k = dk(d), o = day(k), w = dow(d), nm = nowMin();
   const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dialTargetFor(d), weekly = dc ? dc.weekly : 150;

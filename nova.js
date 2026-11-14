@@ -13,7 +13,7 @@ const NV_TABS = [['orbit', 'Orbit'], ['reactor', 'Reactor'], ['cmd', ''], ['puls
 const NV_KIND = { dials: ['#6EF2C8', 'Dials'], bac: ['#9C8CFF', 'BAC study'], school: ['#5E8BFF', 'School'], train: ['#FF8F6B', 'Training'], tennis: ['#FFC65C', 'Tennis'], agency: ['#4FD3FF', 'Company work'], routine: ['#8E99AA', 'Routine'], food: ['#B7E36D', 'Food'], travel: ['#6C7686', 'Travel'], sleep: ['#26304A', 'Sleep'], other: ['#A4A3B8', 'Other'] };
 let nvTab = 'orbit', nvSel = null, nvAway = false, nvTick = 0, nvScrub = 0, nvCombo = { n: 0, last: 0, best: 0 }, nvPulseAt = 0, nvDrag = null;
 
-function nvOn() { try { return localStorage.getItem('wr-ui') !== 'monolith'; } catch (e) { return true; } }
+function nvOn() { if (typeof nvPeekOn !== 'undefined' && nvPeekOn) return true; try { return localStorage.getItem('wr-ui') !== 'monolith'; } catch (e) { return true; } }
 function nvSetUi(u) { try { localStorage.setItem('wr-ui', u); } catch (e) { } if (u === 'nova') { nvAway = false; nvMount(); } else nvUnmount(); closeModal(); render(); toast(u === 'nova' ? 'NOVA interface on' : 'Monolith screens on'); }
 const nvE = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const nvStrip = (s) => String(s || '').replace(/(?:\p{Extended_Pictographic}|[☀-➿])(?:️|‍\p{Extended_Pictographic})*️?\s?/gu, '').trim();
@@ -39,7 +39,7 @@ function nvMount() {
   nvRender();
 }
 function nvUnmount() { document.documentElement.classList.remove('nova-open'); const el = document.getElementById('nova'); if (el) el.remove(); const b = document.getElementById('nv-back'); if (b) b.remove(); }
-function nvGo(v, pre) { if (typeof pre === 'function') pre(); nvAway = true; document.documentElement.classList.remove('nova-open'); const el = document.getElementById('nova'); if (el) el.classList.add('away'); show(v); const b = document.getElementById('nv-back'); if (b) b.classList.add('show'); }
+function nvGo(v, pre) { if (nvPeekOn) { nvPeekOn = false; nvUnmount(); if (typeof pre === 'function') pre(); show(v); return; } if (typeof pre === 'function') pre(); nvAway = true; document.documentElement.classList.remove('nova-open'); const el = document.getElementById('nova'); if (el) el.classList.add('away'); show(v); const b = document.getElementById('nv-back'); if (b) b.classList.add('show'); }
 function nvReturn() { nvAway = false; curDate = nvToday(); document.documentElement.classList.add('nova-open'); const el = document.getElementById('nova'); if (el) el.classList.remove('away'); const b = document.getElementById('nv-back'); if (b) b.classList.remove('show'); window.scrollTo(0, 0); nvRender(); }
 function nvSwitch(t) { if (t === 'cmd') { nvCommand(); return; } nvTab = t; nvSel = null; nvRender(); const m = document.getElementById('nv-main'); if (m) m.scrollTop = 0; try { navigator.vibrate && navigator.vibrate(6); } catch (e) { } }
 
@@ -71,7 +71,7 @@ function nvTop() {
       <div class="${callable ? 'live' : ''}"><small>FLA</small><b>${nvHm(fm)}</b><em>${callable ? 'owners reachable' : 'Florida closed'}</em></div>
     </div>
     <div class="nv-d"><b>D-${left}</b><small>$20K MRR</small></div>
-    <button class="nv-grid" onclick="nvSystems()" aria-label="All systems">${nvGridIcon()}</button>
+    ${nvPeekOn ? `<button class="nv-grid nv-x" onclick="nvPeekClose()" aria-label="Back to classic screens">✕</button>` : `<button class="nv-grid" onclick="nvSystems()" aria-label="All systems">${nvGridIcon()}</button>`}
   </div>`;
 }
 function nvGridIcon() { return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>'; }
@@ -109,16 +109,18 @@ function nvOrbit() {
   const center = focus ? `<small>${sel ? (sel.e <= nm ? 'DONE' : sel.s > nm ? 'IN ' + nvDur(sel.s - nm).toUpperCase() : 'NOW') : 'NOW'} · ${focus.start}–${focus.end === '24:00' ? '…' : focus.end}</small><b>${nvE(focus.title)}</b>${!sel && left != null ? `<em>${nvDur(left)} left</em>` : ''}`
     : `<small>${nvHm(nm)}</small><b>${next.length ? 'Open time' : 'Day is done'}</b>${next.length ? `<em>${nvE(next[0].title)} in ${nvDur(next[0].s - nm)}</em>` : ''}`;
   const sigs = nvSignals();
-  return `<section class="nv-orbit">
+  return `<section class="nv-orbit nv-2"><div class="nv-c1">
     <div class="nv-dialwrap"><svg viewBox="-12 -12 424 424" class="nv-dial" role="img" aria-label="Today as a 24-hour dial">${svg}</svg><div class="nv-center" onclick="nvPick(null)">${center}</div></div>
+    <div class="nv-legend">${[...new Set(bl.map((b) => b.kind))].map((k) => `<span><i style="background:${NV_KIND[k][0]}"></i>${NV_KIND[k][1]}</span>`).join('')}<span><i class="ring-co"></i>dials ring</span><span><i class="ring-bo"></i>body</span><span><i class="ring-mi"></i>mind</span></div>
+    </div><div class="nv-c2">
     ${sel ? `<div class="nv-glass nv-selbar"><div><small style="color:${NV_KIND[sel.kind][0]}">${NV_KIND[sel.kind][1].toUpperCase()}</small><b>${nvE(sel.title)}</b><span>${sel.start}–${sel.end}${sel.note ? ' · ' + nvE(sel.note) : ''}</span></div><div class="nv-row"><button class="nv-btn ghost" onclick="blockSheet('${nvE(sel.id)}','${dk(nvToday())}')">Move / cancel</button><button class="nv-btn ghost" onclick="nvPick(null)">Close</button></div></div>`
       : act ? `<button class="nv-cta" onclick="${act.go}"><span>${nvE(act.l)}</span><i></i></button>` : ''}
     ${S.timer ? nvTimer() : ''}
     ${sigs ? `<div class="nv-signals">${sigs}</div>` : ''}
     <div class="nv-h">Next on the dial</div>
     <div class="nv-next">${next.length ? next.map((b) => `<button class="nv-glass" onclick="nvPick('${nvE(b.id)}')"><i style="background:${NV_KIND[b.kind][0]}"></i><b>${nvE(b.title)}</b><span>${b.start} · in ${nvDur(b.s - nm)}</span></button>`).join('') : '<div class="nv-glass nv-empty">Nothing else scheduled today. Lights out at ' + nvE(S.settings.bed || '21:00') + '.</div>'}</div>
-    <div class="nv-legend">${[...new Set(bl.map((b) => b.kind))].map((k) => `<span><i style="background:${NV_KIND[k][0]}"></i>${NV_KIND[k][1]}</span>`).join('')}<span><i class="ring-co"></i>dials ring</span><span><i class="ring-bo"></i>body</span><span><i class="ring-mi"></i>mind</span></div>
-  </section>`;
+    ${nvTodayNums()}
+  </div></section>`;
 }
 function nvPick(id) { nvSel = id; nvRender(); try { navigator.vibrate && navigator.vibrate(5); } catch (e) { } }
 function nvTimer() { const t = S.timer, rem = Math.max(0, t.mins * 60 - Math.floor((now() - t.start) / 1000)); return `<div class="nv-glass nv-timer"><div><small>FOCUS TIMER · ${nvE(t.counter === 'bac' ? 'BAC' : t.counter === 'deep' ? 'DEEP WORK' : t.counter.toUpperCase())}</small><b>${Math.floor(rem / 60)}:${pad(rem % 60)}</b></div><div class="nv-row"><button class="nv-btn" onclick="stopTimer(true)">Done</button><button class="nv-btn ghost" onclick="stopTimer(false)">Stop</button></div></div>`; }
@@ -173,12 +175,15 @@ function nvReactor() {
       </div>
       <div class="nv-row nv-minor"><button class="nv-btn ghost" onclick="nvOut('skip')">Skip</button><button class="nv-btn ghost" onclick="nvOut('bad')">Bad number</button><button class="nv-btn ghost" onclick="undoLast()">Undo last</button><button class="nv-btn ghost" onclick="ledgerOpen()">Call log</button><button class="nv-btn ghost" onclick="nvGo('dial')">Full dialer</button></div>`;
   })();
-  return `<section class="nv-reactor">
+  return `<section class="nv-reactor nv-2"><div class="nv-c1">
     <div class="nv-corewrap">${core}<button class="nv-corenum" onclick="ledgerOpen()" aria-label="Open the call log"><b>${v}</b><small>of ${tg || '—'} today</small><em>${tg ? (left ? left + ' to go' : 'TARGET HIT') : 'no dial block today'}</em><span class="nv-logl">tap for call log</span></button></div>
     ${stats}
     <div class="nv-row nv-ign">${sess ? `<button class="nv-btn ghost" onclick="endSession()">End session</button>` : `<button class="nv-cta small" onclick="nvIgnite()"><span>Ignite session</span><i></i></button>`}</div>
+    ${nvCallsMini()}
+    </div><div class="nv-c2">
     ${card}
-  </section>`;
+    <div class="nv-keys">Keys: <b>N</b> no answer · <b>V</b> voicemail · <b>G</b> gatekeeper · <b>O</b> owner · <b>S</b> skip · <b>B</b> bad number · <b>U</b> undo · <b>L</b> call log · <b>Space</b> call</div>
+  </div></section>`;
 }
 function nvIgnite() { if (!S.session || !S.session.active) { const o = day(new Date()); S.session = { _u: now(), active: true, start: now(), date: dk(new Date()), d0: Number(o.counters.dials) || 0, o0: Number(o.counters.owners) || 0 }; save(true); } nvCombo = { n: 0, last: 0, best: nvCombo.best }; toast('Session ignited. First dial inside 2 minutes.'); render(); }
 function nvSessClock() { const el = document.getElementById('nv-sess'), s = S.session; if (el && s && s.active) el.textContent = fmtEl(Math.floor((now() - s.start) / 1000)); }
@@ -211,14 +216,15 @@ function nvPulse() {
   items.forEach((h, i) => { const [x, y] = NV_STARS[i], on = !!o.habits[h.id], nm = nvStrip(h.title).replace(/\s*\(.*?\)\s*/g, '').replace(/ Protocol| Check/g, ''); stars += `<g class="star${on ? ' on' : ''}" onclick="nvHabit('${h.id}')" role="button" aria-pressed="${on}" aria-label="${nvE(nm)}"><circle cx="${x}" cy="${y}" r="22" class="hit"/><circle cx="${x}" cy="${y}" r="${on ? 8 : 5}" class="dot"/>${on ? `<circle cx="${x}" cy="${y}" r="14" class="aura"/>` : ''}<text x="${x}" y="${y + (y > 100 ? 30 : -20)}" text-anchor="${x > 330 ? 'end' : x < 40 ? 'start' : 'middle'}">${nvE(nm)}</text></g>`; });
   const gauge = (lab, x, col, go, val) => { const p = clamp(x.p || 0, 0, 1), C = 2 * Math.PI * 34; return `<button class="nv-gauge" onclick="${go}"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" class="gt"/><circle cx="40" cy="40" r="34" class="gf" stroke="${col}" stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/></svg><b>${val}</b><small>${lab}</small></button>`; };
   const acts = [['scale', 'Weigh in', 'weightModal()'], ['camera', 'Snap a meal', "nvGo('food')"], ['train', 'Today’s training', "nvGo('train')"], ['timer', 'Study 25', "startTimer('bac',25)"], [(typeof sleepLive === 'function' && sleepLive()) ? 'bolt' : 'bolt', (typeof sleepLive === 'function' && sleepLive()) ? 'Night screen' : 'Lights out', (typeof sleepLive === 'function' && sleepLive()) ? 'sleepScreen()' : 'lightsOut()'], ['check', 'Shutdown', 'startShutdown()']];
-  return `<section class="nv-pulse">
+  return `<section class="nv-pulse nv-2"><div class="nv-c1">
     <div class="nv-glass nv-const"><div class="nv-h in">Standards constellation <b>${done}/${items.length}</b></div>
       <svg viewBox="0 0 370 210" class="nv-stars" role="group" aria-label="Today's standards">${lines}${stars}</svg>
       <div class="nv-sub">Tap a star when the standard is kept. Neighbours that are both kept link up; all seven draw the full constellation.</div></div>
+    </div><div class="nv-c2">
     <div class="nv-gauges">${gauge('Company', r.co, NV_KIND.dials[0], "nvSwitch('reactor')", r.co.v + (r.co.t ? '<em>/' + r.co.t + '</em>' : ''))}${gauge('Body', r.body, '#FF8F6B', "nvGo('food')", r.body.v + '<em>%</em>')}${gauge('Mind', r.mind, NV_KIND.bac[0], "startTimer('bac',25)", r.mind.v + '<em>/' + r.mind.t + '</em>')}</div>
     <div class="nv-acts">${acts.map(([i, l, go]) => `<button class="nv-glass" onclick="${go}">${ic(i, 22)}<span>${l}</span></button>`).join('')}</div>
     <button class="nv-glass nv-rank" onclick="openRank()"><div><small>RANK · LEVEL ${rk.i + 1}</small><b>${nvE(rk.name)}</b></div><div class="nv-xp"><i style="width:${rk.pct}%"></i></div><span>${fmt(rk.xp)} XP · +${fmt(rk.today)} today${rk.next != null ? ' · ' + fmt(rk.toNext) + ' to ' + nvE(rk.nextName) : ''}${rk.locked && rk.gate ? ' · locked: ' + nvE(rk.gate.what) : ''}</span></button>
-  </section>`;
+  </div></section>`;
 }
 function nvHabit(id) { const o = day(nvToday()); o.habits[id] = o.habits[id] ? 0 : 1; touch(o); try { navigator.vibrate && navigator.vibrate(o.habits[id] ? [8, 40, 8] : 6); } catch (e) { } render(); }
 
@@ -244,9 +250,10 @@ function nvVector() {
   // last 28 days bars
   let bars = ''; const N = 28; let mx = 10; const vals = []; for (let i = N - 1; i >= 0; i--) { const dd = addDays(t, -i), k = dk(dd); const v = nvDialsOn(k), tg = dialTargetFor(dd); vals.push([k, v, tg]); mx = Math.max(mx, v, tg); }
   vals.forEach(([k, v, tg], i) => { const h = (v / mx) * 70, x = 6 + i * 12.6; bars += `<rect x="${x.toFixed(1)}" y="${(80 - h).toFixed(1)}" width="9" height="${Math.max(h, v ? 2 : 0).toFixed(1)}" rx="2" class="${tg && v >= tg ? 'hit' : v ? 'part' : 'zero'}${k === tk ? ' today' : ''}"><title>${k}: ${v}${tg ? '/' + tg : ''}</title></rect>`; if (tg) bars += `<line x1="${x.toFixed(1)}" x2="${(x + 9).toFixed(1)}" y1="${(80 - (tg / mx) * 70).toFixed(1)}" y2="${(80 - (tg / mx) * 70).toFixed(1)}" class="tg"/>`; });
-  return `<section class="nv-vector">
+  return `<section class="nv-vector nv-2"><div class="nv-c1">
     <div class="nv-h">Trajectory to 1 July 2027</div>
     <div class="nv-glass nv-tl"><ol class="nv-rail" aria-label="Checkpoints from today to 1 July 2027">${tl}</ol></div>
+    </div><div class="nv-c2">
     <div class="nv-kpis">
       <div class="nv-glass"><small>VELOCITY · 7 DAYS</small><b>${vel.toFixed(1)}<em> dials/day</em></b><span>needed for 2,000 by 31 Dec: <b>${needPer.toFixed(0)}</b>/day</span></div>
       <div class="nv-glass ${e2000 && e2000 <= pd('2026-12-31') ? 'good' : 'warn'}"><small>2,000 DIALS · DUE 31 DEC</small><b>${fmt(totD)}<em> / 2,000</em></b><span>${late(e2000, '2026-12-31')}</span></div>
@@ -257,7 +264,7 @@ function nvVector() {
     <div class="nv-h">Time scrubber</div>
     ${nvScrubber()}
     <div class="nv-glass nv-future"><small>IF EVERY WEEK LOOKS LIKE THE LAST 7 DAYS</small><p>${vel > 0 ? `You reach 2,000 dials on <b>${e2000 ? fmtShort(e2000) + ' ' + e2000.getFullYear() : '—'}</b>. At ~2,000 dials per paying agency, that is roughly when the first invoice lands. ${vel * 7 < 350 ? `You are running at <b>${Math.round(vel * 7)}</b> a week against 350: the gap is <b>${Math.round(350 - vel * 7)}</b> dials a week.` : 'You are at or above the 350-a-week plan. Keep the number clean and the bench full.'}` : 'No dials in the last 7 days, so there is no trajectory yet. The first 10 dials start the line.'}</p></div>
-  </section>`;
+  </div></section>`;
 }
 function nvScrubber() {
   const t = nvToday(), i = clamp(nvScrub, 0, 29), dd = addDays(t, -i), k = dk(dd), o = S.days[k] || {}, c = o.counters || {};
@@ -309,8 +316,31 @@ function nvIntro(force) {
   if (force) step();
 }
 
+
+/* ───────── shared panels (phone and laptop) ───────── */
+function nvTodayNums() {
+  const d = nvToday(), o = day(d), c = o.counters || {}, tg = dialTargetFor(d), hb = S.habits.items.filter((h) => o.habits[h.id]).length;
+  const cell = (l, v, go) => `<button onclick="${go}"><small>${l}</small><b>${v}</b></button>`;
+  return `<div class="nv-h">Today in numbers</div><div class="nv-glass nv-nums">${cell('DIALS', `${Number(c.dials) || 0}<em>/${tg || '—'}</em>`, 'ledgerOpen()')}${cell('OWNERS', Number(c.owners) || 0, 'ledgerOpen()')}${cell('BAC', `${Number(c.bac) || 0}<em> min</em>`, "startTimer('bac',25)")}${cell('WEIGHT', o.weight != null && o.weight !== '' ? o.weight + '<em> kg</em>' : '—', 'weightModal()')}${cell('STANDARDS', `${hb}<em>/${S.habits.items.length}</em>`, "nvSwitch('pulse')")}${cell('SLEEP', (() => { const m = sleepMin(o); return m ? hmDur(m) : '—'; })(), "sleepEdit('" + dk(d) + "')")}</div>`;
+}
+function nvCallsMini() {
+  const rows = typeof callsOn === 'function' ? callsOn(dk(nvToday())).slice(0, 6) : [];
+  return `<div class="nv-h">Today's calls <button class="nv-link" onclick="ledgerOpen()">full log</button></div><div class="nv-glass nv-calls">${rows.length ? rows.map((r) => `<div><span>${hmNow(new Date(r.e.at))}</span><b>${nvE(r.agency)}</b><em>${nvE(r.e.r)}</em><button onclick="ledgerDel(${r.id},'${r.e.at}')" aria-label="Delete this call">✕</button></div>`).join('') : '<div class="nv-empty" style="padding:10px">No calls logged yet today.</div>'}</div>`;
+}
+
+/* ───────── peek: open any NOVA instrument from the classic screens ───────── */
+let nvPeekOn = false;
+function nvPeek(tab) { nvPeekOn = true; nvTab = tab || 'orbit'; nvSel = null; nvAway = false; nvMount(); }
+function nvPeekClose() { nvPeekOn = false; nvUnmount(); render(); }
+
 /* ───────── hook into the app's render loop ───────── */
 if (typeof render === 'function' && !render._nv) { const _r = render; render = function () { _r.apply(this, arguments); if (nvOn() && !nvAway) nvRender(); }; render._nv = true; }
-document.addEventListener('keydown', (e) => { if (!nvOn() || nvAway || document.querySelector('.modal-bg.open')) return; if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; const k = { 1: 'orbit', 2: 'reactor', 3: 'pulse', 4: 'vector' }[e.key]; if (k) nvSwitch(k); });
+document.addEventListener('keydown', (e) => {
+  if (!nvOn() || nvAway || !document.getElementById('nova') || document.querySelector('.modal-bg.open') || document.getElementById('night')) return; if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'Escape' && nvPeekOn) { nvPeekClose(); return; }
+  const k = { 1: 'orbit', 2: 'reactor', 3: 'pulse', 4: 'vector' }[e.key]; if (k) { nvSwitch(k); return; }
+  if (nvTab !== 'reactor') return; const key = e.key.toLowerCase(), m = { n: 'noanswer', v: 'voicemail', g: 'gatekeeper', o: 'owner', s: 'skip', b: 'bad' }[key];
+  if (m) { e.preventDefault(); nvOut(m); } else if (key === 'u') { e.preventDefault(); undoLast(); } else if (key === 'l') { e.preventDefault(); ledgerOpen(); } else if (key === ' ') { const a = document.querySelector('.nv-phone[href]'); if (a) { e.preventDefault(); a.click(); } }
+});
 function nvBoot() { if (!nvOn()) return; if (typeof S === 'undefined' || !S || !S.days) { setTimeout(nvBoot, 150); return; } nvMount(); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(nvBoot, 50)); else setTimeout(nvBoot, 50);
