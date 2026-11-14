@@ -293,8 +293,8 @@ function nvCommand() {
 
 /* ═════════ ALL SYSTEMS (the classic screens, one tap away) ═════════ */
 function nvSystems() {
-  const L = [['now', 'hq', 'HQ (classic)'], ['life', 'life', 'Life OS · score, roads, body, BAC, focus'], ['dial', 'dial', 'Full dialer & CRM'], ['intel', 'target', 'Intel · 15 tabs'], ['week', 'plan', 'Plan & review'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask & recorder'], ['crm', 'kanban', 'Pipeline & CRM'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats & body'], ['me', 'me', 'More & settings']];
-  openModal(`<h2>All systems</h2><div class="nv-sys">${L.map(([v, i, l]) => `<button onclick="closeModal();nvGo('${v}')">${ic(i, 22)}<span>${l}</span></button>`).join('')}</div>
+  const L = [['one', 'target', 'ONE · just the next thing'], ['now', 'hq', 'HQ (classic)'], ['life', 'life', 'Life OS · score, roads, body, BAC, focus'], ['dial', 'dial', 'Full dialer & CRM'], ['intel', 'target', 'Intel · 15 tabs'], ['week', 'plan', 'Plan & review'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask & recorder'], ['crm', 'kanban', 'Pipeline & CRM'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats & body'], ['me', 'me', 'More & settings']];
+  openModal(`<h2>All systems</h2><div class="nv-sys">${L.map(([v, i, l]) => `<button onclick="closeModal();${v === 'one' ? 'oneShow(true)' : `nvGo('${v}')`}">${ic(i, 22)}<span>${l}</span></button>`).join('')}</div>
     <div class="sec-h" style="margin-top:16px">Interface</div><div class="row" style="gap:8px"><button class="btn grow primary" onclick="closeModal()">Stay in NOVA</button><button class="btn grow" onclick="nvSetUi('monolith')">Monolith screens</button></div>
     <button class="btn sm ghost block" style="margin-top:10px" onclick="closeModal();nvIntro(true)">Replay the NOVA tour</button>`, true);
 }
