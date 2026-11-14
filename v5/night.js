@@ -10,20 +10,14 @@ const NIGHT_NEED = 8 * 60, NIGHT_LATENCY = 15;
 function hmNow(d) { d = d || new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function hmOf(min) { min = ((Math.round(min) % 1440) + 1440) % 1440; return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
 function wakeFor(d) { const o = S.days[dk(d)]; return (o && o.wakePlan) || S.settings.wake || '05:20'; }
-function sleepMin(o) { if (!o || !o.bedAt || !o.wokeAt) return null; let m = tmin(o.wokeAt) - tmin(o.bedAt); if (m <= 0) m += 1440; return m > 16 * 60 ? null : m; }
+function sleepMin(o) {
+  if (o && Array.isArray(o.segs) && o.segs.length && o.sleepState === 'done') { const m = Math.round(o.segs.reduce((a, s) => a + Math.max(0, (s.e || s.s) - s.s), 0) / 60000); return m > 0 && m <= 16 * 60 ? m : null; }
+  if (!o || !o.bedAt || !o.wokeAt) return null; let m = tmin(o.wokeAt) - tmin(o.bedAt); if (m <= 0) m += 1440; return m > 16 * 60 ? null : m; }
 /* the day the coming (or current) night belongs to */
 function nightKey() { const n = new Date(); return n.getHours() < 12 ? dk(n) : dk(addDays(n, 1)); }
 function bedBy(d) { return hmOf(tmin(wakeFor(d)) - NIGHT_NEED - NIGHT_LATENCY); }
 
-function lightsOut() {
-  const k = nightKey(), o = day(k); o.bedAt = hmNow(); o.sleepSrc = 'tap'; if (o.wokeAt && sleepMin(o) == null) o.wokeAt = ''; touch(o);
-  const w = wakeFor(pd(k)), m = tmin(w) - tmin(o.bedAt) + (tmin(w) < tmin(o.bedAt) ? 1440 : 0);
-  toast(`Lights out ${o.bedAt}. Alarm ${w} = ${Math.floor(m / 60)}h ${pad(m % 60)}m. Phone out of the room.`); render();
-}
-function wokeUp() {
-  const k = dk(new Date()), o = day(k); o.wokeAt = hmNow(); if (!o.sleepSrc) o.sleepSrc = 'tap'; touch(o);
-  const m = sleepMin(o); toast(m != null ? `Up ${o.wokeAt} · slept ${Math.floor(m / 60)}h ${pad(m % 60)}m` : `Up ${o.wokeAt}. Add when you went to bed.`); render();
-}
+/* Lights out / I'm up now live in sleep.js (start · pause · resume · stop · undo · edit). */
 /* the phone's guess (Android app 1.2+). Never overwrites a time you tapped or typed. */
 async function sleepPull(silent) {
   if (typeof WRN === 'undefined' || !WRN || !WRN.sleepGuess) return;
@@ -65,7 +59,7 @@ function sleepChart() {
 function sleepMoneyBody(o) {
   const st = sleepStats(), nk = nightKey(), late = new Date().getHours() >= 12 || new Date().getHours() < 4, tonight = pd(nk);
   const src = o.sleepSrc === 'phone' ? '<span class="xs muted">from the phone</span>' : o.sleepSrc === 'tap' ? '<span class="xs muted">tapped</span>' : '';
-  return `<div class="row" style="gap:8px;margin-bottom:10px"><button class="btn ${late ? 'primary' : ''} grow" onclick="lightsOut()">🌙 Lights out</button><button class="btn ${late ? '' : 'primary'} grow" onclick="wokeUp()">☀️ I'm up</button></div>
+  return `${typeof sleepControls === 'function' ? sleepControls(late) : ''}
     <div class="small" style="margin-bottom:6px">Tonight: alarm <b>${wakeFor(tonight)}</b> → in bed by <b>${bedBy(tonight)}</b> for 8 h.${S.days[nk] && S.days[nk].wakePlan ? ' <span class="xs muted">(tomorrow was adjusted)</span>' : ''}</div>
     ${sleepChart()}
     ${st ? `<div class="g2" style="margin:6px 0 10px"><div class="kv"><span>7-night average</span><b>${Math.floor(st.avg / 60)}h ${pad(Math.round(st.avg % 60))}m</b></div><div class="kv"><span>Sleep debt</span><b class="${st.debt > 180 ? 'bad' : ''}">${Math.floor(st.debt / 60)}h ${pad(Math.round(st.debt % 60))}m</b></div><div class="kv"><span>Usual bedtime</span><b>${st.bedAvg} <span class="xs muted">±${st.spread}m</span></b></div><div class="kv"><span>In bed by ${S.settings.bed}</span><b>${st.onTime}/${st.n}</b></div></div>` : '<div class="xs muted" style="margin:6px 0 10px">Tap Lights out tonight and I\'m up tomorrow. After a few nights this shows your average, your debt and how steady your bedtime is.</div>'}

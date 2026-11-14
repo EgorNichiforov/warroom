@@ -105,8 +105,11 @@ function lastEntryHtml() {
   const x = Q.items[lastEntry.id], e = (x.log || []).find((l) => l.at === lastEntry.at); if (!e) return '';
   return `<div class="card flat"><div class="row sb"><div class="small muted">Last: <b>${esc(x.agency)}</b> · ${esc(e.r)}${e.dur ? ` · ${fmtEl(e.dur)} on the line` : ''}</div><button class="btn sm" onclick="undoLast()">↶ Undo</button></div></div>`;
 }
+let outGuard = { id: null, at: 0 };
 function outcome(id, kind) {
   const x = Q.items[id]; if (!x) return;
+  /* a double tap logs one call, not two (6.1: two voicemails 0.4 s apart were logged on 14 Nov) */
+  if (kind !== 'skip' && outGuard.id === id && now() - outGuard.at < 2000) return; outGuard = { id, at: now() };
   if (kind === 'noanswer') { logCall(id, 'No answer', { status: x.attempts >= 2 ? 'voicemail' : 'new' }); countDial(); dialPick = null; toast('No answer · logged'); render(); return; }
   if (kind === 'voicemail') { logCall(id, 'Voicemail left', { status: 'voicemail', next_at: dk(addDays(new Date(), 2)) }); countDial(); dialPick = null; toast('Voicemail · call again in 2 days'); render(); return; }
   if (kind === 'bad') { logCall(id, 'Bad number / closed', { status: 'bad' }); countDial(); dialPick = null; toast('Marked bad number'); render(); return; }
@@ -241,7 +244,7 @@ function renderDial() {
   const dueCb = Q ? qItems().filter((y) => y.status === 'callback' && y.next_at && y.next_at <= k).length : 0;
 
   const tiles = `<div class="tiles">
-    <div class="tile ${tg && v >= tg ? 'hit' : ''}" onclick="setToday('dials')"><div class="n num">${v}<small>/${tg || '—'}</small></div><div class="l">today · tap to fix</div></div>
+    <div class="tile ${tg && v >= tg ? 'hit' : ''}" onclick="ledgerOpen()"><div class="n num">${v}<small>/${tg || '—'}</small></div><div class="l">today · tap for call log</div></div>
     <div class="tile" onclick="show('stats')"><div class="n num">${wk}<small>/${weekly}</small></div><div class="l">week · by day</div></div>
     <div class="tile" onclick="setToday('owners')"><div class="n num">${owners}<small>/${ownersGoal ? ownersGoal.target : 100}</small></div><div class="l">owner talks</div></div>
     <div class="tile static"><div class="n num">${Math.max(0, weekly - wk)}</div><div class="l">left · week</div></div></div>`;
