@@ -106,3 +106,12 @@ New view `#view-life` (sidebar "Life", phone: Personal → Life chip, NOVA: All 
 
 ## 7.2 · ONE (one.js)
 The app now opens on one full-screen overlay (`#one`, z 47): the current calendar block turned into one action plus one button (dials → Reactor/Ops, bac/agency → focus timer, train → session, anything else → Done). Between blocks it shows the next hard block and a countdown. After bedtime it shows only "Sleep." with Lights out. The footer shows the never-0 minimum and the chain $20k ← clients ← talks ← dials. It shows on launch and after 20+ min away, and stays hidden while asleep or while call capture is pending. Turn it off in Me → Appearance → Start screen (`localStorage wr-one`). It is also in NOVA under All systems → ONE.
+
+## 8.0 · Engine (engine.js)
+This design came out of a neutral first-principles prompt to ChatGPT (Think), Grok and Perplexity. All three converged on the same answer: an execution engine, not a dashboard. New tab Life → Engine (now the default Life tab):
+- `enBottleneck()` ranks dial volume against plan, the CRM funnel `bottleneck()`, BAC minutes, training days and readiness. The weakest one gets the week.
+- If-then protocols (`S.protocols` map, triggers in `EN_TRIG`) are pre-committed responses. The first firing one shows on ONE with its action button; `day.protoDone` dismisses it for the day.
+- `enReplan()` rebuilds the rest of today: remaining dials, BAC and training are placed into free gaps around the fixed blocks (dials after 16:00, when Florida opens). It is stored in `day.replan`, and ONE follows it via the wrapped `oneNow`.
+- `enSimModal()` is the commitment simulator: the overlap of a new commitment with dial, BAC, deep-work, training and sleep minutes per week, plus the dials and MRR it costs.
+- `enBoard()` is the weekly board meeting (5 steps). It is stored in `S.boards` keyed by the Monday date and suggested on ONE on Sundays.
+- ONE shows ≈ $5 of MRR per dial (`EN_PER_DIAL`) and a "Replan the day" link.
