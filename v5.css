@@ -634,3 +634,42 @@ input,textarea,select{font-size:16px}
 .lookopt .lt b{display:block;font-size:15px}.lookopt .lt small{display:block;font-size:13px;color:var(--muted);line-height:1.35}
 
 .sw-nova i:nth-child(1){background:#04060B}.sw-nova i:nth-child(2){background:#6EF2C8}.sw-nova i:nth-child(3){background:#9C8CFF}
+
+/* 6.1 · call log */
+.ldg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;text-align:center}
+.ldg-list{display:flex;flex-direction:column;gap:6px;max-height:52vh;overflow-y:auto}
+.ldg-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--rad-12,12px);background:var(--bg3)}
+.ldg-row.gone{opacity:.6;border-style:dashed}
+.ldg-t{font-family:var(--mono,ui-monospace),monospace;font-size:13px;color:var(--muted);min-width:44px}
+.ldg-loose{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:var(--rad-12,12px)}
+
+/* 6.1 · night screen: dark, warm, readable half-asleep */
+.night{position:fixed;inset:0;z-index:48;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 30%,#1a0d0a,#050303 70%);color:#E7A88F;font-family:"Space Grotesk","IBM Plex Sans",system-ui,sans-serif;text-align:center}
+.night.awake{background:radial-gradient(circle at 50% 30%,#241109,#070403 70%)}
+.night.morning{background:radial-gradient(circle at 50% 10%,#2b2414,#0a0907 75%);color:#F3E6C8}
+.nt-wrap{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.nt-clock{font-size:clamp(72px,24vw,112px);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;color:#C9806A}
+.nt-k{font:500 12px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.22em;opacity:.85}
+.nt-big{font-size:64px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.nt-sub{font-size:14px;opacity:.75;line-height:1.5}
+.nt-ring{position:relative;width:180px;height:6px;border-radius:3px;background:rgba(231,168,143,.12);margin:8px 0 10px;overflow:hidden}
+.nt-ring i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p) * 100%);background:#A8563F;border-radius:3px}
+.nt-act{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:10px}
+.nt-main{min-height:78px;border-radius:20px;border:1px solid rgba(231,168,143,.35);background:rgba(120,50,30,.25);color:inherit;font:600 22px "Space Grotesk",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.nt-main small{font:500 11px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;opacity:.65;margin-top:4px}
+.morning .nt-main{background:#E9D9B4;color:#1A1508;border:none;min-height:60px;font-size:18px}
+.nt-up{min-height:54px;border-radius:16px;border:1px solid rgba(231,168,143,.2);background:transparent;color:inherit;font:600 16px "Space Grotesk",system-ui,sans-serif}
+.nt-minor{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:6px}
+.nt-minor button{padding:8px 12px;border-radius:10px;border:1px solid rgba(231,168,143,.16);background:transparent;color:inherit;opacity:.75;font:500 13px "IBM Plex Sans",system-ui,sans-serif}
+.nt-segs{font:500 11px "IBM Plex Mono",ui-monospace,monospace;opacity:.5;margin-top:8px}
+.nt-bars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin:10px 0}
+.nt-bars>div{padding:10px 6px;border-radius:14px;border:1px solid rgba(243,230,200,.15)}
+.nt-bars small{display:block;font:500 10px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;opacity:.6}
+.nt-bars b{font-size:18px}.nt-bars b.ok{color:#B9D49A}.nt-bars b.bad{color:#E8907A}
+.nt-q small{display:block;font:500 11px "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-bottom:8px}
+.nt-q div{display:flex;gap:8px;justify-content:center}
+.nt-q button{width:46px;height:46px;border-radius:50%;border:1px solid rgba(243,230,200,.25);background:transparent;color:inherit;font:600 17px "Space Grotesk",system-ui,sans-serif}
+.nt-q button.on{background:#E9D9B4;color:#1A1508}
+@media (prefers-reduced-motion:reduce){.night *{transition:none!important}}
+
+html.nova-open .modal .btn.danger,.ldg .btn.danger{color:#E8707F;border-color:rgba(232,112,127,.45)}

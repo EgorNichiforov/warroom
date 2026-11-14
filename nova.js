@@ -126,6 +126,7 @@ function nvSignals() {
   const out = []; let rs = []; try { rs = typeof radarItems === 'function' && Q ? radarItems() : []; } catch (e) { }
   const hot = rs.filter((x) => x.kind === 'overdue' || x.kind === 'nonext').length;
   if (hot) out.push(`<button class="nv-sig hot" onclick="nvSwitch('reactor')"><i></i>${hot} interested ${hot === 1 ? 'agency waits' : 'agencies wait'} on you</button>`);
+  try { const L = typeof sleepLive === 'function' && sleepLive(); if (L) out.unshift(`<button class="nv-sig live" onclick="sleepScreen()"><i></i>${L.o.sleepState === 'asleep' ? 'Asleep' : 'Awake in the night'} · open night screen</button>`); } catch (e) { }
   if (S.session && S.session.active) out.push(`<button class="nv-sig live" onclick="nvSwitch('reactor')"><i></i>Dial session running</button>`);
   try { (typeof earlyWarnings === 'function' ? earlyWarnings() : []).filter((w) => !/interested agenc/i.test(w.title)).slice(0, 2).forEach((w) => out.push(`<button class="nv-sig ${w.level === 'high' ? 'hot' : ''}" onclick="nvGo('intel',()=>{intelTab='home'})"><i></i>${nvE(nvStrip(w.title))}</button>`)); } catch (e) { }
   return out.join('');
@@ -170,10 +171,10 @@ function nvReactor() {
         <button onclick="nvOut('gatekeeper')"><b>Gatekeeper</b><small>↓ swipe</small></button>
         <button class="go" onclick="nvOut('owner')"><b>Owner talk</b><small>→ swipe</small></button>
       </div>
-      <div class="nv-row nv-minor"><button class="nv-btn ghost" onclick="nvOut('skip')">Skip</button><button class="nv-btn ghost" onclick="nvOut('bad')">Bad number</button><button class="nv-btn ghost" onclick="undoLast()">Undo last</button><button class="nv-btn ghost" onclick="nvGo('dial')">Full dialer</button></div>`;
+      <div class="nv-row nv-minor"><button class="nv-btn ghost" onclick="nvOut('skip')">Skip</button><button class="nv-btn ghost" onclick="nvOut('bad')">Bad number</button><button class="nv-btn ghost" onclick="undoLast()">Undo last</button><button class="nv-btn ghost" onclick="ledgerOpen()">Call log</button><button class="nv-btn ghost" onclick="nvGo('dial')">Full dialer</button></div>`;
   })();
   return `<section class="nv-reactor">
-    <div class="nv-corewrap">${core}<div class="nv-corenum"><b>${v}</b><small>of ${tg || '—'} today</small><em>${tg ? (left ? left + ' to go' : 'TARGET HIT') : 'no dial block today'}</em></div></div>
+    <div class="nv-corewrap">${core}<button class="nv-corenum" onclick="ledgerOpen()" aria-label="Open the call log"><b>${v}</b><small>of ${tg || '—'} today</small><em>${tg ? (left ? left + ' to go' : 'TARGET HIT') : 'no dial block today'}</em><span class="nv-logl">tap for call log</span></button></div>
     ${stats}
     <div class="nv-row nv-ign">${sess ? `<button class="nv-btn ghost" onclick="endSession()">End session</button>` : `<button class="nv-cta small" onclick="nvIgnite()"><span>Ignite session</span><i></i></button>`}</div>
     ${card}
@@ -209,7 +210,7 @@ function nvPulse() {
   items.forEach((h, i) => { if (i < items.length - 1) { const [x0, y0] = NV_STARS[i], [x1, y1] = NV_STARS[i + 1], on = o.habits[h.id] && o.habits[items[i + 1].id]; lines += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" class="${on ? 'on' : ''}"/>`; } });
   items.forEach((h, i) => { const [x, y] = NV_STARS[i], on = !!o.habits[h.id], nm = nvStrip(h.title).replace(/\s*\(.*?\)\s*/g, '').replace(/ Protocol| Check/g, ''); stars += `<g class="star${on ? ' on' : ''}" onclick="nvHabit('${h.id}')" role="button" aria-pressed="${on}" aria-label="${nvE(nm)}"><circle cx="${x}" cy="${y}" r="22" class="hit"/><circle cx="${x}" cy="${y}" r="${on ? 8 : 5}" class="dot"/>${on ? `<circle cx="${x}" cy="${y}" r="14" class="aura"/>` : ''}<text x="${x}" y="${y + (y > 100 ? 30 : -20)}" text-anchor="${x > 330 ? 'end' : x < 40 ? 'start' : 'middle'}">${nvE(nm)}</text></g>`; });
   const gauge = (lab, x, col, go, val) => { const p = clamp(x.p || 0, 0, 1), C = 2 * Math.PI * 34; return `<button class="nv-gauge" onclick="${go}"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" class="gt"/><circle cx="40" cy="40" r="34" class="gf" stroke="${col}" stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/></svg><b>${val}</b><small>${lab}</small></button>`; };
-  const acts = [['scale', 'Weigh in', 'weightModal()'], ['camera', 'Snap a meal', "nvGo('food')"], ['train', 'Today’s training', "nvGo('train')"], ['timer', 'Study 25', "startTimer('bac',25)"], ['bolt', 'Lights out', 'lightsOut()'], ['check', 'Shutdown', 'startShutdown()']];
+  const acts = [['scale', 'Weigh in', 'weightModal()'], ['camera', 'Snap a meal', "nvGo('food')"], ['train', 'Today’s training', "nvGo('train')"], ['timer', 'Study 25', "startTimer('bac',25)"], [(typeof sleepLive === 'function' && sleepLive()) ? 'bolt' : 'bolt', (typeof sleepLive === 'function' && sleepLive()) ? 'Night screen' : 'Lights out', (typeof sleepLive === 'function' && sleepLive()) ? 'sleepScreen()' : 'lightsOut()'], ['check', 'Shutdown', 'startShutdown()']];
   return `<section class="nv-pulse">
     <div class="nv-glass nv-const"><div class="nv-h in">Standards constellation <b>${done}/${items.length}</b></div>
       <svg viewBox="0 0 370 210" class="nv-stars" role="group" aria-label="Today's standards">${lines}${stars}</svg>

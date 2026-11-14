@@ -308,3 +308,5 @@ html.nova-open .modal input,html.nova-open .modal textarea,html.nova-open .modal
 html.nova-open .modal .chip{border-radius:999px;background:rgba(30,42,68,.6);border-color:rgba(160,190,255,.16);color:#B4C0D6}
 html.nova-open .toast{background:#EAF2FF;color:#04060B;border-radius:14px}
 @media(min-width:720px){html.nova-open .modal{border-radius:24px;margin-bottom:24px}}
+button.nv-corenum{pointer-events:auto;background:none;border:none;color:inherit;cursor:pointer;border-radius:50%;inset:22%}
+.nv-logl{font:500 9.5px var(--nv-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--nv-dim);margin-top:8px}
