@@ -393,12 +393,78 @@ function memSearch(q) {
 
 /* ═════════ INTEL screen ═════════ */
 const INTEL_TABS = [['home', 'Overview'], ['nba', 'Next action'], ['funnel', 'Funnel'], ['sales', 'Sales intel'], ['wargame', 'Wargame'], ['campaigns', 'Campaigns'], ['decisions', 'Decisions'], ['experiments', 'Experiments'], ['replay', 'Day replay'], ['future', 'Future Egor'], ['friction', 'Friction'], ['clients', 'Clients & money'], ['map', 'Opportunity map'], ['memory', 'Search'], ['doctrine', 'Doctrine']];
+/* ═════════ Intel deck (6.2): one screen, full width. KPIs → do this now → every module as a tile.
+   A tile opens its full page; ← / → walk the modules; Esc goes back to the deck. ═════════ */
+const INTEL_GROUPS = [['act', 'Act now'], ['pipe', 'Pipeline'], ['fore', 'Forecast'], ['exec', 'Execution'], ['mem', 'Memory']];
+function intelModules() {
+  const f = funnelCounts(), e = economics(), s = salesIntel(), C = live(S.campaigns), Dn = live(S.decisions), Ex = live(S.experiments);
+  const tot = Object.values(s.outcomes).reduce((a, x) => a + x, 0), topObj = Object.entries(s.objections).sort((a, b) => b[1] - a[1])[0];
+  const R = friction(14).filter((r) => r.delay != null), avgDelay = R.length ? Math.round(R.reduce((a, r) => a + r.delay, 0) / R.length) : null;
+  const fe = futureEgor()[0], wg = (() => { const p = wgState || wgDefaults(); return wgRun(p, 1); })();
+  const camp = C[0], ms = camp ? (camp.milestones || []) : [], msDone = ms.filter((m) => m.done).length;
+  const dueDec = Dn.filter((x) => x.review && x.review <= dk(new Date()) && !x.result).length, runEx = Ex.filter((x) => !x.result).length;
+  const nba = nbaList(30)[0];
+  return [
+    ['nba', 'act', 'Next action', nba ? nba.title : 'Nothing urgent', nba ? nba.mins + ' min · ' + (nba.ok ? 'doable now' : 'later') : ''],
+    ['funnel', 'pipe', 'Funnel', `${f.dials} → ${f.owners} → ${f.interested + f.bulletin} → ${f.cases}`, 'dials → owners → interested → cases'],
+    ['sales', 'pipe', 'Sales intel', tot ? `${tot} calls analysed` : 'No calls yet', topObj ? 'top objection: ' + topObj[0] : 'objections appear from your notes'],
+    ['map', 'pipe', 'Opportunity map', `${(Q ? qItems() : []).filter((x) => ['owner', 'bulletin', 'booked', 'trial', 'member'].includes(x.status)).length} warm agencies`, `${typeof bItems === 'function' ? bItems().length : 0} caregivers on file`],
+    ['clients', 'pipe', 'Clients & money', `$${fmt(e.mrr)} MRR`, `${e.clients} clients · $${fmt(e.cash)} collected`],
+    ['trajectory', 'fore', 'Trajectory', 'Checkpoints to 1 Jul 2027', 'where your 7-day pace lands'],
+    ['wargame', 'fore', 'Wargame', `$${fmt(wg.mrr)} MRR`, `in ${(wgState || wgDefaults()).weeks} weeks on the current assumptions`],
+    ['future', 'fore', 'Future Egor', fe ? fe.v : 'Not enough data', fe ? fe.t : 'needs a few days of logs'],
+    ['campaigns', 'exec', 'Campaigns', camp ? esc(camp.title) : 'No campaign', camp ? `${msDone}/${ms.length} milestones · due ${camp.deadline || '—'}` : 'start from 3 drafts'],
+    ['decisions', 'exec', 'Decisions', `${Dn.length} written`, dueDec ? `${dueDec} due for review` : 'none due for review'],
+    ['experiments', 'exec', 'Experiments', `${runEx} running`, `${Ex.length} total`],
+    ['friction', 'exec', 'Friction', avgDelay != null ? `${avgDelay > 0 ? '+' : ''}${avgDelay} min` : 'No data', 'avg first dial vs planned start'],
+    ['replay', 'mem', 'Day replay', 'Yesterday, minute by minute', 'compare any two days'],
+    ['doctrine', 'mem', 'Doctrine', `${((S.doctrine && S.doctrine.items) || DOCTRINE_SEED).length} rules`, 'checked against what you did'],
+    ['memory', 'mem', 'Search', 'Everything, one box', 'agencies, notes, tasks, playbook']];
+}
 function renderIntel() {
   ensureIntel(); const el = $('view-intel'); if (!el) return;
-  const bar = `<div class="chips" style="margin-bottom:12px;flex-wrap:nowrap;overflow-x:auto">${INTEL_TABS.map(([k, l]) => `<span class="chip ${intelTab === k ? 'on' : ''}" style="white-space:nowrap" onclick="intelTab='${k}';render()">${l}</span>`).join('')}</div>`;
-  const T = { home: intelHome, nba: intelNba, funnel: intelFunnel, sales: intelSales, wargame: intelWargame, campaigns: intelCampaigns, decisions: () => intelRecords('decisions'), experiments: () => intelRecords('experiments'), replay: intelReplay, future: intelFuture, friction: intelFriction, clients: intelClients, map: intelMap, memory: intelMemory, doctrine: intelDoctrine }[intelTab] || intelHome;
-  el.innerHTML = bar + T();
+  if (intelTab === 'home' || !INTEL_TABS.some((x) => x[0] === intelTab)) { el.innerHTML = intelDeck(); return; }
+  const T = { nba: intelNba, funnel: intelFunnel, sales: intelSales, wargame: intelWargame, campaigns: intelCampaigns, decisions: () => intelRecords('decisions'), experiments: () => intelRecords('experiments'), replay: intelReplay, future: intelFuture, friction: intelFriction, clients: intelClients, map: intelMap, memory: intelMemory, doctrine: intelDoctrine };
+  const order = intelModules().map((m) => m[0]).filter((k) => T[k]), i = order.indexOf(intelTab), title = (INTEL_TABS.find((x) => x[0] === intelTab) || [0, ''])[1];
+  const prev = order[(i - 1 + order.length) % order.length], next = order[(i + 1) % order.length], nm = (k) => (INTEL_TABS.find((x) => x[0] === k) || [0, k])[1];
+  el.innerHTML = `<div class="idk-bar"><button class="btn" onclick="intelTab='home';render()" aria-label="Back to the Intel deck">← Deck</button><div class="idk-title"><small>INTEL · ${pad(i + 1)} / ${pad(order.length)}</small><b>${esc(title)}</b></div><button class="btn sm" onclick="intelTab='${prev}';render()" title="${esc(nm(prev))}">‹ ${esc(nm(prev))}</button><button class="btn sm" onclick="intelTab='${next}';render()" title="${esc(nm(next))}">${esc(nm(next))} ›</button></div>
+    <div class="idk-detail${['memory', 'replay'].includes(intelTab) ? ' one' : ''}">${T[intelTab]()}</div>`;
 }
+function intelDeck() {
+  const d = new Date(), wk = counterWeek('dials', d), dc = counterDef('dials'), wkT = (dc && dc.weekly) || 350, owT = counterTotal('owners');
+  const bench = typeof bItems === 'function' ? bItems().filter((c) => ['hot', 'screened', 'later', 'placed'].includes(c.status)).length : 0, e = economics();
+  const kpi = (l, v, of, sub, go, due) => { const p = Math.min(1, of ? v / of : 0); return `<button class="idk-kpi" onclick="${go}"><small>${l}</small><b>${typeof v === 'number' ? fmt(v) : v}<em>/ ${of >= 1000 ? fmt(of) : of}</em></b><i><s style="width:${(p * 100).toFixed(1)}%"></s></i><span>${sub}${due ? ' · ' + due : ''}</span></button>`; };
+  const L = nbaList(30), top = L[0], w = earlyWarnings(), f = funnelCounts(), bn = bottleneck(f), M = intelModules();
+  return `<div class="idk">
+    <div class="idk-kpis">
+      ${kpi('Dials this week', wk, wkT, `${Math.max(0, wkT - wk)} to go`, "show('dial')")}
+      ${kpi('Owner talks', owT, 100, 'all time', "intelTab='funnel';render()", 'due 8 Dec')}
+      ${kpi('Bench', bench, 15, 'screened caregivers', "benchMode='caregivers';show('dial')", 'due 30 Nov')}
+      ${kpi('MRR', '$' + fmt(e.mrr), 20000, `$${fmt(e.cash)} collected`, "intelTab='clients';render()", '1 Jul 2027')}
+    </div>
+    <div class="idk-row">
+      <div class="idk-now card ac">
+        <div class="idk-k">DO THIS NOW</div>
+        ${top ? `<div class="idk-big">${esc(top.title)}</div><div class="small muted">${esc(top.why)}</div><div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" onclick="${top.act}">Go · ${top.mins} min</button><button class="btn" onclick="intelTab='nba';render()">Other options</button></div>` : '<div class="idk-big">Nothing urgent.</div><div class="small muted">Plan tomorrow or rest.</div>'}
+        ${L.slice(1, 4).length ? `<div class="idk-alts">${L.slice(1, 4).map((x) => `<button onclick="${x.act}"><b>${esc(x.title)}</b><span>${x.mins} min</span></button>`).join('')}</div>` : ''}
+        <div class="idk-bn"><small>BOTTLENECK</small> <b>${esc(bn.stage)}</b> · <span class="muted">${esc(bn.why)}</span></div>
+      </div>
+      <div class="idk-warn card">
+        <div class="idk-k">${w.length} WARNING${w.length === 1 ? '' : 'S'}</div>
+        ${w.length ? w.slice(0, 6).map((x) => `<button onclick="${x.act}"><i class="${x.level}"></i><span>${esc(x.title.replace(/^\S*[☀-➿\u{1F300}-\u{1FAFF}]\S*\s/u, ''))}</span></button>`).join('') : '<div class="small muted">All clear.</div>'}
+        <div class="idk-tools"><button class="btn sm" onclick="cmdOpen()">⌘ Command</button><button class="btn sm" onclick="show('ask')">Ask</button><button class="btn sm" onclick="redTeamPlan()">Red team</button></div>
+      </div>
+    </div>
+    <div class="idk-inst"><span>Instruments</span>${[['orbit', 'Orbit', 'your day as a dial'], ['reactor', 'Reactor', 'swipe-to-log dialing'], ['pulse', 'Pulse', 'standards constellation'], ['vector', 'Vector', 'trajectory & replay']].map(([k, l, s]) => `<button onclick="nvPeek('${k}')"><b>${l}</b><small>${s}</small></button>`).join('')}</div>
+    ${INTEL_GROUPS.map(([g, gl]) => { const ms = M.filter((m) => m[1] === g && m[0] !== 'nba'); return ms.length ? `<div class="idk-g"><div class="idk-gl">${gl}</div><div class="idk-tiles">${ms.map(([k, , t, big, sub]) => `<button class="idk-tile" onclick="${k === 'trajectory' ? "nvPeek('vector')" : `intelTab='${k}';render()`}"><small>${t}</small><b>${big}</b><span>${sub}</span><i>›</i></button>`).join('')}</div></div>` : ''; }).join('')}
+  </div>`;
+}
+document.addEventListener('keydown', (e) => {
+  if (document.body.dataset.view !== 'intel' || intelTab === 'home' || document.querySelector('.modal-bg.open') || (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))) return;
+  if (document.documentElement.classList.contains('nova-open')) return;
+  const order = intelModules().map((m) => m[0]).filter((k) => k !== 'trajectory'), i = order.indexOf(intelTab);
+  if (e.key === 'Escape') { intelTab = 'home'; render(); } else if (e.key === 'ArrowRight' && i >= 0) { intelTab = order[(i + 1) % order.length]; render(); } else if (e.key === 'ArrowLeft' && i >= 0) { intelTab = order[(i - 1 + order.length) % order.length]; render(); }
+});
 const card = (t, body, r) => `<div class="card"><div class="card-h"><div class="card-t">${t}</div>${r ? `<div class="card-r">${r}</div>` : ''}</div>${body}</div>`;
 function intelHome() {
   const w = earlyWarnings(), f = funnelCounts(), bn = bottleneck(f), dt = devTax();
