@@ -53,7 +53,7 @@ function coachLine(ctx) {
 }
 
 /* ───────── navigation ───────── */
-const NAV = [['now', 'hq', 'Now'], ['dial', 'dial', 'Ops'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan'], ['me', 'me', 'Me']];
+const NAV = [['now', 'hq', 'Now'], ['dial', 'dial', 'Ops'], ['crm', 'kanban', 'Pipeline'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan'], ['me', 'me', 'Me']];
 let moreTab = 'home', weekTab = 'plan';
 function show(v) {
   const map = { today: 'now', hq: 'now', more: 'me', plan: 'week', goals: 'week', tasks: 'week', review: 'week' };
@@ -80,13 +80,14 @@ function renderNav() {
 }
 function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 86400000 + 1) / 7); }
 function renderTop() {
-  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', intel: 'Intel', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
+  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', intel: 'Intel', crm: 'Pipeline', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
   $('top-title').innerHTML = view === 'now' && isToday(curDate) ? '<span class="only-phone">HQ</span><span class="only-desk">Headquarters</span>' : esc(titles[view]);
   const sub = $('top-sub'), t = new Date();
   if (view === 'now') sub.textContent = `${DAY_SHORT[dow(curDate)]} ${curDate.getDate()} ${curDate.toLocaleDateString('en-GB', { month: 'short' })}${window.innerWidth >= 1000 ? ' · week ' + isoWeek(curDate) : ' · D-' + daysUntil(S.settings.bigDate)}` + (isToday(curDate) || window.innerWidth < 700 ? '' : ' · not today');
   else if (view === 'dial') { const dc = counterDef('dials'); sub.textContent = `${counterWeek('dials', t)} / ${dc ? dc.weekly : 150} this week · ${counterTotal('owners')} owner talks`; }
   else if (view === 'train') sub.textContent = fmtDate(curDate);
   else if (view === 'food') { const ft = foodTotals(curDate), tt = foodTargets(); sub.textContent = ft.kcal >= tt.kcal ? `target hit · ${Math.round(ft.p)} / ${tt.p} g protein` : `${fmt(tt.kcal - ft.kcal)} kcal · ${Math.max(0, Math.round(tt.p - ft.p))} g P left`; }
+  else if (view === 'crm') sub.textContent = Q ? `${qItems().filter((x) => crmTalked(x)).length} talked · ${qItems().filter((x) => ['bulletin', 'booked', 'trial'].includes(x.status)).length} warm · ${qItems().filter((x) => x.status === 'member').length} clients · ${crmViewList('due').length} due today` : 'loading';
   else if (view === 'stats') sub.textContent = `${fmt(counterTotal('dials'))} dials · ${counterTotal('owners')} owner talks · ${rankInfo().name}`;
   else if (view === 'week') sub.textContent = 'Week of ' + fmtShort(monday(curDate));
   else if (view === 'cal') sub.textContent = calOn() ? (calUsesSchedule() ? 'Google Calendar · HQ follows it' : 'Google Calendar') : 'not connected yet';
@@ -105,7 +106,7 @@ function render() {
   document.body.dataset.view = view;
   renderNav(); renderTop();
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
-  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel })[view]();
+  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel, crm: () => renderCrm() })[view]();
   if (['train', 'food', 'stats'].includes(view)) { const pv = $('view-' + view); if (pv) pv.insertAdjacentHTML('afterbegin', `<div class="chips" style="margin-bottom:12px">${[['train', 'Train'], ['food', 'Food'], ['stats', 'Stats & body']].map(([v, l]) => `<span class="chip ${view === v ? 'on' : ''}" style="flex:1;text-align:center" onclick="show('${v}')">${l}</span>`).join('')}<span class="chip" style="flex:1;text-align:center" onclick="moreTab='weight';show('me')">Weight</span></div>`); }
   renderRail();
   const rs = $('rec-slot'); if (rs) rs.innerHTML = recBanner();
