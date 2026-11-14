@@ -103,3 +103,6 @@ New view `#view-life` (sidebar "Life", phone: Personal → Life chip, NOVA: All 
 - **BAC**: mock tests (`S.lifeTests`, map) per subject vs targets → projected average; error notebook (`S.lifeErrors`, map) with re-checks at 1/3/7/14/30 days.
 - **Focus**: `stopTimer` wrapped to record `day.focus[]` {at, mins, c, ok, plan}; 14-day stacked minutes, finish rate, best hour.
 `lifeTests` and `lifeErrors` were added to the merge maps.
+
+## 7.2 · ONE (one.js)
+The app now opens on one full-screen overlay (`#one`, z 47): the current calendar block turned into one action plus one button (dials → Reactor/Ops, bac/agency → focus timer, train → session, anything else → Done). Between blocks it shows the next hard block and a countdown. After bedtime it shows only "Sleep." with Lights out. The footer shows the never-0 minimum and the chain $20k ← clients ← talks ← dials. It shows on launch and after 20+ min away, and stays hidden while asleep or while call capture is pending. Turn it off in Me → Appearance → Start screen (`localStorage wr-one`). It is also in NOVA under All systems → ONE.
