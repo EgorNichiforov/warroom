@@ -88,3 +88,9 @@
 
 - Staff Sergeant rank still requires "first 30-day trial"; the Founding Offer replaced trials. Change the gate to "first case taken"? (XP rules are not changed without approval.)
 - Development-tax limit is 10% of logged work time (`S.settings.devTaxPct`).
+
+## 6.5 · System layer (system.js, share.html)
+- **Time machine:** a full copy (S + queue + bench) per weekday in rows `<code>:snap1`…`:snap7`, plus `:snapmanual` and `:snapundo` (state before the last restore). Written once a day when the app is open. Restore: More → Time machine.
+- **Accountability link:** row `share-<random>` (no colon) holds a numbers-only summary; `share.html#share-…` reads it with the publishable key. Admin SQL that finds MAIN must also exclude `id like 'share-%'`.
+- **Readiness:** computed from last night's sleep, bedtime, wake-ups, rating and yesterday's dials; never stored.
+- **Nudges:** in-app toasts 5 minutes before and at the start of dial, BAC, training and company blocks.

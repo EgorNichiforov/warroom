@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0B0E0F">
+<title>Egor · accountability</title>
+<style>
+@font-face{font-family:G;font-weight:600;src:url(./fonts/space-grotesk-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:P;font-weight:400;src:url(./fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:P;font-weight:600;src:url(./fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:M;font-weight:500;src:url(./fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2")}
+*{box-sizing:border-box}html,body{margin:0;background:#0B0E0F;color:#E9E7DF;font-family:P,system-ui,sans-serif}
+main{max-width:560px;margin:0 auto;padding:28px 18px 40px}
+.k{font:500 11px M,ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#A0A69E}
+h1{font:600 26px G,system-ui;margin:6px 0 4px;letter-spacing:-.01em}
+.sub{color:#A0A69E;font-size:14px;margin-bottom:22px}
+.big{display:flex;align-items:baseline;gap:8px;font:600 72px/1 G,system-ui;letter-spacing:-.04em}
+.big small{font-size:26px;color:#A0A69E;letter-spacing:0}
+.verdict{margin:12px 0 22px;padding:12px 14px;border-radius:12px;font-weight:600}
+.ok{background:rgba(147,169,139,.15);color:#B9D0B0}.mid{background:rgba(192,145,95,.15);color:#E1B98C}.bad{background:rgba(194,118,106,.16);color:#E8A396}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px}
+.grid div{padding:14px;border:1px solid #232B2A;border-radius:12px;background:#111617}
+.grid b{display:block;font:600 26px G,system-ui;margin-top:4px}.grid b em{font-style:normal;font-size:14px;color:#A0A69E}
+.bars{display:flex;gap:4px;align-items:flex-end;height:120px;padding:10px 12px 0;border:1px solid #232B2A;border-radius:12px;background:#111617}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;position:relative}
+.bars i{display:block;width:100%;max-width:22px;border-radius:3px 3px 1px 1px;background:#3a4542}
+.bars i.hit{background:#93A98B}.bars i.miss{background:#C2766A}.bars i.part{background:#C0915F}
+.bars s{position:absolute;left:0;right:0;height:2px;background:rgba(233,231,223,.5)}
+.bars span{font:500 9px M,monospace;color:#6E7872;padding-bottom:4px}
+.foot{margin-top:22px;font-size:12.5px;color:#6E7872;line-height:1.5}
+</style>
+</head>
+<body><main id="m"><div class="k">Loading…</div></main>
+<script>
+(async function () {
+  const URL = 'https://lajechvmsrmrmfcluhkr.supabase.co', KEY = 'sb_publishable_E_GGwWPOvnvV_PZDPu95Vg_0_9iqRmE', code = decodeURIComponent(location.hash.slice(1));
+  const m = document.getElementById('m'), esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  if (!/^share-[a-z0-9]{12,}$/.test(code)) { m.innerHTML = '<div class="k">This link is not valid.</div>'; return; }
+  try {
+    const r = await fetch(`${URL}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(code)}&select=data,updated_at`, { headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'x-warroom-key': code } });
+    const j = await r.json(); const d = j[0] && j[0].data; if (!d) { m.innerHTML = '<div class="k">Nothing shared yet.</div>'; return; }
+    const t = d.today, upd = new Date(d.at), stale = Date.now() - upd > 36 * 3600e3, wd = (k) => ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][new Date(k + 'T12:00').getDay()];
+    const v = !t.tg ? ['ok', 'No dial block today.'] : t.dials >= t.tg ? ['ok', 'Target hit today.'] : t.dials >= Math.min(10, t.tg) ? ['mid', `Minimum kept, ${t.tg - t.dials} short of the target.`] : ['bad', t.dials ? `Only ${t.dials} dials so far. The minimum is 10.` : 'No dials logged yet today.'];
+    const mx = Math.max(10, ...d.last.map((x) => Math.max(x[1], x[2])));
+    m.innerHTML = `<div class="k">Accountability · D-${d.d} to ${esc(d.goal)}</div><h1>Egor's dials today</h1><div class="sub">Updated ${upd.toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}${stale ? ' · not updated for over a day' : ''}</div>
+      <div class="big">${t.dials}<small>/ ${t.tg || '—'}</small></div><div class="verdict ${v[0]}">${v[1]}</div>
+      <div class="grid"><div><span class="k">This week</span><b>${d.week.dials}<em> / ${d.week.target}</em></b></div><div><span class="k">Owner talks today</span><b>${t.owners}</b></div>
+      <div><span class="k">Minimum-day streak</span><b>${d.streak}<em> days</em></b></div><div><span class="k">Missed minimum · 6 days</span><b>${d.stake.missed7}<em> × ${d.stake.mdl} MDL</em></b></div>
+      <div><span class="k">All-time dials</span><b>${d.totals.dials}</b></div><div><span class="k">All-time owner talks</span><b>${d.totals.owners}<em> / 100</em></b></div></div>
+      <div class="k" style="margin-bottom:8px">Last 14 days · dials vs target</div>
+      <div class="bars">${d.last.map(([k, dl, tg]) => `<div title="${k}: ${dl}/${tg}">${tg ? `<s style="bottom:${(tg / mx) * 96 + 16}px"></s>` : ''}<i class="${tg && dl >= tg ? 'hit' : tg && dl >= Math.min(10, tg) ? 'part' : tg ? 'miss' : ''}" style="height:${Math.max(dl ? 3 : 1, (dl / mx) * 96)}px"></i><span>${wd(k)}</span></div>`).join('')}</div>
+      <div class="foot">The rule: never a zero day. The minimum is 10 dials; each missed minimum costs ${d.stake.mdl} MDL. If the number stays low, ask him why.</div>`;
+  } catch (e) { m.innerHTML = '<div class="k">Could not load. Try again later.</div>'; }
+})();
+</script>
+</body>
+</html>
