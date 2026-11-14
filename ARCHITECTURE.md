@@ -94,3 +94,12 @@
 - **Accountability link:** row `share-<random>` (no colon) holds a numbers-only summary; `share.html#share-…` reads it with the publishable key. Admin SQL that finds MAIN must also exclude `id like 'share-%'`.
 - **Readiness:** computed from last night's sleep, bedtime, wake-ups, rating and yesterday's dials; never stored.
 - **Nudges:** in-app toasts 5 minutes before and at the start of dial, BAC, training and company blocks.
+
+## 7.1 · Life OS (life.js)
+New view `#view-life` (sidebar "Life", phone: Personal → Life chip, NOVA: All systems). Tabs:
+- **Score & roads**: `lifeWeek(monday, upto)` scores five areas (dials, BAC, training days, readiness, habits) → one 0–100 number + 8-week trend. `roadOf(goal)` gives every goal a Beeminder line (start → target by deadline; week goals by weekday) with days ahead/behind and the pace needed.
+- **Day**: `blkStatus` marks each calendar block done/missed from logged numbers (dials, bac, deep, workouts); manual override in `day.blk[id]`. Shutdown: obstacles (`day.obst`) and tomorrow's top 3. 14-day kept-plan %.
+- **Body**: EMA weight trend; `lfTdee` = adaptive TDEE from 21 days of intake + trend; recommended kcal toward the long weight goal (capped +0.5/−0.75 kg/wk), one tap to set Food's target. `lfNextSet` progressive-overload targets + Epley e1RM.
+- **BAC**: mock tests (`S.lifeTests`, map) per subject vs targets → projected average; error notebook (`S.lifeErrors`, map) with re-checks at 1/3/7/14/30 days.
+- **Focus**: `stopTimer` wrapped to record `day.focus[]` {at, mins, c, ok, plan}; 14-day stacked minutes, finish rate, best hour.
+`lifeTests` and `lifeErrors` were added to the merge maps.
