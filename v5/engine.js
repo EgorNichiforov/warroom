@@ -37,12 +37,13 @@ const EN_DEF = [
   ['zero_yday', 'Never twice. The first block today is the call block, no exceptions. Log the stake, then dial.', 'oneGo("dial")', 'Dial'],
   ['miss_dials', '20 dials in the next free slot before anything optional. 10 is the floor.', 'oneGo("dial")', 'Dial 20'],
   ['miss_bac', '25 min Anki before shutdown. Never 0.', 'oneGo("timer","bac",25)', 'Start 25 min'],
-  ['miss_train', '15-minute home session: push-ups, squats, core. Done counts.', 'oneGo("timer","deep",15)', 'Start 15 min'],
+  ['miss_train', '15-minute home session: push-ups, squats, core. Done counts.', 'oneGo("train")', 'Open training'],
   ['low_ready', 'Minimum day: 10 dials + 25 BAC, lights out 30 min early. No guilt, no zero.', 'oneGo("dial")', 'Do the minimum'],
   ['evening_zero', 'Minimum now, before dinner: 10 dials or 25 min BAC, whichever is open first.', 'oneGo("dial")', 'Minimum'],
 ];
 function enProtocols() {
   if (!S.protocols || !Object.keys(S.protocols).length) { S.protocols = {}; EN_DEF.forEach(([t, txt, act, btn], i) => { const id = 'p' + i; S.protocols[id] = { id, _u: 1, t, txt, act, btn, on: true }; }); }
+  Object.values(S.protocols).forEach((p) => { if (p && p.t === 'miss_train' && /deep/.test(p.act || '')) { p.act = 'oneGo("train")'; p.btn = 'Open training'; } });
   return Object.values(S.protocols).filter((p) => p && !p._del);
 }
 function enFiring() {
