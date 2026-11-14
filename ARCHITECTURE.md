@@ -115,3 +115,11 @@ This design came out of a neutral first-principles prompt to ChatGPT (Think), Gr
 - `enSimModal()` is the commitment simulator: the overlap of a new commitment with dial, BAC, deep-work, training and sleep minutes per week, plus the dials and MRR it costs.
 - `enBoard()` is the weekly board meeting (5 steps). It is stored in `S.boards` keyed by the Monday date and suggested on ONE on Sundays.
 - ONE shows ≈ $5 of MRR per dial (`EN_PER_DIAL`) and a "Replan the day" link.
+
+## 9.0 · ARC (arc.js): the day is the app
+ARC is the new main surface (`#arc`, z 46), on by default (`localStorage wr-arc`). It replaces ONE as the start screen; `oneShow` is wrapped to open ARC instead.
+- **The line:** today's blocks on one vertical rail. Past blocks are folded under "Earlier today" with honest ✓/✗ stamps (`blkStatus`). NOW is the hero card (ONE's action, a firing if-then protocol or the Sunday board meeting, a running timer). Future blocks sit below. It follows `day.replan`.
+- **Contract:** this week's board-meeting outcomes and its rule sit at the top.
+- **Log:** one sentence (`arcParse`): "12 dials 1 owner bac 45 76.4kg ate 900 deep 50", plus quick +1 buttons.
+- **Rooms:** every old screen is behind one door (`arcRooms`). Leaving shows a "Day" pill to return. ARC also comes back after 20+ minutes away.
+- **Sun phases:** paper (wake–17:00), dusk (17:00–bed), night (only "Sleep." + Lights out + tomorrow's first block).
