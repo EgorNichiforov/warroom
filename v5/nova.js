@@ -128,6 +128,7 @@ function nvSignals() {
   const out = []; let rs = []; try { rs = typeof radarItems === 'function' && Q ? radarItems() : []; } catch (e) { }
   const hot = rs.filter((x) => x.kind === 'overdue' || x.kind === 'nonext').length;
   if (hot) out.push(`<button class="nv-sig hot" onclick="nvSwitch('reactor')"><i></i>${hot} interested ${hot === 1 ? 'agency waits' : 'agencies wait'} on you</button>`);
+  try { const rd = typeof readiness === 'function' && nowMin() < 16 * 60 ? readiness(new Date()) : null; if (rd) out.push(`<button class="nv-sig ${rd.lvl[0] === 'min' ? 'hot' : rd.lvl[0] === 'full' ? 'live' : ''}" onclick="nvSwitch('pulse')"><i></i>Readiness ${rd.s} · ${rd.lvl[1]}</button>`); } catch (e) { }
   try { const L = typeof sleepLive === 'function' && sleepLive(); if (L) out.unshift(`<button class="nv-sig live" onclick="sleepScreen()"><i></i>${L.o.sleepState === 'asleep' ? 'Asleep' : 'Awake in the night'} · open night screen</button>`); } catch (e) { }
   if (S.session && S.session.active) out.push(`<button class="nv-sig live" onclick="nvSwitch('reactor')"><i></i>Dial session running</button>`);
   try { (typeof earlyWarnings === 'function' ? earlyWarnings() : []).filter((w) => !/interested agenc/i.test(w.title)).slice(0, 2).forEach((w) => out.push(`<button class="nv-sig ${w.level === 'high' ? 'hot' : ''}" onclick="nvGo('intel',()=>{intelTab='home'})"><i></i>${nvE(nvStrip(w.title))}</button>`)); } catch (e) { }
@@ -223,6 +224,7 @@ function nvPulse() {
     </div><div class="nv-c2">
     <div class="nv-gauges">${gauge('Company', r.co, NV_KIND.dials[0], "nvSwitch('reactor')", r.co.v + (r.co.t ? '<em>/' + r.co.t + '</em>' : ''))}${gauge('Body', r.body, '#FF8F6B', "nvGo('food')", r.body.v + '<em>%</em>')}${gauge('Mind', r.mind, NV_KIND.bac[0], "startTimer('bac',25)", r.mind.v + '<em>/' + r.mind.t + '</em>')}</div>
     <div class="nv-acts">${acts.map(([i, l, go]) => `<button class="nv-glass" onclick="${go}">${ic(i, 22)}<span>${l}</span></button>`).join('')}</div>
+    ${typeof readinessCard === 'function' ? `<div class="nv-rd">${readinessCard(nvToday())}</div>` : ''}
     <button class="nv-glass nv-rank" onclick="openRank()"><div><small>RANK · LEVEL ${rk.i + 1}</small><b>${nvE(rk.name)}</b></div><div class="nv-xp"><i style="width:${rk.pct}%"></i></div><span>${fmt(rk.xp)} XP · +${fmt(rk.today)} today${rk.next != null ? ' · ' + fmt(rk.toNext) + ' to ' + nvE(rk.nextName) : ''}${rk.locked && rk.gate ? ' · locked: ' + nvE(rk.gate.what) : ''}</span></button>
   </div></section>`;
 }

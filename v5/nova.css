@@ -373,3 +373,8 @@ button.nv-corenum{pointer-events:auto;background:none;border:none;color:inherit;
 }
 @media (min-width:1500px){.nv-2{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}}
 .nv-calls>.nv-empty{display:block;text-align:center}
+
+.nv-rd{margin-top:10px}.nv-rd .card{background:var(--nv-glass);border:1px solid var(--nv-line);border-radius:18px;color:var(--nv-ink);margin:0;padding:14px 16px;box-shadow:none}
+.nv-rd .card-t{color:var(--nv-ink);font-size:15px}.nv-rd .muted,.nv-rd .rd-why{color:var(--nv-sub)}.nv-rd .rd-why b{color:var(--nv-ink)}.nv-rd .rd-n{border-color:var(--nv-line)}
+.nv-rd .rd-full .rd-n,.nv-rd .card.rd-full .rd-n{border-color:var(--nv-plasma);color:var(--nv-plasma)}.nv-rd .rd-min .rd-n{border-color:var(--nv-hot);color:var(--nv-hot)}.nv-rd .rd-normal .rd-n{border-color:var(--nv-amber);color:var(--nv-amber)}
+.nv-rd a{color:var(--nv-plasma)}
