@@ -229,7 +229,7 @@ function scriptHtmlOld(x) {
 /* ───────── the Dial view ───────── */
 function florida(nm) { const f = (nm - 7 * 60 + 1440) % 1440; return pad(Math.floor(f / 60)) + ':' + pad(f % 60); }
 function renderDial() {
-  const modeBar = `<div class="chips" style="margin-bottom:12px"><span class="chip ${benchMode === 'owners' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='owners';render()">☏ Owners</span><span class="chip ${benchMode === 'caregivers' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='caregivers';render()">🧑‍⚕️ Caregivers${B && cgNext().length ? ' · ' + cgNext().length : ''}</span><span class="chip" style="flex:1;text-align:center" onclick="intelTab='clients';show('intel')">💼 Clients</span><span class="chip" style="flex:1;text-align:center" onclick="nvPeek('reactor')">Reactor</span></div>`;
+  const modeBar = `<div class="chips" style="margin-bottom:12px"><span class="chip ${benchMode === 'owners' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='owners';render()">☏ Owners</span><span class="chip ${benchMode === 'caregivers' ? 'on' : ''}" style="flex:1;text-align:center" onclick="benchMode='caregivers';render()">🧑‍⚕️ Caregivers${B && cgNext().length ? ' · ' + cgNext().length : ''}</span><span class="chip" style="flex:1;text-align:center" onclick="intelTab='clients';show('intel')">💼 Clients</span><span class="chip" style="flex:1;text-align:center" onclick="show('crm')">Pipeline</span><span class="chip" style="flex:1;text-align:center" onclick="nvPeek('reactor')">Reactor</span></div>`;
   if (benchMode === 'caregivers') { $('view-dial').innerHTML = modeBar + (B ? renderBench() : '<div class="card"><div class="empty">Loading the bench…</div></div>'); return; }
   const d = new Date(), k = dk(d), o = day(k), w = dow(d), nm = nowMin();
   const dc = S.counters.items.find((c) => c.id === 'dials'), tg = dialTargetFor(d), weekly = dc ? dc.weekly : 150;
@@ -258,7 +258,7 @@ function renderDial() {
     const stChip = x.status === 'callback' ? `<span class="chip ${x.next_at <= k ? 'on' : ''}">↩ callback ${x.next_at ? fmtShort(pd(x.next_at)) : ''}</span>` : x.status === 'voicemail' ? '<span class="chip">voicemail left</span>' : x.status === 'gatekeeper' ? '<span class="chip">gatekeeper</span>' : '';
     return `<div class="card ac" id="dial-next">
       <div class="card-h"><div class="card-t">Next call · #${x.id}${x.attempts ? ` · attempt ${x.attempts + 1}` : ''}</div><div class="row" style="gap:6px"><button class="btn sm ghost" onclick="editQueueItem(${x.id})">✎</button><button class="btn sm ghost" onclick="outcome(${x.id},'skip')">Skip ›</button></div></div>
-      <div class="agency">${esc(x.agency)}</div>
+      <div class="agency go" onclick="crmOpen(${x.id})" title="Open the agency record">${esc(x.agency)} <span class="xs muted">›</span></div>
       <div class="small muted" style="margin:2px 0 8px">${esc(x.city)}${x.county ? ' · ' + esc(x.county) + ' County' : ''}</div>
       <div class="chips" style="margin-bottom:10px">${tierChip}${stChip}</div>
       <div class="dial-num">${tel ? `<a href="${tel}" onclick="markDialing(${x.id})">${phonePretty(x.phone)}</a>` : '<span class="bad" style="font-size:16px">No phone on file: find it, tap ✎ to add it</span>'}</div>
@@ -292,7 +292,7 @@ function renderDial() {
 
   const clients = qItems().filter((x) => ['booked', 'trial', 'member', 'bulletin'].includes(x.status));
   const clientsHtml = clients.length ? `<div class="card"><div class="card-h"><div class="card-t">Pipeline · ${clients.length}</div><div class="card-r">MRR <b>$${mrr().toLocaleString()}</b></div></div>${clients.map((x) => `<div class="qrow" onclick="pipelineModal(${x.id})"><div class="grow"><div class="a">${esc(x.agency)}</div><div class="m">${x.status === 'member' ? (PLANS[x.plan] || [''])[0] + (x.memberSince ? ' since ' + fmtShort(pd(x.memberSince)) : '') : x.status === 'trial' ? 'trial day ' + Math.round((now() - pd(x.trialStart || dk(new Date()))) / 86400000) + (x.case ? ' · ' + esc(x.case) : '') : x.next_step ? esc(x.next_step) : x.status}</div></div><span class="st ${x.status}">${x.status === 'member' ? 'paying' : x.status}</span></div>`).join('')}<div class="xs muted" style="margin-top:8px">Tap an agency to move it: trial started · first shift · paying · lost.</div></div>` : '';
-  $('view-dial').innerHTML = modeBar + tiles + sessHtml + (typeof radarCard === 'function' && !sess ? radarCard(5) : '') + nextCard + lastEntryHtml() + clientsHtml + scriptCard + listHtml + gate;
+  $('view-dial').innerHTML = (typeof crmDialBanner === 'function' ? crmDialBanner() : '') + modeBar + tiles + sessHtml + (typeof radarCard === 'function' && !sess ? radarCard(5) : '') + nextCard + lastEntryHtml() + clientsHtml + scriptCard + listHtml + gate;
   clearInterval(sessTimer); if (sess) sessTimer = setInterval(() => { const el = $('sess-el'); if (!el) { clearInterval(sessTimer); return; } el.textContent = fmtEl(Math.floor((now() - sess.start) / 1000)); }, 1000);
 }
 function dialListHtml(list) {

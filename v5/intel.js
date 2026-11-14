@@ -409,6 +409,7 @@ function intelModules() {
     ['funnel', 'pipe', 'Funnel', `${f.dials} → ${f.owners} → ${f.interested + f.bulletin} → ${f.cases}`, 'dials → owners → interested → cases'],
     ['sales', 'pipe', 'Sales intel', tot ? `${tot} calls analysed` : 'No calls yet', topObj ? 'top objection: ' + topObj[0] : 'objections appear from your notes'],
     ['map', 'pipe', 'Opportunity map', `${(Q ? qItems() : []).filter((x) => ['owner', 'bulletin', 'booked', 'trial', 'member'].includes(x.status)).length} warm agencies`, `${typeof bItems === 'function' ? bItems().length : 0} caregivers on file`],
+    ['crm', 'pipe', 'Pipeline & CRM', typeof crmViewList === 'function' && Q ? `${crmViewList('due').length} due today` : 'Board, smart views', typeof crmViewList === 'function' && Q ? `${crmViewList('rotting').length} rotting · ${qItems().filter((x) => crmTalked(x)).length} talked` : 'cadence, velocity'],
     ['clients', 'pipe', 'Clients & money', `$${fmt(e.mrr)} MRR`, `${e.clients} clients · $${fmt(e.cash)} collected`],
     ['trajectory', 'fore', 'Trajectory', 'Checkpoints to 1 Jul 2027', 'where your 7-day pace lands'],
     ['wargame', 'fore', 'Wargame', `$${fmt(wg.mrr)} MRR`, `in ${(wgState || wgDefaults()).weeks} weeks on the current assumptions`],
@@ -456,13 +457,13 @@ function intelDeck() {
       </div>
     </div>
     <div class="idk-inst"><span>Instruments</span>${[['orbit', 'Orbit', 'your day as a dial'], ['reactor', 'Reactor', 'swipe-to-log dialing'], ['pulse', 'Pulse', 'standards constellation'], ['vector', 'Vector', 'trajectory & replay']].map(([k, l, s]) => `<button onclick="nvPeek('${k}')"><b>${l}</b><small>${s}</small></button>`).join('')}</div>
-    ${INTEL_GROUPS.map(([g, gl]) => { const ms = M.filter((m) => m[1] === g && m[0] !== 'nba'); return ms.length ? `<div class="idk-g"><div class="idk-gl">${gl}</div><div class="idk-tiles">${ms.map(([k, , t, big, sub]) => `<button class="idk-tile" onclick="${k === 'trajectory' ? "nvPeek('vector')" : `intelTab='${k}';render()`}"><small>${t}</small><b>${big}</b><span>${sub}</span><i>›</i></button>`).join('')}</div></div>` : ''; }).join('')}
+    ${INTEL_GROUPS.map(([g, gl]) => { const ms = M.filter((m) => m[1] === g && m[0] !== 'nba'); return ms.length ? `<div class="idk-g"><div class="idk-gl">${gl}</div><div class="idk-tiles">${ms.map(([k, , t, big, sub]) => `<button class="idk-tile" onclick="${k === 'trajectory' ? "nvPeek('vector')" : k === 'crm' ? "show('crm')" : `intelTab='${k}';render()`}"><small>${t}</small><b>${big}</b><span>${sub}</span><i>›</i></button>`).join('')}</div></div>` : ''; }).join('')}
   </div>`;
 }
 document.addEventListener('keydown', (e) => {
   if (document.body.dataset.view !== 'intel' || intelTab === 'home' || document.querySelector('.modal-bg.open') || (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))) return;
   if (document.documentElement.classList.contains('nova-open')) return;
-  const order = intelModules().map((m) => m[0]).filter((k) => k !== 'trajectory'), i = order.indexOf(intelTab);
+  const order = intelModules().map((m) => m[0]).filter((k) => k !== 'trajectory' && k !== 'crm'), i = order.indexOf(intelTab);
   if (e.key === 'Escape') { intelTab = 'home'; render(); } else if (e.key === 'ArrowRight' && i >= 0) { intelTab = order[(i + 1) % order.length]; render(); } else if (e.key === 'ArrowLeft' && i >= 0) { intelTab = order[(i - 1 + order.length) % order.length]; render(); }
 });
 const card = (t, body, r) => `<div class="card"><div class="card-h"><div class="card-t">${t}</div>${r ? `<div class="card-r">${r}</div>` : ''}</div>${body}</div>`;

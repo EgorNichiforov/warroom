@@ -159,7 +159,7 @@ function nvReactor() {
       <div class="nv-hint l">No answer</div><div class="nv-hint r">Owner talk</div><div class="nv-hint u">Voicemail</div><div class="nv-hint d">Gatekeeper</div>
       <article class="nv-card" id="nv-card" data-id="${x.id}">
         <div class="nv-cardtop"><small>#${x.id}${x.attempts ? ' · attempt ' + (x.attempts + 1) : ' · first call'}</small>${st}</div>
-        <h2>${nvE(x.agency)}</h2>
+        <h2 onclick="crmOpen(${x.id})" style="cursor:pointer">${nvE(x.agency)}</h2>
         <div class="nv-city">${nvE(x.city)}${x.county ? ' · ' + nvE(x.county) : ''} · their time ${florida(nowMin())}</div>
         ${tel ? `<a class="nv-phone" href="${tel}" onclick="markDialing(${x.id})">${phonePretty(x.phone)}<span>tap to call</span></a>` : `<div class="nv-phone none">No phone on file</div>`}
         <div class="nv-kv"><small>ASK FOR</small><b>${nvE(x.contact || 'Whoever handles caregiver hiring')}</b></div>
@@ -175,7 +175,7 @@ function nvReactor() {
       </div>
       <div class="nv-row nv-minor"><button class="nv-btn ghost" onclick="nvOut('skip')">Skip</button><button class="nv-btn ghost" onclick="nvOut('bad')">Bad number</button><button class="nv-btn ghost" onclick="undoLast()">Undo last</button><button class="nv-btn ghost" onclick="ledgerOpen()">Call log</button><button class="nv-btn ghost" onclick="nvGo('dial')">Full dialer</button></div>`;
   })();
-  return `<section class="nv-reactor nv-2"><div class="nv-c1">
+  return `${typeof crmDialBanner === 'function' ? crmDialBanner() : ''}<section class="nv-reactor nv-2"><div class="nv-c1">
     <div class="nv-corewrap">${core}<button class="nv-corenum" onclick="ledgerOpen()" aria-label="Open the call log"><b>${v}</b><small>of ${tg || '—'} today</small><em>${tg ? (left ? left + ' to go' : 'TARGET HIT') : 'no dial block today'}</em><span class="nv-logl">tap for call log</span></button></div>
     ${stats}
     <div class="nv-row nv-ign">${sess ? `<button class="nv-btn ghost" onclick="endSession()">End session</button>` : `<button class="nv-cta small" onclick="nvIgnite()"><span>Ignite session</span><i></i></button>`}</div>
@@ -291,7 +291,7 @@ function nvCommand() {
 
 /* ═════════ ALL SYSTEMS (the classic screens, one tap away) ═════════ */
 function nvSystems() {
-  const L = [['now', 'hq', 'HQ (classic)'], ['dial', 'dial', 'Full dialer & CRM'], ['intel', 'target', 'Intel · 15 tabs'], ['week', 'plan', 'Plan & review'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask & recorder'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats & body'], ['me', 'me', 'More & settings']];
+  const L = [['now', 'hq', 'HQ (classic)'], ['dial', 'dial', 'Full dialer & CRM'], ['intel', 'target', 'Intel · 15 tabs'], ['week', 'plan', 'Plan & review'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask & recorder'], ['crm', 'kanban', 'Pipeline & CRM'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats & body'], ['me', 'me', 'More & settings']];
   openModal(`<h2>All systems</h2><div class="nv-sys">${L.map(([v, i, l]) => `<button onclick="closeModal();nvGo('${v}')">${ic(i, 22)}<span>${l}</span></button>`).join('')}</div>
     <div class="sec-h" style="margin-top:16px">Interface</div><div class="row" style="gap:8px"><button class="btn grow primary" onclick="closeModal()">Stay in NOVA</button><button class="btn grow" onclick="nvSetUi('monolith')">Monolith screens</button></div>
     <button class="btn sm ghost block" style="margin-top:10px" onclick="closeModal();nvIntro(true)">Replay the NOVA tour</button>`, true);
