@@ -19,7 +19,7 @@ function setAppearance(l) {
 function appearanceCard() {
   const cur = lookGet();
   return `<div class="card"><div class="card-h"><div class="card-t">Appearance</div><div class="card-r">this device only</div></div>
-    <div class="looks">${LOOKS.map(([id, nm, d]) => `<button class="lookopt ${cur === id ? 'on' : ''}" onclick="setAppearance('${id}')" aria-pressed="${cur === id}"><span class="sw sw-${id}"><i></i><i></i><i></i></span><span class="lt"><b>${nm}</b><small>${d}</small></span></button>`).join('')}</div></div>`;
+    <div class="looks" style="margin-bottom:10px">${[['nova', 'NOVA interface', 'Orbit, Reactor, Pulse, Vector and the command orb. The default from 6.0.'], ['monolith', 'Classic screens', 'The HQ, Ops, Personal, Intel layout. Colours below still apply.']].map(([id, nm, d]) => { const on = (typeof nvOn === 'function' ? nvOn() : false) === (id === 'nova'); return `<button class="lookopt ${on ? 'on' : ''}" onclick="nvSetUi('${id}')" aria-pressed="${on}"><span class="sw sw-${id === 'nova' ? 'nova' : 'dark'}"><i></i><i></i><i></i></span><span class="lt"><b>${nm}</b><small>${d}</small></span></button>`; }).join('')}</div><div class="looks">${LOOKS.map(([id, nm, d]) => `<button class="lookopt ${cur === id ? 'on' : ''}" onclick="setAppearance('${id}')" aria-pressed="${cur === id}"><span class="sw sw-${id}"><i></i><i></i><i></i></span><span class="lt"><b>${nm}</b><small>${d}</small></span></button>`).join('')}</div></div>`;
 }
 
 /* ── HQ mission plate: the one number for today, engraved ── */
