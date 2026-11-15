@@ -184,3 +184,9 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 - cockpit.js: renderDial (owners) rebuilt as a call cockpit — ring, session bar, one card per call, big tap-to-call, ask-for/hook/last-time brief, outcome buttons with keys A/V/G/O/X/S and slide-away animation, up-next strip. Fix: agencies already called today drop below uncalled ones (No answer no longer brings the same agency back).
 - body.js: Train hero (set ring, elapsed timer, Start/Finish), current exercise highlighted with progress bars; Food hero with kcal + protein rings and per-meal pace to bedtime.
 - Phone topbar wraps so titles never truncate; meal rows no longer overlap kcal.
+
+
+## 10.2 — Money truth (money3.js)
+- earned − logged spending − counted balance = unlogged spending. `mn3Build` spreads it over the months (half by time, half by that month's income, minus what was logged), split food/transport/out/other, as `est:true` transactions dated the 15th (ids `est-YYYY-MM-cat`, idempotent across devices). Dated before the first count so balances never move.
+- `mn3Auto` runs once after the first count (flag `S.settings.mnEst`); `mn3Modal` re-estimates with other shares or removes. Estimates are excluded from day logs, heat map, recurring detection.
+- Overview card "Everything you earned, and where it is". Money/stat grids now auto-fit their width on desktop.

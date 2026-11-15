@@ -1180,3 +1180,11 @@ html[data-hub] #view-dial>.chips:first-of-type .chip{border-radius:10px}
 .fd-left{text-align:center;font-size:14px;margin:14px 0 8px;line-height:1.5}.fd-mac{display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--muted)}.fd-mac b{color:var(--text)}
 .meal>div:not(.kc):not(.ph){min-width:0;flex:1}.meal>div:not(.kc) .small,.meal>div:not(.kc) .xs{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.meal .kc{flex:0 0 auto;font-size:20px}
 @media(max-width:560px){.topbar{flex-wrap:wrap;row-gap:8px}.topbar>div:first-child{flex:1 1 100%;min-width:0}#top-title{overflow:visible;text-overflow:clip;white-space:normal}}
+
+/* ═════════ 10.2 Money truth ═════════ */
+.mn3-big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:2px 0 12px}.mn3-big>span:first-child{font-size:clamp(30px,5vw,44px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.mn3-big>span:last-child{font-size:13px;color:var(--muted)}
+.mn3-bar{display:flex;gap:3px;height:18px;border-radius:9px;overflow:hidden}.mn3-bar i{display:block;border-radius:4px;transform-origin:left;animation:mn3Grow .9s var(--sh-ease,ease) both}@keyframes mn3Grow{from{transform:scaleX(0)}}
+.mn3-leg{display:grid;gap:6px;margin-top:12px}.mn3-leg>div{display:grid;grid-template-columns:12px 1fr auto 44px;gap:10px;align-items:center;font-size:14px}.mn3-leg u{width:12px;height:12px;border-radius:4px}.mn3-leg span{color:var(--sub,inherit)}.mn3-leg b{font-variant-numeric:tabular-nums}.mn3-leg em{font-style:normal;color:var(--muted);font-size:12px;text-align:right}
+@media(min-width:900px){.mn3-leg{grid-template-columns:repeat(3,1fr);gap:18px}}
+/* 10.2: money/stat grids fill the width they actually have */
+@media(min-width:900px){.sgrid.st-g{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))!important}.sgrid.st-g>.card{grid-column:auto!important}.sgrid.st-g>.w2,.sgrid.st-g>.w3,.sgrid.st-g>.wf{grid-column:1/-1!important}}
