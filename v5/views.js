@@ -68,7 +68,7 @@ function renderNav() {
   const badge = dialBadge();
   // phone: five screens + More (Plan and Me live behind it)
   const phone = [['now', 'hq', 'Now'], ['dial', 'dial', 'Ops'], ['train', 'train', 'Personal'], ['intel', 'target', 'Intel'], ['me', 'more', 'More']]; /* 7.0: four areas + More */
-  $('nav').innerHTML = phone.map(([v, icn, l]) => `<button class="${view === v || (v === 'me' && ['week', 'cal', 'book', 'ask'].includes(view)) || (v === 'train' && ['food', 'stats', 'life'].includes(view)) ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 23)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('');
+  $('nav').innerHTML = phone.map(([v, icn, l]) => `<button class="${view === v || (v === 'me' && ['week', 'cal', 'book', 'ask'].includes(view)) || (v === 'train' && ['food', 'stats', 'life', 'trlog'].includes(view)) ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 23)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('');
   // desktop: sidebar
   const r = rankInfo(), left = daysUntil(S.settings.bigDate), t = new Date();
   $('side').innerHTML = `<div class="brand"><div class="mk">${ic('hq', 20)}</div><div><b>WAR ROOM</b><span>$20K MRR · ${fmtShort(pd(S.settings.bigDate)).toUpperCase()} ${pd(S.settings.bigDate).getFullYear()}</span></div></div>
@@ -80,7 +80,7 @@ function renderNav() {
 }
 function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 86400000 + 1) / 7); }
 function renderTop() {
-  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', intel: 'Intel', crm: 'Pipeline', life: 'Life', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
+  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', intel: 'Intel', crm: 'Pipeline', life: 'Life', trlog: 'Training log', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
   $('top-title').innerHTML = view === 'now' && isToday(curDate) ? '<span class="only-phone">HQ</span><span class="only-desk">Headquarters</span>' : esc(titles[view]);
   const sub = $('top-sub'), t = new Date();
   if (view === 'now') sub.textContent = `${DAY_SHORT[dow(curDate)]} ${curDate.getDate()} ${curDate.toLocaleDateString('en-GB', { month: 'short' })}${window.innerWidth >= 1000 ? ' · week ' + isoWeek(curDate) : ' · D-' + daysUntil(S.settings.bigDate)}` + (isToday(curDate) || window.innerWidth < 700 ? '' : ' · not today');
@@ -106,8 +106,8 @@ function render() {
   document.body.dataset.view = view;
   renderNav(); renderTop();
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
-  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife() })[view]();
-  if (['train', 'food', 'stats', 'life'].includes(view)) { const pv = $('view-' + view); if (pv) pv.insertAdjacentHTML('afterbegin', `<div class="chips" style="margin-bottom:12px">${[['life', 'Life'], ['train', 'Train'], ['food', 'Food'], ['stats', 'Stats & body']].map(([v, l]) => `<span class="chip ${view === v ? 'on' : ''}" style="flex:1;text-align:center" onclick="show('${v}')">${l}</span>`).join('')}<span class="chip" style="flex:1;text-align:center" onclick="moreTab='weight';show('me')">Weight</span></div>`); }
+  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife(), trlog: () => renderTrlog() })[view]();
+  if (['train', 'trlog', 'food', 'stats', 'life'].includes(view)) { const pv = $('view-' + view); if (pv) pv.insertAdjacentHTML('afterbegin', `<div class="chips" style="margin-bottom:12px">${[['life', 'Life'], ['train', 'Train'], ['trlog', 'Training log'], ['food', 'Food'], ['stats', 'Stats & body']].map(([v, l]) => `<span class="chip ${view === v ? 'on' : ''}" style="flex:1;text-align:center" onclick="show('${v}')">${l}</span>`).join('')}<span class="chip" style="flex:1;text-align:center" onclick="moreTab='weight';show('me')">Weight</span></div>`); }
   renderRail();
   const rs = $('rec-slot'); if (rs) rs.innerHTML = recBanner();
   checkGame();

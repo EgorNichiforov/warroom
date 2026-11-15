@@ -15,7 +15,7 @@ function enBottleneck() {
   if (typeof funnelCounts === 'function' && typeof bottleneck === 'function' && Q) { const f = funnelCounts(), b = bottleneck(f); if (b && b.stage !== 'Not enough data') C.push({ k: 'funnel', area: 'Company', name: b.stage, v: b.stage === 'Follow-up' ? 0.3 : 0.5, line: b.why, fix: b.stage === 'Follow-up' ? 'Clear every overdue callback before new dials.' : 'Fix this stage before adding volume.', act: 'show("crm")', btn: 'Open pipeline' }); }
   const bT = bac ? enTarget((d) => bac.targets[dow(d)], 14) : 0, b14 = enSum('bac', 14);
   if (bT) C.push({ k: 'bac', area: 'Mind', name: 'BAC study time', v: b14 / bT, line: `${b14} of ${bT} planned BAC minutes in 14 days`, fix: 'Morning BAC block starts before the phone is touched. Anki first.', act: 'oneGo("timer","bac",25)', btn: 'Start 25 min' });
-  let tr = 0; for (let i = 0; i < 14; i++) if (sessionsRO(S.days[dk(addDays(new Date(), -i))]).length) tr++;
+  let tr = 0; for (let i = 0; i < 14; i++) if (dayTrained(S.days[dk(addDays(new Date(), -i))])) tr++;
   C.push({ k: 'train', area: 'Body', name: 'Training days', v: tr / 12, line: `${tr} of 12 training days in 14 days`, fix: 'Missed session → 15-minute home version the same day.', act: 'show("train")', btn: 'Open training' });
   let rs = 0, rn = 0; for (let i = 0; i < 7; i++) { const r = typeof readiness === 'function' ? readiness(addDays(new Date(), -i)) : null; if (r) { rs += r.s; rn++; } }
   if (rn >= 3) C.push({ k: 'sleep', area: 'Sleep', name: 'Recovery', v: rs / rn / 80, line: `average readiness ${Math.round(rs / rn)} over ${rn} nights`, fix: 'Lights out at 21:00. Phone charges outside the bedroom.', act: 'oneGo("sleep")', btn: 'Lights out' });
@@ -69,7 +69,7 @@ function enReplan() {
   const free = []; let t = Math.ceil(nm / 5) * 5; fixed.forEach(([s, e]) => { if (e <= t) return; if (s > t) free.push([t, Math.min(s, bed - 15)]); t = Math.max(t, e); }); if (t < bed - 15) free.push([t, bed - 15]);
   const need = []; const dl = Math.max(0, dialTargetFor(d) - (Number(c.dials) || 0)); if (dl) need.push(['dials', `Dials · ${dl} left`, Math.min(180, Math.ceil(dl * 2.5)), 16 * 60]);
   const bc = S.counters.items.find((x) => x.id === 'bac'), bl = Math.max(0, (bc ? bc.targets[dow(d)] || 0 : 0) - (Number(c.bac) || 0)); if (bl) need.push(['bac', `BAC · ${bl} min left`, Math.min(120, bl), 0]);
-  if (!sessionsRO(o).length && blocksFor(d).some((b) => b.kind === 'train' || b.kind === 'program')) need.push(['train', 'Training · short version', 30, 0]);
+  if (!dayTrained(o) && blocksFor(d).some((b) => b.kind === 'train' || b.kind === 'program')) need.push(['train', 'Training · short version', 30, 0]);
   const plan = []; free.forEach((f) => (f.c = f[0]));
   need.forEach(([k, title, mins, after]) => { let rem = mins; for (const f of free) { if (rem <= 0) break; const s = Math.max(f.c, after), e = Math.min(f[1], s + rem); if (e - s >= 10) { plan.push({ k, title, s, e }); f.c = e; rem -= e - s; } } });
   plan.sort((a, b) => a.s - b.s);
@@ -109,7 +109,7 @@ function enWeekKey(d) { return dk(monday(d || new Date())); }
 function enBoardDone(d) { const b = (S.boards || {})[enWeekKey(d)]; return !!(b && b.done); }
 function enBoard() {
   const m = monday(new Date()), t = new Date(); let dials = 0, owners = 0, bac = 0, tr = 0, kept = [], wk = [];
-  for (let i = 0; i < 7; i++) { const d = addDays(m, i); if (d > t) break; const o = S.days[dk(d)] || {}, c = o.counters || {}; dials += Number(c.dials) || 0; owners += Number(c.owners) || 0; bac += Number(c.bac) || 0; if (sessionsRO(o).length) tr++; const a = typeof lfAdh === 'function' ? lfAdh(d) : null; if (a) kept.push(a.v); }
+  for (let i = 0; i < 7; i++) { const d = addDays(m, i); if (d > t) break; const o = S.days[dk(d)] || {}, c = o.counters || {}; dials += Number(c.dials) || 0; owners += Number(c.owners) || 0; bac += Number(c.bac) || 0; if (dayTrained(o)) tr++; const a = typeof lfAdh === 'function' ? lfAdh(d) : null; if (a) kept.push(a.v); }
   const W = weightEntries().filter((x) => x.k >= dk(addDays(m, -7))); const dw = W.length >= 2 ? W[W.length - 1].w - W[0].w : null;
   const prev = (S.boards || {})[dk(addDays(m, -7))];
   enBm = { step: 0, k: enWeekKey(), nums: { dials, owners, bac, tr, kept: kept.length ? Math.round(kept.reduce((a, x) => a + x, 0) / kept.length * 100) : null, dw }, prev, bn: enBottleneck()[0], moved: '', didnt: '', change: '', out: ['', '', ''] };
