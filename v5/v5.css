@@ -1022,3 +1022,68 @@ html.wr-locked body>*:not(#lock):not(script){visibility:hidden!important}
 #lock .lk-big{display:flex;gap:10px;align-items:center;border:0;border-radius:14px;background:#c8935a;color:#15110c;font-size:18px;font-weight:700;padding:16px 28px;cursor:pointer}
 #lock .lk-forgot{border:0;background:transparent;color:#8b8a85;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:6px}
 .lk-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line,rgba(255,255,255,.07));font-size:14px}.lk-row em{font-style:normal;color:var(--muted);font-size:12px}
+
+/* ═════════ 10.0 THE SHELL: one navigation, one theme, one motion language ═════════ */
+:root{--sh-ease:cubic-bezier(.2,.8,.2,1);--sh-spring:cubic-bezier(.25,1.35,.4,1)}
+/* bottom bar */
+.nav{z-index:48}
+.sh-bar{display:grid;grid-template-columns:1fr 1fr 74px 1fr 1fr;align-items:center;height:100%;padding:0 6px}
+.sh-tab{border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sh-tab .sh-ic{position:relative;display:grid;place-items:center;width:56px;height:30px;border-radius:999px;transition:background .3s var(--sh-ease),transform .3s var(--sh-spring)}
+.sh-tab .sh-lb{font-size:11px;font-weight:600;letter-spacing:.02em}
+.sh-tab.on{color:var(--text)}.sh-tab.on .sh-ic{background:var(--acc-dim,rgba(192,145,95,.14));color:var(--acc);transform:scale(1.04)}
+.sh-tab:active .sh-ic{transform:scale(.9)}
+.sh-badge{position:absolute;top:-2px;right:6px;font-style:normal;font-size:9px;font-weight:700;background:var(--acc);color:var(--acc-ink,#15100a);border-radius:999px;padding:1px 5px}
+.sh-cap-btn{justify-self:center;width:58px;height:58px;margin-top:-22px;border-radius:20px;border:0;background:var(--acc);color:var(--acc-ink,#15100a);display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 24px -8px rgb(var(--acc-rgb,192 145 95) / .7),0 0 0 5px var(--bg);transition:transform .25s var(--sh-spring),border-radius .25s}
+.sh-cap-btn:active{transform:scale(.9) rotate(90deg);border-radius:50%}
+/* desktop sidebar hubs */
+.side nav{display:flex;flex-direction:column;gap:2px}
+.sh-sgrp{border-radius:12px;transition:background .25s}.sh-sgrp.on{background:var(--acc-dim,rgba(192,145,95,.08))}
+.sh-shub{width:100%;display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--sub,inherit);font-size:15px;font-weight:600;padding:10px 12px;border-radius:12px;cursor:pointer;text-align:left}.sh-shub.on{color:var(--text)}.sh-shub:hover{background:rgba(127,127,127,.08)}
+.sh-ssub{display:flex;flex-direction:column;padding:0 0 8px 44px;animation:shFade .3s var(--sh-ease)}.sh-ssub button{border:0;background:transparent;color:var(--muted);text-align:left;padding:6px 8px;border-radius:8px;font-size:13.5px;cursor:pointer}.sh-ssub button:hover{color:var(--text)}.sh-ssub button.on{color:var(--acc);font-weight:600}
+.sh-snew{margin-top:10px;display:flex;align-items:center;gap:10px;border:1px dashed var(--line2,var(--line));background:transparent;color:var(--sub,inherit);border-radius:12px;padding:9px 12px;font-weight:600;cursor:pointer}.sh-snew svg{width:18px;height:18px}.sh-snew kbd{margin-left:auto;font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--muted)}
+/* segmented header with sliding indicator */
+.sh-seg{position:sticky;top:0;z-index:5;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding:4px;border-radius:14px;background:color-mix(in srgb,var(--bg2) 88%,transparent);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.sh-seg::-webkit-scrollbar{display:none}
+.sh-seg button{position:relative;z-index:1;flex:0 0 auto;border:0;background:transparent;color:var(--muted);font-weight:600;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;transition:color .25s}.sh-seg button.on{color:var(--text)}
+.sh-ind{position:absolute;left:0;top:4px;bottom:4px;border-radius:10px;background:var(--bg4,rgba(127,127,127,.18));box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .38s var(--sh-spring),width .38s var(--sh-spring)}
+html[data-hub] #view-money .crm-top{display:none}
+/* ARC inside the shell, same tokens as every room */
+#arc{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+#arc.arc-paper,#arc.arc-dusk{--bg:inherit;--acc:inherit;--ink:var(--text);--mut:var(--muted);--ln:var(--line);--card:var(--bg2)}
+#arc .arc-btn,#arc .arc-run button:not(.g){color:var(--acc-ink,#fff)}
+#arc .arc-in{padding-bottom:40px}
+#arc-pill{display:none!important}
+.arc-change{align-self:center;margin-top:14px;border:1px solid var(--ln);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 18px;font-weight:600;cursor:pointer;transition:transform .2s var(--sh-spring)}.arc-change:active{transform:scale(.95)}
+@media(min-width:1000px){#arc{bottom:0;left:var(--side-w)}.nav{display:none}}
+/* + capture sheet */
+.sh-cap-h{font-size:20px;font-weight:700;margin:2px 0 12px}
+.sh-cap-in{display:flex;gap:8px}.sh-cap-in input{flex:1;font-size:18px;padding:14px;border-radius:14px}
+.sh-mic{width:52px;border-radius:14px;border:1px solid var(--line2,var(--line));background:var(--bg3,transparent);color:inherit;display:grid;place-items:center;cursor:pointer}.sh-mic.rec{background:var(--red,#d06a5e);color:#fff;animation:shPulse 1s infinite}
+.sh-qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 14px}
+.sh-qgrid button{display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg3,transparent);color:inherit;border-radius:14px;padding:12px 4px;font-size:11.5px;font-weight:600;cursor:pointer;animation:shPop .35s var(--sh-spring) both;transition:transform .15s}.sh-qgrid button:active{transform:scale(.92)}.sh-qgrid svg{color:var(--acc)}
+@media(max-width:520px){.sh-qgrid{grid-template-columns:repeat(4,1fr)}}
+/* motion: screen changes (View Transitions), entering content, sheets, presses */
+.nav{view-transition-name:sh-nav}.side{view-transition-name:sh-side}
+::view-transition-old(root){animation:shOut .2s ease both}
+::view-transition-new(root){animation:shIn .34s var(--sh-ease) both}
+html[data-shdir="back"]::view-transition-old(root){animation-name:shOutB}html[data-shdir="back"]::view-transition-new(root){animation-name:shInB}
+.view.sh-enter>*:not(.sh-seg){animation:shUp .5s var(--sh-ease) both}
+.view.sh-enter>*:nth-child(2){animation-delay:30ms}.view.sh-enter>*:nth-child(3){animation-delay:70ms}.view.sh-enter>*:nth-child(4){animation-delay:110ms}.view.sh-enter>*:nth-child(5){animation-delay:150ms}.view.sh-enter>*:nth-child(n+6){animation-delay:190ms}
+.view.sh-enter .sgrid>.card:nth-child(1){animation:shUp .5s var(--sh-ease) both}.view.sh-enter .sgrid>.card:nth-child(2){animation:shUp .5s 60ms var(--sh-ease) both}.view.sh-enter .sgrid>.card:nth-child(3){animation:shUp .5s 120ms var(--sh-ease) both}.view.sh-enter .sgrid>.card:nth-child(n+4){animation:shUp .5s 170ms var(--sh-ease) both}
+.modal-bg.open .modal{animation:shSheet .44s var(--sh-spring) both}.modal-bg.open{animation:shFade .25s ease both}
+@media(min-width:1000px){.modal-bg.open .modal{animation:shZoom .32s var(--sh-spring) both}}
+.btn,.chip,.card[onclick],button.lookopt,.mn2-row,.mn-row,.trl-c,.arc-row{transition:transform .14s ease,background .2s,border-color .2s,box-shadow .2s}
+.btn:active,.chip:active,.mn2-row:active,.mn-row:active,.trl-c:active,.arc-row:active{transform:scale(.97)}
+@media(hover:hover){.card{transition:transform .25s var(--sh-ease),box-shadow .25s,border-color .25s}.card:hover{border-color:var(--line2,var(--line))}}
+#toast{transition:transform .35s var(--sh-spring),opacity .25s}
+@keyframes shIn{from{opacity:0;transform:translateX(26px)}}@keyframes shOut{to{opacity:0;transform:translateX(-18px)}}
+@keyframes shInB{from{opacity:0;transform:translateX(-26px)}}@keyframes shOutB{to{opacity:0;transform:translateX(18px)}}
+@keyframes shUp{from{opacity:0;transform:translateY(12px)}}@keyframes shFade{from{opacity:0}}@keyframes shPop{from{opacity:0;transform:scale(.85)}}
+@keyframes shSheet{from{transform:translateY(60%);opacity:.4}}@keyframes shZoom{from{transform:scale(.94);opacity:0}}@keyframes shPulse{50%{box-shadow:0 0 0 8px rgba(208,106,94,.25)}}
+@media (prefers-reduced-motion:reduce){*,::view-transition-group(*){animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* hierarchy: hub = pill segments (top), room = underline tabs (inside) */
+html[data-hub] .view .st-tabs,html[data-hub] .view .seg{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:0;gap:18px;box-shadow:none}
+html[data-hub] .view .st-tabs button,html[data-hub] .view .seg button{padding:9px 1px;border-radius:0;background:transparent!important;box-shadow:none;position:relative;transition:color .2s}
+html[data-hub] .view .st-tabs button.on,html[data-hub] .view .seg button.on{color:var(--text);box-shadow:inset 0 -2px 0 var(--acc)}
+html[data-hub] #view-dial>.chips:first-of-type .chip{border-radius:10px}
