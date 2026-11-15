@@ -219,3 +219,8 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 
 ## 12.1 — Spending estimate between known balances
 `mn4Est()`: for each pair of known balances (reported snapshot → first count): start + money that arrived − end = spent; minus logged = never logged. Pre-tracking pay for month M is assumed to arrive on the pay day (default 15th) of M+1. Display only; creates no transactions. `+500 tennis cash` marks a lesson paid in hand (cash at once).
+
+
+## 12.2 — Launch and bottom bar
+- Launch flicker: `views.js` painted the old HQ + old bottom bar at parse time and `arc.js` replaced them 1.6 s later. Now `<html class="wr-boot">` keeps the body hidden while scripts compose the real first screen; `stable.js` (last script) renders nav + Day synchronously and lifts the curtain on the next frame. A 3 s failsafe always lifts it.
+- Bottom bar: `#nav` was a 5-column grid and the new bar sat in its first cell. Now five equal columns across the width, a 46 px square action in the middle, 2 px accent marker on the active tab, 44 px+ targets.

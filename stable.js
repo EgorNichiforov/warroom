@@ -79,5 +79,9 @@
   if (typeof arcRender === 'function' && !arcRender._st) { const _a = arcRender; arcRender = function () { install(document.getElementById('arc')); const x = _a.apply(this, arguments); try { mcCount(document.getElementById('arc')); } catch (e) { } return x; }; arcRender._st = 1; }
   /* Money re-armed its chart animations on every render: only when arriving */
   if (typeof renderMoney === 'function' && !renderMoney._st) { const _m = renderMoney; renderMoney = function () { const el = document.getElementById('view-money'), nav = document.documentElement.classList.contains('wr-nav'); if (el && !nav) { const cl = el.classList, add = cl.add, rem = cl.remove; cl.add = cl.remove = function () { }; try { _m(); } finally { cl.add = add; cl.remove = rem; } } else _m(); }; renderMoney._st = 1; }
-  wrNav(1200);
+  /* start-up: the first thing painted is the real first screen. Before, the old HQ and the old bottom bar were painted,
+     and 1.6 s later the Day screen replaced them. Now everything is composed behind a curtain and revealed once. */
+  wrNav(900);
+  try { if (typeof renderNav === 'function') renderNav(); if (typeof arcOn === 'function' && arcOn() && typeof arcShow === 'function' && !(typeof capPending === 'function' && capPending())) arcShow(); else if (typeof render === 'function') render(); } catch (e) { console.warn('boot', e); }
+  requestAnimationFrame(() => document.documentElement.classList.remove('wr-boot'));
 })();
