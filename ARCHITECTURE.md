@@ -190,3 +190,8 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 - earned − logged spending − counted balance = unlogged spending. `mn3Build` spreads it over the months (half by time, half by that month's income, minus what was logged), split food/transport/out/other, as `est:true` transactions dated the 15th (ids `est-YYYY-MM-cat`, idempotent across devices). Dated before the first count so balances never move.
 - `mn3Auto` runs once after the first count (flag `S.settings.mnEst`); `mn3Modal` re-estimates with other shares or removes. Estimates are excluded from day logs, heat map, recurring detection.
 - Overview card "Everything you earned, and where it is". Money/stat grids now auto-fit their width on desktop.
+
+
+## 10.3 — Polish (polish.js)
+- You = Overview · Train · Food · Stats · Plan · Settings. Training log sits inside Train, Calendar inside Plan, Ask behind the chat button. `shCur` aliases trlog/cal/ask to their parent segment.
+- Phone header is one row (title + chat + command), date picker on its own row, duplicate + removed. Desktop hides the segmented bar (the sidebar already lists the sections), cards get a pointer glow, hover lift, focus rings.
