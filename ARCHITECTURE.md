@@ -123,3 +123,14 @@ ARC is the new main surface (`#arc`, z 46), on by default (`localStorage wr-arc`
 - **Log:** one sentence (`arcParse`): "12 dials 1 owner bac 45 76.4kg ate 900 deep 50", plus quick +1 buttons.
 - **Rooms:** every old screen is behind one door (`arcRooms`). Leaving shows a "Day" pill to return. ARC also comes back after 20+ minutes away.
 - **Sun phases:** paper (wake–17:00), dusk (17:00–bed), night (only "Sleep." + Lights out + tomorrow's first block).
+
+## 9.1 · Training log (trainlog.js) and honest training counts
+- Fix: Life (7.1), Engine (8.0) and ARC (9.0) counted any session object as training, including the empty shells `curSession()` creates when the Train screen opens. All of them now use `dayTrained(o)` (a session marked done).
+- New view `#view-trlog` (Personal → Training log; ARC Rooms → Training log):
+  - This week's count, with the rule spelled out.
+  - A calendar grid with ✓ trained / ✗ missed / – skipped / ○ planned; days before the first logged data show as "before tracking".
+  - Last 3 weeks of sessions.
+  - Day sheet: planned blocks (Did it / Not this day / Unschedule) and sessions (Mark done / Edit / Delete with tap-twice confirm).
+  - Log a session on any date (including the past), edit it, or move it to another date.
+  - Schedule: a one-off block via `dayOnce(d).add`.
+  - Clean up empty shells (tap twice).

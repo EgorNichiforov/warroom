@@ -81,7 +81,7 @@ function arcApply(p) {
 }
 
 /* ── rooms: everything else, one door ── */
-const ARC_ROOMS = [['dial', 'dial', 'Dialer'], ['crm', 'kanban', 'Pipeline'], ['life', 'life', 'Engine & Life'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan & goals'], ['me', 'me', 'Settings']];
+const ARC_ROOMS = [['dial', 'dial', 'Dialer'], ['crm', 'kanban', 'Pipeline'], ['life', 'life', 'Engine & Life'], ['train', 'train', 'Train (sets)'], ['trlog', 'check', 'Training log'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan & goals'], ['me', 'me', 'Settings']];
 function arcRooms() { openModal(`<h2>Rooms</h2><div class="nv-sys">${ARC_ROOMS.map(([v, i, l]) => `<button onclick="closeModal();arcRoom('${v}')">${ic(i, 22)}<span>${l}</span></button>`).join('')}</div><div class="xs muted" style="margin-top:12px">The day is the app. Rooms are for planning, reviewing and the dialer. "Day" in the corner brings you back.</div>`, true); }
 function arcRoom(v) { arcHide(true); if (typeof nvOn === 'function' && nvOn() && typeof nvGo === 'function') nvGo(v); else show(v); }
 

@@ -17,7 +17,7 @@ function lifeWeek(m, upto) {
     const d = addDays(m, i); if (d > upto) break; n++; const o = S.days[dk(d)] || {}, c = o.counters || {};
     A.company[0] += Number(c.dials) || 0; A.company[1] += dialTargetFor(d);
     A.mind[0] += Number(c.bac) || 0; A.mind[1] += bacC ? bacC.targets[dow(d)] || 0 : 0;
-    A.body[0] += sessionsRO(o).length ? 1 : 0; A.body[1] += 6 / 7;
+    A.body[0] += dayTrained(o) ? 1 : 0; A.body[1] += 6 / 7;
     const r = typeof readiness === 'function' ? readiness(d) : null; if (r) { A.sleep[0] += r.s; A.sleep[1] += 100; }
     A.standards[0] += S.habits.items.filter((h) => o.habits && o.habits[h.id]).length; A.standards[1] += S.habits.items.length;
   }
@@ -73,7 +73,7 @@ function blkStatus(b, d, o, list) {
   if (b.kind === 'dials') { const tg = dialTargetFor(d); ev = tg > 0 && (Number(c.dials) || 0) >= Math.min(tg, Math.round(tg * cum('dials') / Math.max(1, list.filter((x) => x.kind === 'dials').reduce((a, x) => a + tmin(x.end) - tmin(x.start), 0)))); }
   else if (b.kind === 'bac') ev = (Number(c.bac) || 0) >= cum('bac') * 0.6;
   else if (b.kind === 'agency') ev = (Number(c.deep) || 0) >= cum('agency') * 0.6;
-  else if (b.kind === 'train' || b.kind === 'program') ev = sessionsRO(o).length > 0;
+  else if (b.kind === 'train' || b.kind === 'program') ev = dayTrained(o);
   if (ev) return 'done'; if (!started) return 'next'; if (!ended) return 'now';
   return LF_TRACK[b.kind] || b.kind === 'program' ? 'miss' : 'open';
 }
