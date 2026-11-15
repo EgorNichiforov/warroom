@@ -151,3 +151,13 @@ Every change is a one-day override (`dayOnce(d).skip/add`); the weekly plan neve
 - **Block sheet** (ARC tap): Done/Missed, move to a time, +30 min/+1 h/+2 h, Skip today, and for training blocks "Trained at another time" (`adTrainAt` logs a done session at the real time, so it counts).
 - **Change sheet** (ARC footer "Change", ONE "Change today"): woke up late, trained at a different time, add a block, rebuild the rest of today, undo all.
 - **Say it** (ARC Log, `adSay`): "woke up 7:10", "move bac to 18:00" (warns if it overlaps a fixed block), "skip gym", "add walk 17:00 30", "trained 17:30 45".
+
+## 9.4 · Money v2 (money2.js) + App lock (lock.js)
+**Money v2** replaces `mnOver/mnTxTab/mnPlanTab/mnRepTab`.
+- Chart toolkit: `mcLine` draws animated, scrubbable SVG line charts (drag to read values, `mcScrub`); `mcCount` animates numbers counting up.
+- Overview: "You have" with a 90-day balance line, rebuilt backwards from flows (counts anchor it); KPIs for safe today, runway in days (spendable ÷ 30-day burn) and kept this month; account chips; an insight carousel; spending pace vs your usual month (Copilot); a Sankey cash flow (Monarch); a spending calendar heatmap (Monzo); categories with budgets and a pace tick (`S.settings.mnBudgets`); recurring detection with one-tap "Add as planned".
+- Transactions: search, type and account chips, sticky month headers with totals, day totals, category avatars, and a floating + button.
+- Planned & forecast: 30/60/90-day scrubbable forecast with a variation band and planned markers, lowest point, a next-30-days list with running balance, and the planned monthly net.
+- Reports: 12 months of tappable bars, the selected month's Sankey, a savings-rate line, balance over time, and year to date.
+
+**App lock** (`lock.js`, loaded in `<head>`): a PIN (SHA-256 with salt) and/or a WebAuthn platform credential (Face ID, fingerprint, Windows Hello), stored per device in `localStorage wr-lock`. `html.wr-locked` hides the app until unlocked. It relocks after 0/1/5/15/60 minutes in the background. After 5 wrong PINs it waits 15 seconds. "Forgot" unlocks with the sync code. Settings live in Me → Appearance → App lock. It is a device gate, not encryption.
