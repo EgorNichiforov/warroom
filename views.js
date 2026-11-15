@@ -67,7 +67,7 @@ function dialBadge() { const d = new Date(), o = day(d), tg = dialTarget(d), lef
 function renderNav() {
   const badge = dialBadge();
   // phone: five screens + More (Plan and Me live behind it)
-  const phone = [['now', 'hq', 'Now'], ['dial', 'dial', 'Ops'], ['train', 'train', 'Personal'], ['intel', 'target', 'Intel'], ['me', 'more', 'More']]; /* 7.0: four areas + More */
+  const phone = [['now', 'hq', 'Day'], ['dial', 'dial', 'Ops'], ['train', 'train', 'Personal'], ['intel', 'target', 'Intel'], ['me', 'more', 'More']]; /* 7.0: four areas + More */
   $('nav').innerHTML = phone.map(([v, icn, l]) => `<button class="${view === v || (v === 'me' && ['week', 'cal', 'book', 'ask'].includes(view)) || (v === 'train' && ['food', 'stats', 'life', 'trlog'].includes(view)) ? 'on' : ''}" onclick="show('${v}')">${ic(icn, 23)}${l}${v === 'dial' && badge ? `<span class="badge">${badge}</span>` : ''}</button>`).join('');
   // desktop: sidebar
   const r = rankInfo(), left = daysUntil(S.settings.bigDate), t = new Date();

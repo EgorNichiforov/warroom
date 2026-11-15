@@ -161,3 +161,11 @@ Every change is a one-day override (`dayOnce(d).skip/add`); the weekly plan neve
 - Reports: 12 months of tappable bars, the selected month's Sankey, a savings-rate line, balance over time, and year to date.
 
 **App lock** (`lock.js`, loaded in `<head>`): a PIN (SHA-256 with salt) and/or a WebAuthn platform credential (Face ID, fingerprint, Windows Hello), stored per device in `localStorage wr-lock`. `html.wr-locked` hides the app until unlocked. It relocks after 0/1/5/15/60 minutes in the background. After 5 wrong PINs it waits 15 seconds. "Forgot" unlocks with the sync code. Settings live in Me → Appearance → App lock. It is a device gate, not encryption.
+
+## 9.5 · One system (unify.js)
+NOVA, Classic and the ONE overlay are retired as separate interfaces.
+- ARC is the only home (`arcOn` is always true). `show('now'|'hq'|'today')` opens ARC. Sidebar and phone bar say "Day".
+- Every other screen is a room (ARC → Rooms, sidebar, phone bar). The "Day" pill returns home.
+- `nvOn` is always false, so NOVA never mounts. `wr-ui` is forced to `monolith` and the Classic orange look is removed.
+- One look, three choices (`wr-look`): `auto` (default) follows ARC's phase, light from wake to 17:00 and dark after, for home and rooms alike; `dark`; `light`. ARC respects the choice; night stays black.
+- Me → Appearance holds only the look choice (plus App lock).
