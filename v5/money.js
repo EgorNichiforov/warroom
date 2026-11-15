@@ -202,7 +202,7 @@ function mnRows(L) {
   if (!L.length) return '<div class="empty">Nothing yet. Type "spent 120 taxi" above, or tap Form.</div>';
   let last = ''; return L.map((t) => { const a = S.accounts[t.acc] || {}, hd = t.date !== last ? `<div class="mn-day">${fmtShort(pd(t.date))}</div>` : ''; last = t.date;
     const amt = t.type === 'count' ? `= ${mnF(t.amt, a.cur)}` : t.type === 'move' ? mnF(t.amt, a.cur) : mnF((t.type === 'in' ? 1 : -1) * t.amt, a.cur, true);
-    return `${hd}<div class="mn-row t-${t.type}" onclick="mnEdit('${t.id}')"><span class="c">${t.type === 'count' ? 'Count' : t.type === 'move' ? 'Move → ' + esc((S.accounts[t.to] || {}).name || '') : esc(mnCatName(t.cat))}${t.note ? `<em>${esc(t.note)}</em>` : ''}</span><span class="a">${esc(a.name || '')}</span><b>${amt}</b></div>`; }).join('');
+    return `${hd}<div class="mn-row t-${t.type}" onclick="mnEdit('${t.id}')"><span class="c">${t.type === 'count' ? 'Count' : t.type === 'move' ? 'Move → ' + esc((S.accounts[t.to] || {}).name || '') : esc(mnCatName(t.cat))}${t.note && t.note !== 'from the day log' ? `<em>${esc(t.note)}</em>` : ''}</span><span class="a">${esc(a.name || '')}</span><b>${amt}</b></div>`; }).join('');
 }
 function mnTxTab() {
   const f = mnFilter, months = [...new Set(mnTx().map((t) => t.date.slice(0, 7)))].sort().reverse();
