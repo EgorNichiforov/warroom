@@ -232,3 +232,10 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 - Fixed: `sw.js` activate filter had been rewritten to the full cache name by the version-bump regex, so old caches were never deleted. Back to prefix match; the bump now only touches the `CACHE` constant.
 - Phone touch targets ≥ 40 px on segment bars, tabs, small buttons, cockpit tools.
 - Deploy check: `v5` = `main:v5/` = live (md5 of core, stable, money4, iron, index, sw compared).
+
+
+## 13.0 — Stages: the product direction
+Verdict of the product audit: the system had grown ahead of the operator (15 screens, a dozen analysis tools, 0 owner conversations). War Room is an execution system for one mission, and its size should follow the evidence.
+- `stage.js`: a five-step ladder read from the call log (first owner conversation → ten → first owner who wants it → first paying client → $20k/month). `sgState()`, `sgApply()` rewrite the Work hub's segments each render: Dial + Playbook always; Pipeline opens at the first owner conversation or callback; Intel at 300 dials. Waiting rooms sit behind "Later" with the evidence that opens them and an "Open anyway"; `S.settings.stageAll` shows everything. Nothing is deleted.
+- The spine is visible in two places: one line on Day (dials today → this week → stage evidence → mission) and a stage strip on the dialer.
+- Rule going forward: new capability is built when a stage is reached, not before. No new analysis tools, dashboards or visual redesigns until stage 2.

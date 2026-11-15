@@ -230,6 +230,18 @@ with sync_playwright() as p:
     check('Launch: bottom bar has five equal slots across the width', pg.evaluate("(()=>{const B=[...document.querySelectorAll('.sh-bar>*')].map(e=>e.getBoundingClientRect());return B.length===5&&B[4].right>innerWidth*0.9&&Math.abs((B[1].left-B[0].left)-(B[4].left-B[3].left))<2})()"))
     b.close()
 
+    # stages: the app is as big as the evidence
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    check('Stage: with no owner conversation Work shows Dial, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,book,later')
+    ev("show('later');0"); pg.wait_for_timeout(300)
+    check('Stage: "Later" opens the stage sheet, it is not a screen', ev("view") != 'later' and ev("document.getElementById('modal-bg').classList.contains('open')"))
+    ev("closeModal();shRawGo('crm');0"); pg.wait_for_timeout(300); check('Stage: a waiting room can always be opened by hand', ev("view") == 'crm')
+    ev("(()=>{const o=day(new Date());o.counters.owners=1;touch(o);save();render();})();0")
+    check('Stage: the first owner conversation opens Pipeline and moves to stage 2', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,book,later' and ev("sgState().i") == 1)
+    ev("S.settings.stageAll=true;render();0"); check('Stage: "show everything" restores all rooms', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,intel,book')
+    check('Stage: no page errors', not errs, errs[:3])
+    b.close()
+
     # offline shell + cache hygiene (static checks on the real files)
     import re, os
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
