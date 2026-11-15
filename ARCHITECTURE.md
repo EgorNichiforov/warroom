@@ -177,3 +177,10 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 - Screen changes use the View Transitions API (`shTransition`, direction-aware slide). Content staggers in (`.sh-enter`), sheets spring up, presses scale, haptics on tabs.
 - **+** opens `shCapture()`: a one-sentence log (all parsers: counters, money, plan changes, training), voice dictation (Web Speech API) and 10 quick actions. The top-bar + and `openCapture` route here.
 - ARC lives inside the shell: the tab bar stays visible, ARC's own footer and Rooms button are removed, it uses the same tokens as every room, and "Change today" sits under the hero.
+
+
+## 10.1 — Desktop, call cockpit, Train player, Food rings
+- desk.js: proportional drag-to-move timeline in ARC on ≥1200px, 3-column Day, contextual right rail per hub (Work / Money / You), keys 1–4 hubs, [ ] segments.
+- cockpit.js: renderDial (owners) rebuilt as a call cockpit — ring, session bar, one card per call, big tap-to-call, ask-for/hook/last-time brief, outcome buttons with keys A/V/G/O/X/S and slide-away animation, up-next strip. Fix: agencies already called today drop below uncalled ones (No answer no longer brings the same agency back).
+- body.js: Train hero (set ring, elapsed timer, Start/Finish), current exercise highlighted with progress bars; Food hero with kcal + protein rings and per-meal pace to bedtime.
+- Phone topbar wraps so titles never truncate; meal rows no longer overlap kcal.
