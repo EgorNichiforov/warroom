@@ -239,3 +239,13 @@ Verdict of the product audit: the system had grown ahead of the operator (15 scr
 - `stage.js`: a five-step ladder read from the call log (first owner conversation → ten → first owner who wants it → first paying client → $20k/month). `sgState()`, `sgApply()` rewrite the Work hub's segments each render: Dial + Playbook always; Pipeline opens at the first owner conversation or callback; Intel at 300 dials. Waiting rooms sit behind "Later" with the evidence that opens them and an "Open anyway"; `S.settings.stageAll` shows everything. Nothing is deleted.
 - The spine is visible in two places: one line on Day (dials today → this week → stage evidence → mission) and a stage strip on the dialer.
 - Rule going forward: new capability is built when a stage is reached, not before. No new analysis tools, dashboards or visual redesigns until stage 2.
+
+
+## 13.1 — Evidence-based stages (owner decision, 15 Nov 2026)
+Owner conversations start now; a caregiver bench is built in parallel and is never a gate. Advanced features are hidden, essential operations are not.
+- `sgEvidence()` counts seven separate things from the log: call attempts, answered calls (gatekeeper or owner), decision-maker conversations, stated staffing requirements, requests for profiles, caregivers working (placements), payments received (paid invoices). Plus supply: screened caregivers, and those with consent to share.
+- Ladder: first decision-maker conversation → ten → first concrete demand (a stated requirement AND agreement to receive profiles, same agency) → first caregiver working a shift → first payment received.
+- Demand evidence is captured in the owner-talk sheet (`ow-need`, `ow-prof`) and stored on that call's log entry (`log[].demand = {need, profiles}`), so it is timestamped, in their words, and removed by Undo.
+- Always open: Dial, Caregivers (add, call, screen, bench), Playbook. Waiting: Pipeline (first conversation or callback), Intel (300 attempts).
+- You → Overview opens with one card: School and Body, each with an outcome measure, a weekly commitment and its evidence. No score or levels added.
+- Development pause: no new dashboards, analysis tools or redesigns. Operational fixes only until there is evidence someone wants to buy.
