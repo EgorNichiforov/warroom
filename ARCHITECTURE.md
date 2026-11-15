@@ -195,3 +195,9 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 ## 10.3 — Polish (polish.js)
 - You = Overview · Train · Food · Stats · Plan · Settings. Training log sits inside Train, Calendar inside Plan, Ask behind the chat button. `shCur` aliases trlog/cal/ask to their parent segment.
 - Phone header is one row (title + chat + command), date picker on its own row, duplicate + removed. Desktop hides the segmented bar (the sidebar already lists the sections), cards get a pointer glow, hover lift, focus rings.
+
+
+## 11.0 — IRON identity + THE BRIEF
+- iron.css (loaded last): the design system. Tokens for Iron (steel black, bone ink, one bronze signal) and Marble (cool stone light). 2px corners everywhere, hairline surfaces with no shadow or gradient, Barlow Semi Condensed for headings and numbers, IBM Plex Mono capitals for labels, Inter for body. One motion scale (--t-fast/med/slow, --ease, --sh-spring), reduced-motion respected. 'auto' look = Iron at every hour; Marble is an explicit choice.
+- brief.js: the home screen as a strategic surface. `bfAttention()` = computed list of what is falling behind, each with its reason and one action (bottleneck, callbacks due, goal deadlines, overdue tasks, stale money count, missing weigh-ins, missing weekly contract, unsynced device). `bfObjectives()` = every goal against its straight line (days behind/ahead, what is needed per day). Phone: one strip on Day opening the brief sheet (key B). Desktop: both lists in the Day side column.
+- Global search in the command bar ("/" or Ctrl/⌘+K): screens and actions, agencies, playbook pages, tasks, money entries.

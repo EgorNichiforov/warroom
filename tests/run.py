@@ -147,7 +147,7 @@ with sync_playwright() as p:
         try: pg.evaluate(f"show('{v}')"); pg.wait_for_timeout(150)
         except Exception as e: errs.append(v + ': ' + str(e)[:120])
     pg.evaluate("moreTab='home';show('me')"); pg.wait_for_timeout(200)
-    check('System status card renders', 'System status' in pg.inner_text('body'))
+    check('System status card renders', 'system status' in pg.inner_text('body').lower())
     check('No page errors', not errs, errs[:3])
     b.close()
 
