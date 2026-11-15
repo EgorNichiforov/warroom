@@ -201,3 +201,17 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 - iron.css (loaded last): the design system. Tokens for Iron (steel black, bone ink, one bronze signal) and Marble (cool stone light). 2px corners everywhere, hairline surfaces with no shadow or gradient, Barlow Semi Condensed for headings and numbers, IBM Plex Mono capitals for labels, Inter for body. One motion scale (--t-fast/med/slow, --ease, --sh-spring), reduced-motion respected. 'auto' look = Iron at every hour; Marble is an explicit choice.
 - brief.js: the home screen as a strategic surface. `bfAttention()` = computed list of what is falling behind, each with its reason and one action (bottleneck, callbacks due, goal deadlines, overdue tasks, stale money count, missing weigh-ins, missing weekly contract, unsynced device). `bfObjectives()` = every goal against its straight line (days behind/ahead, what is needed per day). Phone: one strip on Day opening the brief sheet (key B). Desktop: both lists in the Day side column.
 - Global search in the command bar ("/" or Ctrl/⌘+K): screens and actions, agencies, playbook pages, tasks, money entries.
+
+
+## 12.0 — STABLE rendering, motion tokens, pay cycle
+### Flicker: root cause and fix (stable.js)
+- Cause: every `render()` replaced whole screens with innerHTML. Background events (sync read-merge-write after each save, the 30 s day tick, the 60 s HQ tick, timers, another device saving) rebuilt 1.5–6k DOM nodes per refresh and restarted entrance, chart-draw and count-up animations. Measured: 30 s idle with a refresh every 5 s = 14 distinct frames on Money (phone), 39 on Day (desktop).
+- Fix: screen containers (`.view`, #arc, nav, side, rail, top bar) own an `innerHTML` setter that diffs new markup against the live DOM (`morph`) and patches only changed nodes; identical content is a no-op. Focused inputs are never touched. Nodes injected by later steps (`sh-seg`, `pl-chips`, `pl-back`, `ex-p`) are kept in place. `renderNav` writes once (capture mode) instead of twice.
+- Entrance motion only while navigating: `wrNav()` sets `html.wr-nav` for 650 ms; outside it every one-shot animation inside the screens has duration 0. Count-up numbers animate on arrival only. No View Transition cross-fade of the whole page.
+- After: same test = 1–3 distinct frames, 6–60 nodes touched.
+### Motion tokens (iron.css)
+`--m-instant 90ms · --m-micro 150ms · --m-std 200ms · --m-menu 220ms · --m-panel 280ms · --m-page 240ms`; easings `--e-out` (enter), `--e-in` (exit), `--e-std` (state), `--e-spring` (tight settle). Older tokens alias to these. Sheets rise on phones, scale in on desktop; press = scale .97 in 90 ms.
+### Pay cycle (money4.js)
+- earning ('in' in a monthly-paid source) ≠ cash. payout = `type:'pay' {src, period, acc, amt}` settles a period and is never income again. `mnBal` ignores earnings and adds payouts. Periods ≤ `S.settings.mnPay.through` are "settled before tracking" (a setting, no invented transactions). Statuses: accruing, awaiting payment, partially paid, paid, overdue (only when a pay day is set).
+- `mn3Life`: received = cash-ins + payouts + pre-tracking periods; not tracked = received − logged spending − cash. The automatic estimate split from 10.2 is removed once (`mnEst.v=2`) and never recreated.
+- Reported past balances (`mnPay.snaps`) are reference points only. Comparisons are flagged as rough until 30 days of tracking.

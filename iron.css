@@ -111,3 +111,47 @@ a{color:var(--acc)}
 .bf-r:hover,.bf-r:focus-visible{background:var(--bg3)}.bf-r em{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}.bf-r b{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bf-r span{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap}
 .bf-none{font-family:var(--mono);font-size:12px;color:var(--dim);padding:10px 4px}
 @media(max-width:560px){.sh-seg{gap:14px!important}.sh-seg button{font-size:10.5px;letter-spacing:.08em}.bf-r{grid-template-columns:62px 1fr}.bf-r span{grid-column:2}}
+
+/* ═════════ 12.0 STABLE + MOTION ═════════
+   Motion tokens (one place):  --m-instant 90ms feedback · --m-micro 150ms hover/press/toggle · --m-std 200ms state change
+   --m-menu 220ms menus/popovers · --m-panel 280ms sheets/drawers · --m-page 240ms screen entrance
+   Easing: --e-out (entering, decelerate) · --e-in (leaving, accelerate) · --e-std (state change) · --e-spring (tight settle, <4% overshoot) */
+:root{--m-instant:90ms;--m-micro:150ms;--m-std:200ms;--m-menu:220ms;--m-panel:280ms;--m-page:240ms;
+  --e-out:cubic-bezier(.16,1,.3,1);--e-in:cubic-bezier(.5,0,.75,0);--e-std:cubic-bezier(.3,0,.2,1);--e-spring:cubic-bezier(.3,1.18,.4,1);
+  --ease:var(--e-std);--sh-ease:var(--e-out);--sh-spring:var(--e-spring);--t-fast:var(--m-instant);--t-med:var(--m-std);--t-slow:var(--m-panel)}
+/* entrance motion exists only while navigating; a background refresh can never replay it */
+html:not(.wr-nav) :is(.view,#arc,#side,#nav,#rail,#top-right) *:not(.spin):not(.dot):not(.rec-dot):not(.ph):not(.wr-live){animation-duration:0s!important;animation-delay:0s!important}
+::view-transition-old(root),::view-transition-new(root){animation:none!important}
+.view.sh-enter>*:not(.sh-seg){animation:wrIn var(--m-page) var(--e-out) both!important}
+.view.sh-enter>*:nth-child(2){animation-delay:20ms!important}.view.sh-enter>*:nth-child(3){animation-delay:45ms!important}.view.sh-enter>*:nth-child(4){animation-delay:70ms!important}.view.sh-enter>*:nth-child(n+5){animation-delay:90ms!important}
+.view.sh-enter .sgrid>.card{animation:none!important}
+@keyframes wrIn{from{opacity:0;transform:translateY(8px)}}
+.bf-strip.lv3 i{animation:none}
+/* component states: immediate press, restrained hover */
+.btn,.chip,.iconbtn,.sh-bar button,.ck-outs button,.bf-a button,.bf-r,.side nav button,.sh-ssub button{transition:background var(--m-micro) var(--e-std),border-color var(--m-micro) var(--e-std),color var(--m-micro) var(--e-std),transform var(--m-instant) var(--e-std),opacity var(--m-micro)!important}
+.btn:active,.chip:active,.iconbtn:active,.ck-outs button:active,.sh-cap-btn:active{transform:scale(.97)!important;transition-duration:var(--m-instant)!important}
+.btn[disabled],.btn.disabled{opacity:.38;pointer-events:none}
+.btn.busy{pointer-events:none;color:transparent!important;position:relative}.btn.busy::after{content:"";position:absolute;inset:0;margin:auto;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%!important;animation:spin .7s linear infinite;color:var(--text)}
+.sh-ind{transition:transform var(--m-menu) var(--e-out),width var(--m-menu) var(--e-out)!important}
+/* sheets: rise from the bottom on phones, scale from 98% on desktop; backdrop fades with them */
+.modal-bg{transition:opacity var(--m-std) var(--e-std)!important}
+.modal-bg.open .modal,.modal-bg.open .sheet{animation:wrSheet var(--m-panel) var(--e-out) both}
+@keyframes wrSheet{from{opacity:0;transform:translateY(24px)}}
+@media(min-width:800px){.modal-bg.open .modal,.modal-bg.open .sheet{animation-name:wrPop}}
+@keyframes wrPop{from{opacity:0;transform:scale(.98) translateY(6px)}}
+.toast{transition:opacity var(--m-std) var(--e-std),transform var(--m-menu) var(--e-out)!important}
+/* progress only moves when its value moves */
+.bd-ring .fg,.ck-ring .fg,.dk-ring .fg{transition:stroke-dashoffset var(--m-panel) var(--e-out)!important}
+.bf-ob u,.ex-p u,.arc-m u{transition:width var(--m-panel) var(--e-out)!important}
+.set.on{animation:none!important}
+/* pay cycle */
+.m4-top{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:2px 0 12px}.m4-top span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.m4-top b{font-family:var(--disp);font-size:30px;font-weight:700;display:block;margin-top:4px}.m4-top div:first-child b{color:var(--acc)}
+.m4-row{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}.m4-row b{display:block;font-size:14px;font-weight:600}.m4-row span{display:block;font-size:12px;color:var(--muted)}
+.m4-row em{font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);white-space:nowrap}.m4-row.accruing em{color:var(--dim)}.m4-row.overdue em{color:var(--bad)}.m4-row.paid em{color:var(--ok)}
+.m4-row strong{font-family:var(--disp);font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}.m4-row button{border:1px solid var(--acc);background:var(--acc);color:var(--acc-ink);font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding:8px 10px;cursor:pointer;min-height:36px}.m4-row i{width:1px}
+.m4-paid{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px}.m4-paid a{color:var(--muted)}
+.m4-snaps{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12px;color:var(--muted);margin:8px 0 12px}.m4-snaps span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.m4-snaps b{font-weight:500;color:var(--sub)}.m4-snaps b a{margin-left:6px;color:var(--dim);text-decoration:none}
+@media(max-width:560px){.m4-row{grid-template-columns:1fr auto;row-gap:6px}.m4-row em{grid-column:1}.m4-row strong{grid-column:2;grid-row:1}.m4-row button{grid-column:2}}
+.m4-top span{all:unset}.m4-top>div>span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.m4-top b span{font:inherit;color:inherit;letter-spacing:inherit;text-transform:none}
+.mn2-top.young .mn2-hero svg,.mn2-top.young .mn2-hero .d,.mn2-top.young .mn2-hero [id^="mcc-"],.mn2-top.young .mn2-hero .mc{display:none!important}
+.m4-young,.m4-q{border-left:2px solid var(--line2);padding:2px 0 2px 12px;font-size:13px;color:var(--muted);margin:10px 0 14px;line-height:1.5}.m4-q b{color:var(--text);font-weight:600}
