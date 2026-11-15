@@ -31,31 +31,31 @@ if (typeof mn2History === 'function' && !mn2History._m4) { const _f = mn2History
 /* recording the paycheck */
 function mn4PayModal(src, period, id) {
   const t = id ? S.txns[id] : null, P = mn4Periods().find((x) => x.src === (t ? t.src : src) && x.period === (t ? t.period : period)) || { earned: 0, paid: 0, out: 0, src, period }, A = mnAccs().filter((a) => a.type !== 'owed');
-  openModal(`<h2>${t ? 'Edit payout' : 'Pay received'}</h2><div class="small muted" style="margin-bottom:12px">${esc(mnCatName(P.src))} · ${mnMonthName(P.period)} · earned <b>${mnF(P.earned)}</b>${P.paid ? ` · already paid ${mnF(P.paid)}` : ''}. This moves money you already earned into an account. It is not counted as income again.</div>
+  openModal(`<h2>${t ? 'Edit payout' : 'Pay received'}</h2><div class="small muted" style="margin-bottom:12px">${esc(mnCatName(P.src))} · ${mn4Mn(P.period)} · earned <b>${mnF(P.earned)}</b>${P.paid ? ` · already paid ${mnF(P.paid)}` : ''}. This moves money you already earned into an account. It is not counted as income again.</div>
     <div class="g2"><div class="field"><label>Amount received</label><input id="m4-a" type="number" inputmode="decimal" value="${t ? t.amt : P.out || ''}"></div><div class="field"><label>Date it arrived</label><input id="m4-d" type="date" value="${t ? t.date : dk(new Date())}"></div></div>
     <div class="field"><label>Into</label><select id="m4-acc">${A.map((a) => `<option value="${a.id}" ${(t ? t.acc : mnDefAcc('MDL')) === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></div>
     <div class="row" style="gap:8px;margin-top:12px"><button class="btn primary grow" onclick="mn4PaySave('${P.src}','${P.period}','${id || ''}')">${t ? 'Save' : 'Record payout'}</button>${t ? `<button class="btn" id="m4-del" onclick="mn4PayDel('${id}')">Delete</button>` : ''}</div>
     <div class="xs muted" style="margin-top:10px">Less than the full amount? Type what arrived: the rest stays owed (partially paid).</div>`);
 }
-function mn4PaySave(src, period, id) { const a = Number($('m4-a').value); if (!(a > 0)) { toast('Type the amount that arrived'); return; } const acc = $('m4-acc').value, t = id && S.txns[id] ? S.txns[id] : { id: uid(), at: now() }; Object.assign(t, { type: 'pay', src, period, cat: src, acc, amt: a, date: $('m4-d').value || dk(new Date()), note: 'Pay received · ' + mnMonthName(period), _u: now() }); S.txns[t.id] = t; save(); closeModal(); render(); toast(`${mnF(a, mnAccCur(acc))} received · ${mnMonthName(period)} ${mn4Periods().find((x) => x.src === src && x.period === period).out > 0 ? 'partially paid' : 'settled'}`); }
+function mn4PaySave(src, period, id) { const a = Number($('m4-a').value); if (!(a > 0)) { toast('Type the amount that arrived'); return; } const acc = $('m4-acc').value, t = id && S.txns[id] ? S.txns[id] : { id: uid(), at: now() }; Object.assign(t, { type: 'pay', src, period, cat: src, acc, amt: a, date: $('m4-d').value || dk(new Date()), note: 'Pay received · ' + mn4Mn(period), _u: now() }); S.txns[t.id] = t; save(); closeModal(); render(); toast(`${mnF(a, mnAccCur(acc))} received · ${mn4Mn(period)} ${mn4Periods().find((x) => x.src === src && x.period === period).out > 0 ? 'partially paid' : 'settled'}`); }
 function mn4PayDel(id) { const b = $('m4-del'); if (b && !b.dataset.arm) { b.dataset.arm = 1; b.textContent = 'Tap again'; b.classList.add('danger'); return; } const t = S.txns[id]; if (t) { t._del = true; t._u = now(); } save(); closeModal(); render(); toast('Payout removed · the period is owed again'); }
 function mn4Setup() {
   const c = mn4Cfg(), months = [...new Set(mnTx().filter((t) => t.type === 'in').map((t) => t.date.slice(0, 7)))].sort().reverse();
   openModal(`<h2>How you get paid</h2><div class="small muted" style="margin-bottom:12px">Earnings are logged on the day you work. Tick the sources that pay you once a month: their earnings stay "owed" until you record the payout, and never inflate your cash.</div>
     ${MN_IN.map(([id, nm]) => `<div class="row sb" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px"><label class="row" style="gap:10px;flex:1"><input type="checkbox" id="m4s-${id}" ${mn4Monthly(id) ? 'checked' : ''} style="width:20px;height:20px"> <span>${esc(nm)}</span></label><input type="number" inputmode="numeric" id="m4d-${id}" min="1" max="28" placeholder="pay day" value="${(c.src[id] || {}).day || ''}" style="width:96px"></div>`).join('')}
-    <div class="field" style="margin-top:14px"><label>Already paid before tracking began, through</label><select id="m4-th"><option value="">nothing</option>${months.map((m) => `<option value="${m}" ${c.through === m ? 'selected' : ''}>${mnMonthName(m)}</option>`).join('')}</select></div>
+    <div class="field" style="margin-top:14px"><label>Already paid before tracking began, through</label><select id="m4-th"><option value="">nothing</option>${months.map((m) => `<option value="${m}" ${c.through === m ? 'selected' : ''}>${mn4Mn(m)}</option>`).join('')}</select></div>
     <div class="xs muted" style="margin:6px 0 12px">Months up to this one are treated as paid in the past. Later months are owed until you record their payout.</div>
     <button class="btn primary block" onclick="mn4SetupSave()">Save</button>`);
 }
 function mn4SetupSave() { const c = mn4Cfg(); MN_IN.forEach(([id]) => { const on = $('m4s-' + id).checked, d = Number($('m4d-' + id).value) || null; if (on || c.src[id]) c.src[id] = { monthly: on, day: d }; }); c.through = $('m4-th').value || null; touch(S.settings); save(); closeModal(); render(); toast('Pay setup saved'); }
 function mn4Card() {
   const M = mn4Sum(); if (!M.P.length) return '';
-  const row = (x) => `<div class="m4-row ${x.status.replace(/ /g, '-')}"><div><b>${esc(mnCatName(x.src))} · ${mnMonthName(x.period)}</b><span>earned ${mnF(x.earned)}${x.paid ? ` · paid ${mnF(x.paid)}` : ''}${x.due && !x.cur ? ` · due ${fmtShort(pd(x.due))}` : ''}</span></div><em>${x.status}</em><strong>${mnF(x.cur ? x.earned : x.out)}</strong>${x.cur ? '<i></i>' : `<button onclick="mn4PayModal('${x.src}','${x.period}')">Received</button>`}</div>`;
+  const row = (x) => `<div class="m4-row ${x.status.replace(/ /g, '-')}"><div><b>${esc(mnCatName(x.src))} · ${mn4Mn(x.period)}</b><span>earned ${mnF(x.earned)}${x.paid ? ` · paid ${mnF(x.paid)}` : ''}${x.due && !x.cur ? ` · due ${fmtShort(pd(x.due))}` : ''}</span></div><em>${x.status}</em><strong>${mnF(x.cur ? x.earned : x.out)}</strong>${x.cur ? '<i></i>' : `<button onclick="mn4PayModal('${x.src}','${x.period}')">Received</button>`}</div>`;
   const paid = M.P.filter((x) => x.pays.length).slice(0, 3);
   return `<div class="card m4"><div class="card-h"><div class="card-t">Owed to you</div><div class="card-r"><a href="#" onclick="mn4Setup();return false">how you get paid</a></div></div>
     <div class="m4-top"><div><span>Earned, not received yet</span><b>${mcNum(M.owed)}</b></div><div><span>This month so far</span><b>${mcNum(M.accruing)}</b></div></div>
     ${M.open.length ? M.open.map(row).join('') : '<div class="xs muted">Nothing outstanding.</div>'}
-    ${paid.length ? `<div class="m4-paid">${paid.map((x) => x.pays.map((t) => `<a href="#" onclick="mn4PayModal('','','${t.id}');return false">${mnMonthName(x.period)} paid ${mnF(t.amt, mnAccCur(t.acc))} on ${fmtShort(pd(t.date))}</a>`).join('')).join('')}</div>` : ''}
+    ${paid.length ? `<div class="m4-paid">${paid.map((x) => x.pays.map((t) => `<a href="#" onclick="mn4PayModal('','','${t.id}');return false">${mn4Mn(x.period)} paid ${mnF(t.amt, mnAccCur(t.acc))} on ${fmtShort(pd(t.date))}</a>`).join('')).join('')}</div>` : ''}
     <div class="xs muted" style="margin-top:10px">Not part of "You have". It becomes cash when you tap Received; it is never counted as income twice.</div></div>`;
 }
 /* the truth card, rebuilt on received money. No invented transactions: what the log cannot explain is shown as exactly that. */
@@ -119,3 +119,61 @@ function mn4EstCard() {
 if (typeof mnOver === 'function' && !mnOver._m4e) { const _f = mnOver; mnOver = function () { const h = _f(), c = mn4EstCard(), i = h.indexOf('<div class="card mn3">'); return c && i > 0 ? h.slice(0, i) + c + h.slice(i) : h; }; mnOver._m4e = 1; }
 /* the exceptions: a lesson paid in your hand on the day. Say "cash" and it counts as cash at once: "+500 tennis cash" */
 if (typeof mnPut === 'function' && !mnPut._m4) { const _f = mnPut; mnPut = function (t) { if (t && t.type === 'in' && t.cash === undefined && /\b(cash|numerar|in hand)\b/i.test(t.note || '')) t.cash = true; return _f(t); }; mnPut._m4 = 1; }
+
+/* ── 12.3 · control over a pay period. The log says what you worked; the club's statement says what you will be paid.
+   An adjustment is one explicit ledger entry {type:'adj', src, period, amt (signed)} with id adj-<src>-<period>: visible, editable,
+   removable. It changes "earned" for that month; it never touches cash. A period can also carry its own expected pay date. ── */
+function mn4Adj(src, period) { const t = S.txns && S.txns['adj-' + src + '-' + period]; return t && !t._del ? t : null; }
+function mn4Logged(src, period) { return mnTx().filter((t) => mn4Accr(t) && t.cat === src && t.date.slice(0, 7) === period).reduce((a, t) => a + mnB(t.amt, mnAccCur(t.acc)), 0); }
+if (typeof mn4Periods === 'function' && !mn4Periods._adj) {
+  const _p = mn4Periods;
+  mn4Periods = function () {
+    const c = mn4Cfg(), P = _p(), have = {}; P.forEach((x) => (have[x.src + '|' + x.period] = x));
+    mnTx().forEach((t) => { if (t.type !== 'adj') return; const k = t.src + '|' + t.period; if (!have[k]) { have[k] = { src: t.src, period: t.period, earned: 0, paid: 0, pays: [] }; P.push(have[k]); } });
+    const cur = mnYm(new Date()), today = dk(new Date());
+    P.forEach((x) => { const a = mn4Adj(x.src, x.period); x.logged = Math.round(x.earned); x.adj = a ? Number(a.amt) || 0 : 0; x.adjNote = a ? a.note || '' : ''; x.earned = Math.max(0, x.earned + x.adj);
+      x.pre = !!c.through && x.period <= c.through && !x.pays.length; x.cur = x.period === cur; x.out = x.pre ? 0 : Math.max(0, Math.round(x.earned - x.paid)); const d = (c.due || {})[x.src + '|' + x.period]; if (d) x.due = d;
+      x.status = x.pre ? 'before tracking' : x.cur ? 'accruing' : x.out <= 0 ? 'paid' : x.paid > 0 ? 'partially paid' : x.due && x.due < today ? 'overdue' : 'awaiting payment'; });
+    return P.sort((a, b) => (a.period < b.period ? 1 : -1));
+  };
+  mn4Periods._adj = 1;
+}
+function mn4PeriodModal(src, period) {
+  const x = mn4Periods().find((p) => p.src === src && p.period === period); if (!x) return;
+  const days = mnTx().filter((t) => mn4Accr(t) && t.cat === src && t.date.slice(0, 7) === period).sort((a, b) => (a.date < b.date ? -1 : 1));
+  openModal(`<h2>${esc(mnCatName(src))} · ${mn4Mn(period)}</h2>
+    <div class="m4p-st"><em class="${x.status.replace(/ /g, '-')}">${x.status}</em><span>${days.length} logged ${days.length === 1 ? 'entry' : 'entries'} · ${mnF(x.logged)} in the log${x.paid ? ` · ${mnF(x.paid)} received` : ''}</span></div>
+    <div class="field"><label>${x.cur ? 'Earned so far (what you will be paid for it)' : 'What you will actually be paid for this month'}</label><input id="m4p-a" type="number" inputmode="decimal" value="${Math.round(x.earned)}"></div>
+    <div class="field"><label>Why it differs from the log (optional)</label><input id="m4p-n" type="text" placeholder="club statement, a lesson not counted, a deduction…" value="${esc(x.adjNote)}"></div>
+    <div class="field"><label>Expected on (optional)</label><input id="m4p-d" type="date" value="${x.due || ''}"></div>
+    <div class="xs muted" style="margin:2px 0 12px">Changing the amount adds one adjustment line to the ledger (log ${mnF(x.logged)} ${x.adj ? (x.adj > 0 ? '+ ' : '− ') + mnF(Math.abs(x.adj)) : '± 0'}). Your daily entries stay exactly as you logged them, and your cash does not move until you record the payout.</div>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary grow" onclick="mn4PeriodSave('${src}','${period}')">Save</button>${x.cur ? '' : `<button class="btn" onclick="closeModal();mn4PayModal('${src}','${period}')">Record payout</button>`}</div>
+    <div class="row" style="gap:14px;margin-top:14px;flex-wrap:wrap;font-size:13px">${x.adj ? `<a href="#" onclick="mn4AdjClear('${src}','${period}');return false">Remove the adjustment (back to ${mnF(x.logged)})</a>` : ''}<a href="#" onclick="closeModal();mnTab='tx';if(typeof mn2Q!=='undefined')mn2Q='';show('money');return false">See the entries in Transactions</a></div>
+    ${days.length ? `<div class="m4p-days">${days.slice(-40).map((t) => `<span onclick="closeModal();mnEdit('${t.id}')">${Number(t.date.slice(8))} · ${fmt(Math.round(t.amt))}</span>`).join('')}</div>` : ''}`);
+}
+function mn4PeriodSave(src, period) {
+  const want = Number($('m4p-a').value), note = $('m4p-n').value.trim(), due = $('m4p-d').value, logged = mn4Logged(src, period); if (!(want >= 0)) { toast('Type the amount'); return; }
+  const diff = Math.round((want - logged) * 100) / 100, id = 'adj-' + src + '-' + period, [y, m] = period.split('-').map(Number), last = dk(new Date(y, m, 0));
+  if (Math.abs(diff) < 0.5) { if (S.txns[id]) { S.txns[id]._del = true; S.txns[id]._u = now(); } }
+  else S.txns[id] = { id, type: 'adj', src, period, cat: src, acc: mnDefAcc('MDL'), amt: diff, date: last, at: new Date(last + 'T23:59:00').getTime(), note: note || 'Adjustment to match what is actually paid', _u: now() };
+  const c = mn4Cfg(); c.due = c.due || {}; if (due) c.due[src + '|' + period] = due; else delete c.due[src + '|' + period]; touch(S.settings);
+  save(); closeModal(); render(); toast(`${mn4Mn(period)}: ${mnF(want)}${Math.abs(diff) >= 0.5 ? ` (log ${diff > 0 ? '+' : '−'}${mnF(Math.abs(diff))})` : ''}`);
+}
+function mn4AdjClear(src, period) { const t = S.txns['adj-' + src + '-' + period]; if (t) { t._del = true; t._u = now(); } save(); closeModal(); render(); toast('Adjustment removed'); }
+/* everything that totals earnings sees the adjustment; nothing that totals cash does */
+if (typeof mn3Life === 'function' && !mn3Life._adj) { const _f = mn3Life; mn3Life = function () { const L = _f(), c = mn4Cfg(); let a = 0, pre = 0; mnTx().forEach((t) => { if (t.type === 'adj') { a += Number(t.amt) || 0; if (c.through && t.period <= c.through) pre += Number(t.amt) || 0; } }); L.earned += a; L.inn = L.earned; L.recv += pre; L.gap = Math.round(L.recv - L.out - L.have); return L; }; mn3Life._adj = 1; }
+if (typeof mnMonth === 'function' && !mnMonth._adj) { const _f = mnMonth; mnMonth = function (ym) { const r = _f(ym); mnTx().forEach((t) => { if (t.type === 'adj' && t.period === ym) { r.earned += Number(t.amt) || 0; r.src[t.src] = (r.src[t.src] || 0) + (Number(t.amt) || 0); } }); return r; }; mnMonth._adj = 1; }
+if (typeof mnRows === 'function' && !mnRows._adj) { const _f = mnRows; mnRows = function (L) { return _f(L.map((t) => t.type === 'adj' ? Object.assign({}, t, { type: 'in', note: 'Adjustment · ' + mn4Mn(t.period) + (t.note ? ' · ' + t.note : '') }) : t)); }; mnRows._adj = 1; }
+if (typeof mnEdit === 'function' && !mnEdit._adj) { const _f = mnEdit; mnEdit = function (id) { const t = id && S.txns[id]; if (t && t.type === 'adj') return mn4PeriodModal(t.src, t.period); return _f.apply(this, arguments); }; mnEdit._adj = 1; }
+/* the card: every open period is tappable (edit amount, date, see entries); "Received" stays one tap */
+mn4Card = function () {
+  const M = mn4Sum(); if (!M.P.length) return '';
+  const row = (x) => `<div class="m4-row ${x.status.replace(/ /g, '-')}"><div class="m4-tap" onclick="mn4PeriodModal('${x.src}','${x.period}')" role="button" tabindex="0"><b>${esc(mnCatName(x.src))} · ${mn4Mn(x.period)} <u>edit</u></b><span>${x.adj ? `log ${mnF(x.logged)} ${x.adj > 0 ? '+' : '−'} ${mnF(Math.abs(x.adj))} adjusted` : `earned ${mnF(x.earned)}`}${x.paid ? ` · paid ${mnF(x.paid)}` : ''}${x.due && !x.cur ? ` · expected ${fmtShort(pd(x.due))}` : ''}</span></div><em>${x.status}</em><strong>${mnF(x.cur ? x.earned : x.out)}</strong>${x.cur ? '<i></i>' : `<button onclick="mn4PayModal('${x.src}','${x.period}')">Received</button>`}</div>`;
+  const paid = M.P.filter((x) => x.pays.length).slice(0, 3);
+  return `<div class="card m4"><div class="card-h"><div class="card-t">Owed to you</div><div class="card-r"><a href="#" onclick="mn4Setup();return false">how you get paid</a></div></div>
+    <div class="m4-top"><div><span>Earned, not received yet</span><b>${mcNum(M.owed)}</b></div><div><span>This month so far</span><b>${mcNum(M.accruing)}</b></div></div>
+    ${M.open.length ? M.open.map(row).join('') : '<div class="xs muted">Nothing outstanding.</div>'}
+    ${paid.length ? `<div class="m4-paid">${paid.map((x) => x.pays.map((t) => `<a href="#" onclick="mn4PayModal('','','${t.id}');return false">${mn4Mn(x.period)} paid ${mnF(t.amt, mnAccCur(t.acc))} on ${fmtShort(pd(t.date))} · edit</a>`).join('')).join('')}</div>` : ''}
+    <div class="xs muted" style="margin-top:10px">Tap a month to correct the amount or set the date you expect it. Not part of "You have" until you tap Received.</div></div>`;
+};
+function mn4Mn(p) { try { const [y, m] = String(p).split('-').map(Number); return ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m - 1] + (y === new Date().getFullYear() ? '' : ' ' + y); } catch (e) { return p; } }

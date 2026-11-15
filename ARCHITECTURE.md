@@ -224,3 +224,11 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 ## 12.2 — Launch and bottom bar
 - Launch flicker: `views.js` painted the old HQ + old bottom bar at parse time and `arc.js` replaced them 1.6 s later. Now `<html class="wr-boot">` keeps the body hidden while scripts compose the real first screen; `stable.js` (last script) renders nav + Day synchronously and lifts the curtain on the next frame. A 3 s failsafe always lifts it.
 - Bottom bar: `#nav` was a 5-column grid and the new bar sat in its first cell. Now five equal columns across the width, a 46 px square action in the middle, 2 px accent marker on the active tab, 44 px+ targets.
+
+
+## 12.3 — Pay-period control, regression suite 51 → 91, cache hygiene
+- A pay period is editable: `mn4PeriodModal(src, period)` sets what will actually be paid (one ledger line `{type:'adj', src, period, amt}` with id `adj-<src>-<period>`, signed, replaces itself on re-edit), a reason, and an expected date (`mnPay.due['src|period']`). Adjustments change earned income for that month; they never touch an account. Daily entries stay as logged.
+- `tests/run.py`: +40 checks. Pay cycle (accrual vs cash, cash-in-hand, adjustment, partial / multiple / deleted payouts, transfer, expense, no estimated transactions, balance-to-balance estimate, reload), stable rendering (per-screen rebuild budget on background refresh, focused input, open modal, scroll, motion gating), launch (old bar never visible, Day first, five-slot bar), offline shell completeness, one version everywhere, old caches deleted, no auto-reload.
+- Fixed: `sw.js` activate filter had been rewritten to the full cache name by the version-bump regex, so old caches were never deleted. Back to prefix match; the bump now only touches the `CACHE` constant.
+- Phone touch targets ≥ 40 px on segment bars, tabs, small buttons, cockpit tools.
+- Deploy check: `v5` = `main:v5/` = live (md5 of core, stable, money4, iron, index, sw compared).

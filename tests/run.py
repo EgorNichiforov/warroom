@@ -151,6 +151,96 @@ with sync_playwright() as p:
     check('No page errors', not errs, errs[:3])
     b.close()
 
+# ═════════ 12.x regression: pay cycle, stable rendering, launch, offline shell ═════════
+SEED_MONEY = """(()=>{mnInit();const d=new Date(),ym=(o)=>{const x=new Date(d.getFullYear(),d.getMonth()+o,1);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')};
+ [[-3,12000,3000],[-2,15000,5000],[-1,14900,6000],[0,5250,1200]].forEach(([o,i,x])=>{mnPut({date:ym(o)+'-05',type:'in',acc:'cash',amt:i,cat:'tennis',at:new Date(ym(o)+'-05T12:00').getTime()});mnPut({date:ym(o)+'-06',type:'out',acc:'cash',amt:x,cat:'other',at:new Date(ym(o)+'-06T12:00').getTime()});});
+ mnPut({date:dk(d),type:'count',acc:'cash',amt:17065,diff:null});mnPut({date:dk(d),type:'count',acc:'card',amt:0,diff:null});
+ const c=mn4Cfg();c.through=ym(-2);touch(S.settings);save();window.__ym=ym;})();0"""
+with sync_playwright() as p:
+    b, pg, errs = fresh(p)
+    ev = pg.evaluate
+    ev(SEED_MONEY); pg.wait_for_timeout(300)
+    check('Money: cash equals the count, earnings never inflate it', round(ev("mnTotal().t")) == 17065, ev("mnTotal().t"))
+    s = ev("(()=>{const M=mn4Sum();return [M.owed,M.accruing,M.open.map(x=>x.status).join(',')]})()")
+    check('Money: last month is owed, this month accrues', s[0] == 14900 and s[1] == 5250 and 'awaiting payment' in s[2], s)
+    L = ev("mn3Life()"); check('Money: received − logged spending − cash = not tracked', L['gap'] == round(L['recv'] - L['out'] - L['have']) and round(L['recv']) == round(L['earned'] - 14900 - 5250), L)
+    ev("mnPut({date:dk(new Date()),type:'in',acc:'cash',amt:500,cat:'tennis',note:'lesson'});save();0")
+    check('Money: a day of monthly-paid work adds to accrual, not to cash', round(ev("mnTotal().t")) == 17065 and ev("mn4Sum().accruing") == 5750)
+    ev("mnPut({date:dk(new Date()),type:'in',acc:'cash',amt:300,cat:'tennis',note:'private lesson cash'});save();0")
+    check('Money: a lesson paid in hand ("cash") is cash at once', round(ev("mnTotal().t")) == 17365 and ev("mn4Sum().accruing") == 5750, [ev("mnTotal().t"), ev("mn4Sum().accruing")])
+    # the user corrects what the club will actually pay
+    ev("mn4PeriodModal('tennis', __ym(-1))"); pg.wait_for_timeout(250); pg.fill('#m4p-a', '14250'); pg.fill('#m4p-n', 'club statement'); pg.click('#modal-bg .btn.primary'); pg.wait_for_timeout(350)
+    s = ev("(()=>{const x=mn4Periods().find(p=>p.period===__ym(-1));return [x.earned,x.logged,x.adj,x.out,Math.round(mnTotal().t),mnTx().filter(t=>t.type==='adj').length]})()")
+    check('Money: awaiting amount is editable (14,900 → 14,250) through one adjustment line', s == [14250, 14900, -650, 14250, 17365, 1], s)
+    check('Money: the adjustment lowers earned income, not cash', round(ev("mn3Life().earned")) == round(L['earned'] + 500 + 300 - 650), ev("mn3Life().earned"))
+    ev("mn4PeriodModal('tennis', __ym(-1))"); pg.wait_for_timeout(250); pg.fill('#m4p-a', '14400'); pg.click('#modal-bg .btn.primary'); pg.wait_for_timeout(350)
+    check('Money: editing again replaces the adjustment (no duplicates)', ev("mnTx().filter(t=>t.type==='adj').length") == 1 and ev("mn4Sum().owed") == 14400, ev("mn4Sum().owed"))
+    e0 = ev("mn3Life().earned")
+    ev("mn4PayModal('tennis', __ym(-1))"); pg.wait_for_timeout(250); pg.fill('#m4-a', '10000'); pg.click('#modal-bg .btn.primary'); pg.wait_for_timeout(350)
+    s = ev("(()=>{const x=mn4Periods().find(p=>p.period===__ym(-1));return [x.status,x.out,Math.round(mnTotal().t)]})()")
+    check('Money: partial payout raises cash and leaves the rest owed', s == ['partially paid', 4400, 27365], s)
+    check('Money: a payout is never counted as income again', ev("mn3Life().earned") == e0)
+    ev("mn4PayModal('tennis', __ym(-1))"); pg.wait_for_timeout(250); pg.click('#modal-bg .btn.primary'); pg.wait_for_timeout(350)
+    s = ev("(()=>{const x=mn4Periods().find(p=>p.period===__ym(-1));return [x.status,x.out,x.pays.length,Math.round(mnTotal().t),mn4Sum().owed]})()")
+    check('Money: second payout settles the period (two payouts, one period)', s == ['paid', 0, 2, 31765, 0], s)
+    ev("mnPut({date:dk(new Date()),type:'move',acc:'cash',to:'card',amt:1000,toAmt:1000});save();0")
+    m = ev("(()=>{const r=mnMonth(mnYm(new Date()));return [Math.round(mnTotal().t),Math.round(mnBal('card').bal),Math.round(mnBal('cash').bal)]})()")
+    check('Money: a transfer moves money between accounts and changes no total', m == [31765, 1000, 30765], m)
+    sp0 = ev("mnMonth(mnYm(new Date())).spent"); ev("mnPut({date:dk(new Date()),type:'out',acc:'cash',amt:200,cat:'food'});save();0")
+    check('Money: an expense lowers cash and raises spending by the same amount', round(ev("mnTotal().t")) == 31565 and ev("mnMonth(mnYm(new Date())).spent") == sp0 + 200)
+    pid = ev("mnTx().find(t=>t.type==='pay'&&t.amt==10000).id"); ev(f"mn4PayModal('','','{pid}')"); pg.wait_for_timeout(250); pg.click('#m4-del'); pg.click('#m4-del'); pg.wait_for_timeout(350)
+    check('Money: deleting a payout puts it back as owed and takes the cash out', ev("mn4Sum().owed") == 10000 and round(ev("mnTotal().t")) == 21565, [ev("mn4Sum().owed"), ev("mnTotal().t")])
+    check('Money: no estimated transactions exist or get created', ev("mn3Auto();mnTx().filter(t=>t.est).length") == 0)
+    ev("(()=>{const c=mn4Cfg(),d=new Date();c.snaps=[{d:dk(new Date(d.getFullYear(),d.getMonth()-2,28)),a:37000}];touch(S.settings);save();})();0")
+    n0 = ev("mnTx().length"); E = ev("mn4Est().filter(e=>!e.pre)[0]")
+    check('Money: balance-to-balance estimate is arithmetic only (start + arrived − end), creates nothing', E and E['spent'] == round(E['start'] + E['recv'] - E['end']) and ev("mnTx().length") == n0, E)
+    pg.reload(); pg.wait_for_timeout(2400)
+    check('Money: everything survives a reload', ev("mn4Sum().owed") == 10000 and ev("mnTx().filter(t=>t.type==='adj').length") == 1)
+    check('Money: no page errors', not errs, errs[:3])
+    b.close()
+
+    # stable rendering: a background refresh must not rebuild the screen
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    ev(SEED_MONEY)
+    PROBE = """(()=>{let n=0;const mo=new MutationObserver(L=>L.forEach(x=>x.addedNodes.forEach(a=>{n+=1+(a.querySelectorAll?a.querySelectorAll('*').length:0)})));const v=document.querySelector('#arc.on')||document.querySelector('.view.active');mo.observe(v,{childList:true,subtree:true});for(let i=0;i<5;i++){render();if(typeof arcRender==='function'&&document.querySelector('#arc.on'))arcRender();}mo.takeRecords().forEach(x=>x.addedNodes.forEach(a=>{n+=1+(a.querySelectorAll?a.querySelectorAll('*').length:0)}));mo.disconnect();return n})()"""
+    for v, lim in (('now', 40), ('dial', 40), ('crm', 60), ('money', 40), ('life', 80), ('train', 160), ('food', 80), ('stats', 80), ('week', 80)):
+        ev(f"show('{v}');0"); pg.wait_for_timeout(900); n = ev(PROBE)
+        check(f'Stable: 5 background refreshes on {v} rebuild almost nothing (<{lim} nodes)', n < lim, n)
+    ev("mnTab='tx';show('money');0"); pg.wait_for_timeout(700)
+    check('Stable: Money / Transactions stays put on refresh', ev(PROBE) < 40)
+    ev("show('money');0"); pg.wait_for_timeout(700)
+    pg.fill('#mn-q', 'spent 120 ta') if pg.query_selector('#mn-q') else None
+    foc = ev("(()=>{const i=document.querySelector('#view-money input[type=text],#view-money input:not([type])');if(!i)return null;i.focus();i.value='spent 120 ta';render();render();return [document.activeElement===i,i.value]})()")
+    check('Stable: a focused input keeps focus and text through a refresh', foc is None or foc == [True, 'spent 120 ta'], foc)
+    ev("openModal('<h2>Test</h2><input id=\"tm\">');document.getElementById('tm').value='abc';render();render();0")
+    check('Stable: an open modal survives a refresh with its content', ev("document.getElementById('modal-bg').classList.contains('open') && document.getElementById('tm').value==='abc'"))
+    ev("closeModal();show('stats');0"); pg.wait_for_timeout(600); ev("window.scrollTo(0,600);0"); pg.wait_for_timeout(100); y0 = ev("scrollY"); ev("render();render();0"); pg.wait_for_timeout(100)
+    check('Stable: scroll position is kept through a refresh', abs(ev("scrollY") - y0) < 4, [y0, ev("scrollY")])
+    check('Stable: entrance motion is off outside navigation', ev("(()=>{document.documentElement.classList.remove('wr-nav');const c=document.querySelector('.view.active .card');return c?getComputedStyle(c).animationDuration:'0s'})()") in ('0s', '0s, 0s'))
+    check('Stable: no page errors', not errs, errs[:3])
+    b.close()
+
+    # launch: the first painted screen is the real one
+    b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); seen = []
+    pg.add_init_script("window.__seen=[];new MutationObserver(()=>{const h=document.documentElement;if(document.body&&!h.classList.contains('wr-boot')){const t=(document.querySelector('#nav')||{}).textContent||'';if(t&&window.__seen.indexOf(t)<0)window.__seen.push(t)}}).observe(document,{childList:true,subtree:true,attributes:true});")
+    pg.goto(URL); pg.wait_for_timeout(3200)
+    seen = pg.evaluate("__seen")
+    check('Launch: the old bottom bar (Ops / Personal / Intel / More) is never visible', not any('Personal' in t or 'Intel' in t for t in seen), seen)
+    check('Launch: curtain lifts and Day is the first screen', pg.evaluate("!document.documentElement.classList.contains('wr-boot') && !!document.querySelector('#arc.on')"))
+    check('Launch: bottom bar has five equal slots across the width', pg.evaluate("(()=>{const B=[...document.querySelectorAll('.sh-bar>*')].map(e=>e.getBoundingClientRect());return B.length===5&&B[4].right>innerWidth*0.9&&Math.abs((B[1].left-B[0].left)-(B[4].left-B[3].left))<2})()"))
+    b.close()
+
+    # offline shell + cache hygiene (static checks on the real files)
+    import re, os
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    h = open(os.path.join(root, 'index.html')).read(); sw = open(os.path.join(root, 'sw.js')).read(); core = open(os.path.join(root, 'core.js')).read()
+    need = set(re.findall(r'(?:src|href)="\./([A-Za-z0-9_.-]+\.(?:js|css))', h)); have = set(re.findall(r"'\./([A-Za-z0-9_.-]+\.(?:js|css))'", sw))
+    check('Offline: every loaded script and stylesheet is in the service-worker shell', not (need - have), sorted(need - have))
+    ver = re.search(r"APP_VERSION = '([0-9.]+)'", core).group(1)
+    check('Release: one version everywhere (core, cache name, every asset URL)', f"warroom-v{ver}'" in sw and set(re.findall(r'\?v=([0-9.]+)', h)) == {ver}, [ver, sorted(set(re.findall(r'\?v=([0-9.]+)', h)))])
+    check('Release: old caches are deleted on activate (prefix match, not the current name)', "startsWith('warroom-v')" in sw)
+    check('Release: no automatic reload on service-worker change (cannot interrupt a call session)', 'controllerchange' not in h and 'controllerchange' not in core)
+
 ok = sum(1 for r in results if r[1])
 for n, passed, info in results:
     print(('PASS ' if passed else 'FAIL ') + n + ('' if passed or not info else '  → ' + json.dumps(info)[:200]))
