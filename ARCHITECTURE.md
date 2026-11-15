@@ -134,3 +134,12 @@ ARC is the new main surface (`#arc`, z 46), on by default (`localStorage wr-arc`
   - Log a session on any date (including the past), edit it, or move it to another date.
   - Schedule: a one-off block via `dayOnce(d).add`.
   - Clean up empty shells (tap twice).
+
+## 9.2 · Money (money.js)
+Based on YNAB (reconcile), PocketGuard ("In My Pocket" safe to spend), Monarch/Copilot (cash flow, recurring, month review) and Wallet by BudgetBakers (manual multi-currency accounts, planned payments, forecast).
+- Data: `S.accounts` (cash/card/savings/owed; MDL/USD/EUR), `S.txns` (in/out/move/count), `S.mplan` (planned/recurring). All three are merge maps. Rates live in `S.settings.fx`, the monthly savings goal in `S.settings.mnSave`.
+- Balance = last count + flows after it (`mnBal`). A count records `diff`, the unlogged money since the previous count; Reports totals the leak.
+- Safe to spend until month end = spendable (non-savings) + planned income − planned payments − savings still to move; also shown per day.
+- Forecast, 60 days: balance + planned occurrences − average discretionary spend over the last 30 days.
+- Legacy: the old per-day `o.money` fields migrate into the ledger (deterministic `lg-<day>-<cat>` ids). `setMoney` is wrapped, so quick spend, the HQ money card and the command bar write the ledger, and `mnRecalcDay` keeps `o.money/income/spent` derived for the old screens.
+- Quick entry `mnParse`: "spent 120 taxi", "+750 tennis", "45$ claude", "… card". It also works from ARC's Log sheet.

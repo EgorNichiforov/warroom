@@ -53,7 +53,7 @@ function coachLine(ctx) {
 }
 
 /* ───────── navigation ───────── */
-const NAV = [['now', 'hq', 'Now'], ['life', 'life', 'Life'], ['dial', 'dial', 'Ops'], ['crm', 'kanban', 'Pipeline'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan'], ['me', 'me', 'Me']];
+const NAV = [['now', 'hq', 'Now'], ['life', 'life', 'Life'], ['money', 'wallet', 'Money'], ['dial', 'dial', 'Ops'], ['crm', 'kanban', 'Pipeline'], ['train', 'train', 'Train'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan'], ['me', 'me', 'Me']];
 let moreTab = 'home', weekTab = 'plan';
 function show(v) {
   const map = { today: 'now', hq: 'now', more: 'me', plan: 'week', goals: 'week', tasks: 'week', review: 'week' };
@@ -80,7 +80,7 @@ function renderNav() {
 }
 function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 86400000 + 1) / 7); }
 function renderTop() {
-  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', intel: 'Intel', crm: 'Pipeline', life: 'Life', trlog: 'Training log', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
+  const titles = { now: isToday(curDate) ? 'HQ' : fmtShort(curDate), dial: 'Dial', train: 'Train', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', book: 'Playbook', ask: 'Ask', intel: 'Intel', crm: 'Pipeline', life: 'Life', trlog: 'Training log', money: 'Money', me: view === 'me' && moreTab !== 'home' ? 'Settings' : 'More' };
   $('top-title').innerHTML = view === 'now' && isToday(curDate) ? '<span class="only-phone">HQ</span><span class="only-desk">Headquarters</span>' : esc(titles[view]);
   const sub = $('top-sub'), t = new Date();
   if (view === 'now') sub.textContent = `${DAY_SHORT[dow(curDate)]} ${curDate.getDate()} ${curDate.toLocaleDateString('en-GB', { month: 'short' })}${window.innerWidth >= 1000 ? ' · week ' + isoWeek(curDate) : ' · D-' + daysUntil(S.settings.bigDate)}` + (isToday(curDate) || window.innerWidth < 700 ? '' : ' · not today');
@@ -106,7 +106,7 @@ function render() {
   document.body.dataset.view = view;
   renderNav(); renderTop();
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
-  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife(), trlog: () => renderTrlog() })[view]();
+  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife(), trlog: () => renderTrlog(), money: () => renderMoney() })[view]();
   if (['train', 'trlog', 'food', 'stats', 'life'].includes(view)) { const pv = $('view-' + view); if (pv) pv.insertAdjacentHTML('afterbegin', `<div class="chips" style="margin-bottom:12px">${[['life', 'Life'], ['train', 'Train'], ['trlog', 'Training log'], ['food', 'Food'], ['stats', 'Stats & body']].map(([v, l]) => `<span class="chip ${view === v ? 'on' : ''}" style="flex:1;text-align:center" onclick="show('${v}')">${l}</span>`).join('')}<span class="chip" style="flex:1;text-align:center" onclick="moreTab='weight';show('me')">Weight</span></div>`); }
   renderRail();
   const rs = $('rec-slot'); if (rs) rs.innerHTML = recBanner();

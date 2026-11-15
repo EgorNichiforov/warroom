@@ -62,7 +62,7 @@ function arcParse(t) {
   return out;
 }
 function arcLogOpen() {
-  openModal(`<h2>Log</h2><div class="xs muted" style="margin-bottom:10px">One sentence. "12 dials 1 owner" · "bac 45" · "76.4 kg" · "ate 900" · "deep 50"</div>
+  openModal(`<h2>Log</h2><div class="xs muted" style="margin-bottom:10px">One sentence. "12 dials 1 owner" · "bac 45" · "76.4 kg" · "ate 900" · money: "spent 120 taxi" · "+750 tennis"</div>
     <input id="arc-in" class="arc-log" autocomplete="off" placeholder="What happened?" oninput="arcPrev()" onkeydown="if(event.key==='Enter')arcLogSave()"><div id="arc-pv" class="arc-pv"></div>
     <div class="arc-quick">${[['dials', 1, '+1 dial'], ['dials', 5, '+5 dials'], ['owners', 1, '+1 owner talk'], ['bac', 25, '+25 BAC']].map(([k, v, l]) => `<button onclick="arcApply([['${k}',${v},'${l}']])">${l}</button>`).join('')}</div>
     <button class="btn primary block" style="margin-top:12px" onclick="arcLogSave()">Log it</button>`);
@@ -81,7 +81,7 @@ function arcApply(p) {
 }
 
 /* ── rooms: everything else, one door ── */
-const ARC_ROOMS = [['dial', 'dial', 'Dialer'], ['crm', 'kanban', 'Pipeline'], ['life', 'life', 'Engine & Life'], ['train', 'train', 'Train (sets)'], ['trlog', 'check', 'Training log'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan & goals'], ['me', 'me', 'Settings']];
+const ARC_ROOMS = [['dial', 'dial', 'Dialer'], ['crm', 'kanban', 'Pipeline'], ['money', 'wallet', 'Money'], ['life', 'life', 'Engine & Life'], ['train', 'train', 'Train (sets)'], ['trlog', 'check', 'Training log'], ['food', 'food', 'Food'], ['stats', 'stats', 'Stats'], ['intel', 'target', 'Intel'], ['cal', 'cal', 'Calendar'], ['book', 'book', 'Playbook'], ['ask', 'chat', 'Ask'], ['week', 'plan', 'Plan & goals'], ['me', 'me', 'Settings']];
 function arcRooms() { openModal(`<h2>Rooms</h2><div class="nv-sys">${ARC_ROOMS.map(([v, i, l]) => `<button onclick="closeModal();arcRoom('${v}')">${ic(i, 22)}<span>${l}</span></button>`).join('')}</div><div class="xs muted" style="margin-top:12px">The day is the app. Rooms are for planning, reviewing and the dialer. "Day" in the corner brings you back.</div>`, true); }
 function arcRoom(v) { arcHide(true); if (typeof nvOn === 'function' && nvOn() && typeof nvGo === 'function') nvGo(v); else show(v); }
 
@@ -91,7 +91,7 @@ function arcHtml() {
   const date = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }), dl = daysUntil(S.settings.bigDate);
   const bar = (l, v, t) => `<div class="arc-m"><span>${l}</span><i><u style="width:${t ? Math.min(100, (v / t) * 100) : 0}%"></u></i><b>${v}${t ? '/' + t : ''}</b></div>`;
   const wk = Object.values(S.boards || {}).filter((b) => b && b.done && b.id === (typeof enWeekKey === 'function' ? enWeekKey() : '')).pop();
-  const top = `<div class="arc-top"><div><b>${date}</b><span>D-${dl} · ${fmt(C.dials)} dials · ${C.own} owner talks all-time</span></div><button class="arc-ic" onclick="arcRooms()" aria-label="Rooms">${ic('more', 22)}</button></div>`;
+  const top = `<div class="arc-top"><div><b>${date}</b><span>D-${dl} · ${fmt(C.dials)} dials · ${C.own} owner talks all-time${typeof mnTotal === 'function' && mnTotal().any ? ` · <a href="#" onclick="arcRoom('money');return false">${mnF(mnTotal().t)}</a>` : ''}</span></div><button class="arc-ic" onclick="arcRooms()" aria-label="Rooms">${ic('more', 22)}</button></div>`;
   if (ph === 'night') {
     const tm = addDays(d, nowMin() < 12 * 60 ? 0 : 1), first = blocksFor(tm).filter((b) => ['dials', 'bac', 'train', 'program', 'agency'].includes(b.kind)).sort((a, b) => tmin(a.start) - tmin(b.start))[0];
     return `<div class="arc-in">${top}<div class="arc-night"><div class="arc-k">After ${S.settings.bed || '21:00'}</div><div class="arc-big">Sleep.</div><div class="arc-sub">Today: ${m.met ? '<b class="ok">minimum kept</b>' : `<b class="bad">minimum missed</b> (${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} BAC)`}.<br>Tomorrow: wake ${wakeFor(tm)}${first ? ` · first hard block ${first.start} ${esc(first.title.replace(EMO_RE, '').trim())}` : ''}.</div>
