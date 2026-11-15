@@ -281,6 +281,20 @@ with sync_playwright() as p:
     check('Stage: no page errors', not errs, errs[:3])
     b.close()
 
+    # Day: Done on the current block must move the screen on
+    b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    pg.goto(URL); pg.wait_for_timeout(2400); ev = pg.evaluate
+    cur = ev("(()=>{const d=new Date(),nm=nowMin(),L=arcBlocks(d);let b=L.find(x=>tmin(x.start)<=nm&&nm<tmin(x.end)&&!['dials','bac','agency','train','program'].includes(x.kind));if(!b){const o=day(d);o.sched=o.sched||{};const s=String(Math.floor(nm/60)).padStart(2,'0')+':'+String(nm%60).padStart(2,'0'),e2=Math.min(nm+30,1439),e=String(Math.floor(e2/60)).padStart(2,'0')+':'+String(e2%60).padStart(2,'0');return null}return {id:b.id,title:b.title}})()")
+    if cur:
+        before = pg.inner_text('#arc .arc-now'); pg.click('#arc .arc-btn'); pg.wait_for_timeout(700); after = pg.inner_text('#arc .arc-now')
+        check('Day: tapping Done confirms the block and shows what is next', 'done' in after.lower() and after != before and ev(f"day(new Date()).blk['{cur['id']}']") == 'done', after[:120])
+        pg.click('#arc .arc-done a'); pg.wait_for_timeout(500)
+        check('Day: undo brings the block back', not ev(f"day(new Date()).blk['{cur['id']}']") and pg.inner_text('#arc .arc-now') == before)
+    else:
+        r = ev("(()=>{const R=oneNow();const fake={id:'t1',title:'Test block',start:'00:00',end:'23:59',kind:'other'};R.cur=fake;const a=arcHero(R);R.o.blk=R.o.blk||{};R.o.blk.t1='done';const b=arcHero(R);delete R.o.blk.t1;return [a.includes('arc-done'),b.includes('arc-done'),b.includes('Test block')&&!/arc-big\">Test block/.test(b)]})()")
+        check('Day: a finished current block steps aside in the hero', r == [False, True, True], r)
+    check('Day: no page errors', not errs, errs[:3]); b.close()
+
     # offline shell + cache hygiene (static checks on the real files)
     import re, os
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

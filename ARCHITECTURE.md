@@ -262,3 +262,13 @@ Owner conversations start now; a caregiver bench is built in parallel and is nev
 - `SG_LADDER` entries carry `phase:'validation'` and a `rule`; `SG_NEXT` names what follows the first payment on the way to $20k MRR. Nothing is built for those stages yet.
 - You card: School = readiness (latest mock and change), learning (mistakes fixed in review), time (labelled input). Body = weight trend, strength (lifts up, first logged session vs latest), consistency (sessions in 4 weeks). No scores or levels.
 - From here: operational fixes only. The next milestone is evidence that someone wants to buy, not a version number.
+
+
+## 13.2.1 — fix: Done on Day
+The Day hero always showed the block the clock called "now", so marking it Done changed nothing on screen. A current block marked done or skipped now steps aside: a confirmation line with undo, then what is next. One regression test.
+
+## DEVELOPMENT FREEZE (owner decision, 15 Nov 2026)
+- No new features, dashboards, redesigns, modules or gamification before **1,000 logged dials or the first paying client**. Exceptions: something genuinely broken, technical reliability, data integrity.
+- War Room development ≤ 10% of logged work time (`S.settings.devTaxPct`).
+- 30-day validation period from 16 Nov 2026 on 13.2 as it is. The next change comes from usage evidence.
+- Governing principle: **War Room exists to improve life outside War Room.** Chain: Direction → Strategy → Commitments → Execution → Evidence → Intervention → Improvement. Five capabilities it is judged by: Command, Commitment, Early warning, Recovery, Reality.
