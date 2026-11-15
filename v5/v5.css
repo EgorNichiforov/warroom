@@ -1188,3 +1188,21 @@ html[data-hub] #view-dial>.chips:first-of-type .chip{border-radius:10px}
 @media(min-width:900px){.mn3-leg{grid-template-columns:repeat(3,1fr);gap:18px}}
 /* 10.2: money/stat grids fill the width they actually have */
 @media(min-width:900px){.sgrid.st-g{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))!important}.sgrid.st-g>.card{grid-column:auto!important}.sgrid.st-g>.w2,.sgrid.st-g>.w3,.sgrid.st-g>.wf{grid-column:1/-1!important}}
+
+/* ═════════ 10.3 Polish: one header row, no duplicate nav, desktop interaction ═════════ */
+.pl-back{border:0;background:transparent;color:var(--muted);font-weight:600;font-size:13px;padding:4px 0 12px;cursor:pointer}.pl-back:hover{color:var(--text)}
+@media(max-width:560px){
+  .topbar{flex-wrap:wrap;align-items:center;row-gap:8px;column-gap:8px}.topbar>div:first-child{flex:1 1 0;min-width:0}
+  #top-right{display:contents}#top-right .capbtn{display:none}#top-right .datenav{order:9;flex:1 1 100%}
+  #top-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media(min-width:1100px){.sh-seg{display:none!important}}
+@media(hover:hover) and (min-width:1000px){
+  .card{position:relative;transition:border-color .25s,box-shadow .3s,transform .3s var(--sh-ease,ease)}
+  .card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--acc) 9%,transparent),transparent 60%)}
+  .card:hover::after{opacity:1}.card:hover{border-color:color-mix(in srgb,var(--acc) 28%,var(--line))}
+  .card[onclick]:hover,.card.go:hover{transform:translateY(-2px);box-shadow:0 18px 40px -24px rgba(0,0,0,.45)}
+  .btn,.chip,.iconbtn{transition:transform .12s,background .2s,border-color .2s,box-shadow .2s}.btn:hover,.iconbtn:hover{transform:translateY(-1px)}.btn:active,.chip:active,.iconbtn:active{transform:scale(.97)}
+  .kv[onclick]:hover,.mn-row:hover,.meal:hover{background:color-mix(in srgb,var(--acc) 6%,transparent);border-radius:8px}
+}
+:where(button,a,input,select,textarea,[onclick]):focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:8px}
