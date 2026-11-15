@@ -215,3 +215,7 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 - earning ('in' in a monthly-paid source) ≠ cash. payout = `type:'pay' {src, period, acc, amt}` settles a period and is never income again. `mnBal` ignores earnings and adds payouts. Periods ≤ `S.settings.mnPay.through` are "settled before tracking" (a setting, no invented transactions). Statuses: accruing, awaiting payment, partially paid, paid, overdue (only when a pay day is set).
 - `mn3Life`: received = cash-ins + payouts + pre-tracking periods; not tracked = received − logged spending − cash. The automatic estimate split from 10.2 is removed once (`mnEst.v=2`) and never recreated.
 - Reported past balances (`mnPay.snaps`) are reference points only. Comparisons are flagged as rough until 30 days of tracking.
+
+
+## 12.1 — Spending estimate between known balances
+`mn4Est()`: for each pair of known balances (reported snapshot → first count): start + money that arrived − end = spent; minus logged = never logged. Pre-tracking pay for month M is assumed to arrive on the pay day (default 15th) of M+1. Display only; creates no transactions. `+500 tennis cash` marks a lesson paid in hand (cash at once).
