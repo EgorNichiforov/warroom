@@ -177,7 +177,7 @@ if (typeof oneHtml === 'function' && !oneHtml._en) {
       : sun ? `<div class="one-pr"><span>Sunday</span><b>Weekly board meeting · 12 minutes. One system change, three outcomes.</b><div><button onclick="oneHide();enBoard()">Start</button></div></div>` : '';
     h = h.replace('<div class="one-mid">', `<div class="one-mid">${extra}`);
     h = h.replace(/(<div class="one-sub">)(\d+ of \d+ today)/, `$1≈ $${EN_PER_DIAL} of MRR per dial · $2`);
-    return h.replace('<button class="one-exit"', `<button class="one-exit" onclick="oneHide(true);enReplanModal()">Replan the day</button><button class="one-exit"`);
+    return h.replace('<button class="one-exit"', `<button class="one-exit" onclick="oneHide(true);(typeof adChange==='function'?adChange:enReplanModal)()">Change today</button><button class="one-exit"`);
   };
   oneHtml._en = 1;
 }

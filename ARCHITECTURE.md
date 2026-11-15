@@ -143,3 +143,11 @@ Based on YNAB (reconcile), PocketGuard ("In My Pocket" safe to spend), Monarch/C
 - Forecast, 60 days: balance + planned occurrences − average discretionary spend over the last 30 days.
 - Legacy: the old per-day `o.money` fields migrate into the ledger (deterministic `lg-<day>-<cat>` ids). `setMoney` is wrapped, so quick spend, the HQ money card and the command bar write the ledger, and `mnRecalcDay` keeps `o.money/income/spent` derived for the old screens.
 - Quick entry `mnParse`: "spent 120 taxi", "+750 tennis", "45$ claude", "… card". It also works from ARC's Log sheet.
+
+## 9.3 · Adapt (adapt.js): the plan bends to the real day
+Every change is a one-day override (`dayOnce(d).skip/add`); the weekly plan never changes. "Undo all changes for today" deletes `day.sched`.
+- `adFixed(b)` decides what never moves: school periods ("1. …"), lessons he teaches (Grup/lesson), tennis practice, dial blocks (Florida window), travel and sleep.
+- **Woke up late** (`adShiftPreview/adShift`): movable morning blocks are refit into the window before the next fixed block, by priority BAC → breakfast → training → company → routine. Whatever doesn't fit opens "Rebuild the rest of today" (`enReplanModal`).
+- **Block sheet** (ARC tap): Done/Missed, move to a time, +30 min/+1 h/+2 h, Skip today, and for training blocks "Trained at another time" (`adTrainAt` logs a done session at the real time, so it counts).
+- **Change sheet** (ARC footer "Change", ONE "Change today"): woke up late, trained at a different time, add a block, rebuild the rest of today, undo all.
+- **Say it** (ARC Log, `adSay`): "woke up 7:10", "move bac to 18:00" (warns if it overlaps a fixed block), "skip gym", "add walk 17:00 30", "trained 17:30 45".
