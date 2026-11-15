@@ -169,3 +169,11 @@ NOVA, Classic and the ONE overlay are retired as separate interfaces.
 - `nvOn` is always false, so NOVA never mounts. `wr-ui` is forced to `monolith` and the Classic orange look is removed.
 - One look, three choices (`wr-look`): `auto` (default) follows ARC's phase, light from wake to 17:00 and dark after, for home and rooms alike; `dark`; `light`. ARC respects the choice; night stays black.
 - Me → Appearance holds only the look choice (plus App lock).
+
+## 10.0 · The shell (shell.js): one navigation, one theme, one motion language
+- Hubs: Day (ARC) · Work (Dial, Pipeline, Intel, Playbook) · **+** · Money (Overview, Transactions, Plan, Reports) · You (Engine, Train, Log, Food, Stats, Plan, Calendar, Ask, Settings).
+- Phone: a 5-slot bottom bar with a raised + in the centre. Desktop: the same hubs in the sidebar, with the active hub's sub-items expanded, plus "Log anything" (N).
+- Hub pages get a sticky pill segmented control with a sliding indicator. Room-level tabs inside restyle to underline tabs (hierarchy). Swipe left/right switches segments on phone.
+- Screen changes use the View Transitions API (`shTransition`, direction-aware slide). Content staggers in (`.sh-enter`), sheets spring up, presses scale, haptics on tabs.
+- **+** opens `shCapture()`: a one-sentence log (all parsers: counters, money, plan changes, training), voice dictation (Web Speech API) and 10 quick actions. The top-bar + and `openCapture` route here.
+- ARC lives inside the shell: the tab bar stays visible, ARC's own footer and Rooms button are removed, it uses the same tokens as every room, and "Change today" sits under the hero.
