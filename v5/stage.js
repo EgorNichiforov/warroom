@@ -121,3 +121,17 @@ function sgYou() {
     <div class="xs muted" style="margin-top:10px">Time and sessions are effort. Mock results, corrected mistakes, the scale and the bar are the evidence.</div></div>`;
 }
 if (typeof lfScoreTab === 'function' && !lfScoreTab._sg) { const _f = lfScoreTab; lfScoreTab = function () { let c = ''; try { c = sgYou(); } catch (e) { } return c + _f(); }; lfScoreTab._sg = 1; }
+
+/* 13.2.1 fix · Day: tapping Done on the current block did nothing visible, because the hero always showed whatever the clock
+   said was "now", even when it was already finished. A finished or skipped block now steps aside: the hero confirms it and
+   shows what is next (or the day's close), with an undo. */
+if (typeof arcHero === 'function' && !arcHero._fix) {
+  const _h = arcHero;
+  arcHero = function (R) {
+    try { const c = R && R.cur, s = c && R.o && R.o.blk && R.o.blk[c.id]; if (c && (s === 'done' || s === 'skip')) {
+      const h = _h(Object.assign({}, R, { cur: null })), t = esc(String(c.title).replace(EMO_RE, '').trim()), free = R.next ? `Free until ${R.next.start}.` : `Free until ${c.end}.`;
+      return `<div class="arc-done"><b>${s === 'done' ? '✓ Done' : '– Skipped'}</b><span>${t} · ${free}</span><a href="#" onclick="arcMark('${c.id}','');return false">undo</a></div>` + h; } } catch (e) { }
+    return _h(R);
+  };
+  arcHero._fix = 1;
+}
