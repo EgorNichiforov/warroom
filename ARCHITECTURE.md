@@ -249,3 +249,16 @@ Owner conversations start now; a caregiver bench is built in parallel and is nev
 - Always open: Dial, Caregivers (add, call, screen, bench), Playbook. Waiting: Pipeline (first conversation or callback), Intel (300 attempts).
 - You → Overview opens with one card: School and Body, each with an outcome measure, a weekly commitment and its evidence. No score or levels added.
 - Development pause: no new dashboards, analysis tools or redesigns. Operational fixes only until there is evidence someone wants to buy.
+
+
+## 13.2 — Evidence definitions tightened (owner decisions, 15 Nov 2026). Development pause begins here.
+- Evidence can come from an email, phone call or meeting (`sgEvModal`): a log entry `{src, at (real time), added, manual:true, d:{dials:0, owners: live?1:0}, demand}`. An email never adds a conversation or an attempt; a call/meeting adds a conversation only when marked live with the decision-maker and their words are written down.
+- Definitions (`sgEvidence`, all from Q logs, placements and invoices; day counters are shown but never used for stages):
+  - attempt = a logged call. answered = gatekeeper or owner picked up.
+  - qualified decision-maker conversation = a live owner entry with ≥12 characters of what they said, or a stated need. Unique agencies tracked beside the count.
+  - concrete demand = the same agency has a specific need (≥8 chars) and an explicit agreement to receive profiles.
+  - completed shift = a placement with a named caregiver and a date that has passed.
+  - payment = an invoice with status `paid`, a `paidAt` date and amount > 0.
+- `SG_LADDER` entries carry `phase:'validation'` and a `rule`; `SG_NEXT` names what follows the first payment on the way to $20k MRR. Nothing is built for those stages yet.
+- You card: School = readiness (latest mock and change), learning (mistakes fixed in review), time (labelled input). Body = weight trend, strength (lifts up, first logged session vs latest), consistency (sessions in 4 weeks). No scores or levels.
+- From here: operational fixes only. The next milestone is evidence that someone wants to buy, not a version number.
