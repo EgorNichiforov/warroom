@@ -90,3 +90,32 @@ if (typeof mnOver === 'function' && !mnOver._m4q) { const _f = mnOver; mnOver = 
     if (age < 2) h = h.replace('<div class="card mn2-top">', '<div class="card mn2-top young">').replace('<div class="m4-snaps">', `<div class="m4-young">Tracking started ${age === 0 ? 'today' : 'yesterday'}. The balance line draws itself from your counts and logged money from here on. Nothing before the first count is back-filled.</div><div class="m4-snaps">`);
     if (age < 30) { const a = h.indexOf('<div class="mn2-ins">'); if (a > 0) { const b = h.indexOf('</div></div>', a); if (b > 0) h = h.slice(0, a) + `<div class="m4-q"><b>Day ${age + 1} of consistent tracking.</b> Pace, runway and "usual month" comparisons need 30 days of complete logging before they mean anything; until then treat them as rough.</div>` + h.slice(b + 12); } }
     return h; }; mnOver._m4q = 1; }
+
+/* ── 12.1 · estimate between two known balances. start + money that arrived − end = what left. Shown as an estimate with its
+   assumptions; no transactions are created from it. ── */
+function mn4Arrive(src, period) { const day = (mn4Cfg().src[src] || {}).day || 15, [y, m] = period.split('-').map(Number); return dk(new Date(y, m, Math.min(28, day))); }
+function mn4Est() {
+  const c = mn4Cfg(), T = mnTx(), b = (t) => mnB(t.amt, mnAccCur(t.acc)), counts = T.filter((t) => t.type === 'count').sort((a, x) => (mnSeq(a) < mnSeq(x) ? -1 : 1)); if (!counts.length) return [];
+  const fc = counts[0].date, first = {}; counts.filter((t) => t.date === fc).forEach((t) => { if (!(t.acc in first)) first[t.acc] = b(t); });
+  const pts = (c.snaps || []).filter((s) => s.d < fc).map((s) => ({ d: s.d, a: Number(s.a), rep: true })).sort((a, x) => (a.d < x.d ? -1 : 1)); pts.push({ d: fc, a: Object.values(first).reduce((a, v) => a + v, 0) });
+  const c0 = mnSeq(counts[0]), inR = (t, A, B) => t.date > A && t.date <= B && !(t.date === fc && mnSeq(t) > c0); /* what happened after the count on the count day belongs to the tracked period */
+  const per = {}; T.forEach((t) => { if (mn4Accr(t) && c.through && t.date.slice(0, 7) <= c.through) { const k = t.cat + '|' + t.date.slice(0, 7); per[k] = (per[k] || 0) + b(t); } });
+  const recvIn = (A, B) => { let r = 0; Object.entries(per).forEach(([k, v]) => { const [s, p] = k.split('|'), d = mn4Arrive(s, p); if (d > A && d <= B) r += v; }); T.forEach((t) => { if (((t.type === 'in' && !mn4Accr(t)) || t.type === 'pay') && inR(t, A, B)) r += b(t); }); return r; };
+  const out = [], t0 = T.filter((t) => t.type === 'in' || t.type === 'out').map((t) => t.date).sort()[0];
+  if (pts.length > 1 && t0 && t0 < pts[0].d) { const recv = recvIn('0000', pts[0].d), logged = T.filter((t) => t.type === 'out' && !t.est && t.date <= pts[0].d).reduce((a, t) => a + b(t), 0); out.push({ pre: true, from: t0, to: pts[0].d, recv, logged, end: pts[0].a, extra: Math.round(pts[0].a - (recv - logged)) }); }
+  for (let i = 0; i < pts.length - 1; i++) { const A = pts[i], B = pts[i + 1], recv = recvIn(A.d, B.d), logged = T.filter((t) => t.type === 'out' && !t.est && inR(t, A.d, B.d)).reduce((a, t) => a + b(t), 0), spent = Math.round(A.a + recv - B.a), days = Math.max(1, lfDaysSafe(pd(A.d), pd(B.d))); out.push({ from: A.d, to: B.d, start: A.a, end: B.a, recv, logged, spent, unlogged: Math.round(spent - logged), days, perMonth: Math.round(spent / days * 30.4), perDay: Math.round(spent / days) }); }
+  return out;
+}
+function mn4EstCard() {
+  const E = mn4Est().filter((e) => !e.pre), P = mn4Est().find((e) => e.pre); if (!E.length) return '';
+  return `<div class="card m4e"><div class="card-h"><div class="card-t">What you really spent · estimate</div><div class="card-r">from your reported balances</div></div>
+    ${E.map((e) => `<div class="m4e-big"><b>${mcNum(e.spent)}</b><span>left your hands between ${fmtShort(pd(e.from))} and ${fmtShort(pd(e.to))} · about <b>${mnF(e.perMonth)}</b> a month, ${mnF(e.perDay)} a day</span></div>
+      <div class="m4e-eq"><div><span>You had</span><b>${mnF(e.start)}</b></div><i>+</i><div><span>Arrived</span><b>${mnF(e.recv)}</b></div><i>−</i><div><span>You have</span><b>${mnF(e.end)}</b></div><i>=</i><div class="r"><span>Gone</span><b>${mnF(e.spent)}</b></div></div>
+      <div class="mn3-bar" style="margin-top:14px"><i style="flex:${Math.max(0, e.logged)};background:var(--bad)"></i><i style="flex:${Math.max(0, e.unlogged)};background:var(--dim)"></i></div>
+      <div class="mn3-leg"><div><u style="background:var(--bad)"></u><span>Logged at the time</span><b>${mnF(e.logged)}</b><em>${Math.round(e.logged / Math.max(1, e.spent) * 100)}%</em></div><div><u style="background:var(--dim)"></u><span>Never logged</span><b>${mnF(e.unlogged)}</b><em>${Math.round(e.unlogged / Math.max(1, e.spent) * 100)}%</em></div></div>`).join('')}
+    ${P ? `<div class="hint" style="margin-top:12px">Before ${fmtShort(pd(P.to))} the log holds up: money received minus logged spending gives ${mnF(P.recv - P.logged)}, and you reported ${mnF(P.end)}. ${P.extra >= 0 ? `The ${mnF(P.extra)} extra is money you already had, or income never logged.` : `${mnF(-P.extra)} is unexplained there too.`}</div>` : ''}
+    <div class="xs muted" style="margin-top:10px">Assumptions: each month's pay arrives around the ${(Object.values(mn4Cfg().src).find((s) => s.monthly && s.day) || {}).day || 15}th of the next month; the reported balance is right; no other money came in. This is arithmetic on balances, not a list of purchases, and it adds nothing to your transactions.</div></div>`;
+}
+if (typeof mnOver === 'function' && !mnOver._m4e) { const _f = mnOver; mnOver = function () { const h = _f(), c = mn4EstCard(), i = h.indexOf('<div class="card mn3">'); return c && i > 0 ? h.slice(0, i) + c + h.slice(i) : h; }; mnOver._m4e = 1; }
+/* the exceptions: a lesson paid in your hand on the day. Say "cash" and it counts as cash at once: "+500 tennis cash" */
+if (typeof mnPut === 'function' && !mnPut._m4) { const _f = mnPut; mnPut = function (t) { if (t && t.type === 'in' && t.cash === undefined && /\b(cash|numerar|in hand)\b/i.test(t.note || '')) t.cash = true; return _f(t); }; mnPut._m4 = 1; }
