@@ -282,3 +282,7 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 - train.js blockProgram: a train block whose title contains "stretch" opens the "stretch" program (nightly 20:52 floor stretch).
 - Data: new program `stretch` (8 min nightly); stretch finisher appended to Calisthenics A/B/C; hamstring stretch added to mobility; long holds added to Sunday recovery.
 - Calendar: shutdown series now 20:45–20:52, new daily "🧘 Floor stretch · mobility (8 min)" 20:52–21:00.
+
+## 13.3.2 — Keep mode (16 Nov 2026, owner request: "make it so I don't spend money")
+- keep.js replaces "safe to spend" (an invitation to spend) with KEEP MODE, on by default: kept this month, wants this month (budget 0), days without a want, needs total, and a 7-day wait list (S.settings.mnWait). Logging a want shows a toast. Desk money line shows kept/wants.
+- New categories: eatout (cafés, shaorma, pizza, delivery… = want) and bills (bills & taxes = need). Wants = eatout, out, shopping.
