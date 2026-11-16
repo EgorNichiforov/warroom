@@ -276,3 +276,9 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 ## 13.3.0 — Exercise demos in Train (16 Nov 2026, owner's explicit request; freeze exception)
 - exlib.js: every exercise row in Train gets "▸ How to do it · video": start/finish photos (ex/*.jpg, Free Exercise DB, public domain), 3 form cues, and the video playing inside the app (youtube-nocookie embed, loaded only on tap; "open in YouTube" fallback). Matching is by exercise name (regex), so compound rows ("couch · 90/90 · open book…") show several demos.
 - Data fix (Supabase, not code): War Room's Tue/Thu/Sat programs were the old plan while the calendar had the 12 Nov plan. upperA/upperB/upperC rewritten to Calisthenics A/B/C as in the calendar; programByDay 2/4/6 → upperA/upperB/upperC; mobility split into separate drills; recovery foam-roll row named per muscle.
+
+## 13.3.1 — Stretching as a real part of the plan (16 Nov 2026, owner request)
+- exlib.js: 7 stretch demos (lying hamstring with band, figure-4, frog, child's pose lat reach, doorway chest, wall calf, forearm). Pull-ups no longer match "scap pull-ups".
+- train.js blockProgram: a train block whose title contains "stretch" opens the "stretch" program (nightly 20:52 floor stretch).
+- Data: new program `stretch` (8 min nightly); stretch finisher appended to Calisthenics A/B/C; hamstring stretch added to mobility; long holds added to Sunday recovery.
+- Calendar: shutdown series now 20:45–20:52, new daily "🧘 Floor stretch · mobility (8 min)" 20:52–21:00.
