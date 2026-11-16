@@ -10,7 +10,13 @@
   const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const unb64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
   async function hash(pin, salt) { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + ':' + pin)); return b64(d); }
-  async function bioAvailable() { try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch (e) { return false; } }
+  /* 13.3.5: inside the Android app (Capacitor WebView) the web way (WebAuthn) does not exist, so the phone's own
+     fingerprint / face prompt is used through the native plugin (app 1.3+). Browsers keep WebAuthn. */
+  const NAT = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.nativePromise);
+  const nat = (m, a) => window.Capacitor.nativePromise('WrNative', m, a || {});
+  async function natBio() { if (!NAT()) return false; try { const r = await nat('bioAvailable'); return !!(r && r.available); } catch (e) { return false; } }
+  async function webBio() { try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch (e) { return false; } }
+  async function bioAvailable() { return (await natBio()) || (await webBio()); }
   let entry = '', busy = false, hiddenAt = 0;
 
   function overlay() {
@@ -39,7 +45,10 @@
   function del() { entry = entry.slice(0, -1); draw(); }
   async function bio() {
     const c = get(); if (!c || !c.cred || busy) return; busy = true;
-    try { await navigator.credentials.get({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: 'public-key', id: unb64(c.cred) }], userVerification: 'required', timeout: 60000 } }); busy = false; unlock(); }
+    try {
+      if (c.cred === 'native') await nat('bioAuth', { title: 'Unlock War Room', cancel: c.pin ? 'Use PIN' : 'Cancel' });
+      else await navigator.credentials.get({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: 'public-key', id: unb64(c.cred) }], userVerification: 'required', timeout: 60000 } });
+      busy = false; unlock(); }
     catch (e) { busy = false; draw(c.pin ? 'Use your PIN' : 'Not recognised. Try again.'); }
   }
   function forgot() {
@@ -56,7 +65,12 @@
     const c = get() || { relock: 1 }, salt = b64(crypto.getRandomValues(new Uint8Array(16))); Object.assign(c, { on: true, salt, pin: await hash(a, salt), len: a.length, fails: 0 }); put(c); refresh(); toastSafe('PIN set. The app now locks on this device.');
   }
   async function addBio() {
-    if (!(await bioAvailable())) { alert('This device has no Face ID / fingerprint / Windows Hello available to the browser.'); return; }
+    if (await natBio()) {
+      try { await nat('bioAuth', { title: 'Turn on fingerprint / face unlock', cancel: 'Cancel' }); const c = get() || { relock: 1 }; c.cred = 'native'; c.on = true; put(c); refresh(); toastSafe('Fingerprint / face unlock is on for this phone.'); }
+      catch (e) { alert('Not set up: ' + (e && e.message ? e.message : 'cancelled')); }
+      return;
+    }
+    if (!(await webBio())) { alert(NAT() ? 'Update the War Room Android app (version 1.3) to use your fingerprint or face, and make sure one is set up in the phone settings.' : 'This device has no Face ID / fingerprint / Windows Hello available to the browser.'); return; }
     try {
       const cred = await navigator.credentials.create({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: 'War Room', id: location.hostname }, user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'warroom', displayName: 'War Room' }, pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }], authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' }, timeout: 60000, attestation: 'none' } });
       const c = get() || { relock: 1 }; c.cred = b64(cred.rawId); c.on = true; put(c); refresh(); toastSafe('Face / fingerprint unlock is on for this device.');
@@ -74,7 +88,7 @@
       <div class="small muted" style="margin-bottom:10px">Ask for a PIN${bioOk ? ', your face or your fingerprint' : ''} when the app opens, so nobody else can open your War Room.</div>
       <div class="lk-row"><span>Lock</span><button class="btn sm ${on() ? 'primary' : ''}" onclick="wrLock.toggle()">${on() ? 'On' : 'Off'}</button></div>
       <div class="lk-row"><span>PIN</span><button class="btn sm" onclick="wrLock.setPin()">${c.pin ? 'Change PIN' : 'Set a PIN'}</button></div>
-      <div class="lk-row"><span>Face / fingerprint${bioOk ? '' : ' <em>(not available on this device)</em>'}</span>${c.cred ? `<button class="btn sm" onclick="wrLock.removeBio()">Remove</button>` : `<button class="btn sm" ${bioOk ? '' : 'disabled'} onclick="wrLock.addBio()">Set up</button>`}</div>
+      <div class="lk-row"><span>Face / fingerprint${bioOk ? '' : NAT() ? ' <em>(update the Android app to 1.3 · or add a fingerprint in phone settings)</em>' : ' <em>(not available on this device)</em>'}</span>${c.cred ? `<button class="btn sm" onclick="wrLock.removeBio()">Remove</button>` : `<button class="btn sm" ${bioOk ? '' : 'disabled'} onclick="wrLock.addBio()">Set up</button>`}</div>
       <div class="lk-row"><span>Lock again after</span><select onchange="wrLock.relock(this.value)">${[[0, 'Immediately'], [1, '1 minute'], [5, '5 minutes'], [15, '15 minutes'], [60, '1 hour']].map(([v, l]) => `<option value="${v}" ${Number(c.relock ?? 1) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
       ${c.pin || c.cred ? `<button class="btn sm ghost" style="margin-top:8px" onclick="wrLock.off()">Remove the lock from this device</button>` : ''}</div>`;
   }
