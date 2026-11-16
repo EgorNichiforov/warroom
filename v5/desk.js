@@ -41,7 +41,7 @@ function dkSide(d) {
   return `<div class="dk-col3">
     <div class="card dk-rings">${ring(Number(c.dials) || 0, tg, 'Dials')}${ring(Number(c.owners) || 0, 0, 'Owner talks')}${ring(Number(c.bac) || 0, bT, 'BAC min')}</div>
     <div class="card"><div class="dk-k">Never 0 · this week</div><div class="dk-week">${wk.join('')}</div></div>
-    ${T.any ? `<div class="card dk-money" onclick="shGoHub('money')"><div class="dk-k">You have</div><b>${mnF(T.t)}</b><span>safe today ${mnF(Sf.perDay)} · runway ${mnAvgOut(30) > 0 ? Math.floor(Sf.spendable / mnAvgOut(30)) + ' d' : '–'}</span></div>` : `<div class="card dk-money" onclick="shGoHub('money');mnCountModal()"><div class="dk-k">You have</div><b>?</b><span>Count once →</span></div>`}
+    ${T.any ? `<div class="card dk-money" onclick="shGoHub('money')"><div class="dk-k">You have</div><b>${mnF(T.t)}</b><span>${typeof kpOn === 'function' && kpOn() ? kpLine() : 'safe today ' + mnF(Sf.perDay)} · runway ${mnAvgOut(30) > 0 ? Math.floor(Sf.spendable / mnAvgOut(30)) + ' d' : '–'}</span></div>` : `<div class="card dk-money" onclick="shGoHub('money');mnCountModal()"><div class="dk-k">You have</div><b>?</b><span>Count once →</span></div>`}
     <div class="card"><div class="dk-k">Weight</div><div class="dk-wt"><b>${wt != null ? fmt(wt, 1) + ' kg' : '–'}</b><span>→ 85 kg</span></div>${spark}</div>
     <div class="card"><div class="dk-k">Training this week</div><div class="dk-wt"><b>${typeof trlWeekCount === 'function' ? trlWeekCount(monday(d)) : 0}</b><span>of 6 days</span></div></div></div>`;
 }
