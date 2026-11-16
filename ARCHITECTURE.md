@@ -290,3 +290,6 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 ## 13.3.3 — Keep mode tells the truth (16 Nov 2026)
 - Streak counts only from S.settings.mnKeepStart (first day of keep mode) and only finished days; before that the app can't know.
 - Wants now also include: coffee/café/eating-out notes logged under food, taxis (bus stays a need), and money a count finds missing (>100 MDL short).
+
+## 13.3.4 — Money plan (16 Nov 2026, owner feedback: "no streaks, manage my money like professional apps")
+- keep.js card is now a budgeting-app style month plan: Earned · Spent (needs/wants) · Saved + savings rate; needs budget bar with month-pace tick, projection and "left until month end"; needs per category vs budget; wants line with budget 0. Streak and wait list removed from the card. "budgets" pre-fills needs budgets from the last 3 months (mn2BudgetModal).
