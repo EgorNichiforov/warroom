@@ -18,7 +18,7 @@ function blockById(id, k) { return blocksFor(pd(k)).find((x) => x.id === id) || 
 function isTrainBlock(b) { return !!b && (b.kind === 'train' || (b.kind === 'tennis' && !/lesson|grupa|lessons|🚗|→|spre|drive|ride/i.test(b.title))); }
 function blockProgram(b, d) {
   const live = (id) => id && S.programs[id] && !S.programs[id]._del;
-  if (b.kind === 'train') { if (/mobility/i.test(b.title) && live('mobility')) return 'mobility'; return S.programByDay.map[dow(d)] || ''; }
+  if (b.kind === 'train') { if (/stretch/i.test(b.title) && live('stretch')) return 'stretch'; if (/mobility/i.test(b.title) && live('mobility')) return 'mobility'; return S.programByDay.map[dow(d)] || ''; }
   if (/OFP/i.test(b.title)) return S.programByDay.map[dow(d)] || '';
   return null; // TT etc: tennis session, no program
 }
