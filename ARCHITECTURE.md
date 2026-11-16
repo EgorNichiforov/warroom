@@ -286,3 +286,7 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 ## 13.3.2 — Keep mode (16 Nov 2026, owner request: "make it so I don't spend money")
 - keep.js replaces "safe to spend" (an invitation to spend) with KEEP MODE, on by default: kept this month, wants this month (budget 0), days without a want, needs total, and a 7-day wait list (S.settings.mnWait). Logging a want shows a toast. Desk money line shows kept/wants.
 - New categories: eatout (cafés, shaorma, pizza, delivery… = want) and bills (bills & taxes = need). Wants = eatout, out, shopping.
+
+## 13.3.3 — Keep mode tells the truth (16 Nov 2026)
+- Streak counts only from S.settings.mnKeepStart (first day of keep mode) and only finished days; before that the app can't know.
+- Wants now also include: coffee/café/eating-out notes logged under food, taxis (bus stays a need), and money a count finds missing (>100 MDL short).

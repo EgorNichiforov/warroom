@@ -13,14 +13,27 @@
 })();
 const KP_WANTS = ['eatout', 'out', 'shopping'];
 function kpOn() { return !(S.settings && S.settings.mnKeepOff); }
-function kpIsWant(t) { return t && t.type === 'out' && KP_WANTS.includes(t.cat); }
+const KP_EAT = /caf[eé]|coffee|cofe|kofe|shaorma|shawarma|pizza|restaurant|restoran|mcdonald|kfc|burger|sushi|glovo|bolt food|starbucks|andy'?s|pl[aă]cinte|eat out|ate out|takeaway|delivery|snack bar|energy drink|redbull|red bull/i;
+const KP_TAXI = /taxi|bolt|yandex|uber|iTaxi|cab\b/i;
+/* a want = a want category, OR a café/eating-out note logged as food, OR a taxi (bus is the need), OR money that vanished without a log (found by a count) */
+function kpIsWant(t) {
+  if (!t) return false;
+  if (t.type === 'count') return t.diff != null && mnB(t.diff, mnAccCur(t.acc)) < -100;
+  if (t.type !== 'out' || t.plan) return false;
+  const n = (t.note || '') + ' ' + (t.cat || '');
+  return KP_WANTS.includes(t.cat) || (t.cat === 'food' && KP_EAT.test(n)) || (t.cat === 'transport' && KP_TAXI.test(n));
+}
+function kpAmt(t) { return t.type === 'count' ? -mnB(t.diff, mnAccCur(t.acc)) : mnB(t.amt, mnAccCur(t.acc)); }
+function kpStart() { if (!S.settings.mnKeepStart) { S.settings.mnKeepStart = dk(new Date()); S.settings._u = now(); try { save(); } catch (e) { } } return S.settings.mnKeepStart; }
 function kpMonth(ym) {
-  const T = mnTx().filter((t) => t.type !== 'count' && t.date.slice(0, 7) === ym), b = (t) => mnB(t.amt, mnAccCur(t.acc));
+  const T = mnTx().filter((t) => t.date.slice(0, 7) === ym), b = (t) => mnB(t.amt, mnAccCur(t.acc));
   const wants = T.filter(kpIsWant), needs = T.filter((t) => t.type === 'out' && !kpIsWant(t)), earned = T.filter((t) => t.type === 'in').reduce((a, t) => a + b(t), 0);
-  const w = wants.reduce((a, t) => a + b(t), 0), n = needs.reduce((a, t) => a + b(t), 0);
+  const w = wants.reduce((a, t) => a + kpAmt(t), 0), n = needs.reduce((a, t) => a + b(t), 0);
   return { wants, w, n, earned, kept: earned - w - n, pct: earned ? Math.round(((earned - w - n) / earned) * 100) : null };
 }
-function kpStreak() { const W = new Set(mnTx().filter(kpIsWant).map((t) => t.date)); let n = 0, d = new Date(); for (let i = 0; i < 365; i++) { if (W.has(dk(d))) break; n++; d = addDays(d, -1); } return n; }
+/* honest streak: counts only from the day keep mode started (before that the app can't know), and breaks on any want,
+   including money a count finds missing. Today only counts once the day is over. */
+function kpStreak() { const st = kpStart(), W = new Set(mnTx().filter(kpIsWant).map((t) => t.date)); let n = 0, d = addDays(new Date(), -1); while (dk(d) >= st && !W.has(dk(d)) && n < 400) { n++; d = addDays(d, -1); } return W.has(dk(new Date())) ? 0 : n; }
 function kpWait() { const w = (S.settings && S.settings.mnWait) || []; return Array.isArray(w) ? w : []; }
 function kpSaveWait(w) { S.settings.mnWait = w; S.settings._u = now(); save(); render(); }
 function kpWaitAdd() {
@@ -40,10 +53,10 @@ function kpCard() {
     <div class="kp-3">
       <div><span>Kept this month</span><b class="${M.kept >= 0 ? 'ok' : 'bad'}">${mnF(M.kept, 'MDL', true)}</b><em>${M.pct != null ? M.pct + '% of what you earned' : 'no income logged yet'}</em></div>
       <div><span>Wants this month</span><b class="${M.w > 0 ? 'bad' : 'ok'}">${mnF(M.w)}</b><em>budget: 0 MDL</em></div>
-      <div><span>Days without a want</span><b>${st}</b><em>${st >= 7 ? 'keep the streak' : 'build it'}</em></div>
+      <div><span>Days without a want</span><b>${st}</b><em>since ${fmtShort(pd(kpStart()))} · counts only what's logged</em></div>
     </div>
-    ${M.wants.length ? `<div class="xs" style="margin:6px 0"><b>Wants this month:</b> ${M.wants.slice(-5).map((t) => esc((t.note || mnCatName(t.cat)) + ' ' + mnF(mnB(t.amt, mnAccCur(t.acc))))).join(' · ')}</div>` : ''}
-    <div class="xs muted" style="margin:6px 0">Needs this month: <b>${mnF(M.n)}</b> (food at home, transport, school, gym, phone, business, bills & taxes). Wants = eating out, going out, shopping.</div>
+    ${M.wants.length ? `<div class="xs" style="margin:6px 0"><b>Wants this month:</b> ${M.wants.slice(-5).map((t) => esc((t.type === 'count' ? 'missing at a count (unlogged)' : (t.note || mnCatName(t.cat))) + ' ' + mnF(kpAmt(t)))).join(' · ')}</div>` : ''}
+    <div class="xs muted" style="margin:6px 0">Needs this month: <b>${mnF(M.n)}</b> (food at home, bus, school, gym, phone, business, bills & taxes). Wants = eating out & coffee, taxis, going out, shopping, and money that goes missing without a log (a count over 100 MDL short).</div>
     <div class="kp-wait"><div class="row sb"><b class="small">Wait list (7 days)</b><button class="btn sm" onclick="kpWaitAdd()">+ I want something</button></div>
       ${open.length ? open.map((x) => `<div class="kp-w"><span>${esc(x.n)}${x.a ? ' · ' + mnF(x.a) : ''}${x.g === 'no' ? ' · <em>not for a goal</em>' : ''}</span><span class="xs muted">${lim(x) ? lim(x) + ' d left' : 'decide now'}</span><span><button class="btn sm ghost" onclick="kpWaitDone('${x.id}','drop')">Drop</button>${lim(x) ? '' : `<button class="btn sm ghost" onclick="kpWaitDone('${x.id}','buy')">Buy</button>`}</span></div>`).join('') : '<div class="xs muted">Empty. Next time you want something, put it here instead of buying it.</div>'}
       ${dropped ? `<div class="xs ok" style="margin-top:6px">Dropped from the wait list so far: <b>${mnF(dropped)}</b> kept.</div>` : ''}</div></div>`;
@@ -51,8 +64,8 @@ function kpCard() {
 function kpRules() {
   openModal(`<h2>🔒 Keep mode: the rules</h2><div class="small" style="line-height:1.55">
     <b>Goal:</b> keep as much as possible. Money is ammunition for the business and for moving out in July 2027, not for this week's fun.<br><br>
-    <b>Always OK (needs):</b> food at home, transport, school/BAC fees and certificates, gym & health, phone & internet, tools that bring money in, bills and taxes when they are due.<br><br>
-    <b>Budget 0 (wants):</b> eating out, cafés, delivery, going out, shopping, anything impulse.<br><br>
+    <b>Always OK (needs):</b> food at home, bus and transport (not taxis), school/BAC fees and certificates, gym & health, phone & internet, tools that bring money in, bills and taxes when they are due.<br><br>
+    <b>Budget 0 (wants):</b> eating out, coffee, cafés, delivery, taxis (the bus is the need), going out, shopping, anything impulse. Money that disappears without a log counts as a want too: count your cash every Sunday.<br><br>
     <b>Want something?</b> Put it on the wait list. 7 days. Decide at the Sunday review with one question: does it make $20k MRR, BAC or 85 kg more likely? No → drop it.<br><br>
     <b>Every spend gets logged the same day</b> ("spent 45 shaorma"). What you don't log, you can't fix.</div>
     <button class="btn block" style="margin-top:12px" onclick="S.settings.mnKeepOff=!S.settings.mnKeepOff;S.settings._u=now();save();closeModal();render()">${kpOn() ? 'Turn keep mode off' : 'Turn keep mode on'}</button>`);
@@ -73,7 +86,7 @@ if (typeof mnPut === 'function') {
   const _p = mnPut;
   mnPut = function (t) {
     const r = _p.apply(this, arguments);
-    try { if (kpOn() && kpIsWant(r) && !r.plan) { const M = kpMonth(mnYm(new Date())); setTimeout(() => toast(`Want logged: ${mnF(mnB(r.amt, mnAccCur(r.acc)))}. Wants this month: ${mnF(M.w)} (budget 0). Next time → wait list.`), 50); } } catch (e) { }
+    try { if (kpOn() && kpIsWant(r) && !r.plan) { const M = kpMonth(mnYm(new Date())); setTimeout(() => toast(`Want logged: ${mnF(kpAmt(r))}. Wants this month: ${mnF(M.w)} (budget 0). Next time → wait list.`), 50); } } catch (e) { }
     return r;
   };
 }
