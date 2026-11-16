@@ -21,6 +21,9 @@ import android.provider.OpenableColumns;
 import android.util.Base64;
 import android.view.WindowManager;
 import androidx.core.content.ContextCompat;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.fragment.app.FragmentActivity;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -291,5 +294,28 @@ public class WrNativePlugin extends Plugin {
         Intent i = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
         boolean r = false; for (android.content.pm.ResolveInfo ri : pm.queryIntentActivities(i, 0)) if (ri.activityInfo != null && pk.equals(ri.activityInfo.packageName)) r = true;
         r = r || pk.equals("com.android.systemui"); launcherCache.put(pk, r); return r;
+    }
+
+    /* App lock (lock.js): the phone's own fingerprint / face prompt. The WebView has no WebAuthn, so this replaces it. */
+    private static final int BIO = BiometricManager.Authenticators.BIOMETRIC_WEAK;
+
+    @PluginMethod
+    public void bioAvailable(PluginCall call) {
+        int code = BiometricManager.from(getContext()).canAuthenticate(BIO);
+        JSObject r = new JSObject(); r.put("available", code == BiometricManager.BIOMETRIC_SUCCESS); r.put("code", code); call.resolve(r);
+    }
+
+    @PluginMethod
+    public void bioAuth(final PluginCall call) {
+        final String title = call.getString("title", "Unlock War Room"), cancel = call.getString("cancel", "Cancel");
+        getActivity().runOnUiThread(() -> {
+            try {
+                BiometricPrompt p = new BiometricPrompt((FragmentActivity) getActivity(), ContextCompat.getMainExecutor(getContext()), new BiometricPrompt.AuthenticationCallback() {
+                    @Override public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) { JSObject r = new JSObject(); r.put("ok", true); call.resolve(r); }
+                    @Override public void onAuthenticationError(int code, CharSequence err) { call.reject(String.valueOf(err), String.valueOf(code)); }
+                });
+                p.authenticate(new BiometricPrompt.PromptInfo.Builder().setTitle(title).setNegativeButtonText(cancel).setAllowedAuthenticators(BIO).build());
+            } catch (Exception e) { call.reject(e.getMessage() == null ? "Biometric prompt failed" : e.getMessage()); }
+        });
     }
 }

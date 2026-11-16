@@ -293,3 +293,7 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 
 ## 13.3.4 — Money plan (16 Nov 2026, owner feedback: "no streaks, manage my money like professional apps")
 - keep.js card is now a budgeting-app style month plan: Earned · Spent (needs/wants) · Saved + savings rate; needs budget bar with month-pace tick, projection and "left until month end"; needs per category vs budget; wants line with budget 0. Streak and wait list removed from the card. "budgets" pre-fills needs budgets from the last 3 months (mn2BudgetModal).
+
+## 13.3.5 + Android app 1.3 — fingerprint / face unlock on the phone (16 Nov 2026)
+- The Android app is a Capacitor WebView, which has no WebAuthn, so the app lock said "not available". Native plugin WrNative gains bioAvailable/bioAuth (androidx.biometric BiometricPrompt, BIOMETRIC_WEAK so face unlock counts). lock.js uses the native prompt inside the app (cred = 'native'), WebAuthn in browsers. App 1.2 or older: setting explains to update.
+- APK 1.3 (versionCode 4), same signing key → installs over 1.2: main:download/WarRoom.apk.
