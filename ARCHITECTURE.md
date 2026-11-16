@@ -297,3 +297,7 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 ## 13.3.5 + Android app 1.3 — fingerprint / face unlock on the phone (16 Nov 2026)
 - The Android app is a Capacitor WebView, which has no WebAuthn, so the app lock said "not available". Native plugin WrNative gains bioAvailable/bioAuth (androidx.biometric BiometricPrompt, BIOMETRIC_WEAK so face unlock counts). lock.js uses the native prompt inside the app (cred = 'native'), WebAuthn in browsers. App 1.2 or older: setting explains to update.
 - APK 1.3 (versionCode 4), same signing key → installs over 1.2: main:download/WarRoom.apk.
+
+## 13.3.6 — Train opens the training you have now (16 Nov 2026)
+- trnow.js: opening Train jumps to today's training block that is happening now, else the next one, with its program loaded (OFP Mon → strength, 05:30 → mobility, 20:52 → floor stretch). Once per block per visit; manual picks respected.
+- "Today's training" strip on top of Train: every training block today with time, program and state (done · now · next (in N min) · later · not logged). Tap to open.
