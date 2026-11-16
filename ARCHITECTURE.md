@@ -272,3 +272,7 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 - War Room development ≤ 10% of logged work time (`S.settings.devTaxPct`).
 - 30-day validation period from 16 Nov 2026 on 13.2 as it is. The next change comes from usage evidence.
 - Governing principle: **War Room exists to improve life outside War Room.** Chain: Direction → Strategy → Commitments → Execution → Evidence → Intervention → Improvement. Five capabilities it is judged by: Command, Commitment, Early warning, Recovery, Reality.
+
+## 13.3.0 — Exercise demos in Train (16 Nov 2026, owner's explicit request; freeze exception)
+- exlib.js: every exercise row in Train gets "▸ How to do it · video": start/finish photos (ex/*.jpg, Free Exercise DB, public domain), 3 form cues, and the video playing inside the app (youtube-nocookie embed, loaded only on tap; "open in YouTube" fallback). Matching is by exercise name (regex), so compound rows ("couch · 90/90 · open book…") show several demos.
+- Data fix (Supabase, not code): War Room's Tue/Thu/Sat programs were the old plan while the calendar had the 12 Nov plan. upperA/upperB/upperC rewritten to Calisthenics A/B/C as in the calendar; programByDay 2/4/6 → upperA/upperB/upperC; mobility split into separate drills; recovery foam-roll row named per muscle.
