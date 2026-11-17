@@ -475,6 +475,32 @@ with sync_playwright() as p:
     check('Library: search finds lessons across courses', ev("document.querySelectorAll('#view-acq .aq-hit').length") >= 3)
     check('Library: no page errors', not errs, errs[:3]); b.close()
 
+    # Deep cards 13.15: tap an idea → card, inline video segment, AI explain, spaced review
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    ev("show('acq')"); pg.wait_for_timeout(2500)
+    decks = {}
+    for t in ['mind','scale','offer','leads','mm','sales','wealth']:
+        ev(f"acqRead=null;acqTab='{t}';render()"); pg.wait_for_timeout(900); ev("render()"); pg.wait_for_timeout(150)
+        decks[t] = ev("document.querySelectorAll('#view-acq .xc-tile').length")
+    check('Deep cards: every course has its deck of cards', all(v >= 5 for v in decks.values()), decks)
+    ev("acqOpen('offer',1)"); pg.wait_for_timeout(1200); ev("render()"); pg.wait_for_timeout(200)
+    pg.click('#view-acq .aq-page li >> nth=0'); pg.wait_for_timeout(300)
+    check('Deep cards: tapping an idea opens a panel with an explain option', ev("!!document.querySelector('#view-acq .aq-page .xp .xp-ai')"))
+    ev("xcOpen('of-value')"); pg.wait_for_timeout(300)
+    r = ev("""() => ({ vis: !!document.querySelector('#modal .xv-eq'), move: !!document.querySelector('#modal .xc-s.move'), q: document.querySelectorAll('#modal .xc-q').length, clip: document.querySelectorAll('#modal .xc-clip').length })""")
+    check('Deep cards: a card has a visual, your move, self-test and video segments', r['vis'] and r['move'] and r['q'] >= 1 and r['clip'] >= 1, r)
+    pg.click('#modal .xc-clip >> nth=0'); pg.wait_for_timeout(300)
+    src = ev("(document.querySelector('#modal iframe')||{}).src || ''")
+    check('Deep cards: the segment plays inside the app (nocookie embed with start and end)', 'youtube-nocookie.com/embed/' in src and 'start=' in src and 'end=' in src, src)
+    pg.click("#modal button:has-text('Got it')"); pg.wait_for_timeout(200)
+    check('Deep cards: rating schedules the next review and syncs (S.cards)', ev("!!(S.cards&&S.cards['of-value']&&S.cards['of-value'].due)") and ev("(()=>{const rem={cards:{x1:{step:1,due:'2026-01-01',_u:now()+9}}};return merge(rem)&&!!S.cards.x1})()"))
+    ev("S.cards['of-value'].due='2000-01-01'; xcReview()"); pg.wait_for_timeout(300)
+    check('Deep cards: review asks you to recall before showing the card', ev("!!document.querySelector('#modal .xc-recall')"))
+    ev("closeModal();acqOpen('mind',2)"); pg.wait_for_timeout(1200); ev("render()"); pg.wait_for_timeout(200)
+    pg.click("#view-acq .aq-page a[href*='youtube.com'] >> nth=0"); pg.wait_for_timeout(300)
+    check('Deep cards: minute links play inline instead of leaving the app', ev("!!document.querySelector('#view-acq .aq-page iframe')") and 'localhost' in pg.url)
+    check('Deep cards: no page errors', not errs, errs[:3]); b.close()
+
     # Smooth open 13.11.1: curtain until the real first screen, silent updates
     b, pg, errs = fresh(p); ev = pg.evaluate
     pg.wait_for_timeout(2500)
