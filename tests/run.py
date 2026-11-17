@@ -346,6 +346,51 @@ with sync_playwright() as p:
     check('Guide 13.6: Missed marks a task missed for the nightly review', r2['missed'], r2)
     check('Guide 13.5: no page errors', not errs, errs[:3]); b.close()
 
+    # Script Lab 13.7: markup layer over the Playbook scripts
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    pg.evaluate("pbOpen='script-owner';pbLab=true;show('book')"); pg.wait_for_timeout(500)
+    r = ev("""() => { const pid='script-owner', base=pb(pid).body, dial0=scriptHtml(null); const M=labModel(pid); const say=M.rows.filter(x=>x.line&&x.line.kind==='say'); const a=say[2], c=say[3];
+      // markup of every kind on canonical lines
+      labWrite(a.id, 'In a normal month, roughly how many caregivers do you hire?', true);
+      labSel={id:c.id,s:9,e:30}; labSelAt=Date.now(); labHl('red'); labFlag(c.id); labFlag(c.id); labNote(c.id,'ask slower'); labHide(say[5].id,1);
+      labAddBelow(c.id); const own=labModel(pid).rows.find(x=>x.own); labWrite(own.id,'And how many of those actually show up?', true);
+      const untouched = pb(pid).body===base && scriptHtml(null)===dial0;
+      const m2=labModel(pid), rc=m2.rows.find(x=>x.id===c.id).rec, edited=m2.rows.filter(labEdited).length, pending=m2.rows.filter(labPending).length;
+      // lock: typing frozen, flags + highlights still work
+      localStorage.setItem('wr-lab-lock','1'); labTap(a.id); const lockNoEdit = labEditId===null; labFlag(a.id); const lockFlag = labModel(pid).rows.find(x=>x.id===a.id).rec.flag==='keep'; localStorage.setItem('wr-lab-lock','0');
+      // revert one line
+      labRevert(a.id); const reverted = !labEdited(labModel(pid).rows.find(x=>x.id===a.id));
+      labWrite(a.id, 'In a normal month, roughly how many caregivers do you hire?', true);
+      // apply: live script + dialer change, markup follows the new line
+      labApply(a.id); const live = pb(pid).body.includes('> In a normal month, roughly how many caregivers do you hire?') && !pb(pid).body.includes('> In a normal month, how many caregivers do you hire?') && scriptHtml(null).includes('roughly how many caregivers');
+      const nl = labModel(pid).rows.find(x=>x.line && x.line.text.startsWith('In a normal month, roughly')); const follow = nl && nl.rec && nl.rec.flag==='keep' && !labEdited(nl);
+      // apply own line: inserted right after its anchor
+      labApply(own.id); const L=pb(pid).body.split(String.fromCharCode(10)), ci=L.findIndex(l=>l===c.line.raw); const ownIn = L[ci+1]==='> And how many of those actually show up?';
+      const logs = labModel(pid).logs.length;
+      return { untouched, flag: rc.flag==='q', note: rc.note==='ask slower', hl: rc.hl.length===1 && rc.hl[0].c==='red', edited, pending, lockNoEdit, lockFlag, reverted, live, follow, ownIn, logs, html: !!document.querySelector('#view-book .lb-doc') }; }""")
+    check('Script Lab: highlights, flags, notes, hidden and own lines never touch the live script or the dialer', r['untouched'], r)
+    check('Script Lab: highlight, flag and margin note stored on the line', r['flag'] and r['note'] and r['hl'], r)
+    check('Script Lab: counts edited and pending-apply lines', r['edited'] == 1 and r['pending'] == 2, r)
+    check('Script Lab: lock freezes typing but flags still work', r['lockNoEdit'] and r['lockFlag'], r)
+    check('Script Lab: revert one line goes back to the Playbook wording', r['reverted'], r)
+    check('Script Lab: Apply rewrites the Playbook line and the dialer shows it', r['live'], r)
+    check('Script Lab: after Apply the flag stays on the new line and the edit is no longer pending', r['follow'], r)
+    check('Script Lab: Apply on my own line inserts it right after its anchor line', r['ownIn'], r)
+    check('Script Lab: every Apply is logged (for the Drive mirror)', r['logs'] == 2, r)
+    r = ev("""() => { const pid='script-gatekeeper'; const M=labModel(pid), a=M.rows[1], b=M.rows[2];
+      // two devices edit different lines → sync merge keeps both, no duplicates
+      const r1=labRecFor(pid,a); r1.flag='keep'; labSaveRec(r1); const remote=JSON.parse(JSON.stringify(S)); const rb=labRecFor(pid,b); rb.note='from laptop'; rb.id=labId(pid,b.id); rb._u=now()+5000; remote.slab[rb.id]=rb;
+      merge(remote); const recs=labRecs(pid); const ids=recs.map(x=>x.id);
+      // a canonical change elsewhere orphans the markup instead of losing it
+      const body=pb(pid).body; pbSave(pid, pb(pid).title, body.replace(a.line.raw, a.line.raw+' (changed)'), 'scripts'); const orph=labModel(pid).orphans.length;
+      pbReset(pid);
+      return { both: recs.some(x=>x.flag==='keep') && recs.some(x=>x.note==='from laptop'), nodup: new Set(ids).size===ids.length, orph }; }""")
+    check('Script Lab: phone and laptop markup on different lines both survive a sync merge, no duplicates', r['both'] and r['nodup'], r)
+    check('Script Lab: if the Playbook line changes elsewhere, the markup is kept as an orphan, not lost', r['orph'] >= 1, r)
+    ev("labResetAll=(function(f){return function(){window.confirm=()=>true;return f()}})(labResetAll)"); ev("pbOpen='script-gatekeeper';labResetAll()")
+    check('Script Lab: reset all clears markup but keeps the live script', len(ev("labRecs('script-gatekeeper').filter(r=>r.kind!=='log')")) == 0)
+    check('Script Lab: no page errors', not errs, errs[:3]); b.close()
+
     # offline shell + cache hygiene (static checks on the real files)
     import re, os
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
