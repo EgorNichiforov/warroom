@@ -484,6 +484,18 @@ with sync_playwright() as p:
     check('Silent update: applies only before you touch anything or when you leave the app, and returns you to the same screen', "wrTouched" in vj and "'hidden' && wrPending" in vj and 'wr-resume' in vj and 'Update ready' not in vj)
     check('Smooth open: no page errors', not errs, errs[:3]); b.close()
 
+    # Stage scorecard 13.12: per-function stages from evidence, constraint on the Day screen
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    pg.wait_for_timeout(2000)
+    r = ev("""() => { const s0 = sfScore(); const chip = !!document.querySelector('#arc .sf-chip');
+      acqTab='scale'; acqRead=null; show('acq'); const rows = document.querySelectorAll('#view-acq .sf-row').length;
+      ['s-offer'].forEach(sfTick); const ticked = !!acqV('sf:s-offer', null); sfTick('s-offer');
+      return { biz: s0.biz, con: s0.con.k, chip, rows, ticked, stage: acqStage(), tests: SF_T.length, page: !!pb('stage-scorecard') }; }""")
+    check('Scorecard: 8 functions, 39 exit tests, business stage = lowest, constraint = Sales on an empty start', r['rows'] == 8 and r['tests'] == 39 and r['biz'] == 0 and r['con'] == 'sales', r)
+    check('Scorecard: the constraint and its next test are on the Day screen', r['chip'], r)
+    check('Scorecard: manual tests tick with a date and untick; Courses stage follows the scorecard; Playbook page exists', r['ticked'] and r['stage'] == 0 and r['page'], r)
+    check('Scorecard: no page errors', not errs, errs[:3]); b.close()
+
     # Time ranges 13.10: 7 d / 30 d / 90 d / 1 yr / all on every chart
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { mnInit(); Object.keys(S.txns).forEach(k=>delete S.txns[k]); const t=new Date(), s0=addDays(t,-200);
