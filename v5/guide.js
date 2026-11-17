@@ -269,6 +269,7 @@ function gdSkipSheet(id) {
   const plus = (m) => { const t = Math.max(isT ? nm : 0, tmin(s.t)) + m; return t < 1440 ? chip(k, hmOf(Math.ceil(t / 5) * 5), '+' + (m < 60 ? m + ' min' : m / 60 + ' h')) : ''; };
   const rec = s.task && s.task.rec, canMove = !['wake', 'weight', 'shutdown'].includes(s.type);
   openModal(`<h2 style="margin-bottom:2px">${esc(s.title)}</h2><div class="small muted" style="margin-bottom:14px">${s.t}${s.end ? '–' + s.end : ''} · ${gdDur(s)} min</div>
+    ${canMove && typeof cmOpen === 'function' && !cmFixed(s) ? `<button class="btn primary block" style="margin-bottom:6px" onclick="cmOpen('${id}')">✦ Let Claude move it</button><div class="xs muted" style="margin-bottom:14px">Moves the whole process this step belongs to, around your fixed blocks. You see the plan first.</div>` : ''}
     ${canMove ? `<div class="gd-sh-h">Move it · free in your calendar</div>
     <div class="gd-chips">${today.map((hm) => chip(k, hm, 'Today ' + hm)).join('')}${tom.map((hm) => chip(k1, hm, 'Tomorrow ' + hm)).join('')}${!today.length && !tom.length ? '<span class="small muted">No free gap found. Pick a time below.</span>' : ''}</div>
     <div class="gd-chips">${plus(30)}${plus(60)}${plus(120)}</div>
@@ -288,8 +289,15 @@ function gdDrop(id) {
 function gdTaskDone(tid) { const t = S.tasks[tid]; if (!t || t.done) return; t.done = true; t.doneAt = now(); t._u = now(); save(); taskHook('close', t); gdFocusId = null; gdBuzz([12, 40, 12]); gdNext('Done.'); }
 function gdMove(id, k2, hm) {
   const s = gdStep(id); if (!s || !k2 || !/^\d\d:\d\d$/.test(hm || '')) { toast('Pick a day and a time'); return; }
-  const d = gdDayDate(), k = dk(d), o = day(k); closeModal();
+  const d = gdDayDate(), k = dk(d); closeModal();
   if (k2 < k) { toast("That's in the past"); return; }
+  gdMoveCore(s, k2, hm);
+  gdFocusId = null; gdBuzz(8);
+  gdNext(`Moved to ${k2 === k ? 'today' : k2 === dk(addDays(d, 1)) ? 'tomorrow' : fmtShort(pd(k2))} ${hm}.`);
+}
+/* the data side of a move, no UI (13.6.0: shared by "Let Claude move", which moves several steps at once) */
+function gdMoveCore(s, k2, hm) {
+  const d = gdDayDate(), k = dk(d), o = day(k), id = s.id;
   if (s.type === 'todo') {
     const t = s.task;
     if (t.rec && k2 !== t.due) { gdNewTask(s.title, k2, hm, t.note, t.proj); t.done = true; t.doneAt = now(); t._u = now(); save(); taskHook('close', t); }
@@ -297,8 +305,6 @@ function gdMove(id, k2, hm) {
     if (o.mv) delete o.mv[id];
   } else if (k2 === k) { o.mv = o.mv || {}; o.mv[id] = hm; touch(o); }
   else { gdNewTask('↻ ' + s.title, k2, hm, (s.b ? gdDesc(s.b) : '') + `\n(moved from ${fmtShort(d)} ${s.t})`); o.blk = o.blk || {}; o.blk[id] = 'moved'; touch(o); }
-  gdFocusId = null; gdBuzz(8);
-  gdNext(`Moved to ${k2 === k ? 'today' : k2 === dk(addDays(d, 1)) ? 'tomorrow' : fmtShort(pd(k2))} ${hm}.`);
 }
 function gdNewTask(title, k2, hm, note, proj) {
   const t = { id: uid(), _u: now(), title: title, due: k2, time: hm, done: false, note: String(note || '').trim() }; if (proj) t.proj = proj;
