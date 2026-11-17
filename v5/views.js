@@ -106,7 +106,7 @@ function render() {
   document.body.dataset.view = view;
   renderNav(); renderTop();
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
-  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife(), trlog: () => renderTrlog(), money: () => renderMoney() })[view]();
+  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, acq: () => (typeof renderAcq === 'function' ? renderAcq() : 0), ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife(), trlog: () => renderTrlog(), money: () => renderMoney() })[view]();
   if (!window.SHELL_ON && ['train', 'trlog', 'food', 'stats', 'life'].includes(view)) { const pv = $('view-' + view); if (pv) pv.insertAdjacentHTML('afterbegin', `<div class="chips" style="margin-bottom:12px">${[['life', 'Life'], ['train', 'Train'], ['trlog', 'Training log'], ['food', 'Food'], ['stats', 'Stats & body']].map(([v, l]) => `<span class="chip ${view === v ? 'on' : ''}" style="flex:1;text-align:center" onclick="show('${v}')">${l}</span>`).join('')}<span class="chip" style="flex:1;text-align:center" onclick="moreTab='weight';show('me')">Weight</span></div>`); }
   renderRail();
   const rs = $('rec-slot'); if (rs) rs.innerHTML = recBanner();
