@@ -25,6 +25,17 @@ async function tdFetch(path, opts) {
 async function tdAll(path) { const out = []; let cursor = null, n = 0; do { const j = await tdFetch(path + (path.includes('?') ? '&' : '?') + 'limit=200' + (cursor ? '&cursor=' + encodeURIComponent(cursor) : '')); (j.results || j || []).forEach((x) => out.push(x)); cursor = j.next_cursor; } while (cursor && ++n < 20); return out; }
 const tdOk404 = (e) => { if (e.status !== 404) throw e; };
 
+/* due → Todoist: date only, or date + time (sent as UTC so the reminder fires at the right moment). Repeating tasks keep their rule. */
+function tdDueBody(t, upd) {
+  if (t.due && t.time) { const dt = new Date(`${t.due}T${t.time}:00`); if (!isNaN(dt)) return { due_datetime: dt.toISOString().replace(/\.\d{3}Z$/, 'Z') }; }
+  if (t.due) return { due_date: t.due };
+  return upd ? { due_string: 'no date' } : {};
+}
+function tdDueRead(r) {
+  if (!r.due) return { due: '', time: '' }; const s = r.due.datetime || r.due.date || '';
+  if (s.length > 10 && /Z$|[+-]\d\d:?\d\d$/.test(s)) { const dt = new Date(s); if (!isNaN(dt)) return { due: dk(dt), time: pad(dt.getHours()) + ':' + pad(dt.getMinutes()) }; }
+  return { due: s.slice(0, 10), time: s.length > 10 ? s.slice(11, 16) : '' };
+}
 /* local → Todoist */
 function tdOnChange(kind, t) {
   if (!tdOn() || !t) return;
@@ -40,14 +51,14 @@ async function tdFlush() {
       const op = tdOps[0], t = S.tasks[op.local];
       if (op.kind === 'create') {
         if (t && !t._del && !t.td) {
-          const body = { content: t.title, description: t.note || '' }; if (t.due) body.due_date = t.due; if (t.proj && tdProjects[t.proj]) body.project_id = t.proj; if (t.pri) body.priority = t.pri;
+          const body = { content: t.title, description: t.note || '' }; Object.assign(body, tdDueBody(t)); if (t.proj && tdProjects[t.proj]) body.project_id = t.proj; if (t.pri) body.priority = t.pri;
           const r = t.quick ? await tdFetch('/tasks/quick', { method: 'POST', body: JSON.stringify({ text: t.title }) }) : await tdFetch('/tasks', { method: 'POST', body: JSON.stringify(body) });
-          t.td = r.id; if (t.quick) { t.title = r.content; t.due = r.due ? r.due.date.slice(0, 10) : ''; t.proj = r.project_id; t.pri = r.priority; delete t.quick; }
+          t.td = r.id; if (t.quick) { t.title = r.content; Object.assign(t, tdDueRead(r)); t.proj = r.project_id; t.pri = r.priority; delete t.quick; }
           t._u = now(); save(true); if (t.done) tdOps.push({ kind: 'close', td: r.id, local: t.id });
         }
       } else if (op.kind === 'close') await tdFetch(`/tasks/${op.td}/close`, { method: 'POST' }).catch(tdOk404);
       else if (op.kind === 'reopen') await tdFetch(`/tasks/${op.td}/reopen`, { method: 'POST' }).catch(tdOk404);
-      else if (op.kind === 'update') { if (t) { const body = { content: t.title, description: t.note || '' }; if (t.due) body.due_date = t.due; else body.due_string = 'no date'; await tdFetch(`/tasks/${op.td}`, { method: 'POST', body: JSON.stringify(body) }).catch(tdOk404); } }
+      else if (op.kind === 'update') { if (t) { const body = { content: t.title, description: t.note || '' }; if (!t.rec) Object.assign(body, tdDueBody(t, true)); await tdFetch(`/tasks/${op.td}`, { method: 'POST', body: JSON.stringify(body) }).catch(tdOk404); } }
       else if (op.kind === 'delete') await tdFetch(`/tasks/${op.td}`, { method: 'DELETE' }).catch(tdOk404);
       tdOps.shift(); tdSaveOps();
     }
@@ -66,7 +77,7 @@ async function tdPull(silent) {
     remote.forEach((r) => { if (!byTd[r.id] && r.v2_id && byTd[r.v2_id]) { const t = byTd[r.v2_id]; delete byTd[r.v2_id]; t.td = r.id; byTd[r.id] = t; } });
     let changed = false; const seen = new Set();
     for (const r of remote) {
-      seen.add(r.id); const due = r.due ? r.due.date.slice(0, 10) : '', time = r.due && r.due.date.length > 10 ? r.due.date.slice(11, 16) : '', rec = !!(r.due && r.due.is_recurring);
+      seen.add(r.id); const { due, time } = tdDueRead(r), rec = !!(r.due && r.due.is_recurring);
       let t = byTd[r.id]; if (t) t.tdSeen = now();
       if (!t) { t = Object.values(S.tasks).find((x) => x && !x._del && !x.td && x.title === r.content); if (t) { t.td = r.id; byTd[r.id] = t; tdOps = tdOps.filter((o) => !(o.kind === 'create' && o.local === t.id)); } }
       if (!t) { t = { id: uid(), _u: now(), title: r.content, due, time, rec, done: false, note: r.description || '', td: r.id, proj: r.project_id, pri: r.priority, tdSeen: now() }; S.tasks[t.id] = t; changed = true; continue; }
