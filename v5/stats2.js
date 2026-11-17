@@ -184,10 +184,10 @@ function statsCsv() {
 
 /* ═════════ the page ═════════ */
 function renderStats() {
-  if (![7, 14, 28, 84].includes(statsRange)) statsRange = 28;
+  statsRange = typeof wrRangeDays === 'function' ? wrRangeDays('stats', wrFirstDay()) : ([7, 14, 28, 84].includes(statsRange) ? statsRange : 28);
   const p = stPeriod();
   const head = `<div class="st-head"><div class="st-tabs" role="tablist">${STATS_TABS.map(([k, l]) => `<button role="tab" aria-selected="${statsTab === k}" class="${statsTab === k ? 'on' : ''}" onclick="statsTab='${k}';render()">${l}</button>`).join('')}</div>
-    <div class="row" style="gap:8px"><div class="seg">${[[7, '7 d'], [14, '14 d'], [28, '4 wk'], [84, '12 wk']].map(([v, l]) => `<button class="${statsRange === v ? 'on' : ''}" onclick="statsRange=${v};render()">${l}</button>`).join('')}</div><button class="btn sm" onclick="openRank()">${ic('medal', 16)} Rank</button></div></div>
+    <div class="row" style="gap:8px">${typeof wrRangeBar === 'function' ? wrRangeBar('stats') : ''}<button class="btn sm" onclick="openRank()">${ic('medal', 16)} Rank</button></div></div>
     <div class="st-period">${fmtShort(p.cur[0])} – ${fmtShort(p.cur[p.cur.length - 1])} · compared with ${fmtShort(p.prev[0])} – ${fmtShort(p.prev[p.prev.length - 1])}</div>`;
   let body;
   if (statsTab === 'overview') body = statsKpis() + `<div class="sgrid">${statsIntel()}${statsDials()}${statsFunnel()}${statsCalls()}${statsRecords()}${statsXp()}${statsHeat()}${statsStandards()}${statsTrain()}${statsWeight()}${statsStudy()}${statsScreen()}${statsFood()}${statsMoney()}</div>`;

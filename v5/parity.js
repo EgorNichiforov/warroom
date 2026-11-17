@@ -41,7 +41,7 @@
   }
 
   /* 3 · Settings: one tap to every section (both devices) */
-  const JUMP = [['App lock', 'App lock'], ['Sync', 'Devices & sync'], ['Guided day', 'Guided day'], ['Appearance', 'Appearance'], ['Accountability', 'Accountability link'], ['Time machine', 'Time machine'], ['Todoist', 'Todoist'], ['Settings', 'Settings']];
+  const JUMP = [['App lock', 'App lock'], ['Time ranges', 'Time ranges'], ['Sync', 'Devices & sync'], ['Guided day', 'Guided day'], ['Appearance', 'Appearance'], ['Accountability', 'Accountability link'], ['Time machine', 'Time machine'], ['Todoist', 'Todoist'], ['Settings', 'Settings']];
   window.meJump = function (t) {
     const c = [...document.querySelectorAll('#view-me .card')].find((x) => { const h = x.querySelector('.card-t'); return h && h.textContent.trim() === t; });
     if (c) { const top = c.getBoundingClientRect().top + window.scrollY - 120; window.scrollTo({ top, behavior: 'smooth' }); c.classList.remove('me-flash'); void c.offsetWidth; c.classList.add('me-flash'); }
