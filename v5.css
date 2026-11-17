@@ -1206,3 +1206,5 @@ html[data-hub] #view-dial>.chips:first-of-type .chip{border-radius:10px}
   .kv[onclick]:hover,.mn-row:hover,.meal:hover{background:color-mix(in srgb,var(--acc) 6%,transparent);border-radius:8px}
 }
 :where(button,a,input,select,textarea,[onclick]):focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:8px}
+
+.wg-ev.k-learn{border-color:var(--info);background:rgb(var(--info-rgb) / .08)}.dk-b.k-learn{border-left-color:#7f8fc4}

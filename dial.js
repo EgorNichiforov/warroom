@@ -120,8 +120,8 @@ function outcome(id, kind) {
 function gatekeeperModal(id) {
   const x = Q.items[id];
   openModal(`<h2>Gatekeeper · ${esc(x.agency)}</h2>
-    <div class="script"><div class="say">"Hi, I'm Egor with Caregiver Bench. I recruit caregivers for agencies in Collier and Lee. Who handles caregiver hiring there?"</div>
-    <div class="small muted" style="margin-bottom:10px">They give a name → "Thank you. And your name?" Write both. Not in → "When's the best time to catch them?"</div></div>
+    <div class="script"><div class="say">"Hi, this is Egor with Caregiver Bench. I recruit caregivers for home care agencies in the Tampa Bay area. Who handles caregiver hiring there?"</div>
+    <div class="small muted" style="margin-bottom:10px">They give a name → "Thank you. And your name?" Write both. Not in → "When's the best time to catch them? And may I have their email?" (Playbook → Scripts → Gatekeeper)</div></div>
     <div class="field"><label>Who handles hiring (name + role)</label><input id="gk-who" value="${esc(x.contact && !/^ask/i.test(x.contact) ? x.contact : '')}" placeholder="e.g. Maria Lopez, office manager"></div>
     <div class="field"><label>Receptionist's name</label><input id="gk-rec" placeholder="for the next opener: '[name] at your front desk said…'"></div>
     <div class="field"><label>Call back</label><div class="chips">${[['Later today', 0], ['Tomorrow', 1], ['In 2 days', 2], ['Next week', 7]].map(([l, n]) => `<span class="chip" onclick="document.getElementById('gk-when').value='${dk(addDays(new Date(), n))}'">${l}</span>`).join('')}</div><input id="gk-when" type="date" value="${dk(addDays(new Date(), 1))}" style="margin-top:8px"></div>
@@ -139,7 +139,7 @@ function ownerModal(id) {
   openModal(`<h2>Owner talk · ${esc(x.agency)}</h2>
     <div class="hint" style="margin-bottom:10px">Counts as 1 of your 100 owner conversations. Write their exact words about the problem; you reuse them in the next openers.</div>
     <div class="field"><label>Who did you talk to</label><input id="ow-who" value="${esc(x.contact && !/^ask/i.test(x.contact) ? x.contact : '')}" placeholder="name, role"></div>
-    <div class="field"><label>Their words (problem, hard case, objection)</label><textarea id="ow-note" placeholder="e.g. 'nobody wants Marco', 'call-offs on weekends', 'we use Indeed'"></textarea></div>
+    <div class="field"><label>Their words (problem, hard case, objection)</label><textarea id="ow-note" placeholder="e.g. 'nobody wants overnights', 'call-offs on weekends', 'we use Indeed'"></textarea></div>
     <div class="field"><label>Result</label><div class="chips" id="ow-res">${[['booked', '📅 Case call booked'], ['bulletin', '📧 Bulletin: yes'], ['callback', '🔁 Call back'], ['no', '🚫 Not now / no']].map(([v, l], i) => `<span class="chip ${i === 0 ? 'on' : ''}" data-v="${v}" onclick="document.querySelectorAll('#ow-res .chip').forEach(c=>c.classList.toggle('on',c===this));document.getElementById('ow-when-wrap').classList.toggle('hidden',!['booked','callback'].includes('${v}'))">${l}</span>`).join('')}</div></div>
     <div class="field" id="ow-when-wrap"><label>When (call / callback)</label><input id="ow-when" type="date" value="${dk(addDays(new Date(), 1))}"><input id="ow-time" type="time" value="16:00" style="margin-top:6px"></div>
     <div class="field"><label>Email (for the Bulletin)</label><input id="ow-email" type="email" placeholder="optional" value="${esc(x.email || '')}"></div>
@@ -161,7 +161,7 @@ function offListOwner() { countDial(true); render(); toast('+1 dial, +1 owner ta
 function bumpToday(id, n) { const o = day(new Date()); o.counters[id] = Math.max(0, (Number(o.counters[id]) || 0) + n); touch(o); render(); }
 function setToday(id) { const o = day(new Date()); const c = S.counters.items.find((x) => x.id === id); const v = prompt('Set ' + c.title + ' for today (exact number)', o.counters[id] || 0); if (v == null) return; o.counters[id] = Math.max(0, num(v) || 0); touch(o); render(); }
 function addQueueItem() {
-  openModal(`<h2>Add an agency</h2><div class="field"><label>Agency</label><input id="aq-a" placeholder="Name"></div><div class="g2"><div class="field"><label>City</label><input id="aq-c" placeholder="Naples"></div><div class="field"><label>County</label><input id="aq-co" placeholder="Collier"></div></div><div class="field"><label>Phone</label><input id="aq-p" type="tel" placeholder="(239) 555-0100"></div><div class="field"><label>Who to ask for</label><input id="aq-w"></div><div class="field"><label>Hook (the one true specific thing)</label><input id="aq-h" placeholder="I saw your post for a live-in caregiver in Bonita"></div>
+  openModal(`<h2>Add an agency</h2><div class="field"><label>Agency</label><input id="aq-a" placeholder="Name"></div><div class="g2"><div class="field"><label>City</label><input id="aq-c" placeholder="Tampa"></div><div class="field"><label>County</label><input id="aq-co" placeholder="Hillsborough"></div></div><div class="field"><label>Phone</label><input id="aq-p" type="tel" placeholder="(813) 555-0100"></div><div class="field"><label>Who to ask for</label><input id="aq-w"></div><div class="field"><label>Hook (the one true specific thing)</label><input id="aq-h" placeholder="I saw your post for a live-in caregiver in Brandon"></div>
     <div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveQueueItem()">Add</button></div>`);
 }
 function saveQueueItem() {
@@ -187,44 +187,13 @@ function saveQueueEdit(id) { const x = Q.items[id]; Object.assign(x, { phone: $(
 function startSession() { if (!S.session || !S.session.active) { const o = day(new Date()); S.session = { _u: now(), active: true, start: now(), date: dk(new Date()), d0: Number(o.counters.dials) || 0, o0: Number(o.counters.owners) || 0 }; save(true); } show('dial'); }
 function endSession() { const s = S.session; if (!s || !s.active) return; const o = day(s.date); const sd = (Number(o.counters.dials) || 0) - s.d0, so = (Number(o.counters.owners) || 0) - s.o0; if (!o.sessions) o.sessions = []; o.sessions.push({ start: s.start, end: now(), dials: sd, owners: so }); S.session = { _u: now(), active: false }; touch(o); save(true); toast(`Session: ${sd} dials · ${so} owner talks`); render(); }
 
-/* ───────── the script (v3, Caregiver Bench) ───────── */
+/* ───────── the script (v4, Caregiver Bench: read from Playbook → Scripts) ───────── */
 function scriptHtml(x) {
   const P = typeof pb === 'function' ? pb(x && (x.tier === 'AL' || x.tier === 'AL2') ? 'script-al' : 'script-owner') : null, ob = typeof pb === 'function' ? pb('objections') : null;
-  if (P) { const tok = { name: x ? firstName(x.contact) || '[name]' : '[name]', hook: x ? hookFor(x) : '[hook]', town: x ? x.city.split(/[\/(;]/)[0].trim() : '[town]' }; return `<div class="script">${pbRender(P.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'), tok)}${ob ? `<div class="lab">Objections</div>${pbRender(ob.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'))}` : ''}<div class="xs muted" style="margin-top:10px">Edit these in Playbook → Scripts. <a href="#" onclick="pbOpen='script-owner';show('book');return false">Open</a></div></div>`; }
-  return scriptHtmlOld(x);
+  if (P) { const tok = { name: x ? firstName(x.contact) || '[name]' : '[name]', hook: x ? hookFor(x) : '[hook]', town: x ? x.city.split(/[\/(;]/)[0].trim() : '[town]' }; return `<div class="script">${pbRender(P.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'), tok)}${ob ? `<div class="lab">Loops and objections</div>${pbRender(ob.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'))}` : ''}<div class="xs muted" style="margin-top:10px">Edit these in Playbook → Scripts. <a href="#" onclick="pbOpen='script-owner';show('book');return false">Open</a></div></div>`; }
+  return `<div class="script"><div class="empty">The script lives in Playbook → Scripts → Call 1. It didn't load: open the Playbook once, then come back.</div></div>`;
 }
-function scriptHtmlOld(x) {
-  const name = x ? firstName(x.contact) : '', hook = x ? hookFor(x) : '[HOOK]', town = x ? x.city.split(/[\/(;]/)[0].trim() : '[town]';
-  const nm = name ? name : '[name]';
-  const al = x && (x.tier === 'AL' || x.tier === 'AL2');
-  return `<div class="script">
-    ${al ? `<div class="lab">Assisted living opener</div><div class="say">"Hi, is this the Executive Director? This is Egor with Caregiver Bench. We've never spoken. I recruit caregivers and CNAs in Collier and Lee. I know a lot of communities end up paying agency staff to cover shifts. Is that something you deal with, or are you fully staffed?"</div>` : `
-    <div class="lab">1 · Opener: permission + hook</div>
-    <div class="say">"Hi <b>${esc(nm)}</b>, this is Egor with Caregiver Bench. We've never spoken, and I know you weren't expecting my call. <b>${esc(hook)}</b>, which is why I'm calling. Can I take 30 seconds to tell you why, and then you decide if it's worth talking?"</div>
-    <div class="lab">2 · Right person</div><div class="say">"Are you the one who handles caregiver hiring, or is that someone else?"</div>
-    <div class="lab">3 · The problem, not the product · then count to 4</div>
-    <div class="say">"From the agencies I've looked at around ${esc(town)}, the hard part usually isn't getting applicants. It's that they don't show up to the interview, or they quit in the first couple of weeks. <b>I'm not sure that's true for you. Is it?</b>"</div>
-    <div class="say">Hard case: "Live-in / weekend / Marco cases stay open the longest. About 4 in 10 don't show up to the interview, and the good ones get hired by someone else first. <b>Is that happening with this one, or have you got it covered?</b>"</div>
-    <div class="lab">4 · One follow-up</div><div class="say">"When a new case comes in and you're short a caregiver, what do you do today: pull someone from your team, post on Indeed, or something else?"</div>
-    <div class="lab">5 · One sentence + a no-oriented ask</div>
-    <div class="say">"<b>I help private-pay agencies get interviews with screened caregivers for live-in and weekend cases within 48 hours, without paying anything unless a caregiver actually works a shift.</b> I run my own ads, call every caregiver myself, confirm them twice before the interview. The first 30 days are free. <b>Would you be against me recruiting for that case this week and sending you a couple of profiles?</b>"</div>
-    <div class="lab">6 · Yes → route + book</div><div class="say">"In a normal month, how many caregivers do you hire?" (0–1 → Pay When They Work · 2+ → 30-day trial · several offices → Multi-site) "Let's do 10 minutes on the case: town, hours, pay, must-haves. Now, or tomorrow at [time]?"</div>
-    <div class="lab">7 · Not now</div><div class="say">"Fair enough. Every Monday I send a short email with the screened caregivers I have, by town and shift, no names. Would it be a bad idea if I added you?"</div>
-    <div class="lab">Voicemail</div><div class="say">"Hi ${esc(nm)}, Egor with Caregiver Bench. ${esc(hook)}. I recruit caregivers in Collier and Lee, live-in and weekends especially, and the first 30 days are free. I'll try you again on [day]. If it's easier, I'm at 561-556-0536."</div>`}
-    <div class="lab">Objections</div>
-    <div class="obj">
-      <div><b>"How much?"</b>"Free for 30 days. If none of my caregivers works a shift, nothing. If one does, $1,500 a month with 3 included, or $750 each if you only hire now and then."</div>
-      <div><b>"Send me info"</b>"Sure. What would make it worth reading: the live-in case, or weekends?" Then a 3-line email about that case.</div>
-      <div><b>"We have a recruiter / Indeed"</b>"Keep them. Just so I know: how fast did your last live-in case get staffed?"</div>
-      <div><b>"Recruiters burned us"</b>"Fair, most charge whether anyone works. That's why I don't charge until someone works a shift. What happened with them?"</div>
-      <div><b>"I'm busy"</b>"Sorry for the timing. When's better: tomorrow morning or afternoon?" Book it, hang up.</div>
-      <div><b>"Where are you based?"</b>"In Europe. I work Florida hours. The caregivers are local, only the screening is remote."</div>
-      <div><b>"How many caregivers do you have?"</b>The real number. While building: "I'm building the bench this month, so I recruit for your case specifically."</div>
-      <div><b>Anything you don't know</b>"Good question. I'll find out and email you today."</div>
-    </div>
-    <div class="lab">Last question after a no</div><div class="say">"Who's the one agency around here you'd guess is having the hardest time staffing right now?" Franchise owners: "Do you know another [brand] owner in a nearby territory who's struggling with live-in cases?"</div>
-  </div>`;
-}
+function scriptHtmlOld(x) { return scriptHtml(x); } /* kept for older callers; the only script is the Playbook one */
 
 /* ───────── the Dial view ───────── */
 function florida(nm) { const f = (nm - 7 * 60 + 1440) % 1440; return pad(Math.floor(f / 60)) + ':' + pad(f % 60); }
@@ -285,7 +254,7 @@ function renderDial() {
     <div id="dial-list">${dialListHtml(list)}</div>
     <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm grow" onclick="addQueueItem()">+ Add agency</button><button class="btn sm grow" onclick="offListDial()">+1 off-list dial</button><button class="btn sm grow" onclick="offListOwner()">+1 off-list owner</button></div>` : ''}</div>`;
 
-  const scriptCard = `<div class="card"><div class="card-h" onclick="scriptOpen=!scriptOpen;render()" style="cursor:pointer"><div class="card-t">Script v3 · filled for this call</div><div class="card-r">${scriptOpen ? '▾' : '▸'}</div></div>${scriptOpen ? scriptHtml(x) : '<div class="small muted">Opener with the hook, the problem question, the ask, objections.</div>'}</div>`;
+  const scriptCard = `<div class="card"><div class="card-h" onclick="scriptOpen=!scriptOpen;render()" style="cursor:pointer"><div class="card-t">Script v4 · filled for this call</div><div class="card-r">${scriptOpen ? '▾' : '▸'}</div></div>${scriptOpen ? scriptHtml(x) : '<div class="small muted">Intro → disco → pitch → ask → BAMFAM, then loops and objections.</div>'}</div>`;
 
   const ownersDone = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners');
   const gate = ownersDone ? `<div class="coach">Rule from the plan: <b>no new business ideas until ${ownersDone.target} owner conversations</b> (${owners} so far · review ${ownersDone.deadline ? fmtShort(pd(ownersDone.deadline)) : '8 Dec'}). Hormozi’s idea: volume negates luck <span class="ref">[#1]</span>.</div>` : '';

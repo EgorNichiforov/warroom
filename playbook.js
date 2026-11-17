@@ -1,10 +1,11 @@
 /* War Room v5 · Playbook: the plan, rules, offer, scripts, SOPs and numbers, in one place you can read and edit.
    Pages ship with the app (PB_SEED). Your edits are stored in S.playbook (synced) and win over the shipped text.
-   The dialer reads the scripts from here, so editing a script changes what you see on the next call. */
+   The dialer reads the scripts from here, so editing a script changes what you see on the next call.
+   v4 sales system (17 Nov 2026): this file is the single source of truth; the Drive doc is a mirror of it. */
 'use strict';
 
 const PB_CATS = [['system', 'How it works', 'hq'], ['mission', 'Mission', 'target'], ['rules', 'Rules', 'shield'], ['scripts', 'Scripts', 'dial'], ['sops', 'SOPs', 'check'], ['business', 'Business', 'stats'], ['body', 'Body & BAC', 'train'], ['mine', 'My notes', 'pen']];
-const PB_SEED_V = 1;
+const PB_SEED_V = 4;
 const PB_SEED = [
 /* ───────── SYSTEM ───────── */
 { id: 'system', cat: 'system', title: 'One job per tool', body: `The whole system is five tools. Each one does one job. If information has two homes, one of them is wrong.
@@ -38,6 +39,36 @@ One job: what you need to see without opening a phone. Rewritten every Sunday: *
 | An idea I don't want to forget | **+ → Idea** | Parked in Todoist "Later". Looked at only on Sunday. No new business ideas until 100 owner conversations |
 | Something to remember (a fact, a name, a number) | **+ → Note** | Kept in Playbook → My notes, searchable |
 | Spent cash | **+ → Spent cash** | Money out by category; the sheet copies it |` },
+{ id: 'sync', cat: 'system', title: 'One source of truth: how a change travels', body: `Every plan, offer, script and SOP lives in ONE place: **this Playbook.** Everything else is a mirror or a pointer. If two places disagree, the Playbook wins and the other one is a bug.
+
+## When something changes (Sunday review, or when you say "change it now")
+1. **Playbook first.** The page is rewritten here. The dialer reads the scripts from here, so the next call shows the new words.
+2. **Calendar:** block descriptions that quote the change are updated (dial blocks, review, bench block).
+3. **Todoist:** tasks that depend on it are added, changed or closed.
+4. **Drive mirror:** the doc "Caregiver Bench: Sales Playbook (mirror)" in 01 Caregiver Bench / 0 START HERE is regenerated from these pages.
+5. **Old version:** renamed "OLD date:" and moved to 01 Caregiver Bench / 9 Archive. Never two live versions.
+6. **Changelog:** one line on the page System → Changelog (what changed, why, which course rule).
+
+Claude does steps 1–6. You only decide the change.
+
+## What lives where (nothing else)
+| Thing | Its only home |
+| Offer, prices, guarantees | Business → What we sell |
+| Every word said on a call or written in an email | Scripts |
+| How a process runs, step by step | SOPs |
+| When it happens | Google Calendar |
+| What to do that isn't at a set time | Todoist |
+| Every number | War Room log (the Sheet is a copy) |
+| Research, competitors | Market Intel sheet |
+| Course notes | Drive → 06 Learning Library (reference only, never a plan) |` },
+{ id: 'changelog', cat: 'system', title: 'Changelog', body: `Newest first. One line per change: what, why, which rule.
+
+| Date | Change | Why |
+| 17 Nov | **Sales system v4**: one offer ladder (First Hire Free → Priority Bench $2,500 / 4 weeks or $1,500 per caregiver), every script rewritten to the $100M Sales Teams structure (Intro → Disco → Pitch → Close → Loops → BAMFAM), new pages: sales map, case call, emails, results call, exit call, caregiver side, practice | Model v3 fixed the offer to 80% margin and one ask; Sales Teams: one script, then practise it |
+| 17 Nov | Metro stays **Tampa Bay** (813 number, ~750 agencies), Collier and Lee are the second wave. Week stays **350 dials** | Local number = pickup; Collier and Lee have 212 agencies, which a 7-attempt cadence uses up in ~4 weeks at 350 a week |
+| 17 Nov | Founding Offer ($500 after 5 shifts) retired. "Founding 5" now = first 5 paying agencies lock their price for 12 months for a case study + 2 intros | Money Models: never discount the core; trade, not discount |
+| 17 Nov | Old docs (CALL SCRIPT v3, KNOW IT COLD, EgorFlow offer, sales playbook, THE PLAN v2, Delivery SOP, whole-business doc) moved to 9 Archive | One source of truth |
+| 14 Nov | Reset after the 4-AI review: Tampa Bay, 350 a week, bench of 15 by 30 Nov, payment via dad's company | See Mission → Decisions |` },
 { id: 'audit', cat: 'system', title: 'System status · 13 Nov', body: `## Done
 - War Room v5 is the app (Android app 1.1 + web). v4 retired.
 - Morning brief (06:00), close the day (20:40), Sunday review (10:40): all on the 350 week (since 14 Nov).
@@ -67,17 +98,58 @@ One job: what you need to see without opening a phone. Rewritten every Sunday: *
 
 ## Priority order
 The company is #1. When things clash, the cut order decides (see Rules → When the day doesn't fit).` },
-{ id: 'backward', cat: 'mission', title: 'The plan backward', body: `Read from the bottom up: for the top line to be true, every line below it must be true by its date. **Proof first, then retainers.**
+{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# v4 · 17 Nov (overrides anything older)
+0 owner conversations so far. The plan is done. **The work is dialing, screening and delivering.**
+
+## The 5 numbers that run the business
+| What | Rule |
+| Where | **Tampa Bay first** (Tampa, St. Pete, Clearwater, Brandon and around: ~750 agencies, the 813 number). Collier and Lee are the second wave, switched on at 3 paying agencies or when Tampa Bay runs out |
+| Volume | **350 dials a week**, max 100 a day per number while it warms up. From 30 Nov, if the number is clean: Thursday 150 (= 400) |
+| Offer | **First Hire Free** on one open case → **Priority Bench** $2,500 every 4 weeks or **Pay When They Work** $1,500 per caregiver (Business → What we sell) |
+| Script | **Call 1** books a 10-minute case call. **Call 2** (day 25) turns the free win into a plan. Nothing else is sold on the phone |
+| Supply | **15 phone-screened caregivers in Tampa Bay by 30 Nov**, plus ads for every case the day it's taken |
+
+## The week
+| Day | Dials | When (Moldova) | Florida |
+| Mon | 10 | 20:30–20:45 | 13:30 |
+| Tue | 100 | 15:30–16:55 + 17:00–17:55 | 8:30–10:55 |
+| Wed | 10 | 20:30–20:45 | 13:30 |
+| Thu | 100 | 15:00–18:20 | 8:00–11:20 |
+| Fri | 50 | 19:30–20:40 | 12:30–13:40 |
+| Sat | 80 + callbacks | 15:00–17:00 and 18:45–20:30 (cap 100) | 8:00–10:00 and 11:45–13:30 |
+| Sat | **Caregivers** | 17:00–18:30: ads + screening calls | 10:00–11:30 |
+| Sun | 0 | No cold calls. Review, plan, applicants, Bulletin | |
+
+**Floor on a broken day: 10 dials. Never 0.**
+
+## Promises you may make right now
+- Profiles **within 3 days** of the case call (48 hours only once the bench has 15).
+- The first caregiver who works the case is free.
+- Show-Up Guarantee and 90-Day Stay-or-Replace.
+- Never: a date for an interview you can't fill, a number of caregivers you don't have, "agencies like yours" before you have them.
+
+## Blocks revenue, not dials (needed before day 30 of the first trial)
+1. Payment route: dad's company invoices in USD (accountant's OK).
+2. One-page agreement checked by a Florida healthcare lawyer.
+3. A person who sees the dial number every night.
+
+## Feature freeze
+No new War Room features until **1,000 dials or the first paying client.** Plan changes at the Sunday review only (System → One source of truth).` },
+{ id: 'backward', cat: 'mission', title: 'The plan backward', body: `Read from the bottom up: for the top line to be true, every line below it must be true by its date. **Proof first, then plans.**
 
 ## Company: checkpoints
 | By | Must be true |
-| 30 Jun 2027 | **$20,000 MRR** (8 Priority Bench + 3 Multi-site). Reality rule 1 Mar: under $3,750 MRR = the July target becomes $10,000 |
-| 31 Mar | $9,000 MRR · screener #1 |
-| 28 Feb | $4,500 MRR (3 Priority Bench) |
-| 31 Jan | **3 agencies where my caregiver worked** · first $750 deal · first Priority Bench offered |
-| 31 Dec | **First caregiver worked 5 shifts + first invoice paid** ($500) · 2,000+ dials |
+| 30 Jun 2027 | **$20,000 MRR**: 8 Priority Bench (≈ $21,700 a month) or 6 Priority Bench + 1 Multi-site |
+| 31 Mar | 5 paying agencies (≈ $13,500 MRR) · screener #1 hired |
+| 1 Mar | **Reality rule:** fewer than 2 paying agencies = the July target becomes $10,000 and the plan is rebuilt |
+| 28 Feb | 3 paying agencies (≈ $8,100 MRR) · Collier and Lee switched on |
+| 31 Jan | **First paying agency** (first invoice cleared) · 3 agencies where a caregiver of mine worked |
+| 31 Dec | **First caregiver worked a shift** (free trial) · 2 trials running · 2,000+ dials |
 | 8 Dec | 100 owner conversations (then, and only then, new ideas are allowed) |
-| 30 Nov | **15 screened caregivers in Tampa Bay** · payment route working · number clean (no Spam Likely) · lawyer check booked |
+| 30 Nov | **15 screened caregivers in Tampa Bay** · first trial started · number clean · payment route agreed · lawyer booked |
+
+## The honest math
+~2,000 dials per paying agency (the 14 Nov estimate). At 350 a week that is one new agency every ~6 weeks = **about 5 by June: not enough.** The gap closes only by (1) a clean local number that doubles pickup, (2) a disco that finds the open case, (3) going to 400 then 550 dials from December. Real rates replace these after 300 dials.
 
 ## Body: weekly average weight
 | End of | Nov | Dec | Jan | Feb | Mar | Apr | May | Jun |
@@ -87,68 +159,27 @@ Every 2 weeks: gaining under 0.25 kg a week = +200 kcal. Over 0.5 kg a week = �
 
 ## BAC: the hard dates
 See Body & BAC → BAC deadlines.` },
-{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# Reset 14 Nov (overrides anything older)
-Reviewed by Claude, ChatGPT, Grok and Perplexity on 14 Nov. All four agreed on the same three things: **supply first, one simple offer, a way to get paid.** 0 owner conversations so far. The plan is done. The work is dialing and screening.
+{ id: 'proposals', cat: 'mission', title: 'Decisions', body: `## Decided 17 Nov (sales system v4)
+| Question | Decision | Rule behind it |
+| Offer on the phone | **First Hire Free** on one open case. No price talk on call 1 unless asked | Scaling Roadmap stage 0–1: get people to try it free |
+| Prices after the free win | Priority Bench **$2,500 every 4 weeks** (2 caregivers who work) · Pay When They Work **$1,500** ($2,000 hard case) · Multi-site $6,000 at gate 4 | Money Models: 80%+ gross margin; Offers: premium price |
+| Founding Offer $500 | **Retired.** First 5 paying agencies lock their price for 12 months in exchange for a case study + 2 owner intros | Never discount the core; trade, not discount |
+| Metro | **Tampa Bay** first, Collier and Lee second wave | Sell where you can deliver; local 813 number |
+| Volume | **350 a week** (100 a day per number), 400 from 30 Nov if the number is clean | Rule of 100; number warm-up |
+| Scripts | Sales Teams structure, 25 reads before the first block, game tape every evening | One script, then practise it |
 
-## The week: 350 dials + a caregiver block
-| Day | Dials | When (Moldova) | Florida |
-| Mon | 10 | 20:30–20:45 | 13:30 |
-| Tue | 100 | 15:30–16:55 + 17:00–17:55 | 8:30–10:55 |
-| Wed | 10 | 20:30–20:45 | 13:30 |
-| Thu | 100 | 15:00–18:20 (spare time: emails, callbacks, caregivers) | 8:00–11:20 |
-| Fri | 50 | 19:30–20:40 | 12:30–13:40 |
-| Sat | 80 | 15:00–17:00 | 8:00–10:00 |
-| Sat | **Caregivers** | 17:00–18:30: Tampa Bay ads + screening calls | 10:00–11:30 |
-| Sun | 0 | No cold calls. Plan, BAC, applicants, meal prep | |
-
-**Why 350 and not 550:** a brand-new US number that jumps to 200+ calls a day gets labelled "Spam Likely" within days, and then nobody picks up. **Max 100 dials a day per number** for the first 2 weeks. From 30 Nov, if the number is clean and the bench has 15 caregivers: Thursday back to 150 (= 400), then a second number for 550.
-
-**Floor on a broken day: 10 dials. Never 0.**
-
-## One metro first: Tampa Bay
-Tampa, St. Pete, Clearwater, Brandon and around: ~750 licensed agencies, the biggest metro in Florida, English-speaking caregivers, one time zone. The dialer puts Tampa Bay leads at the top automatically. Caregiver ads go to Tampa Bay only. Agencies and caregivers in the same place = you can actually deliver.
-
-## This week's 5 moves, in order
-1. **Bench:** 15 phone-screened caregivers in Tampa Bay by 30 Nov. No promise of interviews within 48 hours until then.
-2. **Get paid:** talk to dad this week. His company signs the agreement and invoices in USD to its account, with his accountant's OK. A US LLC can come later, once money comes in. (Stripe does not support Moldova: don't plan on it.)
-3. **One offer on the phone:** the Founding Offer (Business → What we sell). The monthly plans are not mentioned on cold calls.
-4. **Calling setup:** CloudTalk number with a Tampa area code (813), registered on freecallerregistry.com, max 100 dials a day. Voicemail: 20 seconds, then a same-day email.
-5. **Measure 4 numbers daily:** dials, owner conversations, interested owners, caregivers screened.
-
-## Kept on purpose
-Own tennis Mon/Wed/Fri (paid, ~€250 a month). Sleep 21:00–05:20. School. All groups.
-
-## Feature freeze
-No new War Room features until **1,000 dials or the first paying client.** Changes to the plan only at the Sunday review.
-
-## Still missing
-1. A person who sees my dial number every day. Name them.
-2. The payment route (move 2 above).
-3. A one-page check by a Florida healthcare lawyer (~$300–500) before the first invoice.` },
-{ id: 'proposals', cat: 'mission', title: 'Decisions · 14 Nov', body: `## Decided 14 Nov (4-AI review: Claude, ChatGPT, Grok, Perplexity)
-| Question | Decision | Who agreed |
-| First paying client by 31 Jan? | ~25% as the plan was. ~45% with the changes below | ChatGPT 30% · Grok 15–25% · Perplexity 35–45% |
-| Biggest risk | **No caregivers to deliver.** 15 screened in Tampa Bay by 30 Nov | All four |
-| Offer on the phone | **One Founding Offer:** $500 per caregiver, paid after 5 worked shifts, first 5 agencies. Monthly plans only after proof | All four: simplify. Price: ChatGPT $500, Grok $500–600, Perplexity $750 |
-| Funnel | Plan with **~2,000 dials per paying client** (was 900) | ChatGPT ~3,300 · Grok 1,500–2,500 · Perplexity 1,200–2,500 |
-| Dials | **350 a week** for 2 weeks (number warm-up), then 400, then 550 with a second number | ChatGPT 250–300 · Perplexity 300 · Grok 150–200 · Claude 350 |
-| Saturday 230 | Cut to 80. Saturday 10:00–11:30 Florida = caregiver screening | All four |
-| Metro | **Tampa Bay first** (~750 agencies, biggest metro) | Claude, from the lead data. ChatGPT, Grok: "one metro" |
-| Getting paid | Dad's company invoices in USD now; US LLC later | ChatGPT, Perplexity. Grok preferred a US LLC now |
-| Calling | US local number, Free Caller Registry, max 100/day/number, manual dialing, 20-sec voicemail + email | All four |
-| Lawyer | One-page check by a Florida healthcare lawyer before the first invoice | Grok, ChatGPT, Perplexity |
-
-## Decided 13 Nov (still true)
-| Leads | Whole state of Florida, home health + homemaker & companion. Nurse registries parked (1099). 2,059 licensed home health agencies added 14 Nov |
-| Texting | No cold SMS. Texting only after a yes, and only with a registered business number |
-| Cold email | After the first client or ~1,000 dials: 2 spare domains, 4 inboxes, 3–4 weeks warm-up. Never from caregiverbench.com |
-| War Room | Feature freeze until 1,000 dials or the first client |
+## Decided 14 Nov (4-AI review, still true unless changed above)
+| Biggest risk | **No caregivers to deliver.** 15 screened in Tampa Bay by 30 Nov |
+| Funnel | Plan with ~2,000 dials per paying client |
+| Getting paid | Dad's company invoices in USD now; US LLC later |
+| Calling | US local number, Free Caller Registry, max 100 a day a number, manual dialing, 20-second voicemail + same-day email |
+| Lawyer | One-page check by a Florida healthcare lawyer before the first invoice |
+| Texting | No cold SMS. Only after consent and with a registered business number |
+| Cold email | After the first client or ~1,000 dials, from spare domains, never from caregiverbench.com |
 
 ## Still open (Sunday review)
 - **Accountability partner:** who sees the dial number every night?
-- **Team:** a commission caller only after one paid placement (ChatGPT: not before).
-- **Age check:** if I am under 18, I can't register a business myself in Moldova or the US. Dad's company is the route either way for now.` },
-
+- **Team:** a commission caller only after one paid placement.` },
 /* ───────── RULES ───────── */
 { id: 'daily8', cat: 'rules', title: 'The Daily 8 and the minimum day', body: `| # | What | In War Room |
 | 1 | **Sleep** 21:00 → 05:20. Phone outside the bedroom from 20:45 | Sleep |
@@ -177,175 +208,409 @@ The first action of every block happens within 2 minutes. No messages first.` },
 8. My own tennis training (TT)
 
 Behind for 2 months in a row = use the cut order, not more hours.` },
-{ id: 'rules', cat: 'rules', title: 'House rules', body: `- **One plan:** this playbook. EGOR OS is frozen. Old plans live in the archive.
-- **Changes only on Sunday.** One change per week, written in Plan → Review.
+{ id: 'rules', cat: 'rules', title: 'House rules', body: `- **One plan:** this playbook. Every other doc is a mirror or an archive (System → One source of truth). EGOR OS is frozen.
+- **Changes only on Sunday.** One change per week, written in Plan → Review and on System → Changelog.
 - **No new business ideas until 100 owner conversations** (review 8 Dec).
 - **A slip is not a reset.** Three honest lines (what happened, the real cause, the one fix), then the next right action.
 - **The stake** (500 MDL per day under the minimum) starts only on the day I name an accountability partner.
 - **If I don't know something on a call:** "Good question. I don't want to guess. I'll find out and email you today."
 - **Never inflate a number.** Not agencies, not caregivers, not years.` },
-{ id: 'legal', cat: 'rules', title: 'Legal lines (never cross)', body: `- **We only recruit caregivers.** Never bring agencies clients, never charge per family, client, lead or referral, never take a share of their billing (Florida Patient Brokering Act).
-- **We never employ, pay, schedule or place caregivers.** The agency hires them as its own W-2 employees.
+{ id: 'legal', cat: 'rules', title: 'Legal lines (never cross)', body: `- **We only recruit caregivers.** Never bring agencies clients, never charge per family, client, lead or referral, never take a share of their billing (Florida Patient Brokering Act). Fees are only per caregiver who works for the agency, or a monthly plan.
+- **We never employ, pay, schedule or place caregivers.** The agency hires them as its own W-2 employees. Never send a caregiver to a family.
 - **Caregivers never pay us anything.** Ever.
 - **No reference or background checks.** The agency runs them (Level 2, I-9, E-Verify). We pass on only what the caregiver tells us and what we observe (FCRA).
 - **No call recording.** Florida needs everyone's consent.
 - **No text messages** without consent and a registered business number (A2P 10DLC). No cold texts, no texting after a voicemail.
 - **Calls:** 8am–8pm their time, max 3 calls per number per 24 hours, no prerecorded voicemails, "don't call me" = do-not-call immediately.
 - **Fair job ads:** no words about age, sex, origin, religion, family or health.
+- **No fake scarcity:** "max 2 members per town area" is a real rule, so enforce it. "Founding 5" ends at the fifth paying agency.
 - **Nurse registries (1099 contractors):** not for now.
 - **The agreement** is reviewed by a Florida lawyer before anyone signs. One page that says: we recruit employees for the agency; nothing is paid for patients, clients or referrals; the agency does its own Level 2 screening, I-9 and E-Verify.
 - **Telemarketing registration:** Florida exempts most business-to-business calls, but the exemption has conditions. Ask the lawyer in the same check. Calling-hour and 3-calls-a-day limits apply either way.
 - **Caregiver data:** names and phones of caregivers stay in War Room and go to an agency only with the caregiver's OK. Ask dad's accountant whether Moldova's data law needs anything for sending them to the US.
 - **Payments:** not on a friend's card. Dad's company invoices and receives USD, with his accountant's OK, until I can take them myself. The agency gets a W-8BEN-E from that company, not a W-9. Stripe does not work for Moldova.` },
-
 /* ───────── SCRIPTS (the dialer reads these) ───────── */
-{ id: 'script-owner', cat: 'scripts', title: 'Owner call script', body: `Shown in the dialer for every call. {name}, {hook} and {town} fill in from the agency you are calling.
+{ id: 'script-map', cat: 'scripts', title: 'The sales system on one page', body: `Zoom out first. Every step of the business has one goal, one script and one number. If a number is low, fix that step only.
 
-## 1 · Opener: permission + hook
-> Hi **{name}**, this is Egor with Caregiver Bench. We've never spoken, and I know you weren't expecting my call. **{hook}**, which is why I'm calling. Can I take 30 seconds to tell you why, and then you decide if it's worth talking?
+| # | Step | Goal | Script | Number to watch |
+| 1 | Lead prep | Owner name + hook for the next 20 calls | SOPs → Dial block | Calls with an owner name |
+| 2 | **Call 1 · the dial** | Book a 10-minute case call | Scripts → Call 1 | Dials → connects → owner conversations |
+| 3 | Gatekeeper | A name and a time | Scripts → Gatekeeper | Names collected |
+| 4 | Voicemail + email | A callback | Scripts → Voicemail · Emails E1 | Callbacks |
+| 5 | **Case call** | Trial terms agreed, case written down | Scripts → Case call | Trials started |
+| 6 | Recruit for the case | 2–3 screened profiles in 3 days | Scripts → Caregiver side · SOPs → After a yes | Profiles sent |
+| 7 | Interviews + first shift | The caregiver shows up | Scripts → Caregiver side (confirmations) | Show rate |
+| 8 | **Call 2 · results (day 25)** | A paying plan | Scripts → Call 2 | Trials → paying |
+| 9 | Retention | They stay and buy more | SOPs → After a yes (check-ins, Friday note) | Months kept |
+| 10 | Referrals | One owner intro per happy agency | Scripts → Call 2 (referral) · SOPs → Referrals | Intros |
+| 11 | Exit call | Save it or learn why | Scripts → Exit call | Saves |
+| 12 | "Not now" | Stay in touch until it's now | Emails E6–E7 · Bulletin | Recalls booked |
 
-## 2 · Right person
-> Are you the one who handles caregiver hiring, or is that someone else?
+## The rules on every call (Sales Teams)
+- **Loud, slow, clear.** Pause before what matters. Raise your pitch on questions.
+- **Questions, not statements.** They believe what they say, not what you say.
+- **The pain is the pitch.** No pitch until there's an open case and a number.
+- **Ask, then shut up for 8 seconds.**
+- **Every no gets at least 3 asks** (loop, then a universal close, AAA between).
+- **BAMFAM:** never hang up without the next step booked on a date.
+- **Every sentence true.** No fake numbers, no "agencies like yours" until you have them.` },
+{ id: 'script-owner', cat: 'scripts', title: 'Call 1 · the dial (book the case call)', body: `Shown in the dialer for every call. {name}, {hook} and {town} fill in from the agency. Aim: **a booked 10-minute case call** (or the case call right now). 3–6 minutes.
 
-## 3 · The problem, not the product · then count to 4
-> From the agencies I've looked at around {town}, the hard part usually isn't getting applicants. It's that they don't show up to the interview, or they quit in the first couple of weeks. **I'm not sure that's true for you. Is it?**
-> Hard case: Live-in, weekend and Marco cases stay open the longest. About 4 in 10 don't show up to the interview, and the good ones get hired by someone else first. **Is that happening with this one, or have you got it covered?**
+## 1 · Intro (under 20 seconds) · name, company, reason, small yes
+> Hi **{name}**, this is Egor with Caregiver Bench. I recruit caregivers for home care agencies around **{town}**. The reason I'm calling: **{hook}**.
+> I'll be quick: two questions to see if I can even help, and if not, I'll let you go. Fair?
+- Wait for the yes. Then: "Are you the one who handles caregiver hiring there?" Not them → Scripts → Gatekeeper.
 
-## 4 · One follow-up
-> When a new case comes in and you're short a caregiver, what do you do today: pull someone from your team, post on Indeed, or something else?
+## 2 · Disco (most of the call) · find the open case and its price
+> In a normal month, how many caregivers do you hire?
+> Is there a case open right now that's hard to staff? Which town, which shift?
+- None open → "When did you last have one open for more than a week, or turn one down?"
+> How long has it been open?
+> What is that costing you?
+- Help with the math if they don't know: "A 24/7 case is 168 hours a week. At about $32 an hour that's ~$5,400 a week you can't bill. Is that close?"
+- Dig: **"Tell me more about that."** · **"Can you give me an example?"** Stay here until there's a number.
+> Is the hard part getting applicants, or getting them to show up and stay?
+> What have you tried so far: Indeed, a recruiter, referrals? How did that go?
+> If that case were covered by someone reliable by next week, what would that change for you?
 
-## 5 · One sentence + a no-oriented ask
-> **I recruit and phone-screen caregivers for agencies around {town}. You pay $500 only after one of them has worked 5 shifts for you. Nothing up front, no monthly fee.** I run my own ads, call every caregiver myself, confirm them twice before the interview. **What's the hardest shift you're trying to cover right now? Would you be against me recruiting for that one this week?**
+## 3 · Recap, label, confirm
+> So if I heard you right: **[case]** has been open **[time]**, it's costing you about **[$]**, and the real problem isn't applicants, it's people who actually show up. Is that fair?
+- No gap = no pitch. Go to "Not now".
 
-## 6 · Yes → the case
-> Let's do 10 minutes on the case: town, hours, pay, must-haves, who interviews. Now, or tomorrow at [time]?
-- Then: "If I can't send you 2 screened candidates within 7 days, you owe nothing." Email the one-page agreement the same day.
+## 4 · Pitch (under 90 seconds) · problem → solution → benefit, 3 times
+> Given what you said, I think I can help. Mind if I walk you through it in 60 seconds?
+> **No-shows:** I call every caregiver myself and confirm her the evening before and the morning of the interview, and again before the first shift. If she doesn't show, you get a replacement profile within 24 hours. That's my Show-Up Guarantee. Would that help?
+> **Speed:** I post ads for your exact case the same day and phone-screen everyone who applies, so you get 2 to 3 local, screened profiles within 3 days, not a pile of résumés. Would that help with [case]?
+> **Staying:** I check in with her on days 1, 3, 7, 14, 30 and 90. If she leaves in the first 90 days, I replace her free. Would that help?
 
-## 7 · Not now
-> Fair enough. Every Monday I send a short email with the screened caregivers I have, by town and shift, no names. Would it be a bad idea if I added you?
+## 5 · The ask · then silence
+> Here's how I'd start, and it's simple: I recruit for that **[Tuesday overnight in Brandon]** this week. **The first caregiver who works it for you is free.** You only pay if you want me to keep going after you've seen it work. **Would you be against trying it on that one case?**
+- **Stop talking. Count to 8.** Whoever speaks first loses the frame.
 
-## Last question after a no
-> Who's the one agency around here you'd guess is having the hardest time staffing right now?
+## 6 · Yes → BAMFAM
+> Perfect. I need 10 minutes for the case details: town, hours, pay, must-haves. Do you have 10 minutes right now?
+- Not now: "Today at 2 or tomorrow at 10, your time?" Get the email. Same day: Emails → E3.
+
+## 7 · Not now → stay in the game
+> No problem. Every Monday I send a short email with the screened caregivers I have, by town and shift, no names. Would it be a bad idea if I added you?
+> And who around here would you guess is having the hardest time staffing right now?
+> When's the right time to check back: early next month?
+- Log the recall date. Never hang up without a date.
 
 ## Voicemail
-> Hi {name}, Egor with Caregiver Bench. {hook}. I recruit caregivers in your area, live-in and weekends especially, and you only pay once a caregiver has worked 5 shifts. I'll try you again on [day]. If it's easier, I'm at 561-556-0536.` },
-{ id: 'script-al', cat: 'scripts', title: 'Assisted living opener', body: `Shown in the dialer for assisted living and memory care (tier AL).
+See Scripts → Voicemail + same-day email.` },
+{ id: 'objections', cat: 'scripts', title: 'Loops and objections', body: `Shown in the dialer under the script.
 
-> Hi, is this the Executive Director? This is Egor with Caregiver Bench. We've never spoken. I recruit caregivers and CNAs in Collier and Lee. I know a lot of communities end up paying agency staff to cover shifts. Is that something you deal with, or are you fully staffed?
+**The job is handling no.** Ask at least 3 times. Between asks: **AAA** = Acknowledge ("Totally fair"), Associate ("honestly, the owners who end up keeping us asked exactly that"), Ask again.
+
+## Loop 1 · confirm value, then find the fear
+> Totally hear you. Quick question: do you think having someone who confirms every interview would get you closer to a fully staffed schedule?
+> What's your main concern? **What are you afraid of having happen?**
+
+## The 5 universal closes
+| Close | Say |
+| Reason | "You're slammed? That's exactly why: this takes the hiring off your desk." |
+| Hypothetical | "If [their concern] weren't an issue, would you try it on that one case?" |
+| Zoom out | "You need that case covered, I cover cases, and the first one is free. What am I missing?" |
+| 1 to 10 | "On 1 to 10, how sure are you this would help with that case?" Then: "What would make it a 10?" or "Why not a 1?" |
+| Best / worst case | "Best case, the case is covered next week and you don't pay for it. Worst case, you saw 3 screened profiles for free and kept your process. Doing nothing guarantees it stays open." |
+
+## Objections by type
+| They say | You say |
+| **Money** · "How much?" (call 1) | "The first caregiver who works the case is free, so you see it before you pay a dollar. After that most agencies your size pay less than one recruiter fee. Can I ask about the case first, so I know if I can even help?" |
+| **Money** · "But after?" | "Two ways: $2,500 every 4 weeks for 2 caregivers who work, first pick in your towns. Or $1,500 per caregiver as you go. Recruiters charge $4,800 to $8,000 a hire." |
+| **Money** · "Too expensive" (call 2) | "Compared with what? A lost caregiver costs you about $2,600, and that case is ~$5,400 a week of billing. If all it did was keep [case] covered, would it be worth it?" |
+| **Money** · "Can you do it cheaper?" | Smile: "I could do it for more!" Then: "I keep one price for everyone. If it's too much, I'll put you on the plan that fits better." Change the plan, never the number |
+| **Time** · "I'm busy / no time" | "That's exactly why. The case call is 10 minutes and takes the hiring off you. Today at 2 or tomorrow at 10?" |
+| **Time** · "Call me later" | "Sure. Let's put it in now so neither of us has to remember: Thursday 10 or 2?" |
+| **Decision maker** · "Ask my partner" | "Makes sense. What do you think they'd object to?" → "What if they say no?" → "Let's grab 10 minutes with both of you: tomorrow 10 or 2?" Ask for support, not permission |
+| **Fit** · "We use Indeed / a recruiter" | "Most agencies do. Keep them. How many of those interviews actually show up?" |
+| **Fit** · "We're fully staffed" | "Good to hear. Have you turned down a 24/7 or live-in case this year?" |
+| **Fit** · "Recruiters burned us" | "Fair. Did you marry the first person you dated? Don't let one bad recruiter burn you twice. That's why the first one is free. What happened with them?" |
+| **Fit** · "Are you a staffing agency?" | "No. A staffing agency sends a temp and bills by the hour. I find people you hire yourself, as your own employees." |
+| **Stall** · "Send me info" | "Happy to. So it's not a brochure: which case should I build it around?" Then book the call that walks through it |
+| **Stall** · "Let me think" | "Of course. What information do you still need to decide?" |
+| **Stall** · "Maybe next month" | "What happens to [case] between now and then?" |
+| "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local to you; only the recruiting and screening is remote." |
+| "How many caregivers do you have?" | The real number from the bench. While building: "I'm building the bench this month, so I recruit for your case specifically." |
+| "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why the first caregiver is free." |
+| "Is this legal? Patient brokering?" | "Yes. That's about paying for clients. I never touch clients or referrals, only caregivers you hire as employees." |
+| "Are you licensed?" | "Florida licenses companies that provide care or place contractors. I do neither: I recruit, you hire your own W-2 employees." |
+| "How did you get my number?" | "From your public listing." |
+| "Is this AI?" | "No, it's me, Egor. I make my own calls." |
+| Anything you don't know | "Good question. I don't want to guess. I'll find out and email you today." |` },
+{ id: 'script-gatekeeper', cat: 'scripts', title: 'Gatekeeper', body: `Goal: **a name and a time.** That counts as a win.
+
+> Hi, this is Egor with Caregiver Bench. I recruit caregivers for home care agencies in the Tampa Bay area. Who handles caregiver hiring there?
+
+- **You have the owner's name (Sunbiz):** "Hi, is Maria in?" beats "who's the owner?". Calm, like you've spoken before.
+- **They give a name:** "Thank you. And your name?" Write both.
+- **Not in:** "When is the best time to catch her? And may I have her email, so I can send her the caregivers I have this week?"
+- **"What's it regarding?":** "Caregivers for your hard-to-staff cases. Is she the right person, or is that someone else?"
+- Next call: "**[Receptionist]** at your front desk said you handle caregiver hiring." True, because you spoke to them.
+- The **scheduler** feels the pain first and is often your best way to the owner.
+
+Log it as Gatekeeper with both names and the callback day.` },
+{ id: 'script-vm', cat: 'scripts', title: 'Voicemail + same-day email', body: `Voicemail only on attempt 3 (cadence: SOPs → Dial block). **20 seconds.** Then the same-day email if you have an address.
+
+> Hi **{name}**, Egor with Caregiver Bench. **{hook}**. I recruit and phone-screen caregivers for agencies around **{town}**, and the first caregiver who works a case for you is free. I'll try you again on **[day]**. My number is 561-556-0536, again 561-556-0536. Thanks.
+
+(Swap in the 813 number once it's live.) Then call again on that day: owners notice when you do what you said.
+
+Same-day email: Scripts → Emails → E1.` },
+{ id: 'script-case', cat: 'scripts', title: 'Case call (10 min): start the free trial', body: `After a yes on call 1. Same day if you can. Goal: the case written down + the trial terms agreed out loud.
+
+## 1 · Frame (10 seconds)
+> Thanks for the time. 10 minutes: I'll ask about the case, tell you exactly what happens next, and we're done. Good?
+
+## 2 · The case (never client names or health details)
+- Town (and how far is OK), days and hours, live-in or shifts
+- Pay rate
+- Must-haves: HHA or CNA, car, language, experience with dementia or lifts
+- Start date
+- Who interviews, and when they're free this week
+- **Confirm: it's a W-2 job with your agency.** (1099 / nurse registry = stop, politely)
+
+## 3 · The terms, said out loud
+> Here's how it works. I post ads for this case today and phone-screen everyone. **Within 3 days you get 2 to 3 Profile Cards.** You reply within 24 hours and interview within 72 hours, and you tell me how it went. **The first caregiver who works this case is free.** Every caregiver comes with the Show-Up Guarantee and 90-Day Stay-or-Replace. Around day 25 we do a 10-minute results call, and you decide if you want me to keep going. If you miss two of those steps, the trial ends. Fair?
+- Fair-play: one agency at a time per caregiver; no fee if she applied to you directly in the 60 days before; if you hire someone I introduced within 12 months, the fee applies.
+
+## 4 · Close the step
+> I'll email you this in writing within the hour. What's the best email, and the best time for the results call around **[day 25 date]**?
+
+Then: Emails → E3 within 1 hour. In War Room: Pipeline → "Case call done → trial starts today" (creates the tasks).` },
+{ id: 'script-emails', cat: 'scripts', title: 'Emails (owners)', body: `Plain text, 3 to 6 lines, from the main address, no attachments, no links except the agreement. One ask per email. **Texts are for logistics only, and only after consent.**
+
+## E1 · Same day after a voicemail
+Subject: {town} caregivers
+> Hi {name}, I left you a short voicemail today. I recruit and phone-screen caregivers for home care agencies around {town}, and I confirm every interview and first shift so they actually show up. If a case is hard to staff right now, the first caregiver who works it is free. Is there one I could recruit for this week?
+> Egor · Caregiver Bench · 561-556-0536
+
+## E2 · Within 1 hour of an owner conversation
+Subject: our call today
+> Hi {name}, thanks for the time today. You said **[their exact words]**. Next step: **[what you'll do]** by **[date]**. We're talking again on **[date, time]**.
+> Egor
+
+## E3 · Within 1 hour of the case call (the trial in writing)
+Subject: your [case] · next 30 days
+> Hi {name}, here's what we agreed.
+> **The case:** [town · days and hours · pay · must-haves · start date]
+> **What I do:** ads today, phone screens, 2–3 Profile Cards by [date], confirmations before every interview and first shift.
+> **What you do:** reply to cards within 24 hours, interview within 72, tell me the outcome.
+> **Price:** the first caregiver who works this case is free. Results call on [date]; you decide then.
+> **Guarantees:** Show-Up Guarantee (replacement profile within 24 hours), 90-Day Stay-or-Replace.
+> Egor
+
+## E4 · Profile Cards
+Subject: 3 caregivers for your [case]
+> Hi {name}, here are [3] screened caregivers for the [case]. Each one told me she wants exactly this kind of shift. Which ones would you like to interview? I'll book it and confirm them.
+> [Card 1 · Card 2 · Card 3: first name + last initial, town and commute, shifts, live-in, certificate as she stated it, experience, why she wants this case, my screening note. No phone numbers.]
+
+## E5 · Update every 2 days during an open case (even when nothing is new)
+> Hi {name}, quick update on the [case]: [N] applicants, [N] screened, [N] cards sent, next interview [day]. Next update [day].
+
+## E6 · Follow-ups for an interested owner who went quiet
+- Day 2: call. Day 7: call + "Hi {name}, still keen to get the [case] covered? I can have profiles to you by [day]."
+- Day 14: **"Are you still looking to fill the [case]?"** (one line, nothing else). Then monthly.
+
+## E7 · Monday Bench Bulletin (only owners who said yes to it)
+Subject: Bench Bulletin · [date] · [N] caregivers available
+> Screened caregivers available this week, no names:
+> [town · shift · live-in yes/no · certificate · start date] × N
+> Reply with the line number and I'll send the full Profile Card.
+> Caregiver Bench · [postal address] · Unsubscribe: reply "stop".` },
+{ id: 'script-results', cat: 'scripts', title: 'Call 2 · results call (day 25): the sale', body: `The first caregiver is working, the owner is happy, the next case is coming: **the point of greatest deprivation.** Aim: a paying plan. 15 minutes.
+
+## 1 · Intro + agenda
+> Hi {name}, Egor. As promised, 10 minutes on how the trial went and what's next. Sound good?
+
+## 2 · Recap the win (get their words: that's your future testimonial)
+> **[Caregiver]** has worked **[N] shifts** on the **[case]** and confirmed every one. How's she doing from your side?
+- "Tell me more." Write down their exact sentence.
+
+## 3 · Disco the next gap
+> What's the next case you're worried about?
+> How many caregivers will you need in the next two months?
+> What happens if those sit open the way [first case] did?
+
+## 4 · Anchor, then the menu (A or B)
+> For context: recruiters charge 15 to 25% of first-year pay, $4,800 to $8,000 a hire, and a lost caregiver costs you about $2,600.
+> Most agencies your size go with **Priority Bench**: 2 caregivers who work every 4 weeks, first pick of every new caregiver in your towns 24 hours before anyone else, and I only take 2 agencies per area. **It is an investment: $2,500 every 4 weeks.** Or you pay **$1,500 per caregiver** as you go, no plan. **Which fits better?**
+- **Silence. 8 seconds or more.**
+- 6+ hires a month or 2+ locations (only after gate 4): Multi-site, $6,000 every 4 weeks, 6 caregivers, fully staffed in 90 days or no fee until reached.
+
+## 5 · Founding 5 (only while true: first 5 paying agencies)
+> You're one of my first five agencies, so if you start now your price is locked for 12 months. In exchange I'd ask for a short written case study and two intros to owners you know. Fair?
+
+## 6 · Close
+> Great. I'll send the agreement and the first invoice dated [day 30]. Bank transfer in USD.
+- No → Loops and objections (Loop 1, then the 5 closes, AAA between). End with a date: BAMFAM.
+
+## 7 · Referral (every yes, and every happy owner)
+> Who else do you know who's as good at this as you and has a case they can't fill?
+> Would you be against a quick email intro right now? I'll write it, you just hit send.
+- Never pay for a referral (legal lines). A thank-you, not money.` },
+{ id: 'script-exit', cat: 'scripts', title: 'Exit call (when they want to stop)', body: `Never argue. Hear, then offer a better path (Hormozi: HEAR, then a rollover).
+
+> Totally understand, and thank you for telling me directly. Before you go, can I ask what didn't work?
+
+1. **Hear:** let them talk. Short "mm, I see". Write their words.
+2. **Empathize:** "That would frustrate me too." Be more upset about it than they are.
+3. **Own it:** "That's on me."
+4. **Resolve with 3 options:**
+> I could close it today, no hard feelings. Or we pause for one cycle and I come back with profiles for your next case. Or we switch you to pay per caregiver, and what you paid this cycle counts toward the next one. Which sounds best, or did I miss something?
+- Whatever they pick: confirm by email the same day. Log the reason (Pipeline → Lost).` },
+{ id: 'script-screen', cat: 'scripts', title: 'Caregiver side: ad, reply, screen, confirm, check in', body: `Supply is the #1 risk. Speed wins: an applicant called the same day is twice as likely to be hired. **Never charge caregivers. Never social security numbers or medical information. Never references or background checks.**
+
+## The job ad (Leila Hormozi: hook → values → the meat → reinforce)
+Title: **Caregiver / HHA · steady hours near [town] · weekly pay**
+> **Tired of last-minute cancellations and agencies that never call back?** I match caregivers with licensed home care agencies near [town] that are hiring now, for the shifts you actually want.
+> **Who this is for:** caregivers who show up, treat clients like family, and want steady hours close to home.
+> **What you get:** jobs that fit your shifts (days, nights, weekends, live-in), interviews within a few days, and one person (me) who answers your calls. You're hired by the agency as its own employee. **I never charge you anything.**
+> **What we need:** HHA, CNA or companion experience, reliable transport, and to be able to work in the US.
+> **Apply in 1 minute:** [link]. I call every applicant within 24 hours.
+- Facebook: Employment category. English and Spanish. No words about age, sex, origin, religion, family or health.
+
+## First reply (the moment they apply)
+> Hi [name], thanks for applying! I'm Egor from Caregiver Bench. I'd like a quick 10-minute call to understand what shifts you want, so I only send you jobs that fit. Does [time 1] or [time 2] today work? I never charge caregivers anything.
+
+## The screening call (10 minutes, same for everyone)
+> Hi [name], it's Egor from Caregiver Bench. You applied for caregiver work near [town]. Got 10 minutes? I'll ask a few questions so I only send you jobs that fit.
+1. Town, and how far will you drive?
+2. Do you have a car?
+3. Certificate: HHA, CNA or none? (as they say it)
+4. Years of experience, and what kind of care?
+5. Which shifts? Weekends? Overnights?
+6. Live-in: yes or no?
+7. Hours wanted a week?
+8. Pay wanted?
+9. Languages?
+10. Why are you looking right now?
+11. When can you start?
+12. Are you legally allowed to work in the US? (yes or no only)
+> **Consent:** Is it OK if I share your profile (first name, town, shifts, experience, no phone number) with agencies that are hiring?
+> **Next step:** When I have a job that fits, I'll call you first and book the interview. You'll hear from me every week either way.
+- Note what you saw: answered on time, kept the call she booked, spoke clearly. Score 1–5. Log in Dial → Caregivers.
+
+## Confirmation calls (this is the product)
+- **Evening before the interview:** "Hi [name], quick check for tomorrow at [time] with [agency] in [town]. Still good? Do you have the address? Anything that could stop you?"
+- **Morning of:** "Good morning [name], you're on for [time]. Leave by [time]. Call me if anything changes."
+- **Night before the first shift:** same as the evening call. No-show → replacement profile to the owner within 24 hours.
+
+## Check-in calls (days 1, 3, 7, 14, 30, 90)
+> How's it going with [client situation, no names]? Anything that would make you leave? Anything the office should know?
+- After each: a 2-line note to the owner with only what she agreed to share. Problems come up before she quits.` },
+{ id: 'script-al', cat: 'scripts', title: 'Assisted living opener (parked)', body: `**Parked.** Assisted living and memory care are the backup segment, tested only if 100 owner conversations produce no paying agency.
+
+Shown in the dialer for tier AL:
+> Hi, is this the Executive Director? This is Egor with Caregiver Bench. I recruit caregivers and CNAs for communities in the Tampa Bay area. A lot of communities end up paying agency staff to cover shifts. Is that something you deal with, or are you fully staffed?
 
 ## Their words
 Residents (not clients), community or building (not agency), shifts, the floor. Decision maker: the Executive Director (sometimes the Director of Nursing or HR).
 
 ## If they use temps
 > Then every caregiver you hire permanently cuts that bill. How much agency staffing did you pay last month?` },
-{ id: 'script-gatekeeper', cat: 'scripts', title: 'Gatekeeper', body: `> I recruit caregivers for home care agencies in Florida. Who handles caregiver hiring there?
-
-If you have the owner's name (from Sunbiz): "Is Maria in?" beats "Who's the owner?".
-
-If they're not in:
-> Thank you. When is the best time to reach her? And may I have her email so I can send her the caregivers I have this week?
-
-Log it as Gatekeeper with the name and the callback day. The scheduler is often your best ally to reach the owner.` },
-{ id: 'objections', cat: 'scripts', title: 'Objections', body: `Shown in the dialer under the script.
-
-| They say | You say |
-| "How much?" | "Free for 30 days. If none of my caregivers works a shift, nothing. If one does, $1,500 a month with 3 included, or $750 each if you only hire now and then." |
-| "Too expensive." | "Compared with what? Replacing a caregiver costs most agencies about $2,600. Indeed is about $561 per hire, and you still do all the work." |
-| "Send me info." | "Sure. What would make it worth reading: the live-in case, or weekends?" Then a 3-line email about that case. |
-| "We have a recruiter / Indeed." | "Keep them. Just so I know: how fast did your last live-in case get staffed?" |
-| "We're fine on caregivers." | "Good to hear. Have you turned down a 24/7 or live-in case this year?" |
-| "Recruiters burned us." | "Fair, most charge whether anyone works. That's why I don't charge until someone works a shift. What happened with them?" |
-| "I'm busy." | "Sorry for the timing. When's better: tomorrow morning or afternoon?" Book it, hang up. |
-| "Where are you based?" | "In Europe. I work Florida hours. The caregivers are local, only the screening is remote." |
-| "How many caregivers do you have?" | The real number. While building: "I'm building the bench this month, so I recruit for your case specifically." |
-| "Are you a staffing agency?" | "No. A staffing agency sends a temp and bills by the hour. I find people you hire yourself, permanently." |
-| "Is this legal? Patient brokering?" | "Yes. That's about paying for clients. I never touch clients or referrals, only caregivers, for a flat recruiting fee." |
-| "I need to think about it." | "Of course. What's the main thing you'd want to think through?" |
-| "Can you do it cheaper?" | "I keep one price for everyone. If it's too much, I'll put you on the plan that fits better." |
-| "Are you licensed?" | "Florida licenses companies that provide care or place contractors. We do neither: we recruit, you hire your own W-2 employees." |
-| Anything you don't know | "Good question. I'll find out and email you today." |` },
-{ id: 'script-screen', cat: 'scripts', title: 'Caregiver screening call (10 min)', body: `Same questions for everyone. Never social security numbers, never medical information.
-
-1. Town, and how far will you drive?
-2. Do you have a car?
-3. Certificate: HHA, CNA or none? (as they state it)
-4. Years of experience, and what kind of care?
-5. Which shifts? Weekends? Overnights?
-6. Live-in: yes or no?
-7. Hours wanted per week?
-8. Pay wanted?
-9. Languages?
-10. Why are you looking?
-11. When can you start?
-12. Legally allowed to work in the US? (yes/no only)
-
-## Also note what you observe
-Answered on time · showed up for the call they chose · speaks clearly.
-
-## Then
-Score 1–5, log it in Dial → Caregivers, tag town, shifts, live-in, language, certificate.` },
-{ id: 'script-case', cat: 'scripts', title: 'Case call (10 min, after a yes)', body: `- Town, days and hours
-- Live-in or not
-- Pay
-- Must-haves: CNA/HHA, car, language
-- Start date
-- Who interviews, and when
-- Confirm: **it's a W-2 job**
-
-**Never client names or health details.**
-
-Within 1 hour: a one-page recap by email (the case, the plan, the dates).` },
-
 /* ───────── SOPs ───────── */
 { id: 'sop-dial', cat: 'sops', title: 'Dial block', body: `1. **Open War Room → Dial session.** Nothing else opens first.
 2. **First dial inside 2 minutes.**
-3. Callbacks due first, then the queue top-down.
+3. Callbacks due first, then the queue top-down (Tampa Bay sorts to the top).
 4. Tap the outcome after every call. That logs the dial and the owner talk.
 5. **5-minute break every 50 dials** (water, stand up).
 6. Hit the number, or the block ends, whichever comes later. Never stop at 0.
 7. End session. Anything you couldn't answer: write it down, ask Claude.
 
-Florida = Moldova − 7 h (the Panhandle, west of the Apalachicola River, is − 8 h). Call 8am–8pm their time. Owners pick up best mid-morning Florida time (check Stats → Intel once 50 calls are logged).
+## Cadence per agency (Sales Teams: 7 attempts beat 14)
+| Day | Attempts |
+| 1 | 2 dials back to back (double-dial) |
+| 2 | 2 dials |
+| 3 | 1 dial + voicemail + same-day email (E1) |
+| 4 | 1 dial, then the Monday Bulletin (if they agreed) and a 30-day recall |
+
+Max 3 calls a number in 24 hours. 8am–8pm their time.
+
+Florida = Moldova − 7 h (the Panhandle, west of the Apalachicola River, is − 8 h). Owners pick up best 8–11am Florida time.
 
 ## Calling setup (so they pick up)
 - **A real US local number** in the area code you call (Tampa Bay: 813 / 727). Never spoof, never hide the number.
-- **Register it** on freecallerregistry.com (feeds AT&T, T-Mobile, Verizon's spam filters). Ask the provider for STIR/SHAKEN "A" attestation.
-- **Max 100 dials a day per number** for the first 2 weeks, then up to 200. A sudden jump gets the number labelled "Spam Likely".
-- **Check the label weekly:** call your own phone from it. If it says Spam Likely: stop that number, get a new one.
-- **Dial by hand** (click to call), one number at a time. No automatic dialer that picks numbers by itself until a lawyer has looked at it.
-- **Voicemail:** 20 seconds, then the same-day email that mentions it.` },
-{ id: 'sop-after-yes', cat: 'sops', title: 'After an owner says yes', body: `| When | What happens |
-| Case call (10 min) | Town, hours, live-in, pay, must-haves, start date, who interviews. W-2 confirmed |
-| Within 1 hour | One-page recap by email |
-| Within 4 hours | Caregiver Profile Cards (first name + last initial, towns, shifts, live-in, certificate as stated, experience, screening notes). **No phone numbers** |
-| Within 48 hours | Interviews on their calendar |
-| Day before + morning of | Confirm every caregiver by phone (the 40% no-show problem) |
-| No-show | Replacement candidate within 24 hours, free |
-| Every evening, open case | A 3-line email update |
-| First shift | The agency tells us within 2 business days |
-| Days 1, 3, 7, 14, 30 | Check-in calls with the caregiver (First 30 Days Shield) |
-| Every Friday | One page: "your hiring this week" |
-| Day 25 | Results call + written reminder |
-| Day 30 | A caregiver worked → the plan starts. None did → they pay nothing, ever |` },
-{ id: 'sop-bench', cat: 'sops', title: 'Building the bench', body: `1. **Ads:** Facebook job ads in the Employment category, English and Spanish, Collier and Lee, plus the county of every agency that says yes (recruit for their case). Free backups: Indeed posts, local job groups, CNA schools.
-2. **Application:** 1-minute form. Consent to share the profile with employers.
-3. **Instant reply:** every applicant gets a link to book a 10-minute call.
-4. **Screening call:** see Scripts → Caregiver screening call.
-5. **Score 1–5 → bench.** Every bench caregiver gets a call every week so the information stays fresh.
+- **Register it** on freecallerregistry.com. Ask the provider for STIR/SHAKEN "A" attestation.
+- **Max 100 dials a day per number** for the first 2 weeks, then up to 200.
+- **Check the label weekly:** call your own phone from it. "Spam Likely" = stop that number, get a new one.
+- **Dial by hand**, one number at a time.` },
+{ id: 'sop-practice', cat: 'sops', title: 'Practice and game tape', body: `Hormozi: "Practise until you can't get it wrong." The script only works if the words are automatic, so you can listen.
 
-Caregivers apply to 10–20 agencies at once. **Speed wins:** interviewed within 4 days = 2× as likely to be hired.` },
+## Before the first block of v4 (once)
+- Read **Call 1** out loud **25 times** (about 1 hour). Boredom means it's working.
+- Blackout method: read it, black out one word, read again. Repeat.
+
+## Before every dial block (5 minutes)
+- Read Call 1 out loud once.
+- 3 objections out loud with Claude (Ask → "spar me on 3 objections").
+
+## After every owner conversation (1 minute)
+Three lines in the agency's notes: **what they said (exact words) · where it stalled · next step.**
+
+## Every evening (in the shutdown, 2 minutes)
+Pick the worst call of the day. Rewrite the one line that lost it.
+
+## Every Sunday
+- Score: average call review /5 (Call Lab).
+- **Script version:** v4.0 from 17 Nov. Change ONE line only after 300+ dials on the current version and a clear pattern. Log it on System → Changelog.
+- The number that dropped most this week = the step you train next week.` },
+{ id: 'sop-after-yes', cat: 'sops', title: 'After an owner says yes (the trial)', body: `Recruiting starts only after a yes, for that exact case. **The product is the confirmation calls:** a caregiver who shows up.
+
+| When | You do | Script |
+| Day 0, same day as the yes | 10-minute case call + E3 in writing within 1 hour. War Room → Pipeline → trial starts | Case call · E3 |
+| Day 0 evening | Facebook job ad for that case (EN + ES, Employment category) + free Indeed, Employ Florida, local caregiver groups | Caregiver side → the ad |
+| Days 1–3 | Call every applicant the same day. Profile Card for each fit, only with consent | Caregiver side → screening |
+| By day 3 | 2–3 Profile Cards to the owner. Update every 2 days, even with nothing new | E4 · E5 |
+| Interview | Confirm the evening before and the morning of. No-show → replacement profile within 24 hours | Caregiver side → confirmations |
+| First shift | Confirm the night before. War Room → Pipeline → first shift (creates the check-in tasks) | |
+| Days 1, 3, 7, 14, 30, 90 | Check-in calls with the caregiver, 2-line note to the owner | Caregiver side → check-ins |
+| Every Friday | 5 lines to the owner: cases open, candidates sent, interviews, starts, next week | |
+| Day 25 | **Results call: the sale** | Call 2 |
+| Day 30 | Plan starts (first 4-week invoice) or the per-caregiver invoice goes out | |
+| Day 56 (cycle 2) | Halfway check: "what case is next?" → extras, or Multi-site if they hire 6+ a month | |
+| Cancel request | Exit call | Exit call |
+
+**Before day 30 of the first trial:** a payment route (dad's company invoices, with the accountant's OK) and a lawyer-checked one-page agreement. No bill goes out before both.` },
+{ id: 'sop-bench', cat: 'sops', title: 'Building the bench', body: `1. **Ads:** Facebook job ads in the Employment category, English and Spanish, **Tampa Bay** (Tampa, St. Pete, Clearwater, Brandon), plus the town of every case you take. Free backups: Indeed posts, Employ Florida, local caregiver groups, CNA and HHA schools. Wording: Scripts → Caregiver side → the ad.
+2. **Application:** 1-minute form with consent to share the profile.
+3. **First reply** the moment they apply (Scripts → Caregiver side).
+4. **Screening call** the same day: Scripts → Caregiver side → screening.
+5. **Score 1–5 → bench.** Every bench caregiver gets a call every week so the information stays fresh.
+6. **Note the source of every applicant.** Each Sunday: the source with the lowest cost per screened caregiver gets more money; the worst one is cut.
+
+**Target: 15 phone-screened caregivers in Tampa Bay by 30 Nov.** Until then, no 48-hour promises: "within 3 days".` },
+{ id: 'sop-followup', cat: 'sops', title: 'After every owner conversation', body: `1. **Log it** in Dial (outcome + their exact words + next step + date).
+2. **E2 within 1 hour** (Scripts → Emails).
+3. **Callback or case call in the queue** on the day agreed. Never "I'll call you sometime".
+4. **Interested but quiet:** day 2 call, day 7 call + email, day 14 one-line email (E6), then monthly.
+5. **Not now:** Bulletin (if they agreed) + a recall date in 30 days.
+
+Cold email to strangers waits for the warmed-up spare domains. Never from caregiverbench.com.` },
+{ id: 'sop-referral', cat: 'sops', title: 'Referrals', body: `Referrals should become 20–30% of new agencies (Sales Teams). Ask at three moments. **Never pay for a referral** (legal lines).
+
+| When | Say |
+| Every "not now" or no | "Who's the one agency around here you'd guess is having the hardest time staffing right now?" |
+| Every yes on the results call | "Who else do you know who's as good at this as you and has a case they can't fill? Would you be against a quick email intro right now? I'll write it, you just hit send." |
+| Any thank-you, any good check-in | "Glad it's working. Is there one owner you'd introduce me to?" |
+
+## Then
+- Same day: call or email the name. Open with "[Name] suggested I call" only if they agreed to it.
+- Write who referred them in the agency's notes.
+- Tell the referrer when the intro turned into a conversation. A thank-you, never money.` },
 { id: 'sop-shutdown', cat: 'sops', title: 'Shutdown (20:45, 7 minutes)', body: `1. **War Room → Start shutdown:** numbers (dials, owner talks, BAC, money), the 7 standards, debrief.
-2. Daily log (2 min): numbers, what happened in one sentence, the lesson, tomorrow's first action.
+2. Daily log (2 min): numbers, what happened in one sentence, the worst call and the one line you'd change, tomorrow's first action.
 3. Magnesium + water.
 4. Look at tomorrow: the first action is 05:30 train.
 5. Phone charges outside the bedroom. **Bed 21:00.**` },
 { id: 'sop-review', cat: 'sops', title: 'Sunday review (11:00, 30 min)', body: `1. Open **Plan → Review**. The week report is at the top.
-2. Dials vs 350, owner conversations, interested owners, caregivers screened (Tampa Bay, /15 by 30 Nov), money collected. Open leads left (under 700 = ask Claude for more).
-3. BAC hours and the Saturday test score.
-4. Training days. Weight vs the checkpoint.
-5. Money made vs spent.
+2. Dials vs 350, connects, owner conversations, open cases stated, trials started, caregivers who worked, money collected. Caregivers screened (Tampa Bay, /15 by 30 Nov). Open leads left (under 700 = ask Claude for more).
+3. The funnel: which stage dropped most? That's next week's ONE fix (Business → The funnel math).
+4. Script: version + dials on it. 300+ dials and a clear pattern = change one line (SOPs → Practice).
+5. BAC hours and the Saturday test score. Training days. Weight vs the checkpoint. Money made vs spent.
 6. Read Mission → Decisions → Still open. Decide one.
-7. Write **ONE change** for next week. That's the only change allowed.
+7. Write **ONE change** for next week. Claude carries it everywhere (System → One source of truth).
 
 Monthly, first Sunday: compare with the plan backward. Behind 2 months in a row = cut order, not more hours.` },
 { id: 'sop-morning', cat: 'sops', title: 'Morning', body: `05:20 toilet → scale → weigh in War Room → teeth, water, dressed.
@@ -354,94 +619,81 @@ Monthly, first Sunday: compare with the plan backward. Behind 2 months in a row 
 06:15 BAC: Anki, 25 minutes. Phone in another room.
 06:40 lead prep: owner names for today's calls (until 30 Nov). From 1 Dec: BAC 06:15–07:30 instead.
 07:30 breakfast. 07:50 sunlight, 10 minutes. Pack lunch, snack, dinner, 1 L water.` },
-
-{ id: 'sop-referral', cat: 'sops', title: 'Referrals', body: `Ask at three moments. Never pay for a referral (legal lines).
-
-| When | Say |
-| Every "not a fit" | "Who's the one agency around here you'd guess is having the hardest time staffing right now?" |
-| Day 30 of a trial, after a caregiver worked | "Who else do you know who'd want this? I'll take care of them the same way." |
-| Any thank-you | "Glad it helped. Is there one owner you'd introduce me to?" |
-
-## Then
-- Same day: call or email the name. Open with "[Name] suggested I call."
-- Write who referred them in the agency's notes (and the Lead DB column "Referred by").
-- Tell the referrer when the intro turned into a conversation. A thank-you, never money.` },
-{ id: 'sop-followup', cat: 'sops', title: 'After every owner conversation', body: `1. **Log it** in Dial (outcome + one line: name, case, next step, date).
-2. **Email within 1 hour,** from my main address, 3 lines: what they said, what I'll do, the next date. No attachments.
-3. **Callback in the queue** on the day they named.
-4. **Not now** → ask to add them to the Monday Bench Bulletin.
-
-Cold email to strangers waits for the warmed-up spare domains. Never send cold email from caregiverbench.com.` },
 /* ───────── BUSINESS ───────── */
-{ id: 'offer', cat: 'business', title: 'What we sell', body: `**Screened caregivers for private-pay Florida home care agencies and assisted living.** They hire, we recruit.
+{ id: 'offer', cat: 'business', title: 'What we sell', body: `**Local caregivers, phone-screened by a person and confirmed twice, who show up, or you don't pay.**
+Buyers: owners and GMs of private-pay home care agencies (Home Health + Homemaker & Companion, W-2 caregivers) in **Tampa Bay**, then Collier and Lee.
 
-## On the phone now: the Founding Offer (first 5 agencies)
-> **$500 per caregiver, invoiced only after they've worked 5 shifts for you.** Nothing up front, no monthly fee, no contract length. If I can't send you 2 screened candidates for your open case within 7 days, you owe nothing. All I ask: an honest review if it works.
+## The ladder (one layer at a time: Money Models)
+| Step | Name | Price | What they get | Role |
+| Free | **Bench Bulletin + Hiring Snapshot** | $0 | Monday email of screened caregivers by town and shift; how their job ads compare with local pay | Lead magnet, for "not now" only |
+| Front door | **First Hire Free** (30 days, one open case) | $0 | 2–3 screened profiles within 3 days (48 hours once the bench has 15); the first caregiver who works the case costs nothing | Attraction offer (free, with terms) |
+| Core | **Priority Bench** | **$2,500 every 4 weeks** | 2 caregivers who work each cycle (unused carry over 1 cycle); extras $1,000; first pick in their towns 24 hours before anyone; max 2 members per town area | Continuity, sold at the first win |
+| Pay as you go | **Pay When They Work** | **$1,500** per caregiver who works a first shift · **$2,000** hard case | No contract, no monthly fee | Downsell (menu option B) |
+| Premium (gate 4) | **Multi-site: Fully Staffed in 90 Days** | $6,000 every 4 weeks | 6 caregivers who work each cycle; extras $900; first pick in all their towns; fully staffed in 90 days or no fee until reached | Upsell for 6+ hires a month or 2+ locations |
 
-- One price for every case while I collect proof. Live-in and 24/7 too.
-- Why 5 shifts, not 1: the owner's real fear is the caregiver who quits in week one. Paying after 5 shifts removes it.
-- Why $500: proof beats price. Five agencies saying "he delivered" is worth more than $250 more per hire (Hormozi: proof beats promise [#102]).
-- **Qualifying question:** "What's the hardest caregiver shift you're struggling to cover right now?" Sell that one case, not a plan.
-- **No 48-hour or 24-hour promises** until the Tampa Bay bench has 15 screened caregivers.
+## Trial terms
+The agency agrees in writing to: a 10-minute case call, replies to profiles within 24 hours, interviews within 72 hours, telling you the outcome. Two misses end the trial. Once a payment route exists: card on file and a $250 fee per interview the agency itself skips.
 
-## After proof (3 caregivers who worked, or 5 founding agencies): the full ladder below
-Monthly plans are offered only to agencies where at least 2 of my caregivers already worked. Never on a cold call.
+## Two guarantees on every caregiver (name them on every pitch)
+- **Show-Up Guarantee:** she misses the interview or first shift → a replacement profile within 24 hours, and she never counts against the plan.
+- **90-Day Stay-or-Replace:** she leaves within 90 days → free replacement; if you can't replace within 21 days, that cycle's share is credited.
+Check-ins on days 1, 3, 7, 14, 30, 90 are how you deliver them.
 
-## Routing question (after proof)
-> In a normal month, how many caregivers do you hire?
-
-| Answer | Offer |
-| 0–1 | **Pay When They Work:** $750 per caregiver who works a first shift, $1,200 for a hard case. No monthly fee |
-| 2–5 | **30-Day Bench Trial → Priority Bench**, $1,500 a month, 3 caregivers who work included (extras $400 / $600) |
-| 6+, or 2+ locations | **30-Day Bench Trial → Multi-site**, $3,000 a month, 7 included, Fully Staffed in 90 Days guarantee |
-
-## The trial: "staffed or it's free"
-30 days on their open cases. If at least one of our caregivers works a shift, the plan starts month to month. If none does, they pay nothing, ever. Trial caregivers stay free if they keep the plan for 2 paid months.
-
-## With every caregiver
-- **No-Show Insurance:** a replacement candidate within 24 hours.
-- **Stay-or-Replace 90:** leaves within 90 days → free replacement, or a refund of the unused part after 21 days.
-- **First 30 Days Shield:** check-in calls on days 1, 3, 7, 14, 30.
+## Pricing rules
+- **Free or full price, never a discount.** If they push, change the plan, never the number.
+- **Founding 5:** the first five paying agencies lock their price for 12 months for a written case study + two owner intros. A trade, not a discount.
+- Bill every 4 weeks (13 bills a year), quoted as "every 4 weeks".
+- Anchor out loud: recruiters charge 15–25% of first-year pay ($4,800–8,000 a hire); one lost caregiver costs about $2,600.
 
 ## Fair play
-One agency at a time per caregiver. No fee if the caregiver applied to them directly in the 60 days before. Hiring someone we introduced within 12 months = the fee is owed.
+One agency at a time per caregiver (she chooses). No fee if she applied to them directly in the 60 days before. Hiring someone we introduced within 12 months = the fee is owed.
 
 ## Hard cases
-24/7, live-in, overnight, weekends-only, bilingual required, Marco Island, Sanibel and remote areas.` },
-{ id: 'funnel', cat: 'business', title: 'The funnel math', body: `**Plan estimates (reset 14 Nov after the 4-AI review). Your real rates replace these in Stats → Intel after 100 dials.**
+24/7, live-in, overnight, weekends-only, bilingual required, far-out areas.` },
+{ id: 'funnel', cat: 'business', title: 'The funnel math and the scoreboard', body: `**Plan estimates. Your real rates replace them after 300 dials (Stats → Intel).** Each stage counted separately; each has one usual fix.
 
-Planning number: **~2,000 dials per paying client.** (ChatGPT said ~3,300, Grok 1,500–2,500, Perplexity 1,200–2,500. The old plan said 900: too optimistic for a new number calling from abroad.)
+| Stage | Per 350-dial week | If it's low, the fix |
+| Dials | 350 | Schedule, not skill: protect the block, first dial within 2 minutes |
+| Connects (a person answers) | ~30% → ~105 | List or time: 8–11am Florida, double-dial, a clean local number |
+| Owner conversations (3+ min with the decision maker) | ~9 | The first 20 seconds: intro + hook |
+| Open cases stated | ~3 | Disco too shallow: ask for the case, the time open, the cost |
+| Trials started (case call done) | ~1 | The ask: no-oriented, then 8 seconds of silence |
+| Caregivers who worked | count | Supply: same-day applicant calls, confirmation calls |
+| Paying agencies | count | Call 2: anchor, menu, silence |
+| Hours per caregiver placed | down each month | Templates, then screener #1 at gate 5 |
 
-| Step | Rate | Per 350-dial week |
-| Dials | — | 350 |
-| Owner conversations | ~2.5% | ~9 |
-| "Send me candidates" | ~15% | ~1.3 |
-| Case taken (agreement sent) | ~40% | ~0.5 |
-| Caregiver works 5 shifts → paid | ~35% | ~0.2 |
+Emails, positive chats and "send me info" never count as owner conversations.
 
-About **1 paying agency every 5–6 weeks at 350**, every 3–4 weeks at 550. First paid placement by 31 Dec is realistic only if the bench exists by 30 Nov.
+## Unit economics (assumes ~$300 of ads per caregiver who works)
+| Offer | Price | Cost if fully used | Gross margin |
+| Pay When They Work | $1,500 | $300 | 80% |
+| Hard case | $2,000 | $300 | 85% |
+| Priority Bench | $2,500 / 4 weeks | $600 | 76% full use, 88% at 1 caregiver |
+| Multi-site | $6,000 / 4 weeks | $1,800 | 70%: reprice at gate 4 if real cost is above $250 |
 
-## The real levers (bigger than more dials)
-1. **Pickup rate:** a clean local number (Free Caller Registry, ≤100/day) can double owner conversations.
-2. **Delivery:** every yes that I can't staff in 7 days is lost. Bench first.
-3. **Proof:** the first 3 agencies who say "he delivered" make every next call easier.
+Cost to win an agency: ~$600 of ads (the free caregiver plus misses) + dial time. The first Priority Bench bill ($2,500) lands at day 30, so 30-day gross profit is ~3× the cash cost to win: each customer pays for the next.
 
 ## What $20k means
-8 Priority Bench ($12,000) + 3 Multi-site ($9,000) = $21,000. That is ~45 caregiver starts a month (ChatGPT's point): a real delivery operation with screeners, not just 11 sales. The July target stands; the 1 March reality rule decides if it moves to $10,000.` },
-{ id: 'pricewhy', cat: 'business', title: 'Why the price makes sense', body: `- **$750 is under a third** of the ~$2,600 it costs to replace a caregiver.
-- Indeed costs about **$561 per hire**, and they still do all the calling and chasing.
-- One caregiver at 25 hours a week brings the agency about **$350 a week** of margin. $750 pays back in about 2 weeks.
-- **Priority Bench:** 3 caregivers at $750 = $2,250. The plan is $1,500, plus first pick.
-- **One 24/7 case ≈ $25,000 a month** of billing. $1,200 to staff it is nothing.
-- Recruiters charge 15–25% of first-year pay. Monthly services charge $1,400–3,400 whether anyone works or not.` },
+8 Priority Bench ≈ $21,700 a month, or 6 Priority Bench + 1 Multi-site ≈ $22,750. **7–8 paying agencies**, about 16 caregivers starting every 4 weeks: a real delivery operation with a screener by spring.` },
+{ id: 'pricewhy', cat: 'business', title: 'Why the price makes sense', body: `Say it with numbers (and only true ones):
+- One lost caregiver costs an agency **about $2,600** to replace.
+- Recruiters charge **15–25% of first-year pay: $4,800–8,000 a hire.**
+- Indeed is about **$561 per hire**, and they still do all the calling and chasing.
+- **One 24/7 case ≈ 168 hours a week ≈ $5,400 a week of billing** at ~$32 an hour. $1,500 to staff it pays back in days.
+- One caregiver at 25 hours a week brings the agency about **$350 a week** of margin.
+- **Priority Bench:** 2 caregivers at $1,500 = $3,000. The plan is $2,500 every 4 weeks, plus first pick and the 2-per-area limit.
+- Competitor monthly services charge $1,300–3,400 a month whether anyone works or not, often with a 6-month minimum. None publishes a show-up guarantee.` },
 { id: 'industry', cat: 'business', title: 'The industry in 5 minutes', body: `## Who you call
 | Type | What they do | Fit |
 | Home Health Agency (licensed) | Hands-on care, W-2 HHAs/CNAs | **Main buyer** |
 | Homemaker & Companion (registered) | Company, meals, housework, no hands-on care | Good buyer |
 | Nurse Registry | 1099 contractors | **Not for now** |
-| Assisted living / memory care | One building, fixed shifts | Second buyer |
+| Assisted living / memory care | One building, fixed shifts | Backup segment (parked) |
 
 Florida (state list, 13 Nov): 2,716 home health agencies, 2,768 homemaker & companion, 1,257 nurse registries (parked). Ask early: "Are your caregivers W-2 employees?"
+
+## The words they use
+Client (never ask about them) · case · open case · start of care · hourly visit (3–4 hour minimum) · 24/7 case (168 hours a week, 4–5 caregivers) · live-in (days in a row, paid per day) · overnight (awake or asleep) · respite · scheduler / staffing coordinator · referral sources (hospital discharge planners: if an agency can't staff cases, they stop sending families; the owner's deepest fear).
 
 ## The numbers you'll quote
 | Fact | Number |
@@ -454,23 +706,24 @@ Florida (state list, 13 Nov): 2,716 home health agencies, 2,768 homemaker & comp
 | Cost to replace one caregiver | **~$2,600** |
 | Indeed cost per hire | ~$561 |
 | Agencies that turned down cases for lack of caregivers | 85%+ |
-| Naples aide median pay | $16.90/h · Florida minimum $15 |
-| Families pay | ~$32–42/h · agency gross margin ~40% |
-| One 24/7 case | ~168 h a week, 4–5 caregivers, ~$25k a month |
+| Florida minimum wage | $15 since 30 Sep 2026 |
+| Families pay | ~$30–42/h · agency gross margin ~40% |
+| One 24/7 case | ~168 h a week, 4–5 caregivers, ~$5,400 a week of billing |
 
 ## Who picks up
-Owner (revenue, not turning down cases) · Administrator · **Scheduler** (tonight's shifts, your ally) · Recruiter/HR · Receptionist (gatekeeper) · Executive Director (assisted living).` },
+Owner (revenue, not turning down cases) · Administrator · **Scheduler** (tonight's shifts, your ally) · Recruiter/HR · Receptionist (gatekeeper). Franchises (Home Instead, BrightStar, Comfort Keepers, Visiting Angels, Griswold): each location's franchisee picks its own vendors.` },
 { id: 'aboutme', cat: 'business', title: 'Questions about me', body: `| They ask | I say |
-| "Who are you?" | "I'm Egor. I run Caregiver Bench, a caregiver recruiting service for private-pay home care agencies in Florida." |
-| "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local; only the recruiting and screening is remote." |
-| "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why you pay nothing until a caregiver has worked 5 shifts." |
-| "Do you have insurance?" | "The caregivers are your employees, covered by your insurance and your screening." |
-| "Where do I pay?" | "Nothing until the caregiver has worked 5 shifts. Then one invoice, by bank transfer in USD." |
+| "Who are you?" | "I'm Egor. I run Caregiver Bench: I recruit and phone-screen caregivers for private-pay home care agencies in Florida." |
+| "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local to you; only the recruiting and screening is remote. You always get me directly." |
+| "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why the first caregiver is free: you don't have to trust me, just look at who shows up." |
+| "How many agencies do you work with?" | The real number. Never inflate it. |
+| "Do you have insurance?" | "The caregivers are your employees, covered by your insurance and your screening, the same as anyone you hire from Indeed." |
+| "Where do I pay?" | "Nothing during the trial. After, one invoice every 4 weeks, bank transfer in USD." |
 | "References?" | "Not yet. After 30 days I'd love you to be my reference, if I earn it." |
 | "Can we meet?" | "On a video call, any time. In person, not before mid-2027." |
 | "Is this AI?" | "No, it's me, Egor. I make my own calls." |
-| "How did you get my number?" | "From your public listing." |` },
-
+| "How did you get my number?" | "From your public listing." |
+| "Who does the background check?" | "You do, the same as for any applicant: Level 2, I-9, E-Verify. I pass on only what the caregiver tells me and what I observe." |` },
 /* ───────── BODY & BAC ───────── */
 { id: 'food', cat: 'body', title: 'Meal plan (~3,400 kcal · 170 g protein)', body: `| Meal | When | What | kcal / protein |
 | Breakfast | 07:30 | 3 eggs · 100 g oats in 300 ml milk · banana + 15 g honey | 940 / 43 g |
@@ -568,7 +821,7 @@ function renderBook() {
   el.innerHTML = `<div class="pbsearch">${ic('target', 18)}<input placeholder="Search the playbook: price, voicemail, Python, dinner…" value="${esc(pbQuery)}" oninput="pbQuery=this.value;renderBook();var i=document.querySelector('.pbsearch input');i.focus();i.setSelectionRange(i.value.length,i.value.length)"></div>
     ${q ? `<div class="card">${hits.length ? hits.map(card).join('') : `<div class="empty">Nothing found for “${esc(pbQuery)}”. <a href="#" onclick="askQuick(${JSON.stringify('Where in my plan is: ' + pbQuery).replace(/"/g, '&quot;')});return false">Ask instead</a></div>`}</div>`
     : `<div class="pbgrid">${PB_CATS.map(([c, l, icn]) => { const ps = all.filter((p) => p.cat === c).sort((a, b) => a.order - b.order); if (!ps.length && c !== 'mine') return ''; return `<div class="card pbcat"><div class="card-h"><div class="card-t">${ic(icn, 16)} ${l}</div><div class="card-r">${ps.length}</div></div>${ps.map(card).join('')}${c === 'mine' ? `<button class="pbi add" onclick="pbNew()">+ New page</button>` : ''}</div>`; }).join('')}</div>
-    <div class="xs muted" style="text-align:center;margin:6px 0 14px">Your edits sync to every linked device. Source docs: <a href="https://docs.google.com/document/d/1JGpxGNLf87kr3_du8vHpHfgCiKEaAO1BQ8cnYSRpx9k/edit" target="_blank" rel="noopener">EGOR OS</a> · <a href="https://docs.google.com/document/d/1WV3FgYsYk05rcHlcVfNj94hMNYoJ2VlxbSjkKaVhuMU/edit" target="_blank" rel="noopener">KNOW IT COLD</a> · <a href="https://docs.google.com/document/d/1vJ7_gF0XiOyYWNRRiWYke7QWfdT477AoUK6DTvIOb4k/edit" target="_blank" rel="noopener">CALL SCRIPT v3</a></div>`}`;
+    <div class="xs muted" style="text-align:center;margin:6px 0 14px">Your edits sync to every linked device. This Playbook is the only live plan. Drive mirror + archive: <a href="https://drive.google.com/drive/folders/1UEuHwqQHNtufTQNpnGBBBkHFrWhYXOSN" target="_blank" rel="noopener">01 Caregiver Bench · 0 START HERE</a></div>`}`;
 }
 function pbEdit(id) {
   const p = pb(id) || { id, title: '', body: '', cat: 'mine' };

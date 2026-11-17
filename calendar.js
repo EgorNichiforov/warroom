@@ -6,13 +6,20 @@
 
 const CAL_CACHE = 'wr-cal-cache';
 let CAL = null, calState = { status: 'off', msg: '', busy: false }, calSel = null, calWeek = 0;
-try { CAL = JSON.parse(localStorage.getItem(CAL_CACHE) || 'null'); } catch (e) { CAL = null; }
+/* Google Calendar descriptions can be HTML (<br>, <b>, <a>, &nbsp;). The app shows plain text, so turn them into lines. */
+function calPlain(t) {
+  if (!t || !/[<&]/.test(t)) return t || '';
+  return String(t).replace(/<\s*br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d)>/gi, '\n').replace(/<li[^>]*>/gi, '- ').replace(/<a\s[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gi, (m, u, x) => (x && x !== u ? x + ' ' + u : u)).replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n{3,}/g, '\n\n').trim();
+}
+function calClean(j) { if (j && j.events) j.events.forEach((e) => { if (e.desc) e.desc = calPlain(e.desc); }); return j; }
+try { CAL = calClean(JSON.parse(localStorage.getItem(CAL_CACHE) || 'null')); } catch (e) { CAL = null; }
 function calUrl() { return (S.settings && S.settings.calUrl) || ''; }
 function calOn() { return !!calUrl(); }
 function calEmail() { const m = calUrl().match(/\/ical\/([^/]+)\//); return m ? decodeURIComponent(m[1]) : ''; }
 function calUsesSchedule() { return calOn() && CAL && CAL.events && (S.settings.schedSource || 'calendar') === 'calendar'; }
 function calCovers(k) { return CAL && CAL.from && k >= dk(new Date(CAL.from)) && k < dk(new Date(CAL.to)); }
-const CAL_KIND = [[/DIAL/i, 'dials'], [/🚗|→|\bdrive\b|Spre|\bride\b|drum/i, 'travel'], [/📚|BAC|Anki|engle|Python|Română|Romana|Istorie|CS50|Cambridge|Certiport/i, 'bac'], [/🏋|Train:|calisthen|mobility/i, 'train'], [/Grup|lesson|lecți|lectie|\bTT\b|OFP|tenis(?!\s*→)|🎾/i, 'tennis'], [/Breakfast|Lunch|Dinner|Snack|Kefir|mic dejun|prânz|cină/i, 'food'], [/deep work|Applicant|bench|screener|Caregiver|Company|EgorFlow/i, 'agency'], [/Sleep|😴/i, 'sleep'], [/🏫|școal|scoal|school|Consulta/i, 'school'], [/Shutdown|Weigh|Shower|Sun|☀|⚖|🌙/i, 'routine']];
+const CAL_KIND = [[/DIAL/i, 'dials'], [/^\W*(🧠|🎯)|^\W*(Learn|Deep dive|Call review)\b|Story Card/i, 'learn'], [/🚗|→|\bdrive\b|Spre|\bride\b|drum/i, 'travel'], [/📚|BAC|Anki|engle|Python|Română|Romana|Istorie|CS50|Cambridge|Certiport/i, 'bac'], [/🏋|Train:|calisthen|mobility/i, 'train'], [/Grup|lesson|lecți|lectie|\bTT\b|OFP|tenis(?!\s*→)|🎾/i, 'tennis'], [/^\W*(Breakfast|Lunch|Dinner|Snack|Kefir|mic dejun|prânz|cină)\b/i, 'food'], [/deep work|Applicant|bench|screener|Caregiver|Company|EgorFlow/i, 'agency'], [/Sleep|😴/i, 'sleep'], [/🏫|școal|scoal|school|Consulta/i, 'school'], [/Shutdown|Weigh|Shower|Sun|☀|⚖|🌙/i, 'routine']];
 function calKind(t) { const r = CAL_KIND.find(([re]) => re.test(t)); return r ? r[1] : 'other'; }
 function calEventsOn(k) { return CAL && CAL.events ? CAL.events.filter((e) => e.date === k) : []; }
 let _calTg = null;
@@ -31,7 +38,7 @@ async function calFetch(silent) {
   try {
     const r = await fetch(`${s.url}/functions/v1/warroom-cal`, { method: 'POST', headers: { apikey: s.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: calUrl(), days: 28, back: 7, tz: 'Europe/Chisinau' }) });
     const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || (r.status === 404 ? 'the calendar bridge is not installed yet' : 'HTTP ' + r.status));
-    CAL = j; try { localStorage.setItem(CAL_CACHE, JSON.stringify(j)); } catch (e) { }
+    CAL = calClean(j); try { localStorage.setItem(CAL_CACHE, JSON.stringify(j)); } catch (e) { }
     calState.status = 'ok'; calState.msg = ''; if (!silent) toast(`Calendar updated · ${j.events.length} events`);
   } catch (e) { calState.status = 'err'; calState.msg = String(e.message || e).slice(0, 160); if (!silent) toast('Calendar: ' + calState.msg); }
   calState.busy = false; render();

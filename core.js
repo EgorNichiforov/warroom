@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.3.6';
+const APP_VERSION = '13.4.1';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -549,7 +549,7 @@ function renderPlan() {
     ${typeof calUsesSchedule === 'function' && calUsesSchedule() ? '' : `<div class="card"><div class="row sb"><div><div style="font-weight:600">Connect your calendar</div><div class="xs muted">Right now this plan is a separate copy inside the app. Connect Google Calendar (Calendar tab) and this page shows your real calendar instead: one schedule, not two.</div></div><button class="btn sm" onclick="show('cal')">Connect</button></div></div>`}`;
 }
 function selDay(k) { curDate = pd(k); render(); }
-const KINDS = ['routine', 'train', 'bac', 'school', 'dials', 'agency', 'tennis', 'food', 'travel', 'sleep', 'other'];
+const KINDS = ['routine', 'train', 'bac', 'learn', 'school', 'dials', 'agency', 'tennis', 'food', 'travel', 'sleep', 'other'];
 function editBlock(id) {
   const o = S.days[dk(curDate)], onceB = o && o.sched && (o.sched.add || []).find((x) => x.id === id);
   const b = onceB || (id ? S.schedule.blocks.find((x) => x.id === id) : { id: '', title: '', start: '09:00', end: '10:00', days: [dow(curDate)], kind: 'other', note: '' });
