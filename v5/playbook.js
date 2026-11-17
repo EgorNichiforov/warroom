@@ -64,6 +64,7 @@ Claude does steps 1–6. You only decide the change.
 { id: 'changelog', cat: 'system', title: 'Changelog', body: `Newest first. One line per change: what, why, which rule.
 
 | Date | Change | Why |
+| 17 Nov | **Whole business v4**: added Marketing (Core Four, both sides), Scaling (6 gates), Business setup, Hiring Snapshot, Hiring a screener, Life audit from the War Room log | Scaling Roadmap: study your stage; one source of truth |
 | 17 Nov | **Sales system v4**: one offer ladder (First Hire Free → Priority Bench $2,500 / 4 weeks or $1,500 per caregiver), every script rewritten to the $100M Sales Teams structure (Intro → Disco → Pitch → Close → Loops → BAMFAM), new pages: sales map, case call, emails, results call, exit call, caregiver side, practice | Model v3 fixed the offer to 80% margin and one ask; Sales Teams: one script, then practise it |
 | 17 Nov | Metro stays **Tampa Bay** (813 number, ~750 agencies), Collier and Lee are the second wave. Week stays **350 dials** | Local number = pickup; Collier and Lee have 212 agencies, which a 7-attempt cadence uses up in ~4 weeks at 350 a week |
 | 17 Nov | Founding Offer ($500 after 5 shifts) retired. "Founding 5" now = first 5 paying agencies lock their price for 12 months for a case study + 2 intros | Money Models: never discount the core; trade, not discount |
@@ -135,6 +136,26 @@ The company is #1. When things clash, the cut order decides (see Rules → When 
 
 ## Feature freeze
 No new War Room features until **1,000 dials or the first paying client.** Plan changes at the Sunday review only (System → One source of truth).` },
+{ id: 'life', cat: 'mission', title: 'Life audit · 17 Nov (from your War Room log)', body: `Every area, measured against its target, from the numbers you actually logged 1–17 Nov. **One test for each: does it make 1 July 2027 more or less likely?**
+
+| Area | Target | Logged reality | Verdict | The one fix |
+| **Dials** | 350 a week | **3 dials** from 9 to 17 Nov, 0 owner conversations | **Off track. This is the whole business.** | First dial inside 2 minutes of every block. Today 15:30: 60 |
+| **Caregiver bench** | 15 screened by 30 Nov | 0 on the bench | Off track | Saturday block: post the ad (Leila structure), call every applicant same day |
+| **Sleep / wake** | Up 05:20, bed 21:00 | Woke 09:15, 09:30, 10:00, 10:00 on 4 of the last 8 logged days; 05:29 and 06:27 since Monday | Improving | Phone out of the bedroom at 20:45, no exceptions. Wake logged in the app every day |
+| **Training** | Every day | Trained Mon 16 and Tue 17 | On track this week | Keep the 10-minute floor on bad days |
+| **Weight** | Nov avg 77 → 85 by June | 77.0 → 78.0 (79.1 peak), month avg 77.7 | **Ahead** of the curve | No change. Weekly average, not the daily number |
+| **BAC** | Daily block + Anki; Python exam 14–18 Dec | 123 min logged this month; today's block skipped | Behind | The 06:15 block is not optional: 25 min, phone in another room |
+| **Money** | Spend < earn, earn more each month | Nov: made 6,000 MDL, spent 1,770 (30%) | **On track** | Log every cash spend the same minute |
+| **Standards** | 7 a day | Average day score 32% | Off track | Tick them in the shutdown honestly: what you measure moves |
+| **Learning** | Card daily, applied same day | Running | On track | Every lesson ends in one line tried on today's calls |
+| **Accountability** | One person sees the dial number nightly | Not named | Missing | Name them this week. The stake starts that day |
+| **Tennis coaching** | Income + attendance | Groups running | On track | Attendance through the guided day |
+
+## The honest read
+Body, money and learning are on track. **The business has not started: 3 dials in 9 days.** Everything else in this system exists to make the dial block happen. The plan doesn't need changing. The behaviour does: the block starts, the first number is dialed within 2 minutes, and the phone stays on the dialer until the count is hit.
+
+## This week's contract vs the plan
+Your board says 300 dials; the plan says 350. 300 is the floor you signed; 350 is the target in the calendar. Hit 300 and you kept your word; hit 350 and you're on plan.` },
 { id: 'backward', cat: 'mission', title: 'The plan backward', body: `Read from the bottom up: for the top line to be true, every line below it must be true by its date. **Proof first, then plans.**
 
 ## Company: checkpoints
@@ -581,6 +602,19 @@ Pick the worst call of the day. Rewrite the one line that lost it.
 6. **Note the source of every applicant.** Each Sunday: the source with the lowest cost per screened caregiver gets more money; the worst one is cut.
 
 **Target: 15 phone-screened caregivers in Tampa Bay by 30 Nov.** Until then, no 48-hour promises: "within 3 days".` },
+{ id: 'sop-snapshot', cat: 'sops', title: 'Hiring Snapshot (the lead magnet, 15 min)', body: `A complete solution to a narrow problem that reveals the next one (Hormozi: lead magnet). Only for owners who say "not now" or "send me info". **Never the ask on Call 1.**
+
+## What it is (one page, by email)
+1. **Their live job posts** (Indeed, their site): title, pay, shifts.
+2. **Local pay range** for the same role (from the Market Intel sheet).
+3. **3 fixes** you can see in 15 minutes, e.g. pay hidden, no shift info in the title, no "weekly pay", apply process longer than 2 minutes.
+4. **The next problem it reveals:** "Even with a better ad, about 4 in 10 applicants won't show up to the interview. That's the part I do."
+5. **One line ask:** "Want me to recruit for your hardest case this week? The first caregiver who works it is free."
+
+## Steps
+1. Owner says "send me info" → "Happy to. Which case should I build it around?"
+2. Build it the same day (15 minutes max, the template is the email itself).
+3. Send. Book the call that walks through it (BAMFAM): "I'll call you Thursday at 10 to walk you through it: 5 minutes."` },
 { id: 'sop-followup', cat: 'sops', title: 'After every owner conversation', body: `1. **Log it** in Dial (outcome + their exact words + next step + date).
 2. **E2 within 1 hour** (Scripts → Emails).
 3. **Callback or case call in the queue** on the day agreed. Never "I'll call you sometime".
@@ -599,6 +633,40 @@ Cold email to strangers waits for the warmed-up spare domains. Never from caregi
 - Same day: call or email the name. Open with "[Name] suggested I call" only if they agreed to it.
 - Write who referred them in the agency's notes.
 - Tell the referrer when the intro turned into a conversation. A thank-you, never money.` },
+{ id: 'sop-ops', cat: 'sops', title: 'Business setup and money (what must exist)', body: `Revenue is blocked by these, dials are not. Each has an owner, a deadline, a status.
+
+| Item | Why | Status | Deadline |
+| **Payment route:** dad's company signs and invoices in USD, with its accountant's OK. Agency gets a W-8BEN-E | You can't take payments in your own name until ~July 2027; Stripe doesn't support Moldova | To do: talk to dad this week | Before day 30 of the first trial |
+| **One-page agreement** checked by a Florida healthcare lawyer (~$300–500): we recruit employees; nothing paid for clients or referrals; agency runs Level 2, I-9, E-Verify; the 60-day and 12-month rules | Patient Brokering Act, FCRA | To do: book it | Before the first invoice |
+| **Telemarketing exemption** question to the same lawyer | B2B calls are mostly exempt, with conditions | With the lawyer | same |
+| **Caller number:** CloudTalk 813, Free Caller Registry, STIR/SHAKEN "A" | Pickup rate doubles conversations | To do | This week |
+| **Business email** on caregiverbench.com, plain signature (name, phone, postal address) | Bulletin needs a postal address (CAN-SPAM) | Check | This week |
+| **Application form** (1 minute, consent to share profile) live on caregiverbench.com, landing in War Room → Caregivers | Supply | Check it end to end once | This week |
+| **Business cash separate** from personal from the first payment | Wealth Roadmap: margin first | — | First payment |
+| US LLC + EIN | Card on file, texting registration, cleaner invoicing | Later | After proof (gate 3–4) |
+
+## Monthly costs (keep under ~$300 until gate 3)
+CloudTalk number · caregiver ads ($15 a day only while a case or the bench build runs) · domain + email · lawyer once. Every cost is logged in War Room → Money → Business.` },
+{ id: 'sop-hire', cat: 'sops', title: 'Hiring a screener (gate 5, not before)', body: `Sales Teams: prove the process yourself first, then hire several at once. **Locked until gate 5 (~$10k MRR).** Written now so it's ready.
+
+## The role
+Phone-screens applicants the same day, books interviews, runs confirmation calls and check-ins. Never sells to owners. Never charges caregivers.
+
+## The job ad (Leila Hormozi: hook → values → meat → reinforce)
+- **Hook:** "Remote, part-time, US hours: help caregivers find jobs that fit, and make sure they show up."
+- **Values:** speed (calls within the hour), honesty (write what they said, not what you think), warmth.
+- **Meat:** 10-minute screening calls, Profile Cards, confirmation calls, check-ins. 15–25 hours a week.
+- **Reinforce:** pay per screen + a bonus for every caregiver who works 30 days.
+- **Required:** a 60-second selfie video. No video, no interview.
+
+## Process
+1. Group first call (expectations, hours, pay). 2. Skills call = the first training session: role-play the screening script, interrupt 20 times, watch how fast they apply feedback. 3. Paid trial week.
+
+## Training (bootcamp, 7 days)
+Script read out loud 25× a day · role-play 3× a day · shadow 10 of your calls · graduate on day 7 (script, tone, 5 objections). Performance seat: 60 days, numbers known from day 1.
+
+## Pay rule
+Paid on outcomes (caregivers who work), with a base small enough to keep cash positive. Talent LTGP:cost ≥ 3:1.` },
 { id: 'sop-shutdown', cat: 'sops', title: 'Shutdown (20:45, 7 minutes)', body: `1. **War Room → Start shutdown:** numbers (dials, owner talks, BAC, money), the 7 standards, debrief.
 2. Daily log (2 min): numbers, what happened in one sentence, the worst call and the one line you'd change, tomorrow's first action.
 3. Magnesium + water.
@@ -650,6 +718,48 @@ One agency at a time per caregiver (she chooses). No fee if she applied to them 
 
 ## Hard cases
 24/7, live-in, overnight, weekends-only, bilingual required, far-out areas.` },
+{ id: 'marketing', cat: 'business', title: 'Marketing: the Core Four for both sides', body: `Two markets, two engines. **Owners buy; caregivers are the product.** Hormozi's Core Four: warm outreach, content, cold outreach, paid ads.
+
+## Owners (buyers)
+| Channel | Now | Rule |
+| **Cold calls** | **ON** · 350 a week | Rule of 100. The only channel until gate 4 |
+| Warm outreach | none exists yet | Every owner you've spoken to is warm: Bulletin + 30-day recall |
+| Lead magnet | **Hiring Snapshot** + **Monday Bench Bulletin** | Only for "not now". Never the ask (SOPs → Hiring Snapshot) |
+| Referrals | ON from the first happy owner | Ask after every win (SOPs → Referrals). Target: 20–30% of new agencies |
+| Cold email | OFF until gate 4 | Spare domains, warmed 3–4 weeks, never caregiverbench.com |
+| Content / paid ads to owners | OFF until gate 6 | Not where the money is at this stage |
+
+## Caregivers (supply)
+| Channel | Cost | When |
+| Facebook job ad from the Caregiver Bench page (EN + ES, Employment category) | $15 a day per open case → $20 once under $6 per applicant | From today for the bench (Tampa Bay), plus one ad per case taken |
+| Indeed free post, Employ Florida, local caregiver Facebook groups | $0 | Every week, refreshed every Sunday |
+| CNA / HHA schools in Tampa Bay (career offices) | $0 | From 1 Dec: one email + one call to each school |
+| Caregiver referrals ("know someone like you?") | a thank-you | Only after the lawyer says yes |
+
+## The message (one sentence each, used everywhere)
+- **Owners:** "Local caregivers, phone-screened by a person and confirmed twice, who show up, or you don't pay."
+- **Caregivers:** "Steady hours close to home with agencies that actually call back. I never charge you."
+
+## Numbers to track every Sunday
+Owner side: dials, connects, owner conversations, open cases, trials. Caregiver side: ad spend, applicants, cost per applicant, % called within 24 h, screened, cost per screened caregiver, caregivers who worked.` },
+{ id: 'scale', cat: 'business', title: 'Scaling: the 6 gates', body: `Hormozi's Scaling Roadmap: **study only your stage, one before and one after.** You are at **Improvise → Monetize** (0 → first sale). Each layer of the business switches on only when its gate is passed: complexity grows with proof, not with plans.
+
+| Gate | Passed when | What switches ON | What stays OFF | Target |
+| **1 · Proof of conversation** | 20 owner conversations | One change to the script allowed (after 300 dials on it) | New offers, new markets, app features | ~1 Dec |
+| **2 · A caregiver works** | First trial caregiver works a shift | Case study draft, the "proof line" opens every call | Paid owner ads, cold email | mid-Dec |
+| **3 · First payment** | First invoice cleared (needs payment route + lawyer-checked agreement) | Founding 5 pricing, referral ask on every win, card on file once possible | Hiring | ~20 Jan |
+| **4 · 3 paying agencies** | 3 agencies paying | **Collier and Lee** (second metro), **Multi-site** offer (reprice if real cost per working caregiver > $250), cold email from spare domains, CNA-school partnerships | A second product | 31 Mar |
+| **5 · ~$10k MRR** | ~4 Priority Bench | **Screener #1** (SOPs → Hiring a screener), the 6-month term with a waived setup fee | Your own agency (roll-up) | 30 Apr |
+| **6 · $20k MRR** | 7–8 paying agencies, bench of 100+ | Second screener, a setter for owner calls, the roll-up plan (buy or start a licensed agency) | — | 1 Jul 2027 |
+
+## The constraint at each stage (fix only this)
+- **Now:** dials. 3 dials logged from 9 to 17 Nov. Nothing else matters until the 350 a week happen.
+- **Gate 1–2:** supply. A yes you can't staff in 3 days is lost: the bench and same-day applicant calls.
+- **Gate 3–4:** conversion at day 25 (Call 2) and getting paid.
+- **Gate 5–6:** your hours. Templates, then people. Track "hours per caregiver placed" falling every month.
+
+## Rule
+Being ahead in a function means it's not the constraint. Building ahead of the gate is hiding from the constraint.` },
 { id: 'funnel', cat: 'business', title: 'The funnel math and the scoreboard', body: `**Plan estimates. Your real rates replace them after 300 dials (Stats → Intel).** Each stage counted separately; each has one usual fix.
 
 | Stage | Per 350-dial week | If it's low, the fix |
