@@ -24,7 +24,10 @@
   const nat = (m, a) => window.Capacitor.nativePromise('WrNative', m, a || {});
   async function natBio() { if (!NAT()) return false; try { const r = await nat('bioAvailable'); return !!(r && r.available); } catch (e) { return false; } }
   async function webBio() { try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); } catch (e) { return false; } }
-  async function bioAvailable() { return (await natBio()) || (await webBio()); }
+  /* 13.13.2: never wait forever. Android WebView can leave these promises hanging, which kept the Settings card from ever drawing. */
+  const within = (pr, ms) => Promise.race([pr, new Promise((r) => setTimeout(() => r(false), ms))]);
+  let bioKnown = null;
+  async function bioAvailable() { const v = (await within(natBio(), 1500)) || (await within(webBio(), 1500)); bioKnown = !!v; return bioKnown; }
   let entry = '', busy = false, hiddenAt = 0;
 
   function overlay() {
@@ -109,8 +112,9 @@
   function removeBio() { const c = get(); if (!c) return; delete c.cred; if (!c.pin) c.on = false; put(c); refresh(); }
   function refresh() { try { if (typeof render === 'function') render(); } catch (e) { } }
   function toastSafe(m) { try { toast(m); } catch (e) { } }
-  async function card() {
-    const c = get() || {}, bioOk = await bioAvailable();
+  async function card() { await bioAvailable(); return cardHtml(); }
+  function cardHtml() {
+    const c = get() || {}, bioOk = !!bioKnown;
     return `<div class="card" id="lock-card"><div class="card-h"><div class="card-t">App lock</div><div class="card-r">this device</div></div>
       <div class="small muted" style="margin-bottom:10px">Ask for a PIN${bioOk ? ', your face or your fingerprint' : ''} when the app opens, so nobody else can open your War Room.</div>
       <div class="lk-row"><span>Lock</span><button class="btn sm ${on() ? 'primary' : ''}" onclick="wrLock.toggle()">${on() ? 'On' : 'Off'}</button></div>
@@ -121,7 +125,7 @@
       ${(c.places || []).map((x, i) => `<div class="lk-row"><span>📍 ${String(x.n).replace(/[<>&]/g, '')}</span><button class="btn sm ghost" onclick="wrLock.removePlace(${i})">Remove</button></div>`).join('')}
       ${c.pin || c.cred ? `<button class="btn sm ghost" style="margin-top:8px" onclick="wrLock.off()">Remove the lock from this device</button>` : ''}</div>`;
   }
-  window.wrLock = { key, del, bio, forgot, setPin, addBio, off, toggle, relock, removeBio, show, card, on, addPlace, removePlace };
+  window.wrLock = { cardHtml, key, del, bio, forgot, setPin, addBio, off, toggle, relock, removeBio, show, card, on, addPlace, removePlace };
 
   document.addEventListener('visibilitychange', () => { if (!on()) return; if (document.hidden) { if (unlocked) { hiddenAt = Date.now(); seenSet(); } return; } const c = get(); if (hiddenAt && Date.now() - hiddenAt >= (Number(c.relock ?? 1)) * 60000) show(); });
   window.addEventListener('pagehide', () => { if (on() && unlocked) seenSet(); });
@@ -133,7 +137,8 @@
   window.addEventListener('load', () => {
     if (typeof appearanceCard === 'function' && !appearanceCard._lk) {
       const _a = appearanceCard;
-      appearanceCard = function () { setTimeout(async () => { const el = document.getElementById('lock-slot'); if (el) el.outerHTML = await card(); }, 0); return '<div id="lock-slot"></div>' + _a(); };
+      /* draw the card right away (works on every phone), then refresh the face/fingerprint row once the check answers */
+      appearanceCard = function () { if (bioKnown === null) bioAvailable().then(() => { const el = document.getElementById('lock-card'); if (el) el.outerHTML = cardHtml(); }); return cardHtml() + _a(); };
       appearanceCard._lk = 1;
     }
   });

@@ -304,3 +304,6 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 
 ## 13.13.1 — one block, not two (17 Nov 2026)
 - guide.js: when the guided card shows, the old screen's duplicates below it are removed (night "Sleep." card, now-hero + timeline, progress bars, "Never 0" line). gdCut() removes a balanced <div> by its opening token.
+
+## 13.13.2 — App lock on the phone (17 Nov 2026)
+- lock.js: the Settings card drew only after the face/fingerprint check answered; Android WebView can leave that promise hanging, so the card never appeared on the phone. Now cardHtml() draws immediately; checks race a 1.5 s timeout and the card refreshes when they answer.
