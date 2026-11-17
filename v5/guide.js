@@ -27,6 +27,7 @@ function gdType(b) {
   if (b.kind === 'dials') return 'dials';
   if (b.kind === 'bac') return 'bac';
   if (/sun/i.test(t) || /☀/.test(t)) return 'sun';
+  if (b.kind === 'learn' || /^(Learn|Deep dive|Call review)\b|Story Card/i.test(gdClean(t))) return 'learn';
   if (b.kind === 'food') return 'food';
   return 'task';
 }
@@ -195,6 +196,7 @@ function gdStepBody(s, o, d, inSD) {
   }
   if (s.type === 'bac') { const mins = Math.max(5, tmin(s.end || s.t) - tmin(s.t)) || 25; return `<div class="gd-k2">${head} · ${mins} min</div><div class="gd-t">${esc(s.title)}</div>${lines(6)}${S.timer ? '<div class="gd-s"><b>Timer running.</b></div>' : `<div class="gd-two"><button class="gd-btn2" onclick="gdGo('oneGo(&quot;timer&quot;,&quot;bac&quot;,${mins})')">Start ${mins} min timer</button></div>`}<button class="gd-btn" onclick="gdBacDone('${s.id}',${mins})">Done · +${mins} min BAC</button>${skip}`; }
   if (s.type === 'sun') return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div><div class="gd-s">Outside, no sunglasses. Cloudy = stay longer.</div>${doneBtn('Done · got sun')}${skip}`;
+  if (s.type === 'learn') { const rv = /call review/i.test(s.title); return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(rv ? 6 : 7)}${doneBtn(rv ? 'Done · call scored' : /deep dive/i.test(s.title) ? 'Done · 4 lines + talk recorded' : 'Done · card written')}${skip}`; }
   if (s.type === 'food') return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn('Ate it')}<button class="gd-lnk" onclick="gdMark('${s.id}','skip')">Ate something else</button>`;
   if (s.type === 'shutdown') return `<div class="gd-t">Shutdown</div><div class="gd-s">It walks you through everything still open, then numbers, money, standards, the log and tomorrow. 7 minutes.</div><button class="gd-btn" onclick="gdSDStart()">Start shutdown</button>`;
   return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn()}${skip}`;

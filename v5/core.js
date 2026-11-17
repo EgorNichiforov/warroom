@@ -549,7 +549,7 @@ function renderPlan() {
     ${typeof calUsesSchedule === 'function' && calUsesSchedule() ? '' : `<div class="card"><div class="row sb"><div><div style="font-weight:600">Connect your calendar</div><div class="xs muted">Right now this plan is a separate copy inside the app. Connect Google Calendar (Calendar tab) and this page shows your real calendar instead: one schedule, not two.</div></div><button class="btn sm" onclick="show('cal')">Connect</button></div></div>`}`;
 }
 function selDay(k) { curDate = pd(k); render(); }
-const KINDS = ['routine', 'train', 'bac', 'school', 'dials', 'agency', 'tennis', 'food', 'travel', 'sleep', 'other'];
+const KINDS = ['routine', 'train', 'bac', 'learn', 'school', 'dials', 'agency', 'tennis', 'food', 'travel', 'sleep', 'other'];
 function editBlock(id) {
   const o = S.days[dk(curDate)], onceB = o && o.sched && (o.sched.add || []).find((x) => x.id === id);
   const b = onceB || (id ? S.schedule.blocks.find((x) => x.id === id) : { id: '', title: '', start: '09:00', end: '10:00', days: [dow(curDate)], kind: 'other', note: '' });
