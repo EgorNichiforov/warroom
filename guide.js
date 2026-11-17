@@ -52,7 +52,7 @@ function gdTaskSteps(d, L, wake) {
   return out;
 }
 function gdTaskStep(t, hm, k, slotted) {
-  return { id: 'td:' + t.id, t: hm, type: 'todo', title: gdClean(t.title) || t.title, task: t, st: t.done ? 'done' : '', slotted: !!slotted, overdue: t.due < k };
+  return { id: 'td:' + t.id, t: hm, type: 'todo', title: gdClean(t.title) || t.title, task: t, st: t.done ? 'done' : ((S.days[k] || {}).blk || {})['td:' + t.id] === 'skip' ? 'skip' : '', slotted: !!slotted, overdue: t.due < k };
 }
 /* busy minutes of a day: every block (also travel/school/sleep), every timed task, every moved step */
 function gdBusy(k, L) {
@@ -117,10 +117,11 @@ function gdMark(id, st) {
   if (id === 'weight') { if (st === 'skip') o.weightSkipped = 1; }
   else o.blk[id] = st;
   if (st === 'done') { const s = gdSteps().find((x) => x.id === id); if (s && s.type === 'sun') o.habits.sun = 1; }
-  touch(o); gdFocusId = null; gdBuzz(st === 'done' ? [12, 40, 12] : 8); gdNext(st === 'done' ? 'Done.' : 'Skipped.');
+  touch(o); gdFocusId = null; gdBuzz(st === 'done' ? [12, 40, 12] : 8); gdNext(st === 'done' ? 'Done.' : 'Missed. Tonight\'s review finds it a new time.');
 }
+function gdMiss(id) { const s = gdSteps().find((x) => x.id === id); if (s && s.type === 'train') return gdTrain(id, 'skip'); gdMark(id, 'skip'); }
 function gdUndo(id) { const o = day(gdDayDate());
-  if (String(id).startsWith('td:')) { const t = S.tasks[id.slice(3)]; if (t && t.done) { t.done = false; t.doneAt = null; t._u = now(); save(); taskHook('reopen', t); } gdFocusId = id; return gdRender(); }
+  if (String(id).startsWith('td:')) { const t = S.tasks[id.slice(3)]; if (t && t.done) { t.done = false; t.doneAt = null; t._u = now(); save(); taskHook('reopen', t); } if (o.blk && o.blk[id]) { delete o.blk[id]; touch(o); } gdFocusId = id; return gdRender(); }
   if (o.mv) delete o.mv[id]; if (id === 'weight') { delete o.weightSkipped; o.weight = ''; } else if (o.blk) delete o.blk[id]; if (o.att) delete o.att[id]; const ss = sessionsRO(o).find((x) => x.block === id); if (ss) { ss.done = false; ss.skipped = false; if (typeof syncTrainFlags === 'function') syncTrainFlags(o); } touch(o); gdFocusId = id; gdRender(); }
 function gdNext(msg) {
   const L = gdSteps(), c = gdCurrent(L, gdDayDate()); toast(msg + (c && c.s ? ' Next: ' + c.s.title : ' Day handled.'));
@@ -213,15 +214,17 @@ function gdSDBody(o, d, k, openSteps) {
 
 /* ── the card for one step ── */
 function gdStepBody(s, o, d, inSD) {
-  const k = dk(d), desc = s.b ? gdDesc(s.b) : '', head = (s.end ? `${s.t}–${s.end}` : s.t), skip = `<button class="gd-lnk" onclick="gdSkipSheet('${s.id}')">Skip · move · drop</button>`;
-  const doneBtn = (lbl) => `<button class="gd-btn" onclick="gdMark('${s.id}','done')">${lbl || 'Done'}</button>`;
+  const k = dk(d), desc = s.b ? gdDesc(s.b) : '', head = (s.end ? `${s.t}–${s.end}` : s.t), miss = `<button class="gd-btn miss" onclick="gdMiss('${s.id}')">Missed</button>`;
+  /* 13.6: every step is just Done / Missed. Moving a missed thing to another time is the nightly review's job. */
+  const pair = (on) => `<div class="gd-dm"><button class="gd-btn" onclick="${on}">Done</button>${miss}</div>`, skip = '';
+  const doneBtn = () => pair(`gdMark('${s.id}','done')`);
   const lines = (n) => desc ? `<div class="gd-d">${esc(desc.split('\n').filter((l) => l.trim() && !/https?:\/\//.test(l)).slice(0, n).join('\n'))}</div>` : '';
-  if (s.type === 'wake') return `<div class="gd-t">Good morning.</div><div class="gd-s">Tap the moment you're up. Then the scale.</div><button class="gd-btn" onclick="wokeUp();setTimeout(gdRender,60)">I'm up</button>${skip}`;
+  if (s.type === 'wake') return `<div class="gd-t">Good morning.</div><div class="gd-s">Tap the moment you're up. Then the scale.</div><button class="gd-btn" onclick="wokeUp();setTimeout(gdRender,60)">I'm up</button>`;
   if (s.type === 'weight') {
     const last = typeof latestWeight === 'function' ? latestWeight(dk(addDays(d, -1))) : null, v = gdW != null ? gdW : last ? last.w : 77;
     return `<div class="gd-t">Weigh in</div><div class="gd-s">Toilet → scale, before food and water.${last ? ` Last: ${fmt(last.w, 1)} kg.` : ''}</div>
       <div class="gd-w"><button onclick="gdWStep(-0.1)">−</button><input id="gd-w" class="gd-live" type="number" inputmode="decimal" step="0.1" value="${Number(v).toFixed(1)}" oninput="gdW=parseFloat(this.value)" onkeydown="if(event.key==='Enter')gdWSave()"><span>kg</span><button onclick="gdWStep(0.1)">+</button></div>
-      <button class="gd-btn" onclick="gdWSave()">Save weight</button><button class="gd-lnk" onclick="gdMark('weight','skip')">Not today</button>`;
+      <div class="gd-dm"><button class="gd-btn" onclick="gdWSave()">Save</button>${miss}</div>`;
   }
   if (s.type === 'train') {
     const P = gdParseTrain(desc), prog = (() => { try { return trProgName(s.b); } catch (e) { return ''; } })();
@@ -229,7 +232,7 @@ function gdStepBody(s, o, d, inSD) {
       ${P.ex.length ? `<ol class="gd-ex">${P.ex.slice(0, 12).map((l) => `<li>${esc(l)}</li>`).join('')}</ol>` : lines(4)}
       ${P.vids.length ? `<div class="gd-vids">${P.vids.slice(0, 16).map(([n, u]) => `<button onclick='gdVid(${JSON.stringify(u)})'>▶ ${esc(n)}</button>`).join('')}</div>` : ''}
       <div class="gd-two"><button class="gd-btn2" onclick="gdWorkout('${s.id}')">Open workout · log sets</button></div>
-      <button class="gd-btn" onclick="gdTrain('${s.id}','done')">Done · trained</button><button class="gd-lnk" onclick="gdSkipSheet('${s.id}')">Skip · move · drop</button>`;
+      ${pair(`gdTrain('${s.id}','done')`)}`;
   }
   if (s.type === 'group') {
     const names = gdRoster(s.b); if (!gdAtt[s.id]) gdAtt[s.id] = names.map(() => 1); const a = gdAtt[s.id], p = a.filter(Boolean).length;
@@ -241,16 +244,16 @@ function gdStepBody(s, o, d, inSD) {
     const m = s.title.match(/DIALS?:\s*(\d+)/i), c = o.counters || {}, dn = Number(c.dials) || 0, ow = Number(c.owners) || 0;
     return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div><div class="gd-big">${dn}<i>/ ${s.dialsCum || (m ? m[1] : '')} dials</i></div><div class="gd-s">${ow} owner talk${ow === 1 ? '' : 's'} today. First dial inside 2 minutes.</div>
       <div class="gd-two"><button class="gd-btn2" onclick="gdAdd('dials',1)">+1 dial</button><button class="gd-btn2" onclick="gdAdd('dials',5)">+5</button><button class="gd-btn2" onclick="gdAdd('owners',1)">+1 owner</button></div>
-      <button class="gd-btn" onclick="gdGo('oneGo(&quot;dial&quot;)')">Open the dialer</button>${doneBtn('Block done').replace('gd-btn', 'gd-btn ghost')}${skip}`;
+      <button class="gd-btn" onclick="gdGo('oneGo(&quot;dial&quot;)')">Open the dialer</button>${doneBtn()}`;
   }
-  if (s.type === 'bac') { const mins = Math.max(5, tmin(s.end || s.t) - tmin(s.t)) || 25; return `<div class="gd-k2">${head} · ${mins} min</div><div class="gd-t">${esc(s.title)}</div>${lines(6)}${S.timer ? '<div class="gd-s"><b>Timer running.</b></div>' : `<div class="gd-two"><button class="gd-btn2" onclick="gdGo('oneGo(&quot;timer&quot;,&quot;bac&quot;,${mins})')">Start ${mins} min timer</button></div>`}<button class="gd-btn" onclick="gdBacDone('${s.id}',${mins})">Done · +${mins} min BAC</button>${skip}`; }
-  if (s.type === 'sun') return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div><div class="gd-s">Outside, no sunglasses. Cloudy = stay longer.</div>${doneBtn('Done · got sun')}${skip}`;
-  if (s.type === 'learn') { const rv = /call review/i.test(s.title); return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(rv ? 6 : 7)}${doneBtn(rv ? 'Done · call scored' : /deep dive/i.test(s.title) ? 'Done · 4 lines + talk recorded' : 'Done · card written')}${skip}`; }
-  if (s.type === 'food') return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn('Ate it')}<button class="gd-lnk" onclick="gdMark('${s.id}','skip')">Ate something else</button>`;
+  if (s.type === 'bac') { const mins = Math.max(5, tmin(s.end || s.t) - tmin(s.t)) || 25; return `<div class="gd-k2">${head} · ${mins} min</div><div class="gd-t">${esc(s.title)}</div>${lines(6)}${S.timer ? '<div class="gd-s"><b>Timer running.</b></div>' : `<div class="gd-two"><button class="gd-btn2" onclick="gdGo('oneGo(&quot;timer&quot;,&quot;bac&quot;,${mins})')">Start ${mins} min timer</button></div>`}${pair(`gdBacDone('${s.id}',${mins})`)}`; }
+  if (s.type === 'sun') return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div><div class="gd-s">Outside, no sunglasses. Cloudy = stay longer.</div>${doneBtn()}`;
+  if (s.type === 'learn') { const rv = /call review/i.test(s.title); return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(rv ? 6 : 7)}${doneBtn()}`; }
+  if (s.type === 'food') return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn()}`;
   if (s.type === 'shutdown') return `<div class="gd-t">Shutdown</div><div class="gd-s">It walks you through everything still open, then numbers, money, standards, the log and tomorrow. 7 minutes.</div><button class="gd-btn" onclick="gdSDStart()">Start shutdown</button>`;
   if (s.type === 'todo') { const t = s.task, note = String(t.note || '').split('\n').filter((l) => l.trim()).slice(0, 5).join('\n');
-    return `<div class="gd-k2">${s.overdue ? `<span class="gd-od">overdue · ${fmtShort(pd(t.due))}</span> · ` : ''}${s.slotted ? 'slotted ' + s.t : head}${t.proj && typeof tdProjName === 'function' && tdProjName(t.proj) ? ' · ' + esc(tdProjName(t.proj)) : ''}${t.pri === 4 ? ' · <b>P1</b>' : ''}</div><div class="gd-t">${esc(s.title)}</div>${note ? `<div class="gd-d">${esc(note)}</div>` : ''}<button class="gd-btn" onclick="gdTaskDone('${t.id}')">Done</button>${skip}`; }
-  return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn()}${skip}`;
+    return `<div class="gd-k2">${s.overdue ? `<span class="gd-od">overdue · ${fmtShort(pd(t.due))}</span> · ` : ''}${s.slotted ? 'slotted ' + s.t : head}${t.proj && typeof tdProjName === 'function' && tdProjName(t.proj) ? ' · ' + esc(tdProjName(t.proj)) : ''}${t.pri === 4 ? ' · <b>P1</b>' : ''}</div><div class="gd-t">${esc(s.title)}</div>${note ? `<div class="gd-d">${esc(note)}</div>` : ''}${pair(`gdTaskDone('${t.id}')`)}`; }
+  return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn()}`;
 }
 
 /* ── skip sheet: drop it, or move it (13.5.0) ──
@@ -328,12 +331,12 @@ function gdHtml() {
   }
   const late = nowMin() >= tmin(S.settings.bed || '21:00') - 30 || nowMin() < 240;
   const fixed = (s) => ['wake', 'weight', 'shutdown'].includes(s.type);
-  const list = L.map((s) => `<div class="gd-lr"><button class="gd-li ${s.st ? 's-' + s.st : ''} ${s.id === curId ? 'cur' : ''}" onclick="${s.st ? `gdUndoAsk('${s.id}')` : `gdPick('${s.id}')`}"><b>${s.t}</b><span>${s.type === 'todo' ? '☐ ' : ''}${esc(s.title)}${s.moved ? ' <em>moved</em>' : ''}</span><i>${s.st === 'done' ? '✓' : s.st === 'skip' ? '–' : s.st === 'moved' ? '↻' : s.id === curId ? '●' : ''}</i></button>${!s.st && !fixed(s) ? `<span class="gd-nd"><button aria-label="Earlier" onclick="gdNudge('${s.id}',-1)">▲</button><button aria-label="Later" onclick="gdNudge('${s.id}',1)">▼</button><button aria-label="Move or drop" onclick="gdSkipSheet('${s.id}')">⋯</button></span>` : ''}</div>`).join('');
+  const list = L.map((s) => `<div class="gd-lr"><button class="gd-li ${s.st ? 's-' + s.st : ''} ${s.id === curId ? 'cur' : ''}" onclick="${s.st ? `gdUndoAsk('${s.id}')` : `gdPick('${s.id}')`}"><b>${s.t}</b><span>${s.type === 'todo' ? '☐ ' : ''}${esc(s.title)}${s.moved ? ' <em>moved</em>' : ''}</span><i>${s.st === 'done' ? '✓' : s.st === 'skip' ? '✗' : s.st === 'moved' ? '↻' : s.id === curId ? '●' : ''}</i></button></div>`).join('');
   return `<section id="gd" class="gd ${gdSD ? 'sd' : ''}">
     <div class="gd-top"><span>${esc(K)}</span>${!gdSD && !o.shutdownAt ? `<button class="gd-sdb ${late ? 'hot' : ''}" onclick="gdSDStart()">Shutdown</button>` : gdSD ? `<button class="gd-sdb" onclick="gdSD=false;gdRender()">Exit</button>` : ''}</div>
     <div class="gd-bar"><u style="width:${pct}%"></u></div><div class="gd-cnt">${done}/${L.length} tracked today</div>
     <div class="gd-card">${H}</div>
-    <details class="gd-all"><summary>All steps today · tap one to do it now · ▲▼ to reorder</summary>${list}</details></section>`;
+    <details class="gd-all"><summary>All steps today · tap one to do it now</summary>${list}</details></section>`;
 }
 function gdUndoAsk(id) { if (confirm('Open this step again?')) gdUndo(id); }
 
@@ -383,7 +386,7 @@ if (typeof appearanceCard === 'function' && !appearanceCard._gd) {
   #arc .gd-d{white-space:pre-line;font-size:14px;line-height:1.5;color:var(--mut);margin-bottom:14px}
   #arc .gd-big{font-family:'Barlow Semi Condensed',sans-serif;font-size:56px;font-weight:700;line-height:1;margin:2px 0 6px;font-variant-numeric:tabular-nums}#arc .gd-big i{font-style:normal;font-size:16px;color:var(--mut);margin-left:6px;font-weight:500}
   #arc .gd-btn{display:block;width:100%;min-height:58px;border:0;border-radius:10px;background:var(--acc);color:var(--acc-ink,#000);font:inherit;font-size:17px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;margin-top:6px}
-  #arc .gd-btn:active{transform:scale(.985)}#arc .gd-btn.ghost{background:transparent;border:1px solid var(--ln);color:var(--ink);min-height:48px;font-size:14px}
+  #arc .gd-btn:active{transform:scale(.985)}#arc .gd-dm{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}#arc .gd-dm .gd-btn{margin-top:0}#arc .gd-btn.miss{background:transparent;border:1px solid var(--ln);color:var(--ink)}#arc .gd-btn.ghost{background:transparent;border:1px solid var(--ln);color:var(--ink);min-height:48px;font-size:14px}
   #arc .gd-btn2{flex:1;min-height:46px;border:1px solid var(--ln);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
   #arc .gd-two{display:flex;gap:8px;margin:4px 0 6px}
   #arc .gd-lnk{display:block;width:100%;background:none;border:0;color:var(--mut);font:inherit;font-size:13px;padding:12px 0 2px;cursor:pointer}

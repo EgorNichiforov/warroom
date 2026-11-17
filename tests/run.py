@@ -337,8 +337,11 @@ with sync_playwright() as p:
         check('Guide: moving a block later today keeps it in the flow at the new time', r['today'], r)
         check('Guide: moving a block to another day becomes a timed Todoist task', r['moved'], r)
         check('Guide: undo puts a moved block back', r['undone'], r)
-    ev("gdSkipSheet(gdSteps().find((x)=>x.type==='todo'||x.id==='x1').id)"); pg.wait_for_timeout(200)
-    check('Guide: skip sheet opens with move and drop options', 'move it' in pg.inner_text('#modal').lower() and 'not doing it' in pg.inner_text('#modal').lower())
+    r2 = ev("""() => { gdRender(); const h = document.getElementById('arc').innerHTML; const st = gdSteps().find((x)=>x.type==='todo' && !x.st);
+      if (st) gdMiss(st.id); const after = st ? gdSteps().find((x)=>x.id===st.id) : null;
+      return { pair: /gd-dm/.test(h) && />Missed</.test(h), noMove: !/Skip · move · drop/.test(h) && !/gd-nd/.test(h), missed: !st || (after && after.st === 'skip') }; }""")
+    check('Guide 13.6: every card is just Done / Missed', r2['pair'] and r2['noMove'], r2)
+    check('Guide 13.6: Missed marks a task missed for the nightly review', r2['missed'], r2)
     check('Guide 13.5: no page errors', not errs, errs[:3]); b.close()
 
     # offline shell + cache hygiene (static checks on the real files)
