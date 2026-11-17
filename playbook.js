@@ -65,6 +65,7 @@ Claude does steps 1–6. You only decide the change.
 { id: 'changelog', cat: 'system', title: 'Changelog', body: `Newest first. One line per change: what, why, which rule.
 
 | Date | Change | Why |
+| 17 Nov | **Courses implemented in the plan** (not just the app): Rules → Money rules (Wealth Roadmap with your real numbers), System → Courses → my system (map), daily drill themes in Practice, the 3 mindset questions in Shutdown, course KPIs + money count in the Sunday review, proof capture + 4 R's in the trial SOP, two decisions for 23 Nov | Applying the courses to every part of the day, not reading them |
 | 17 Nov | **War Room 13.10.0 · Time ranges everywhere**: every chart has 7 d · 30 d · 90 d · 1 yr · All (Money: You have with start, now, in, out, margin; Reports by months; Stats; Wealth margin). Each chart remembers its choice; Settings → Time ranges sets the default for all. Balance before your first count is rebuilt from where you started (0 on your first entry, editable) and marked estimated | See change over any period, one control, same on phone and laptop |
 | 17 Nov | **War Room 13.9.0 · Courses** (Work → Courses): every Acquisition.com course as a working module fed by your data. Scaling (stage from the log, 8 functions, the constraint now) · Offers (starving crowd, Value Equation, dream-outcome sentence, problems→solutions trim & stack, enhancers, MAGIC, 80% margin) · Leads (Rule of 100 grid, Open to Goal, Core Four, engaged leads vs benchmark, cold outreach + lead magnet checklists, 7 levels) · Money Models (CAC/GP/payback, levels 1–3, your 4 prongs, 5 upsell moments) · Sales (daily drill theme, 25 reads, role-play, game tape, funnel diagnostics, 8-second silence, loops) · Mindset (rule of the day, decision test, 27 situations, 3 questions). Wealth: your own minimum monthly living + 6/9/12 targets side by side | Study only your stage ±1 (the course's own rule): later parts show what opens them |
 | 17 Nov | **War Room 13.8.0 · Wealth + phone parity**: Money → **Wealth** runs the Wealth Roadmap (M-O-N-E-Y) from your ledger: margin (in, out, what's left, every category in detail, monthly nut, 90-day test, lifestyle-inflation check, one lever), optionality (transition fund vs 6–12 months of essentials), $100k net financial assets (freeze lifestyle, balance sheet, automatic monthly statement), equity rich + the 4 money monsters, your terms (coverage ratio). **Phone = laptop**: the laptop's side panels and Day column now show on the phone; Settings has Jump to (App lock one tap) | Wealth course: margin first, one milestone at a time. Every element on both devices |
@@ -103,7 +104,7 @@ Claude does steps 1–6. You only decide the change.
 | BAC | **Pass with an 8+ average** (changed 8 Nov: finish it, don't perfect it). English and IT by certificates |
 | Body | **85 kg lean**, trained every day, best tennis I can play |
 | Character | Clean. Phone rules kept. In bed at 21:00 |
-| Money | Spend less than I make every month, and make more than the month before |
+| Money | **Wealth Roadmap, one milestone at a time:** M = 3 months in a row of real margin (log every lei), then O = a transition fund of 6 months of essentials. Make more each month (Rules → Money rules) |
 
 ## Priority order
 The company is #1. When things clash, the cut order decides (see Rules → When the day doesn't fit).` },
@@ -207,6 +208,8 @@ See Body & BAC → BAC deadlines.` },
 | Cold email | After the first client or ~1,000 dials, from spare domains, never from caregiverbench.com |
 
 ## Still open (Sunday review)
+- **Rule of 100 (Leads):** the course's baseline is 100 primary actions every day; the plan is 350 dials a week with 10 on Mon and Wed. Option: count follow-up emails and voicemails as primary actions and add 20 minutes of caregiver outreach on Mon/Wed so every weekday reaches ~100. Decide on 23 Nov.
+- **Transition fund (Wealth):** target 60,000 MDL (6 × 10,000). Move the ~17,000 you have into a separate savings account or sealed envelope, then 5,000 MDL every payday until full (~9 months). Decide on 23 Nov.
 - **Accountability partner:** who sees the dial number every night?
 - **Team:** a commission caller only after one paid placement.` },
 /* ───────── RULES ───────── */
@@ -244,6 +247,45 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 - **The stake** (500 MDL per day under the minimum) starts only on the day I name an accountability partner.
 - **If I don't know something on a call:** "Good question. I don't want to guess. I'll find out and email you today."
 - **Never inflate a number.** Not agencies, not caregivers, not years.` },
+{ id: 'money', cat: 'rules', title: 'Money rules (Wealth Roadmap)', body: `Acquisition.com Wealth Roadmap: **M-O-N-E-Y, one milestone at a time.** War Room → Money → Wealth measures every line from your log.
+
+## Where you are (17 Nov)
+| Milestone | Done when | Now |
+| **M · Margin** | 3 months in a row: money in > money out | **Not measurable yet.** Earned ~129,000 MDL since April, logged spending ~41,000, you have ~17,000. About 70,000 is unaccounted: part may be tennis pay not received yet, the rest was spent without a log line |
+| O · Optionality | 6 × your minimum monthly living (10,000 MDL) = **60,000 MDL** in a separate place | ~17,000 = 1.7 months covered (28%). At 5,000 a month: full in ~9 months |
+| N · Net financial assets | $100k | Later |
+| E · Equity rich | $1M without your home | Later: the business is the route |
+| Y · Your terms | Passive income ≥ spending | 0% |
+
+## The rules
+1. **Know every lei (lever 1 of margin).** Log each spend the minute you pay: "spent 120 taxi". Count every account every Sunday; the app turns the gap into "not logged" so nothing hides. Margin is only real when the log is.
+2. **Monthly nut.** Your minimum monthly living is **10,000 MDL** (set by you in Money → Wealth). Essentials marked ★: food, transport, phone, gym, school. Change the number there when life changes.
+3. **One lever a month.** Cut the biggest category, or raise income. Income has no ceiling: the dials.
+4. **Freeze the lifestyle.** When tennis or the agency pays more, spending stays where it is. The difference goes to the fund, then the business.
+5. **Transition fund (O):** essentials × 6 in a separate place (a savings account or a sealed envelope), never touched for wants. Fixed transfer on payday: **5,000 MDL a month** (your savings goal) until it is full.
+6. **After the fund, the first ~$10k goes into the skill and the business that raise active income** (Hormozi: learn a skill before you invest). Caregiver Bench costs are logged as Business.
+7. **Business money separate** from the first agency payment (SOPs → Business setup).
+8. **Net-worth statement every month,** written automatically in Money → Wealth; read it on the first Sunday. You can't grow what you don't measure.
+9. **The 4 money monsters (from milestone N):** no idle cash beyond the fund (inflation) · a tax strategist, not only a preparer (taxes) · written rules before the first investment (interruption) · ask every product and advisor how they get paid (fees).
+10. **Impulse test:** anything outside essentials: does it make 1 July more likely? No = the wait list for 7 days.` },
+{ id: 'courses-map', cat: 'system', title: 'Courses → my system (where each one lives)', body: `Every course is a tool in War Room → Work → Courses, and every rule below has a home in the plan. **Study only your stage, one before and one after** (Scaling Roadmap).
+
+| Course | The rule that runs my life | Where it lives |
+| **Scaling Roadmap** | Stage 0 Improvise: get agencies to try it free. Fix only the constraint | Business → Scaling gates · Courses → Scaling (the constraint now) |
+| **$100M Offers** | Value Equation: my weakest lever is **likelihood** (no proof yet) → the proof plan | Business → What we sell · SOPs → After a yes (proof capture) · Courses → Offers |
+| **$100M Leads** | Volume negates luck. Rule of 100. One channel: the phone. More before better before new | Rules → This week · SOPs → Dial block · Courses → Leads (Rule of 100 grid) |
+| **$100M Money Models** | Attraction (First Hire Free) → upsell at the first win → downsell after a no → continuity. One prong at a time | Business → What we sell · SOPs → After a yes · Courses → Money models |
+| **$100M Sales Teams** | Frame + script. Daily drill theme. The rep who asks most closes most. 8 seconds of silence | Scripts · SOPs → Practice · Courses → Sales (drill, reads, game tape) |
+| **Wealth Roadmap** | M-O-N-E-Y: know every lei, freeze the lifestyle, transition fund, monthly net worth | Rules → Money rules · Money → Wealth |
+| **Hormozi mindset** | One test for every choice: more or less likely? Do the obvious thing for an unusually long time | Shutdown (3 questions) · Courses → Mindset |
+
+## The rhythm that enforces it
+| When | What | Where |
+| Every dial day | Today's drill theme + 3 objections, first dial inside 2 minutes | SOPs → Practice · Dial block |
+| Every evening | Shutdown: numbers, worst call, the 3 mindset questions | SOPs → Shutdown |
+| 21:13 nightly | Missed items rescheduled; applied script lines copied to Drive | Scheduled review (Claude) |
+| Sunday 11:00 | Course KPIs: Rule of 100 days, weakest funnel step, the constraint, margin, fund. ONE change | SOPs → Sunday review |
+| First Sunday | Net-worth statement + Wealth milestone + plan backward | SOPs → Sunday review |` },
 { id: 'legal', cat: 'rules', title: 'Legal lines (never cross)', body: `- **We only recruit caregivers.** Never bring agencies clients, never charge per family, client, lead or referral, never take a share of their billing (Florida Patient Brokering Act). Fees are only per caregiver who works for the agency, or a monthly plan.
 - **We never employ, pay, schedule or place caregivers.** The agency hires them as its own W-2 employees. Never send a caregiver to a family.
 - **Caregivers never pay us anything.** Ever.
@@ -571,9 +613,17 @@ Florida = Moldova − 7 h (the Panhandle, west of the Apalachicola River, is −
 - Read **Call 1** out loud **25 times** (about 1 hour). Boredom means it's working.
 - Blackout method: read it, black out one word, read again. Repeat.
 
-## Before every dial block (5 minutes)
-- Read Call 1 out loud once.
-- 3 objections out loud with Claude (Ask → "spar me on 3 objections").
+## Before every dial block (10 minutes): the daily drill
+$100M Sales Teams trains one part of the call each day. Courses → Sales shows today's theme, counts your reads, and opens the section in Script Lab.
+| Day | Theme | Drill |
+| Mon | Intro | Name, company, reason, small yes, agenda: under 20 seconds |
+| Tue | Disco | Current vs desired, "tell me more", "give me an example", get a number |
+| Wed | Pitch | Problem → solution → benefit ×3, under 2 minutes |
+| Thu | Close | The price line, then 8 seconds of silence, then the loops with AAA |
+| Fri | Hot topic | The objection that killed most calls this week, 25 times |
+| Sat | Pipeline | Every callback has a date; every "not now" has a recall |
+- Read today's section out loud **5 times**, then **3 objections** out loud with Claude (Ask → "spar me on 3 objections").
+- The course's bootcamp standard is 25 reads a day for a new rep; this is the time-boxed version. Log reads in Courses → Sales.
 
 ## After every owner conversation (1 minute)
 Three lines in the agency's notes: **what they said (exact words) · where it stalled · next step.**
@@ -594,9 +644,10 @@ Pick the worst call of the day. Rewrite the one line that lost it.
 | By day 3 | 2–3 Profile Cards to the owner. Update every 2 days, even with nothing new | E4 · E5 |
 | Interview | Confirm the evening before and the morning of. No-show → replacement profile within 24 hours | Caregiver side → confirmations |
 | First shift | Confirm the night before. War Room → Pipeline → first shift (creates the check-in tasks) | |
+| After the first shift (gate 2) | **Proof capture (the likelihood lever):** 5 questions to the owner: what was hiring like before, what worried you about trying us, why did you try anyway, what happened (numbers: days to a start, shows), what is different now. Written, plus a 30-second voice note if they agree. Raw beats polished. This becomes the proof line on every call | Offers · Sales Teams (proof) |
 | Days 1, 3, 7, 14, 30, 90 | Check-in calls with the caregiver, 2-line note to the owner | Caregiver side → check-ins |
 | Every Friday | 5 lines to the owner: cases open, candidates sent, interviews, starts, next week | |
-| Day 25 | **Results call: the sale** | Call 2 |
+| Day 25 | **Results call: the sale.** Then the **4 R's**: review (the proof capture), referral ("who else do you know who's struggling to staff a case?", live intro), retention (the plan), resale (the next case) | Call 2 |
 | Day 30 | Plan starts (first 4-week invoice) or the per-caregiver invoice goes out | |
 | Day 56 (cycle 2) | Halfway check: "what case is next?" → extras, or Multi-site if they hire 6+ a month | |
 | Cancel request | Exit call | Exit call |
@@ -677,18 +728,21 @@ Script read out loud 25× a day · role-play 3× a day · shadow 10 of your call
 Paid on outcomes (caregivers who work), with a base small enough to keep cash positive. Talent LTGP:cost ≥ 3:1.` },
 { id: 'sop-shutdown', cat: 'sops', title: 'Shutdown (20:45, 7 minutes)', body: `1. **War Room → Start shutdown:** numbers (dials, owner talks, BAC, money), the 7 standards, debrief.
 2. Daily log (2 min): numbers, what happened in one sentence, the worst call and the one line you'd change, tomorrow's first action.
-3. Magnesium + water.
-4. Look at tomorrow: the first action is 05:30 train.
-5. Phone charges outside the bedroom. **Bed 21:00.**` },
+3. **The 3 questions** (Courses → Mindset): did I do the hard thing first? What made 1 July more likely today, and what made it less likely? One thing I do better tomorrow?
+4. Magnesium + water.
+5. Look at tomorrow: the first action is 05:30 train.
+6. Phone charges outside the bedroom. **Bed 21:00.**` },
 { id: 'sop-review', cat: 'sops', title: 'Sunday review (11:00, 30 min)', body: `1. Open **Plan → Review**. The week report is at the top.
 2. Dials vs 350, connects, owner conversations, open cases stated, trials started, caregivers who worked, money collected. Caregivers screened (Tampa Bay, /15 by 30 Nov). Open leads left (under 700 = ask Claude for more).
 3. The funnel: which stage dropped most? That's next week's ONE fix (Business → The funnel math).
 4. Script: version + dials on it. 300+ dials and a clear pattern = change one line (SOPs → Practice).
 5. BAC hours and the Saturday test score. Training days. Weight vs the checkpoint. Money made vs spent.
-6. Read Mission → Decisions → Still open. Decide one.
-7. Write **ONE change** for next week. Claude carries it everywhere (System → One source of truth).
+6. **Courses check (5 min):** Rule of 100: days at 100+ this week (Courses → Leads) · weakest funnel step (Courses → Sales) · the constraint (Courses → Scaling): is it still the same?
+7. **Money (5 min):** count every account (Money → Count). Then Money → Wealth: margin this week and month, the fund %, the one lever for next week. Unlogged gap above 10% = log harder, not a new budget.
+8. Read Mission → Decisions → Still open. Decide one.
+9. Write **ONE change** for next week. Claude carries it everywhere (System → One source of truth).
 
-Monthly, first Sunday: compare with the plan backward. Behind 2 months in a row = cut order, not more hours.` },
+Monthly, first Sunday: compare with the plan backward. Behind 2 months in a row = cut order, not more hours. Read the **net-worth statement** and the **Wealth milestone** (Money → Wealth): one sentence on what moved.` },
 { id: 'sop-morning', cat: 'sops', title: 'Morning', body: `05:20 toilet → scale → weigh in War Room → teeth, water, dressed.
 05:30 train (bad day: 10 minutes).
 06:00 shower.
