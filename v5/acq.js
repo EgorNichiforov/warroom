@@ -289,3 +289,66 @@ function renderAcq() {
   `;
   document.head.appendChild(st);
 })();
+
+/* ═════════ 13.11 · THE LIBRARY: every course, lesson by lesson, readable inside War Room ═════════
+   lib/acq_<course>.json = the complete lesson notes (all 6 courses, ~90 lessons) + "from his videos" topic pages
+   (2,600+ ideas from 252 videos, each with its source link) + the mindset library by theme. Loaded on demand,
+   cached offline. Tap a lesson to read it; Ask sends the lesson to the assistant as context. */
+const ACQ_LIBS = { scale: 'Scaling Roadmap', offer: '$100M Offers', leads: '$100M Leads', mm: '$100M Money Models', sales: '$100M Sales Teams', wealth: 'Wealth Roadmap', mind: 'Hormozi mindset', home: 'Overview & the 12 frameworks' };
+const acqLib = {}; let acqRead = null, acqLibQ = '', acqLoading = {};
+function acqLoad(k) { if (acqLib[k] || acqLoading[k]) return; acqLoading[k] = 1; fetch('./lib/acq_' + k + '.json').then((r) => r.json()).then((d) => { acqLib[k] = d; acqLoading[k] = 0; render(); }).catch(() => { acqLoading[k] = 0; }); }
+function acqLessonT(t) { return String(t).replace(/^(Scaling|Offers|Leads|Money Models|Wealth|\$100M Sales Teams)\s+(\d+)\s+—\s+/, '$2 · '); }
+function acqLibCard(k, opts) {
+  opts = opts || {}; const L = acqLib[k]; if (!L) { acqLoad(k); return `<div class="card aq-lib"><div class="aq-t">📖 The full course <span>loading…</span></div></div>`; }
+  const ls = L.lessons || [], vs = L.videos || [];
+  return `<div class="card aq-lib"><div class="aq-t">📖 ${opts.title || 'The full course'} <span>${ls.length} ${k === 'mind' ? 'sections' : 'lessons'}${vs.length ? ` · ${vs.length} pages from his videos` : ''}${L.note ? ' · ' + esc(L.note) : ''}</span></div>
+    <div class="aq-ls">${ls.map((l, i) => `<button onclick="acqOpen('${k}',${i})"><i>${k === 'mind' ? '›' : i + 1}</i><span>${esc(acqLessonT(l.t))}</span></button>`).join('')}</div>
+    ${vs.length ? `<div class="aq-t" style="margin-top:12px">▶ From his videos <span>every idea links to the video it comes from</span></div><div class="aq-ls">${vs.map((l, i) => `<button onclick="acqOpen('${k}',${i},1)"><i>▶</i><span>${esc(l.t)}</span></button>`).join('')}</div>` : ''}</div>`;
+}
+function acqOpen(k, i, v) { acqRead = { k, i, v: !!v }; acqTab = k === 'home' ? 'home' : k; render(); window.scrollTo(0, 0); }
+function acqReader() {
+  const r = acqRead, L = acqLib[r.k]; if (!L) { acqLoad(r.k); return '<div class="card"><div class="empty">Loading…</div></div>'; }
+  const arr = r.v ? L.videos : L.lessons, l = arr[r.i]; if (!l) { acqRead = null; return ''; }
+  const nav = (d) => { const j = r.i + d; return arr[j] ? `<button class="btn sm" onclick="acqOpen('${r.k}',${j},${r.v ? 1 : 0})">${d < 0 ? '‹ ' + esc(acqLessonT(arr[j].t)).slice(0, 34) : esc(acqLessonT(arr[j].t)).slice(0, 34) + ' ›'}</button>` : '<span></span>'; };
+  return `<div class="aq-rd"><div class="aq-rd-top"><button class="btn sm ghost" onclick="acqRead=null;render()">‹ ${esc(ACQ_LIBS[r.k] || '')}</button><span>${r.v ? 'From his videos' : (r.k === 'mind' ? 'Section' : 'Lesson')} ${r.i + 1} of ${arr.length}</span></div>
+    <div class="card aq-page"><h2>${esc(acqLessonT(l.t))}</h2>${pbRender(l.md)}</div>
+    <div class="aq-rd-bar"><button class="btn primary" onclick="acqAsk()">Ask about this</button><button class="btn" onclick="acqAskClaude()">Ask Claude ↗</button></div>
+    <div class="aq-rd-nav">${nav(-1)}${nav(1)}</div></div>`;
+}
+function acqCtx() { const r = acqRead, L = r && acqLib[r.k]; if (!L) return null; const l = (r.v ? L.videos : L.lessons)[r.i]; return l ? { t: (ACQ_LIBS[r.k] || '') + ' → ' + acqLessonT(l.t), md: l.md } : null; }
+function acqAsk() { const c = acqCtx(); if (!c) return; window.acqAskCtx = c.t + '\n\n' + c.md; askQuick(`About "${c.t}": `); }
+function acqAskClaude() { const c = acqCtx(); if (!c) return; if (typeof askClaude === 'function') askClaude(`I'm reading ${c.t} in my War Room course library. Help me apply it to Caregiver Bench and my life. My question: `); }
+/* search across every library */
+function acqSearch() {
+  const q = acqLibQ.trim().toLowerCase(); if (q.length < 3) return '';
+  Object.keys(ACQ_LIBS).forEach(acqLoad); const out = [];
+  Object.keys(ACQ_LIBS).forEach((k) => { const L = acqLib[k]; if (!L) return; [['lessons', 0], ['videos', 1]].forEach(([f, v]) => (L[f] || []).forEach((l, i) => { const t = l.md.toLowerCase(), j = t.indexOf(q), ti = l.t.toLowerCase().includes(q); if (j < 0 && !ti) return; const sn = j >= 0 ? l.md.slice(Math.max(0, j - 60), j + 120).replace(/[#*|>\[\]()]/g, ' ') : ''; out.push({ k, i, v, t: l.t, sn, w: ti ? 2 : 1, n: (t.match(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length }); })); });
+  out.sort((a, b) => b.w - a.w || b.n - a.n);
+  return `<div class="card"><div class="aq-t">Found in ${out.length} ${out.length === 1 ? 'page' : 'pages'}</div>${out.slice(0, 40).map((x) => `<button class="aq-hit" onclick="acqOpen('${x.k}',${x.i},${x.v ? 1 : 0})"><span>${esc(ACQ_LIBS[x.k])}${x.v ? ' · videos' : ''} · ${x.n}×</span><b>${esc(acqLessonT(x.t))}</b>${x.sn ? `<em>…${esc(x.sn)}…</em>` : ''}</button>`).join('') || '<div class="empty">Nothing found.</div>'}</div>`;
+}
+/* wire the library into each course tab, the Scaling stages, the Overview and Wealth */
+(function () {
+  const wrap = (name, k, opts) => { const f = window[name]; if (typeof f !== 'function' || f._lib) return; const g = function () { const h = f.apply(this, arguments); const i = h.indexOf('</div>', h.indexOf('class="aq-hd"')); const cut = h.indexOf('<div class="card', i); return cut > 0 ? h.slice(0, cut) + acqLibCard(k, opts) + h.slice(cut) : h + acqLibCard(k, opts); }; g._lib = 1; window[name] = g; };
+  [['acqOffer', 'offer'], ['acqLeads', 'leads'], ['acqMM', 'mm'], ['acqSales', 'sales']].forEach(([n, k]) => wrap(n, k));
+  wrap('acqMind', 'mind', { title: 'How he thinks · the full library' });
+  if (typeof acqScale === 'function' && !acqScale._lib) { const f = acqScale; acqScale = function () { let h = f.apply(this, arguments);
+      h = h.replace(/<div class="aq-stg-h"><b>(\d) · /g, (m, n) => `<div class="aq-stg-h"><button class="aq-readst" onclick="event.stopPropagation();acqOpen('scale',${Number(n) + 2})">Read the full stage ›</button><b>${n} · `);
+      return h + acqLibCard('scale', { title: 'The full Scaling Roadmap · every stage, every function' }); }; acqScale._lib = 1; }
+  if (typeof acqHome === 'function' && !acqHome._lib) { const f = acqHome; acqHome = function () { const h = f.apply(this, arguments);
+      const search = `<div class="card aq-srch"><input class="aq-in" placeholder="Search every course and 252 of his videos: price, guarantee, voicemail, patience…" value="${esc(acqLibQ)}" oninput="acqLibQ=this.value;render()"></div>`;
+      const i = h.indexOf('<div class="card aq-now">'); return (i > 0 ? h.slice(0, i) + search + (acqLibQ.trim().length >= 3 ? acqSearch() : '') + h.slice(i) : h) + acqLibCard('home', { title: 'Overview: the 12 frameworks + applied to you' }); }; acqHome._lib = 1; }
+  if (typeof renderAcq === 'function' && !renderAcq._lib) { const f = renderAcq; renderAcq = function () {
+      const el = document.getElementById('view-acq'); if (!el) return;
+      if (acqTab === 'wealth' && !acqRead) { el.innerHTML = `<div class="aq"><div class="aq-tabs">${ACQ_TABS.map(([k, l]) => `<button class="${acqTab === k ? 'on' : ''}" onclick="acqRead=null;acqTab='${k}';render();window.scrollTo(0,0)">${l}</button>`).join('')}</div>${acqHead('Wealth Roadmap', 'M-O-N-E-Y: margin, optionality, $100k net financial assets, equity rich, your terms. Taught by Sharran Srivatsaa.', 'Wealth 1–6')}<div class="card"><button class="btn primary block" onclick="mnTab='wealth';show('money')">Your numbers: Money → Wealth ›</button></div>${acqLibCard('wealth')}</div>`; return; }
+      if (acqRead) { el.innerHTML = `<div class="aq"><div class="aq-tabs">${ACQ_TABS.map(([k, l]) => `<button class="${acqTab === k ? 'on' : ''}" onclick="acqRead=null;acqTab='${k}';render();window.scrollTo(0,0)">${l}</button>`).join('')}</div>${acqReader()}</div>`; return; }
+      return f.apply(this, arguments); }; renderAcq._lib = 1; }
+  const st = document.createElement('style'); st.id = 'acqlib-css';
+  st.textContent = `.aq-lib .aq-t{margin-bottom:8px}.aq-ls{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px}.aq-ls button{display:flex;gap:10px;align-items:baseline;text-align:left;background:transparent;border:0;border-bottom:1px solid #15181C;padding:9px 2px;color:var(--text);cursor:pointer;font-family:inherit;font-size:13.5px;line-height:1.35}.aq-ls button:hover span{color:var(--acc)}.aq-ls i{flex:none;width:22px;font:600 11px/1 var(--mono,monospace);color:var(--acc);font-style:normal;text-align:right}
+  .aq-rd{display:grid;gap:10px}.aq-rd-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.aq-rd-top span{font:600 11px/1 var(--mono,monospace);letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  .aq-page h2{font-size:22px;line-height:1.3;margin:0 0 14px;color:var(--text)}.aq-page .pb{font-size:15px;line-height:1.6}.aq-page .pb li{margin:6px 0}.aq-page .pb a{color:var(--acc);text-decoration:none;font:600 11px/1 var(--mono,monospace);border:1px solid #262B32;border-radius:3px;padding:2px 5px;margin-left:2px;white-space:nowrap}.aq-page .pbt{overflow-x:auto}.aq-page table{font-size:13px}
+  .aq-rd-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}.aq-rd-nav{display:flex;justify-content:space-between;gap:8px;padding-bottom:14px}.aq-rd-nav .btn{max-width:48%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .aq-readst{float:right;background:transparent;border:1px solid var(--acc);color:var(--acc);border-radius:3px;font:600 11px/1 var(--mono,monospace);padding:6px 8px;cursor:pointer;margin-left:8px}
+  .aq-hit{display:grid;gap:3px;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid #15181C;padding:10px 2px;cursor:pointer;font-family:inherit}.aq-hit span{font:600 10.5px/1 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}.aq-hit b{font-size:14px;color:var(--text)}.aq-hit em{font-style:normal;font-size:12.5px;color:var(--muted);line-height:1.4}
+  .aq-srch{padding:10px!important}`;
+  document.head.appendChild(st);
+})();

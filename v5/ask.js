@@ -60,7 +60,7 @@ async function askSend(text) {
   askLog.push({ role: 'user', text, at: now() }); askBusy = true; askSave(); render();
   try {
     const hist = askLog.filter((x) => !x.sys && !x.err).slice(-10).map((x) => ({ role: x.role, text: x.text }));
-    const sys = ASK_SYSTEM + '\n\n' + ASK_ROLES[askRole] + '\n\n' + askContext(false) + (askFocus ? `\n\nHe is asking from the playbook page "${(pb(askFocus) || {}).title || askFocus}".` : '');
+    const sys = ASK_SYSTEM + '\n\n' + ASK_ROLES[askRole] + '\n\n' + askContext(false) + (askFocus ? `\n\nHe is asking from the playbook page "${(pb(askFocus) || {}).title || askFocus}".` : '') + (window.acqAskCtx ? '\n\nHe is reading this lesson from his Acquisition.com / Hormozi course library. Answer from it first, then apply it to his business and life:\n' + String(window.acqAskCtx).slice(0, 14000) : '');
     const a = await aiText(sys, hist);
     askLog.push({ role: 'assistant', text: a, at: now() });
   } catch (e) { askLog.push({ role: 'assistant', text: aiExplain(e.message) + ' (' + String(e.message).slice(0, 120) + ')', at: now(), err: true }); }
@@ -75,7 +75,7 @@ function askClaude(q) {
   toast('Opening Claude. Your question is also copied: paste it if the box is empty.');
 }
 function askQuick(q, toClaude) { view = 'ask'; render(); const i = $('ask-in'); if (i) { i.value = q; i.focus(); } if (toClaude) { closeModal(); } }
-function askAbout(id) { askFocus = id; const p = pb(id); askQuick(`About "${p ? p.title : id}": `); }
+function askAbout(id) { window.acqAskCtx = null; askFocus = id; const p = pb(id); askQuick(`About "${p ? p.title : id}": `); }
 function askClear() { if (!confirm('Clear this conversation?')) return; askLog = []; askFocus = ''; askSave(); render(); }
 
 /* dispatches from Claude (written into the synced War Room by scheduled check-ins) */
