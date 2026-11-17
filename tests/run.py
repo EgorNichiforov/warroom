@@ -461,6 +461,27 @@ with sync_playwright() as p:
     check('Wealth: your own minimum monthly living overrides the calculated one; 6/9/12 targets side by side', r['minLive'] == 5000 and r['targets'] == 3, r)
     check('Courses: no page errors', not errs, errs[:3]); b.close()
 
+    # Time ranges 13.10: 7 d / 30 d / 90 d / 1 yr / all on every chart
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    r = ev("""() => { mnInit(); Object.keys(S.txns).forEach(k=>delete S.txns[k]); const t=new Date(), s0=addDays(t,-200);
+      for (let d=new Date(s0); d<=t; d=addDays(d,2)) { mnPut({type:'in',amt:600,acc:'cash',cat:'tennis',date:dk(d),cash:true}); mnPut({type:'out',amt:300,acc:'cash',cat:'food',date:dk(d),note:'x'}); }
+      mnPut({type:'count',amt:20000,acc:'cash',date:dk(addDays(t,-5)),diff:0}); save(); mnTab='over'; show('money');
+      const ch={}; ['7','30','90','all'].forEach(v=>{ wrRangeSet('money',v); ch[v]=document.querySelector('#view-money .mn2-hero .d').textContent; });
+      const H=wrHistory(wrRangeDays('money',wrFirstMoney())), first=H.pts[0], last=H.pts[H.pts.length-1];
+      mnTab='rep'; wrRangeSet('report','3'); const rep3=document.querySelectorAll('#view-money .mn2-bars button').length; wrRangeSet('report','all'); const repAll=document.querySelectorAll('#view-money .mn2-bars button').length;
+      show('stats'); wrRangeSet('stats','90'); const st=statsRange; wrRangeSet('stats','all'); const stAll=statsRange;
+      S.settings.ranges={}; S.settings.rangeDef='90'; const def=wrRangeDays('money');
+      return { ch, startAmt: Math.round(first.b), endIsTotal: Math.round(last.b)===Math.round(mnTotal().t), est: !!first.est && !last.est, rep3, repAll, st, stAll, def }; }""")
+    check('Ranges: You have change differs per range (7/30/90/all)', len(set(r['ch'].values())) == 4, r)
+    check('Ranges: All time starts where you started (0) and ends at what you have now', r['startAmt'] == 0 and r['endIsTotal'], r)
+    check('Ranges: before the first count is marked estimated, after it is exact', r['est'], r)
+    check('Ranges: Reports show 3 months or every month since your first entry', r['rep3'] == 3 and r['repAll'] >= 7, r)
+    check('Ranges: Stats follows the range (90 d, all time)', r['st'] == 90 and r['stAll'] >= 200, r)
+    check('Ranges: the Settings default applies to every chart', r['def'] == 90, r)
+    ev("moreTab='home';show('me')"); pg.wait_for_timeout(400)
+    check('Ranges: Time ranges card in Settings', ev("!!document.getElementById('range-card')"))
+    check('Ranges: no page errors', not errs, errs[:3]); b.close()
+
     # offline shell + cache hygiene (static checks on the real files)
     import re, os
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
