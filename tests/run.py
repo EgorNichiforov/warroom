@@ -295,6 +295,52 @@ with sync_playwright() as p:
         check('Day: a finished current block steps aside in the hero', r == [False, True, True], r)
     check('Day: no page errors', not errs, errs[:3]); b.close()
 
+    # ── Guided day 13.5: tasks in the flow, skip → move or drop, reorder ──
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    r = ev("""() => { const d = gdDayDate(), k = dk(d), k1 = dk(addDays(d, 1));
+      const a = { id: 'ta', _u: now(), title: 'Call Maria', due: k, time: '23:40', done: false, note: '' };
+      const b2 = { id: 'tb', _u: now(), title: 'Send invoice', due: k, done: false, note: '' };
+      const c = { id: 'tc', _u: now(), title: 'Old thing', due: dk(addDays(d, -2)), done: false, note: '' };
+      S.tasks.ta = a; S.tasks.tb = b2; S.tasks.tc = c; save();
+      const L = gdSteps(d), ids = L.map((x) => x.id);
+      const inFlow = ['td:ta', 'td:tb', 'td:tc'].every((i) => ids.includes(i));
+      const timedAt = L.find((x) => x.id === 'td:ta').t === '23:40';
+      const slotted = L.find((x) => x.id === 'td:tb').slotted && L.find((x) => x.id === 'td:tc').overdue;
+      gdTaskDone('ta'); const doneOk = S.tasks.ta.done && gdSteps(d).find((x) => x.id === 'td:ta').st === 'done';
+      gdMove('td:tb', k1, '10:15'); const movedTask = S.tasks.tb.due === k1 && S.tasks.tb.time === '10:15' && !gdSteps(d).some((x) => x.id === 'td:tb');
+      gdDrop('td:tc'); const dropped = S.tasks.tc._del === true;
+      const busy = [[600, 660], [700, 760]], sl = gdFindSlots(busy, 30, 540, 3, k);
+      const slotOk = sl.length >= 2 && !sl.some((h) => { const m = tmin(h); return busy.some(([x, y]) => x < m + 30 && y > m); });
+      const due = tdDueBody({ due: '2026-11-18', time: '14:30' }), dueOk = !!due.due_datetime && !due.due_date;
+      const back = tdDueRead({ due: { date: due.due_datetime } }), backOk = back.due === '2026-11-18' && back.time === '14:30';
+      return { inFlow, timedAt, slotted, doneOk, movedTask, dropped, slotOk, dueOk, backOk, sl }; }""")
+    check('Guide: Todoist tasks due today/overdue appear as steps', r['inFlow'], r)
+    check('Guide: a timed task sits at its time; untimed and overdue get slotted', r['timedAt'] and r['slotted'], r)
+    check('Guide: Done on a task closes it', r['doneOk'])
+    check('Guide: moving a task to tomorrow updates its date+time and takes it off today', r['movedTask'])
+    check('Guide: "not doing it" deletes a one-off task', r['dropped'])
+    check('Guide: free-slot finder never lands on a busy block', r['slotOk'], r['sl'])
+    check('Todoist: date+time is sent (reminder moves) and read back in local time', r['dueOk'] and r['backOk'])
+    r = ev("""() => { const d = gdDayDate(), k = dk(d), o = day(k);
+      S.schedule.blocks = [{ id: 'x1', title: 'Write post', start: '10:00', end: '10:30', days: [0,1,2,3,4,5,6], kind: 'other' }, { id: 'x2', title: 'Read book', start: '11:00', end: '11:30', days: [0,1,2,3,4,5,6], kind: 'other' }];
+      if (typeof CAL !== 'undefined' && CAL) CAL.events = null;
+      const has = gdSteps(d).some((x) => x.id === 'x1'); if (!has) return { skip: 1 };
+      gdNudge('x1', 1); const L = gdSteps(d), a = L.find((x) => x.id === 'x1'), b2 = L.find((x) => x.id === 'x2'); const swapped = a.t === '11:00' && b2.t === '10:00';
+      gdMove('x1', k, '15:05'); const today = gdSteps(d).find((x) => x.id === 'x1').t === '15:05';
+      const n = Object.keys(S.tasks).length; gdMove('x2', dk(addDays(d, 1)), '09:30'); const tk = Object.values(S.tasks).find((t) => t.title === '↻ Read book');
+      const moved = o.blk.x2 === 'moved' && tk && tk.time === '09:30';
+      gdUndo('x1'); const undone = gdSteps(d).find((x) => x.id === 'x1').t === '10:00';
+      return { swapped, today, moved, undone }; }""")
+    if r.get('skip'): check('Guide: blocks reorder/move (schedule not used under calendar)', True)
+    else:
+        check('Guide: ▲▼ swaps two steps', r['swapped'], r)
+        check('Guide: moving a block later today keeps it in the flow at the new time', r['today'], r)
+        check('Guide: moving a block to another day becomes a timed Todoist task', r['moved'], r)
+        check('Guide: undo puts a moved block back', r['undone'], r)
+    ev("gdSkipSheet(gdSteps().find((x)=>x.type==='todo'||x.id==='x1').id)"); pg.wait_for_timeout(200)
+    check('Guide: skip sheet opens with move and drop options', 'move it' in pg.inner_text('#modal').lower() and 'not doing it' in pg.inner_text('#modal').lower())
+    check('Guide 13.5: no page errors', not errs, errs[:3]); b.close()
+
     # offline shell + cache hygiene (static checks on the real files)
     import re, os
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

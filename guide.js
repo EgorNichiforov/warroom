@@ -1,4 +1,4 @@
-/* War Room · guide.js (13.4.0, owner request 17 Nov 2026)
+/* War Room · guide.js (13.5.0: Todoist tasks in the flow, skip → move or drop, reorder · 13.4.0 base, owner request 17 Nov 2026)
    "The home screen walks me through the whole day. One step at a time, Done → next, so I never forget to track anything."
    GUIDE sits on top of the Day screen (ARC). It turns today into an ordered list of steps:
      wake → weigh-in → every training (with its exercises and videos) → every block that needs a tick → attendance after
@@ -31,6 +31,49 @@ function gdType(b) {
   if (b.kind === 'food') return 'food';
   return 'task';
 }
+/* ── Todoist tasks become steps too (13.5.0) ──
+   Due today with a time → at that time. Due today without a time, or overdue → slotted into the first free gap,
+   so "call Maria" shows up in the flow instead of hiding in a list. */
+function gdTaskList(k) {
+  if (!S.tasks) return [];
+  return Object.values(S.tasks).filter((t) => t && !t._del && t.due && t.due <= k && (!t.done || (t.doneAt && dk(new Date(t.doneAt)) === k)));
+}
+function gdTaskSteps(d, L, wake) {
+  const k = dk(d), list = gdTaskList(k), out = [], isT = k === dk(new Date());
+  const timed = list.filter((t) => t.due === k && t.time), loose = list.filter((t) => !(t.due === k && t.time));
+  timed.forEach((t) => out.push(gdTaskStep(t, t.time, k)));
+  let from = Math.max(tmin(wake) + 30, isT ? nowMin() : 0);
+  const busy = gdBusy(k);
+  loose.sort((a, b) => (b.pri || 1) - (a.pri || 1) || a.due.localeCompare(b.due)).forEach((t) => {
+    let hm = t.done ? hmOf(new Date(t.doneAt).getHours() * 60 + new Date(t.doneAt).getMinutes()) : null;
+    if (!hm) { const sl = gdFindSlots(busy, 15, from, 1, k); hm = sl[0] || hmOf(from); busy.push([tmin(hm), tmin(hm) + 15]); from = tmin(hm) + 15; }
+    out.push(gdTaskStep(t, hm, k, true));
+  });
+  return out;
+}
+function gdTaskStep(t, hm, k, slotted) {
+  return { id: 'td:' + t.id, t: hm, type: 'todo', title: gdClean(t.title) || t.title, task: t, st: t.done ? 'done' : '', slotted: !!slotted, overdue: t.due < k };
+}
+/* busy minutes of a day: every block (also travel/school/sleep), every timed task, every moved step */
+function gdBusy(k, L) {
+  const d = pd(k), o = S.days[k] || {}, mv = o.mv || {};
+  const bl = L || (typeof arcBlocks === 'function' ? arcBlocks(d) : blocksFor(d));
+  const out = bl.map((b) => [mv[b.id] ? tmin(mv[b.id]) : tmin(b.start), (mv[b.id] ? tmin(mv[b.id]) - tmin(b.start) : 0) + (b.end === '24:00' ? 1440 : tmin(b.end) || tmin(b.start) + 30)]);
+  Object.values(S.tasks || {}).forEach((t) => { if (t && !t._del && !t.done && t.due === k && t.time) out.push([tmin(mv['td:' + t.id] || t.time), tmin(mv['td:' + t.id] || t.time) + 15]); });
+  return out;
+}
+/* free starts of at least `dur` minutes, between wake+30 and bed−30, one per gap, rounded to 5 min */
+function gdFindSlots(busy, dur, from, n, k) {
+  const d = k ? pd(k) : gdDayDate(), lo = Math.max(from || 0, tmin((typeof wakeFor === 'function' ? wakeFor(d) : S.settings.wake) || '06:00') + 30), hi = tmin(S.settings.bed || '21:30') - 30;
+  const iv = busy.filter((x) => x[1] > x[0]).sort((a, b) => a[0] - b[0]), out = [];
+  let t = Math.ceil(lo / 5) * 5;
+  while (t + dur <= hi && out.length < n) {
+    const hit = iv.find((x) => x[0] < t + dur && x[1] > t);
+    if (!hit) { out.push(hmOf(t)); const nxt = iv.find((x) => x[0] >= t + dur); if (!nxt) break; t = Math.ceil(nxt[1] / 5) * 5; continue; }
+    t = Math.ceil(hit[1] / 5) * 5;
+  }
+  return out;
+}
 function gdSkipBlock(b) { const t = b.title || ''; return b.kind === 'travel' || /🏫|^\s*shower\s*$|😴|^\s*sleep\s*$/i.test(t) || /usually skipped/i.test(b.note || ''); }
 
 /* ── the steps of a day ── */
@@ -49,8 +92,12 @@ function gdSteps(d) {
     if (ty === 'group') { const a = (o.att || {})[b.id]; if (a) st = a.cancel ? 'skip' : 'done'; }
     if (ty === 'dials') { const m = b.title.match(/DIALS?:\s*(\d+)/i); dialsCum += m ? +m[1] : 0; if (!st && dialsCum && dialsNow >= dialsCum) st = 'done'; }
     if (ty === 'sun' && o.habits && o.habits.sun && !st) st = 'done';
+    if (blk[b.id] === 'moved') st = 'moved';
     out.push({ id: b.id, t: b.start, end: b.end, type: ty, title: gdClean(b.title), b, st, dialsCum });
   });
+  gdTaskSteps(d, L, wake).forEach((x) => out.push(x));
+  const mv = o.mv || {};
+  out.forEach((x) => { if (mv[x.id] && x.type !== 'shutdown') { const dl = tmin(mv[x.id]) - tmin(x.t); x.t = mv[x.id]; if (x.end) x.end = hmOf(tmin(x.end) + dl); x.moved = 1; } });
   out.push({ id: 'shutdown', t: (L.find((b) => gdType(b) === 'shutdownblk') || {}).start || hmOf(tmin(S.settings.bed || '21:00') - 15), type: 'shutdown', title: 'Shutdown', st: o.shutdownAt ? 'done' : '' });
   return out.sort((a, b) => (a.type === 'shutdown') - (b.type === 'shutdown') || tmin(a.t) - tmin(b.t));
 }
@@ -72,7 +119,9 @@ function gdMark(id, st) {
   if (st === 'done') { const s = gdSteps().find((x) => x.id === id); if (s && s.type === 'sun') o.habits.sun = 1; }
   touch(o); gdFocusId = null; gdBuzz(st === 'done' ? [12, 40, 12] : 8); gdNext(st === 'done' ? 'Done.' : 'Skipped.');
 }
-function gdUndo(id) { const o = day(gdDayDate()); if (id === 'weight') { delete o.weightSkipped; o.weight = ''; } else if (o.blk) delete o.blk[id]; if (o.att) delete o.att[id]; const ss = sessionsRO(o).find((x) => x.block === id); if (ss) { ss.done = false; ss.skipped = false; if (typeof syncTrainFlags === 'function') syncTrainFlags(o); } touch(o); gdFocusId = id; gdRender(); }
+function gdUndo(id) { const o = day(gdDayDate());
+  if (String(id).startsWith('td:')) { const t = S.tasks[id.slice(3)]; if (t && t.done) { t.done = false; t.doneAt = null; t._u = now(); save(); taskHook('reopen', t); } gdFocusId = id; return gdRender(); }
+  if (o.mv) delete o.mv[id]; if (id === 'weight') { delete o.weightSkipped; o.weight = ''; } else if (o.blk) delete o.blk[id]; if (o.att) delete o.att[id]; const ss = sessionsRO(o).find((x) => x.block === id); if (ss) { ss.done = false; ss.skipped = false; if (typeof syncTrainFlags === 'function') syncTrainFlags(o); } touch(o); gdFocusId = id; gdRender(); }
 function gdNext(msg) {
   const L = gdSteps(), c = gdCurrent(L, gdDayDate()); toast(msg + (c && c.s ? ' Next: ' + c.s.title : ' Day handled.'));
   gdRender(); const el = document.getElementById('gd'); if (el) { el.classList.remove('gd-in'); void el.offsetWidth; el.classList.add('gd-in'); }
@@ -164,7 +213,7 @@ function gdSDBody(o, d, k, openSteps) {
 
 /* ── the card for one step ── */
 function gdStepBody(s, o, d, inSD) {
-  const k = dk(d), desc = s.b ? gdDesc(s.b) : '', head = (s.end ? `${s.t}–${s.end}` : s.t), skip = `<button class="gd-lnk" onclick="gdMark('${s.id}','skip')">Skip</button>`;
+  const k = dk(d), desc = s.b ? gdDesc(s.b) : '', head = (s.end ? `${s.t}–${s.end}` : s.t), skip = `<button class="gd-lnk" onclick="gdSkipSheet('${s.id}')">Skip · move · drop</button>`;
   const doneBtn = (lbl) => `<button class="gd-btn" onclick="gdMark('${s.id}','done')">${lbl || 'Done'}</button>`;
   const lines = (n) => desc ? `<div class="gd-d">${esc(desc.split('\n').filter((l) => l.trim() && !/https?:\/\//.test(l)).slice(0, n).join('\n'))}</div>` : '';
   if (s.type === 'wake') return `<div class="gd-t">Good morning.</div><div class="gd-s">Tap the moment you're up. Then the scale.</div><button class="gd-btn" onclick="wokeUp();setTimeout(gdRender,60)">I'm up</button>${skip}`;
@@ -180,7 +229,7 @@ function gdStepBody(s, o, d, inSD) {
       ${P.ex.length ? `<ol class="gd-ex">${P.ex.slice(0, 12).map((l) => `<li>${esc(l)}</li>`).join('')}</ol>` : lines(4)}
       ${P.vids.length ? `<div class="gd-vids">${P.vids.slice(0, 16).map(([n, u]) => `<button onclick='gdVid(${JSON.stringify(u)})'>▶ ${esc(n)}</button>`).join('')}</div>` : ''}
       <div class="gd-two"><button class="gd-btn2" onclick="gdWorkout('${s.id}')">Open workout · log sets</button></div>
-      <button class="gd-btn" onclick="gdTrain('${s.id}','done')">Done · trained</button><button class="gd-lnk" onclick="gdTrain('${s.id}','skip')">Skip today</button>`;
+      <button class="gd-btn" onclick="gdTrain('${s.id}','done')">Done · trained</button><button class="gd-lnk" onclick="gdSkipSheet('${s.id}')">Skip · move · drop</button>`;
   }
   if (s.type === 'group') {
     const names = gdRoster(s.b); if (!gdAtt[s.id]) gdAtt[s.id] = names.map(() => 1); const a = gdAtt[s.id], p = a.filter(Boolean).length;
@@ -199,7 +248,68 @@ function gdStepBody(s, o, d, inSD) {
   if (s.type === 'learn') { const rv = /call review/i.test(s.title); return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(rv ? 6 : 7)}${doneBtn(rv ? 'Done · call scored' : /deep dive/i.test(s.title) ? 'Done · 4 lines + talk recorded' : 'Done · card written')}${skip}`; }
   if (s.type === 'food') return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn('Ate it')}<button class="gd-lnk" onclick="gdMark('${s.id}','skip')">Ate something else</button>`;
   if (s.type === 'shutdown') return `<div class="gd-t">Shutdown</div><div class="gd-s">It walks you through everything still open, then numbers, money, standards, the log and tomorrow. 7 minutes.</div><button class="gd-btn" onclick="gdSDStart()">Start shutdown</button>`;
+  if (s.type === 'todo') { const t = s.task, note = String(t.note || '').split('\n').filter((l) => l.trim()).slice(0, 5).join('\n');
+    return `<div class="gd-k2">${s.overdue ? `<span class="gd-od">overdue · ${fmtShort(pd(t.due))}</span> · ` : ''}${s.slotted ? 'slotted ' + s.t : head}${t.proj && typeof tdProjName === 'function' && tdProjName(t.proj) ? ' · ' + esc(tdProjName(t.proj)) : ''}${t.pri === 4 ? ' · <b>P1</b>' : ''}</div><div class="gd-t">${esc(s.title)}</div>${note ? `<div class="gd-d">${esc(note)}</div>` : ''}<button class="gd-btn" onclick="gdTaskDone('${t.id}')">Done</button>${skip}`; }
   return `<div class="gd-k2">${head}</div><div class="gd-t">${esc(s.title)}</div>${lines(5)}${doneBtn()}${skip}`;
+}
+
+/* ── skip sheet: drop it, or move it (13.5.0) ──
+   "Not doing it" = gone (block skipped; one-off task deleted in Todoist; a repeating task skips just this time).
+   "Move it" = one tap on a free slot the app found in your calendar, +30 min / +1 h, or pick a day and time. */
+function gdStep(id) { return gdSteps().find((x) => x.id === id); }
+function gdDur(s) { return s && s.end ? Math.max(10, tmin(s.end) - tmin(s.t)) : 15; }
+function gdSlotsFor(s, k, n, from) {
+  const busy = gdBusy(k).filter((x) => !(s && x[0] === tmin(s.t) && k === dk(gdDayDate())));
+  return gdFindSlots(busy, gdDur(s), from, n, k);
+}
+function gdSkipSheet(id) {
+  const s = gdStep(id); if (!s) return; const d = gdDayDate(), k = dk(d), k1 = dk(addDays(d, 1)), nm = nowMin(), isT = k === dk(new Date());
+  const today = gdSlotsFor(s, k, 4, isT ? nm + 10 : 0).filter((h) => h !== s.t).slice(0, 3), tom = gdSlotsFor(s, k1, 3, 0);
+  const chip = (kk, hm, lbl) => `<button class="gd-chip" onclick="gdMove('${id}','${kk}','${hm}')">${lbl}</button>`;
+  const plus = (m) => { const t = Math.max(isT ? nm : 0, tmin(s.t)) + m; return t < 1440 ? chip(k, hmOf(Math.ceil(t / 5) * 5), '+' + (m < 60 ? m + ' min' : m / 60 + ' h')) : ''; };
+  const rec = s.task && s.task.rec, canMove = !['wake', 'weight', 'shutdown'].includes(s.type);
+  openModal(`<h2 style="margin-bottom:2px">${esc(s.title)}</h2><div class="small muted" style="margin-bottom:14px">${s.t}${s.end ? '–' + s.end : ''} · ${gdDur(s)} min</div>
+    ${canMove ? `<div class="gd-sh-h">Move it · free in your calendar</div>
+    <div class="gd-chips">${today.map((hm) => chip(k, hm, 'Today ' + hm)).join('')}${tom.map((hm) => chip(k1, hm, 'Tomorrow ' + hm)).join('')}${!today.length && !tom.length ? '<span class="small muted">No free gap found. Pick a time below.</span>' : ''}</div>
+    <div class="gd-chips">${plus(30)}${plus(60)}${plus(120)}</div>
+    <div class="gd-sh-h">Or pick</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><input id="gd-mv-d" type="date" value="${k1}" style="min-width:0;width:100%;box-sizing:border-box"><input id="gd-mv-t" type="time" value="${tom[0] || s.t}" style="min-width:0;width:100%;box-sizing:border-box"></div><button class="btn primary block" style="margin-bottom:6px" onclick="gdMove('${id}',$('gd-mv-d').value,$('gd-mv-t').value)">Move to this day and time</button>
+    <div class="xs muted" style="margin-bottom:14px">${s.type === 'todo' ? 'Updates the task in Todoist, so the reminder moves with it.' : 'Later today: moves it in the guided day. Another day: becomes a Todoist task at that time, with the same notes, so you get the reminder.'}</div>` : ''}
+    <div class="gd-sh-h">Or</div>
+    <button class="btn block" style="margin-bottom:8px" onclick="closeModal();gdDrop('${id}')">${s.type === 'todo' ? (rec ? 'Skip this time (it repeats)' : 'Not doing it · delete the task') : "Not doing it · skip today"}</button>
+    <button class="btn block ghost" onclick="closeModal()">Keep it where it is</button>`, true);
+}
+function gdDrop(id) {
+  const s = gdStep(id); if (!s) return;
+  if (s.type === 'train') return gdTrain(id, 'skip');
+  if (s.type === 'todo') { const t = s.task; if (t.rec) { t.done = true; t.doneAt = now(); t._u = now(); save(); taskHook('close', t); } else { t._del = true; t._u = now(); save(); taskHook('delete', t); } gdFocusId = null; gdBuzz(8); return gdNext(t.rec ? 'Skipped this time.' : 'Dropped.'); }
+  gdMark(id, 'skip');
+}
+function gdTaskDone(tid) { const t = S.tasks[tid]; if (!t || t.done) return; t.done = true; t.doneAt = now(); t._u = now(); save(); taskHook('close', t); gdFocusId = null; gdBuzz([12, 40, 12]); gdNext('Done.'); }
+function gdMove(id, k2, hm) {
+  const s = gdStep(id); if (!s || !k2 || !/^\d\d:\d\d$/.test(hm || '')) { toast('Pick a day and a time'); return; }
+  const d = gdDayDate(), k = dk(d), o = day(k); closeModal();
+  if (k2 < k) { toast("That's in the past"); return; }
+  if (s.type === 'todo') {
+    const t = s.task;
+    if (t.rec && k2 !== t.due) { gdNewTask(s.title, k2, hm, t.note, t.proj); t.done = true; t.doneAt = now(); t._u = now(); save(); taskHook('close', t); }
+    else { t.due = k2; t.time = hm; t._u = now(); save(); taskHook('update', t); }
+    if (o.mv) delete o.mv[id];
+  } else if (k2 === k) { o.mv = o.mv || {}; o.mv[id] = hm; touch(o); }
+  else { gdNewTask('↻ ' + s.title, k2, hm, (s.b ? gdDesc(s.b) : '') + `\n(moved from ${fmtShort(d)} ${s.t})`); o.blk = o.blk || {}; o.blk[id] = 'moved'; touch(o); }
+  gdFocusId = null; gdBuzz(8);
+  gdNext(`Moved to ${k2 === k ? 'today' : k2 === dk(addDays(d, 1)) ? 'tomorrow' : fmtShort(pd(k2))} ${hm}.`);
+}
+function gdNewTask(title, k2, hm, note, proj) {
+  const t = { id: uid(), _u: now(), title: title, due: k2, time: hm, done: false, note: String(note || '').trim() }; if (proj) t.proj = proj;
+  S.tasks[t.id] = t; save(); taskHook('create', t); return t;
+}
+/* reorder: swap times with the neighbouring open step (today only, inside the app) */
+function gdNudge(id, dir) {
+  const L = gdSteps().filter((x) => !x.st && !['wake', 'weight', 'shutdown'].includes(x.type)), i = L.findIndex((x) => x.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= L.length) return; const a = L[i], b = L[j], o = day(gdDayDate()); o.mv = o.mv || {};
+  const ta = a.t, tb = b.t; o.mv[a.id] = tb; o.mv[b.id] = ta === tb ? hmOf(tmin(ta) + dir) : ta; touch(o); gdBuzz(5); gdRender();
+  setTimeout(() => { const el = document.querySelector('#gd details.gd-all'); if (el) el.open = true; }, 20);
 }
 
 /* ── the panel ── */
@@ -217,12 +327,13 @@ function gdHtml() {
       H = gdStepBody(c.s, o, d) + (c.picked ? `<button class="gd-lnk" onclick="gdFocusId=null;gdRender()">Back to the current step</button>` : ''); }
   }
   const late = nowMin() >= tmin(S.settings.bed || '21:00') - 30 || nowMin() < 240;
-  const list = L.map((s) => `<button class="gd-li ${s.st ? 's-' + s.st : ''} ${s.id === curId ? 'cur' : ''}" onclick="${s.st ? `gdUndoAsk('${s.id}')` : `gdPick('${s.id}')`}"><b>${s.t}</b><span>${esc(s.title)}</span><i>${s.st === 'done' ? '✓' : s.st === 'skip' ? '–' : s.id === curId ? '●' : ''}</i></button>`).join('');
+  const fixed = (s) => ['wake', 'weight', 'shutdown'].includes(s.type);
+  const list = L.map((s) => `<div class="gd-lr"><button class="gd-li ${s.st ? 's-' + s.st : ''} ${s.id === curId ? 'cur' : ''}" onclick="${s.st ? `gdUndoAsk('${s.id}')` : `gdPick('${s.id}')`}"><b>${s.t}</b><span>${s.type === 'todo' ? '☐ ' : ''}${esc(s.title)}${s.moved ? ' <em>moved</em>' : ''}</span><i>${s.st === 'done' ? '✓' : s.st === 'skip' ? '–' : s.st === 'moved' ? '↻' : s.id === curId ? '●' : ''}</i></button>${!s.st && !fixed(s) ? `<span class="gd-nd"><button aria-label="Earlier" onclick="gdNudge('${s.id}',-1)">▲</button><button aria-label="Later" onclick="gdNudge('${s.id}',1)">▼</button><button aria-label="Move or drop" onclick="gdSkipSheet('${s.id}')">⋯</button></span>` : ''}</div>`).join('');
   return `<section id="gd" class="gd ${gdSD ? 'sd' : ''}">
     <div class="gd-top"><span>${esc(K)}</span>${!gdSD && !o.shutdownAt ? `<button class="gd-sdb ${late ? 'hot' : ''}" onclick="gdSDStart()">Shutdown</button>` : gdSD ? `<button class="gd-sdb" onclick="gdSD=false;gdRender()">Exit</button>` : ''}</div>
     <div class="gd-bar"><u style="width:${pct}%"></u></div><div class="gd-cnt">${done}/${L.length} tracked today</div>
     <div class="gd-card">${H}</div>
-    <details class="gd-all"><summary>All steps today</summary>${list}</details></section>`;
+    <details class="gd-all"><summary>All steps today · tap one to do it now · ▲▼ to reorder</summary>${list}</details></section>`;
 }
 function gdUndoAsk(id) { if (confirm('Open this step again?')) gdUndo(id); }
 
@@ -290,7 +401,12 @@ if (typeof appearanceCard === 'function' && !appearanceCard._gd) {
   #arc .gd-f{display:block;margin-bottom:10px}#arc .gd-f span{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}#arc .gd-f textarea{width:100%;box-sizing:border-box;background:transparent;border:1px solid var(--ln);border-radius:8px;color:var(--ink);font:inherit;font-size:15px;padding:10px}
   #arc .gd-all{margin-top:10px}#arc .gd-all summary{font-size:12px;color:var(--mut);cursor:pointer;padding:8px 0;letter-spacing:.04em}
   #arc .gd-li{display:grid;grid-template-columns:48px 1fr 18px;gap:10px;width:100%;align-items:center;padding:9px 4px;background:none;border:0;border-top:1px solid var(--ln);color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}
-  #arc .gd-li b{font-weight:500;color:var(--mut);font-variant-numeric:tabular-nums;font-size:12px}#arc .gd-li.s-done,#arc .gd-li.s-skip{opacity:.45}#arc .gd-li.cur{color:var(--acc)}#arc .gd-li span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;
+  #arc .gd-li b{font-weight:500;color:var(--mut);font-variant-numeric:tabular-nums;font-size:12px}#arc .gd-li.s-done,#arc .gd-li.s-skip{opacity:.45}#arc .gd-li.cur{color:var(--acc)}#arc .gd-li span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #arc .gd-lr{display:flex;align-items:center;border-top:1px solid var(--ln)}#arc .gd-lr .gd-li{border-top:0;flex:1;min-width:0}#arc .gd-li.s-moved{opacity:.45}#arc .gd-li em{font-style:normal;font-size:11px;color:var(--acc)}
+  #arc .gd-nd{display:flex;gap:2px}#arc .gd-nd button{width:34px;height:34px;border:0;background:none;color:var(--mut);font-size:12px;cursor:pointer;border-radius:6px}#arc .gd-nd button:active{background:var(--ln)}
+  #arc .gd-od{color:var(--bad,#e5484d)}
+  .gd-sh-h{font-family:var(--mono,ui-monospace,monospace);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:6px 0 8px}
+  .gd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.gd-chip{border:1px solid var(--acc);background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:600;padding:10px 12px;border-radius:10px;cursor:pointer;font-variant-numeric:tabular-nums}.gd-chip:active{background:var(--acc);color:var(--acc-ink,#000)}`;
   document.head.appendChild(s);
 })();
 setTimeout(() => { try { gdRender(); } catch (e) { } }, 1800);
