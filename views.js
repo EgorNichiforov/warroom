@@ -256,6 +256,18 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea') && !$('modal-bg').classList.contains('open')) render(); }, 60000);
 document.addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || $('modal-bg').classList.contains('open') || (e.target && e.target.matches && e.target.matches('input,textarea,select'))) return; const i = window.SHELL_ON ? -1 : '1234567890'.indexOf(e.key); if (i >= 0 && e.key.length === 1 && NAV[i]) { show(NAV[i][0]); } else if (e.key === '/') { e.preventDefault(); show('ask'); setTimeout(() => { const a = $('ask-in'); if (a) a.focus(); }, 50); } else if (e.key === 't' || e.key === 'T') goToday(); });
 if ('serviceWorker' in navigator) {
-  /* 13.6.2: no automatic reload when a new version arrives. It re-locked the app seconds after unlocking. The toast below offers Reload instead. */
-  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready', 'Reload', () => location.reload()); }); }); }).catch(() => {});
+  /* 13.11.1: SILENT UPDATES. Never a "Reload" prompt, never a reload while you use the app.
+     - A new version that arrives before you touch anything (first ~20 s after opening) is applied at once: same screen, no PIN (lock "seen" window).
+     - Otherwise it waits and applies the moment you leave the app (switch away / lock the phone), and you come back to the same screen. */
+  const WR_T0 = Date.now(); let wrTouched = false, wrPending = false;
+  ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => document.addEventListener(ev, () => { wrTouched = true; }, { capture: true, passive: true }));
+  const wrSaveState = () => { try { sessionStorage.setItem('wr-resume', JSON.stringify({ at: Date.now(), view, y: window.scrollY || 0, mnTab: typeof mnTab !== 'undefined' ? mnTab : null, acqTab: typeof acqTab !== 'undefined' ? acqTab : null, acqRead: typeof acqRead !== 'undefined' ? acqRead : null })); } catch (e) { } };
+  const wrApply = () => { wrSaveState(); try { localStorage.setItem('wr-lock-seen', String(Date.now())); } catch (e) { } location.reload(); };
+  const wrReady = () => { const typing = document.activeElement && document.activeElement.matches && document.activeElement.matches('input,textarea,select'); if (!wrTouched && !typing && Date.now() - WR_T0 < 20000) wrApply(); else wrPending = true; };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && wrPending) { wrPending = false; wrApply(); } });
+  window.addEventListener('pagehide', () => { if (wrPending) wrSaveState(); });
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'activated' && navigator.serviceWorker.controller) wrReady(); }); }); }).catch(() => {});
+  /* back to where you were after a silent update */
+  try { const r = JSON.parse(sessionStorage.getItem('wr-resume') || 'null'); sessionStorage.removeItem('wr-resume');
+    if (r && Date.now() - r.at < 6 * 3600e3 && r.view) setTimeout(() => { try { if (r.mnTab && typeof mnTab !== 'undefined') mnTab = r.mnTab; if (r.acqTab && typeof acqTab !== 'undefined') acqTab = r.acqTab; if (r.acqRead && typeof acqRead !== 'undefined') acqRead = r.acqRead; show(r.view); setTimeout(() => window.scrollTo(0, r.y || 0), 120); } catch (e) { } }, 0); } catch (e) { }
 }

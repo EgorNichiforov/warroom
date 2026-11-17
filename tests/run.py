@@ -475,6 +475,15 @@ with sync_playwright() as p:
     check('Library: search finds lessons across courses', ev("document.querySelectorAll('#view-acq .aq-hit').length") >= 3)
     check('Library: no page errors', not errs, errs[:3]); b.close()
 
+    # Smooth open 13.11.1: curtain until the real first screen, silent updates
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    pg.wait_for_timeout(2500)
+    r = ev("""() => ({ cur: document.documentElement.classList.contains('wr-curtain'), arc: !!(document.getElementById('arc') && document.getElementById('arc').classList.contains('on')), gd: !!document.querySelector('#arc #gd'), toast: /Update ready/.test(document.body.innerText) })""")
+    check('Smooth open: curtain lifted, Day screen up with the guided day, no reload prompt', (not r['cur']) and r['arc'] and r['gd'] and not r['toast'], r)
+    vj = open(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.dirname(__import__('os').path.abspath(__file__))), 'views.js')).read()
+    check('Silent update: applies only before you touch anything or when you leave the app, and returns you to the same screen', "wrTouched" in vj and "'hidden' && wrPending" in vj and 'wr-resume' in vj and 'Update ready' not in vj)
+    check('Smooth open: no page errors', not errs, errs[:3]); b.close()
+
     # Time ranges 13.10: 7 d / 30 d / 90 d / 1 yr / all on every chart
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { mnInit(); Object.keys(S.txns).forEach(k=>delete S.txns[k]); const t=new Date(), s0=addDays(t,-200);
