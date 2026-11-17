@@ -65,6 +65,7 @@ Claude does steps 1–6. You only decide the change.
 { id: 'changelog', cat: 'system', title: 'Changelog', body: `Newest first. One line per change: what, why, which rule.
 
 | Date | Change | Why |
+| 17 Nov | **War Room 13.12.0 · Stage scorecard**: the Scaling Roadmap applied per function. 8 functions (Sales, Product, Leads, Recruiting, Client service, Finance, Team, IT) each get their own stage from evidence: 39 exit tests for Improvise → Monetize → Advertise. Business stage = the lowest function = the constraint; its next test sits at the top of the Day screen. New page: System → Stage scorecard | You: stages aren't only headcount and functions grow unevenly; score them separately and keep pointing at the constraint |
 | 17 Nov | **War Room 13.11.1 · smooth open**: (1) no more "Update ready · Reload": a new version installs silently. If it arrives before you touch anything it applies instantly (no PIN); otherwise it waits until you leave the app and you come back to the same screen. (2) No flash of the old layout on open: the screen stays dark for ~0.5 s while the real Day screen (with the guided day) is fully built, then appears in one step | You: the app reloaded after you'd opened it and asked for the PIN again; on the laptop it flicked from an old screen to the new one |
 | 17 Nov | **War Room 13.11.0 · Course library**: Work → Courses now holds every course in full, lesson by lesson (Scaling 16 · Offers 11 · Leads 19 · Money Models 34 · Sales Teams 5 · Wealth 8 · Mindset 15 sections), 'from his videos' pages (2,600+ ideas from 252 videos, each linked to its source), search across all of it, Ask about any lesson, and 👁 See it: 29 diagrams of the core frameworks (stage staircase, Value Equation, Core Four, 4 prongs, CLOSER, M-O-N-E-Y ladder…) | You asked to go through every course fully and read it inside War Room, visually; Hormozi: study your stage ±1, then act |
 | 17 Nov | **Courses implemented in the plan** (not just the app): Rules → Money rules (Wealth Roadmap with your real numbers), System → Courses → my system (map), daily drill themes in Practice, the 3 mindset questions in Shutdown, course KPIs + money count in the Sunday review, proof capture + 4 R's in the trial SOP, two decisions for 23 Nov | Applying the courses to every part of the day, not reading them |
@@ -270,6 +271,100 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 8. **Net-worth statement every month,** written automatically in Money → Wealth; read it on the first Sunday. You can't grow what you don't measure.
 9. **The 4 money monsters (from milestone N):** no idle cash beyond the fund (inflation) · a tax strategist, not only a preparer (taxes) · written rules before the first investment (interruption) · ask every product and advisor how they get paid (fees).
 10. **Impulse test:** anything outside essentials: does it make 1 July more likely? No = the wait list for 7 days.` },
+{ id: 'stage-scorecard', cat: 'system', title: 'Stage scorecard (how we score our stage)', body: `> Not headcount. Each of the 8 functions has its own stage: **0 Improvise → 1 Monetize → 2 Advertise**. A function moves up only when every exit test of its tier passes. **The business stage = the lowest function. That function is the constraint**; its first failing test is the next action (shown on the Day screen and in Courses → Scaling). Auto tests read the app's data; manual ones are ticked with a date, only with proof.
+
+## Rules
+- Ties: the function nearest to cash goes first: Sales → Product → Leads → Recruiting → Client service → Finance → Team → IT.
+- A function ahead of the business stage is held there: no new work on it until the constraint moves (this is why War Room is frozen).
+- Studying: only your stage ±1 (Hormozi). Stages 3+ get their tests when we stand on stage 2.
+- Live version with your progress: Work → Courses → Scaling.
+
+## Sales
+> Turn owner conversations into paying agencies
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | Owner script written and read out loud on 5+ days | auto |
+| Improvise → Monetize | 10 qualified decision-maker conversations (written down, never email) | auto |
+| Improvise → Monetize | First offer made with the price said out loud, then 8 seconds of silence | tick with proof |
+| Monetize → Advertise | 3 paying agencies | auto |
+| Monetize → Advertise | Close rate known over at least 10 offers | tick with proof |
+| Monetize → Advertise | 2 written client results you can say on every call | tick with proof |
+
+## Product
+> The bench offer delivers a result agencies feel
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | Offer written: dream outcome, guarantee, price, 30-Day Bench Trial terms | auto |
+| Improvise → Monetize | First concrete demand: a stated need + agreement to receive profiles | auto |
+| Improvise → Monetize | A caregiver from your bench worked a shift for an agency (free is fine) | auto |
+| Monetize → Advertise | 3 different agencies had a bench caregiver work | auto |
+| Monetize → Advertise | First paying agency stays for month 2 | tick with proof |
+| Monetize → Advertise | The #1 complaint is known and fixed | tick with proof |
+
+## Leads
+> Enough of the right owners hear about you, every week
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | 300+ agencies with a phone number in the list | auto |
+| Improvise → Monetize | Rule of 100 started: 350 logged attempts in the last 7 days | auto |
+| Monetize → Advertise | 4 weeks in a row at 350+ dials | auto |
+| Monetize → Advertise | Funnel rates known from 500+ logged attempts | auto |
+| Monetize → Advertise | 4 weeks of fresh leads ready (1,400 numbers not yet called) | auto |
+| Monetize → Advertise | A second lead source tested: referral ask or a partner | tick with proof |
+
+## Recruiting
+> Screened caregivers ready before they are needed
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | Caregiver screening script written | auto |
+| Improvise → Monetize | 5 screened caregivers with consent in the focus area | auto |
+| Monetize → Advertise | 15 screened and ready caregivers | auto |
+| Monetize → Advertise | 10+ applicants a week, 3 weeks running | auto |
+
+## Client service
+> What happens after yes: fast, predictable, visible
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | After-yes steps written (what happens in the first 24 hours) | auto |
+| Improvise → Monetize | First agency onboarded within 24 hours of yes | tick with proof |
+| Monetize → Advertise | First candidate sent within 72 hours on 3 requests | tick with proof |
+| Monetize → Advertise | Weekly update sent to every client, 4 weeks running | tick with proof |
+
+## Finance
+> Get paid legally, know every lei, know your unit economics
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | A legal way to get paid confirmed (invoicing route + accountant OK) | tick with proof |
+| Improvise → Monetize | Price and gross margin per plan written | auto |
+| Improvise → Monetize | Every lei logged: ledger entries on 10 of the last 14 days | auto |
+| Monetize → Advertise | First cleared payment received | auto |
+| Monetize → Advertise | CAC and LTGP : CAC worked out from real numbers (≥ 3 : 1) | tick with proof |
+| Monetize → Advertise | 30-day gross profit beats CAC (client-financed acquisition, level 2) | tick with proof |
+
+## Team
+> Your own role first, then the first hire
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | Your own role card: what only you do, and the weekly hours for it | tick with proof |
+| Improvise → Monetize | Dial, bench and study blocks in the calendar at fixed times | tick with proof |
+| Monetize → Advertise | First hire defined: screener role, scorecard, pay tied to results | auto |
+| Monetize → Advertise | 5 delivery steps documented so someone else could run them | auto |
+
+## IT & systems
+> Only the tools sales and delivery need
+
+| Tier | Exit test | Auto? |
+|---|---|---|
+| Improvise → Monetize | Every call attempt logged in the dialer | auto |
+| Improvise → Monetize | Bench tracker in use (caregivers recorded) | auto |
+| Monetize → Advertise | Invoices and payments tracked in the app | auto |` },
 { id: 'courses-map', cat: 'system', title: 'Courses → my system (where each one lives)', body: `Every course is a tool in War Room → Work → Courses, and every rule below has a home in the plan. **Study only your stage, one before and one after** (Scaling Roadmap).
 
 | Course | The rule that runs my life | Where it lives |
