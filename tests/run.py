@@ -355,7 +355,7 @@ with sync_playwright() as p:
     ver = re.search(r"APP_VERSION = '([0-9.]+)'", core).group(1)
     check('Release: one version everywhere (core, cache name, every asset URL)', f"warroom-v{ver}'" in sw and set(re.findall(r'\?v=([0-9.]+)', h)) == {ver}, [ver, sorted(set(re.findall(r'\?v=([0-9.]+)', h)))])
     check('Release: old caches are deleted on activate (prefix match, not the current name)', "startsWith('warroom-v')" in sw)
-    check('Release: no automatic reload on service-worker change (cannot interrupt a call session)', 'controllerchange' not in h and 'controllerchange' not in core)
+    check('Release: no automatic reload on service-worker change (cannot interrupt a call session)', 'controllerchange' not in h and 'controllerchange' not in core and 'controllerchange' not in open(os.path.join(root, 'views.js')).read())
 
 ok = sum(1 for r in results if r[1])
 for n, passed, info in results:
