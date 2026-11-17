@@ -301,3 +301,6 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 ## 13.3.6 — Train opens the training you have now (16 Nov 2026)
 - trnow.js: opening Train jumps to today's training block that is happening now, else the next one, with its program loaded (OFP Mon → strength, 05:30 → mobility, 20:52 → floor stretch). Once per block per visit; manual picks respected.
 - "Today's training" strip on top of Train: every training block today with time, program and state (done · now · next (in N min) · later · not logged). Tap to open.
+
+## 13.13.1 — one block, not two (17 Nov 2026)
+- guide.js: when the guided card shows, the old screen's duplicates below it are removed (night "Sleep." card, now-hero + timeline, progress bars, "Never 0" line). gdCut() removes a balanced <div> by its opening token.

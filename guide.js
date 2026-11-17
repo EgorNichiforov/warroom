@@ -342,11 +342,19 @@ function gdHtml() {
 function gdUndoAsk(id) { if (confirm('Open this step again?')) gdUndo(id); }
 
 /* sits right under the date on the Day screen; the rest of the Day screen stays below it */
+function gdCut(h, tok) {
+  const i = h.indexOf(tok); if (i < 0) return h; let depth = 0; const re = /<\/?div\b[^>]*>/g; re.lastIndex = i; let m;
+  while ((m = re.exec(h))) { depth += m[0][1] === '/' ? -1 : 1; if (depth === 0) return h.slice(0, i) + h.slice(m.index + m[0].length); }
+  return h;
+}
 if (typeof arcHtml === 'function' && !arcHtml._gd) {
   const _h = arcHtml;
   arcHtml = function () {
     let h = _h(); try {
       const g = gdHtml(); if (!g) return h;
+      /* 13.13.1: the guided card IS the day. Drop the old screen's duplicates below it (night "Sleep." card,
+         the now-hero + timeline, the progress bars and the "Never 0" line): one block, not two. */
+      h = gdCut(h, '<div class="arc-night">'); h = gdCut(h, '<div class="arc-line">'); h = gdCut(h, '<div class="arc-ms">'); h = gdCut(h, '<div class="arc-min');
       const i = h.indexOf('<div class="arc-top">'); if (i < 0) return g + h;
       let depth = 0, j = i; const re = /<\/?div\b[^>]*>/g; re.lastIndex = i; let m;
       while ((m = re.exec(h))) { depth += m[0][1] === '/' ? -1 : 1; if (depth === 0) { j = m.index + m[0].length; break; } }
