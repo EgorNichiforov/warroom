@@ -215,8 +215,9 @@ function gdSDBody(o, d, k, openSteps) {
 /* ── the card for one step ── */
 function gdStepBody(s, o, d, inSD) {
   const k = dk(d), desc = s.b ? gdDesc(s.b) : '', head = (s.end ? `${s.t}–${s.end}` : s.t), miss = `<button class="gd-btn miss" onclick="gdMiss('${s.id}')">Missed</button>`;
-  /* 13.6: every step is just Done / Missed. Moving a missed thing to another time is the nightly review's job. */
-  const pair = (on) => `<div class="gd-dm"><button class="gd-btn" onclick="${on}">Done</button>${miss}</div>`, skip = '';
+  /* 13.6: Done / Missed on every step, plus Move (later today, tomorrow, any day). Unmoved misses go to the nightly review. */
+  const mv = `<button class="gd-lnk" onclick="gdSkipSheet('${s.id}')">Move · later or tomorrow</button>`;
+  const pair = (on) => `<div class="gd-dm"><button class="gd-btn" onclick="${on}">Done</button>${miss}</div>${mv}`, skip = '';
   const doneBtn = () => pair(`gdMark('${s.id}','done')`);
   const lines = (n) => desc ? `<div class="gd-d">${esc(desc.split('\n').filter((l) => l.trim() && !/https?:\/\//.test(l)).slice(0, n).join('\n'))}</div>` : '';
   if (s.type === 'wake') return `<div class="gd-t">Good morning.</div><div class="gd-s">Tap the moment you're up. Then the scale.</div><button class="gd-btn" onclick="wokeUp();setTimeout(gdRender,60)">I'm up</button>`;
