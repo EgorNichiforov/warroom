@@ -391,6 +391,51 @@ with sync_playwright() as p:
     check('Script Lab: reset all clears markup but keeps the live script', len(ev("labRecs('script-gatekeeper').filter(r=>r.kind!=='log')")) == 0)
     check('Script Lab: no page errors', not errs, errs[:3]); b.close()
 
+    # Wealth 13.8: M-O-N-E-Y from the ledger
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    r = ev("""() => { mnInit(); Object.keys(S.txns).forEach(k=>delete S.txns[k]); const t=new Date();
+      for (let i=3;i>=1;i--){ const d=dk(new Date(t.getFullYear(),t.getMonth()-i,10)); mnPut({type:'in',amt:5000,acc:'cash',cat:'tennis',date:d,cash:true}); mnPut({type:'out',amt:i===2?6000:3000,acc:'cash',cat:i===1?'food':'shopping',date:d,note:'x'}); }
+      const k=dk(t); mnPut({type:'in',amt:1000,acc:'cash',cat:'tennis',date:k,cash:true}); mnPut({type:'out',amt:400,acc:'cash',cat:'food',date:k,note:'Linella'}); mnPut({type:'out',amt:100,acc:'cash',cat:'food',date:k,note:'Linella'});
+      const m=wlPeriod('m').cur, mt=wlMarginTest();
+      // fix month 2 → 3 positive months
+      Object.values(S.txns).filter(x=>x.amt===6000).forEach(x=>{x.amt=4000}); const mt2=wlMarginTest();
+      // optionality: essentials food only, 6 months
+      S.settings.wealth={ess:['food'],months:6,steps:{}}; const nut=wlNut(); const st=wlStatus();
+      // balance sheet: savings account as fund + investments + card debt
+      S.accounts.sav={id:'sav',_u:now(),name:'Sav',cur:'MDL',type:'savings',order:9}; mnPut({type:'count',amt:20000,acc:'sav',date:k,diff:0}); mnPut({type:'count',amt:3000,acc:'cash',date:k,diff:0});
+      S.wassets={a1:{id:'a1',kind:'asset',name:'ETF',cls:'invest',value:1000,cur:'USD',pmo:10,_u:now()},d1:{id:'d1',kind:'debt',name:'Card',cls:'consumer',value:500,cur:'MDL',_u:now()},h1:{id:'h1',kind:'asset',name:'Flat',cls:'home',value:900000,cur:'MDL',_u:now()}};
+      const sh=wlSheet(); wlSnap(); const snap=S.wsnap[mnYm(t)];
+      mnTab='wealth'; show('money'); const html=document.querySelector('#view-money .wl') ? document.querySelector('#view-money').innerText : '';
+      return { inn:m.inn, out:m.out, margin:m.m, food:m.cats.food, items:Object.keys(m.items.food||{}).length, test1:mt.done, streak1:mt.streak, test2:mt2.done,
+        nutAll:Math.round(nut.all), nutEss:Math.round(nut.ess), target:Math.round(st.target), fund:sh.fund, nfa:Math.round(sh.nfa), nwx:Math.round(sh.nwx), nw:Math.round(sh.nw), fx:mnFx('USD'),
+        snap: !!snap && snap.nfa===Math.round(sh.nfa), passive: Math.round(wlSheet().passive), cur: wlStatus().S5[wlStatus().cur].k, shown: /WEALTH ROADMAP/.test(html) && /Where it went/i.test(html) }; }""")
+    check('Wealth: margin = money in − money out for the period', r['inn'] == 1000 and r['out'] == 500 and r['margin'] == 500, r)
+    check('Wealth: spending detail groups items by what you paid for', r['food'] == 500 and r['items'] == 1, r)
+    check('Wealth: 90-day test needs 3 positive months in a row', (not r['test1']) and r['streak1'] == 1 and r['test2'], r)
+    check('Wealth: monthly nut and essentials from the last 3 full months', r['nutAll'] == 3333 and r['nutEss'] == 1000, r)
+    check('Wealth: optionality target = essentials × 6, fund = the separate savings account', r['target'] == 6000 and r['fund'] == 20000, r)
+    fx = r['fx']
+    check('Wealth: net financial assets exclude the fund and the home, subtract card debt', r['nfa'] == round(3000 + 1000 * fx - 500), r)
+    check('Wealth: net worth without home', r['nwx'] == round(3000 + 20000 + 1000 * fx - 500) and r['nw'] == r['nwx'] + 900000, r)
+    check('Wealth: monthly net-worth statement written automatically', r['snap'], r)
+    check('Wealth: passive income from assets counts toward coverage', r['passive'] == round(10 * fx), r)
+    check('Wealth: shows on the Money → Wealth tab, current milestone after M and O are done is N', r['shown'] and r['cur'] == 'N', r)
+    check('Wealth: syncs (assets + statements merge per item)', ev("(()=>{ const rem=JSON.parse(JSON.stringify(S)); rem.wassets.x9={id:'x9',kind:'asset',name:'Laptop ETF',cls:'invest',value:5,cur:'MDL',_u:now()+9999}; return merge(rem) && !!S.wassets.x9; })()"))
+    check('Wealth: no page errors', not errs, errs[:3]); b.close()
+
+    # Parity 13.8: the phone gets everything the laptop shows
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    r = ev("""() => { const out={}; ['dial','money','train','me','week'].forEach(v=>{ show(v); render(); out[v]=!!document.querySelector('#view-'+v+' > .ph-rail .card'); });
+      moreTab='home'; show('me'); render(); out.jump=document.querySelectorAll('#view-me > .me-jump button').length;
+      shGoHub('day'); out.day=!!document.querySelector('.ph-day'); return out; }""")
+    check('Parity: Work/Money/You side panels show on the phone too', r['dial'] and r['money'] and r['train'] and r['me'] and r['week'], r)
+    ev("moreTab='home';show('me')"); pg.wait_for_timeout(400); r['lockCard'] = ev("!!document.getElementById('lock-card')")
+    check('Parity: Settings has Jump to (App lock one tap away) and the App lock card on the phone', r['jump'] >= 6 and r['lockCard'], r)
+    check('Parity: the Day side column shows on the phone', r['day'], r)
+    check('Parity: no page errors', not errs, errs[:3]); b.close()
+    b = p.chromium.launch(); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.goto(URL); pg.wait_for_timeout(2200)
+    check('Parity: laptop keeps its side rail, no doubled phone copies', pg.evaluate("show('money'),document.querySelectorAll('.ph-rail').length") == 0 and pg.evaluate("document.querySelectorAll('.ph-day').length") == 0); b.close()
+
     # offline shell + cache hygiene (static checks on the real files)
     import re, os
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

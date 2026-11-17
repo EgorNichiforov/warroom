@@ -8,7 +8,7 @@ const SH_HUBS = [
   { id: 'day', icon: 'hq', label: 'Day' },
   { id: 'work', icon: 'dial', label: 'Work', segs: [['dial', 'Dial'], ['crm', 'Pipeline'], ['intel', 'Intel'], ['book', 'Playbook']] },
   { id: 'cap', icon: 'plus', label: '' },
-  { id: 'money', icon: 'wallet', label: 'Money', inner: [['over', 'Overview'], ['tx', 'Transactions'], ['plan', 'Plan'], ['rep', 'Reports']] },
+  { id: 'money', icon: 'wallet', label: 'Money', inner: [['over', 'Overview'], ['wealth', 'Wealth'], ['tx', 'Transactions'], ['plan', 'Plan'], ['rep', 'Reports']] },
   { id: 'you', icon: 'life', label: 'You', segs: [['life', 'Engine'], ['train', 'Train'], ['trlog', 'Log'], ['food', 'Food'], ['stats', 'Stats'], ['week', 'Plan'], ['cal', 'Calendar'], ['ask', 'Ask'], ['me', 'Settings']] },
 ];
 const SH_ORDER = ['day', 'work', 'money', 'you'];

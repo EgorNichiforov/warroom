@@ -173,10 +173,10 @@ function mnMonthName(ym) { const [y, m] = ym.split('-').map(Number); return new 
 /* ═════════ screen ═════════ */
 function renderMoney() {
   const el = $('view-money'); if (!el) return; mnInit(); if (!window._mnMig) { window._mnMig = 1; mnMigrate(); }
-  const tabs = [['over', 'Overview'], ['tx', 'Transactions'], ['plan', 'Planned & forecast'], ['rep', 'Reports']];
+  const tabs = [['over', 'Overview'], ['wealth', 'Wealth'], ['tx', 'Transactions'], ['plan', 'Planned & forecast'], ['rep', 'Reports']];
   el.innerHTML = `<div class="crm-top"><div class="st-tabs">${tabs.map(([k, l]) => `<button class="${mnTab === k ? 'on' : ''}" onclick="mnTab='${k}';render()">${l}</button>`).join('')}</div></div>
     <div class="mn-quick"><input id="mn-q" placeholder='Log money: "spent 120 taxi" · "+750 tennis" · "45$ claude"' onkeydown="if(event.key==='Enter'&&mnQuick(this.value))this.value=''"><button class="btn primary" onclick="if(mnQuick($('mn-q').value))$('mn-q').value=''">Add</button><button class="btn" onclick="mnEdit()">Form</button></div>
-    ${({ over: mnOver, tx: mnTxTab, plan: mnPlanTab, rep: mnRepTab }[mnTab] || mnOver)()}`;
+    ${({ over: mnOver, wealth: () => (typeof wlTab === 'function' ? wlTab() : ''), tx: mnTxTab, plan: mnPlanTab, rep: mnRepTab }[mnTab] || mnOver)()}`;
 }
 function mnOver() {
   const T = mnTotal(), A = mnAccs(), now0 = new Date(), cm = mnMonth(mnYm(now0)), pm = mnMonth(mnYm(new Date(now0.getFullYear(), now0.getMonth() - 1, 1))), S0 = mnSafe();
