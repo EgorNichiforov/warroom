@@ -66,7 +66,7 @@ function shareData() {
 let shareT = 0;
 async function sharePush() {
   const c = shareCfg(); if (!c.on || !c.code || !syncReady()) return; const s = S.settings.sync;
-  try { await fetch(`${s.url}/rest/v1/warroom_sync`, { method: 'POST', headers: Object.assign(snapHdr(c.code), { Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ id: c.code, data: shareData(), updated_at: new Date().toISOString() }) }); } catch (e) { }
+  try { await fetch(`${s.url}/rest/v1/warroom_sync`, { method: 'POST', headers: Object.assign(snapHdr(c.code), { Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ id: c.code, data: shareData(), updated_at: '2000-01-01T00:00:00Z' }) }); } catch (e) { } /* old stamp on purpose: scheduled jobs pick the newest row as the main one; the share page reads data.at */
 }
 function shareOn() { const c = shareCfg(); if (!c.code) c.code = 'share-' + genCode(); c.on = true; S.settings._u = now(); save(true); sharePush(); render(); toast('Accountability link is live'); }
 function shareOff() { const c = shareCfg(); c.on = false; S.settings._u = now(); save(true); render(); toast('Link paused: the page stops updating'); }
