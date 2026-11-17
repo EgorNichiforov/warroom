@@ -15,7 +15,7 @@
     for (let i = A.length - 1; i >= 0; i--) if (!b.hasAttribute(A[i].name) && !(live && A[i].name === 'style')) a.removeAttribute(A[i].name);
   }
   /* nodes that later steps add to a screen (segment bar, back links, progress bars): the diff leaves them where they are */
-  const KEEP = /(^| )(sh-seg|pl-chips|pl-back|ex-p|sg-strip)( |$)/;
+  const KEEP = /(^| )(sh-seg|pl-chips|pl-back|ex-p|sg-strip|ph-rail|me-jump)( |$)/;
   const kept = (n) => n && n.nodeType === 1 && KEEP.test(n.className && n.className.baseVal == null ? n.className : '');
   function morph(a, b) {
     let x = a.firstChild, y = b.firstChild;
