@@ -256,6 +256,6 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 setInterval(() => { if (view === 'now' && isToday(curDate) && !document.activeElement.matches('input,textarea') && !$('modal-bg').classList.contains('open')) render(); }, 60000);
 document.addEventListener('keydown', (e) => { if (e.metaKey || e.ctrlKey || e.altKey || $('modal-bg').classList.contains('open') || (e.target && e.target.matches && e.target.matches('input,textarea,select'))) return; const i = window.SHELL_ON ? -1 : '1234567890'.indexOf(e.key); if (i >= 0 && e.key.length === 1 && NAV[i]) { show(NAV[i][0]); } else if (e.key === '/') { e.preventDefault(); show('ask'); setTimeout(() => { const a = $('ask-in'); if (a) a.focus(); }, 50); } else if (e.key === 't' || e.key === 'T') goToday(); });
 if ('serviceWorker' in navigator) {
-  let wrReloaded = false; const hadSW = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (wrReloaded || !hadSW) return; wrReloaded = true; location.reload(); });
+  /* 13.6.2: no automatic reload when a new version arrives. It re-locked the app seconds after unlocking. The toast below offers Reload instead. */
   navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => { reg.addEventListener('updatefound', () => { const nw = reg.installing; nw && nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('Update ready', 'Reload', () => location.reload()); }); }); }).catch(() => {});
 }

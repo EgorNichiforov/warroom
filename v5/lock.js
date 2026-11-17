@@ -6,7 +6,15 @@
   'use strict';
   const K = 'wr-lock', get = () => { try { return JSON.parse(localStorage.getItem(K) || 'null'); } catch (e) { return null; } }, put = (v) => { try { v ? localStorage.setItem(K, JSON.stringify(v)) : localStorage.removeItem(K); } catch (e) { } };
   const on = () => { const c = get(); return !!(c && c.on && (c.pin || c.cred)); };
-  if (on()) document.documentElement.classList.add('wr-locked');
+  /* 13.6.2 smart unlock, like Android Smart Lock:
+     · "still with you": unlocked recently on this device (the "Lock again after" window) → no PIN, also after a reload
+       or after the app was closed. The time of last use is kept on this device only.
+     · trusted places: within ~250 m of a place you saved (Home…) → unlocks by itself. Coordinates never leave the device. */
+  const SEEN = 'wr-lock-seen', seenSet = () => { try { localStorage.setItem(SEEN, String(Date.now())); } catch (e) { } };
+  const winMs = () => { const c = get() || {}; return Math.max(Number(c.relock ?? 1), 0.5) * 60000; };
+  const fresh = () => { try { const t = Number(localStorage.getItem(SEEN)) || 0; return t && Date.now() - t < winMs(); } catch (e) { return false; } };
+  let unlocked = false;
+  if (on() && !fresh()) document.documentElement.classList.add('wr-locked'); else unlocked = true;
   const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const unb64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
   async function hash(pin, salt) { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + ':' + pin)); return b64(d); }
@@ -33,10 +41,29 @@
   }
   function faceIcon() { return '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 10v1M15 10v1M12 10v3h-1M9.5 16c1.5 1 3.5 1 5 0"/></svg>'; }
   function show(auto) {
-    if (!on()) return; document.documentElement.classList.add('wr-locked'); entry = ''; draw(); document.getElementById('lock').classList.add('on');
-    const c = get(); if (auto !== false && c.cred) setTimeout(bio, 250);
+    if (!on()) return; unlocked = false; document.documentElement.classList.add('wr-locked'); entry = ''; draw(); document.getElementById('lock').classList.add('on');
+    const c = get(); placeCheck(c, auto); 
   }
-  function unlock() { const el = document.getElementById('lock'); if (el) el.classList.remove('on'); document.documentElement.classList.remove('wr-locked'); entry = ''; }
+  function placeCheck(c, auto) {
+    const ps = c.places || [];
+    const fallback = () => { if (!unlocked && auto !== false && c.cred) setTimeout(bio, 250); };
+    if (!ps.length || !navigator.geolocation) return fallback();
+    let done = false; const t = setTimeout(() => { if (!done) { done = true; fallback(); } }, 3500);
+    navigator.geolocation.getCurrentPosition((p) => { if (done) return; done = true; clearTimeout(t);
+      const hit = ps.find((x) => dist(x, p.coords) <= 250 + Math.min(p.coords.accuracy || 0, 250));
+      if (hit && !unlocked) { unlock(); toastSafe('Unlocked · at ' + hit.n); } else fallback(); },
+      () => { if (!done) { done = true; clearTimeout(t); fallback(); } }, { enableHighAccuracy: false, maximumAge: 300000, timeout: 3000 });
+  }
+  function dist(a, b) { const R = 6371000, r = Math.PI / 180, dl = (b.latitude - a.lat) * r, dn = (b.longitude - a.lon) * r, x = Math.sin(dl / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.latitude * r) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+  function addPlace() {
+    if (!navigator.geolocation) { alert('Location is not available here.'); return; }
+    const n = (prompt('Name this place (it unlocks by itself within ~250 m):', 'Home') || '').trim(); if (!n) return;
+    navigator.geolocation.getCurrentPosition((p) => { const c = get() || { relock: 1 }; c.places = (c.places || []).concat([{ n, lat: +p.coords.latitude.toFixed(5), lon: +p.coords.longitude.toFixed(5) }]); put(c); refresh(); toastSafe(n + ' is a trusted place.'); },
+      (e) => alert(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? 'The phone app needs an update to use location. Open War Room in Chrome (or the home-screen icon from Chrome) to save the place there.' : 'Could not get your location: ' + (e && e.message ? e.message : 'permission denied') + '. Allow location for this site and try again.'),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+  }
+  function removePlace(i) { const c = get(); if (!c || !c.places) return; c.places.splice(i, 1); put(c); refresh(); }
+  function unlock() { unlocked = true; seenSet(); const el = document.getElementById('lock'); if (el) el.classList.remove('on'); document.documentElement.classList.remove('wr-locked'); entry = ''; }
   async function key(n) {
     const c = get(); if (!c || busy) return; if (entry.length >= (c.len || 4)) return; entry += String(n); draw();
     if (entry.length === (c.len || 4)) { busy = true; const ok = (await hash(entry, c.salt)) === c.pin; busy = false;
@@ -89,13 +116,17 @@
       <div class="lk-row"><span>Lock</span><button class="btn sm ${on() ? 'primary' : ''}" onclick="wrLock.toggle()">${on() ? 'On' : 'Off'}</button></div>
       <div class="lk-row"><span>PIN</span><button class="btn sm" onclick="wrLock.setPin()">${c.pin ? 'Change PIN' : 'Set a PIN'}</button></div>
       <div class="lk-row"><span>Face / fingerprint${bioOk ? '' : NAT() ? ' <em>(update the Android app to 1.3 · or add a fingerprint in phone settings)</em>' : ' <em>(not available on this device)</em>'}</span>${c.cred ? `<button class="btn sm" onclick="wrLock.removeBio()">Remove</button>` : `<button class="btn sm" ${bioOk ? '' : 'disabled'} onclick="wrLock.addBio()">Set up</button>`}</div>
-      <div class="lk-row"><span>Lock again after</span><select onchange="wrLock.relock(this.value)">${[[0, 'Immediately'], [1, '1 minute'], [5, '5 minutes'], [15, '15 minutes'], [60, '1 hour']].map(([v, l]) => `<option value="${v}" ${Number(c.relock ?? 1) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="lk-row"><span>Lock again after</span><select onchange="wrLock.relock(this.value)">${[[0, 'Immediately'], [1, '1 minute'], [5, '5 minutes'], [15, '15 minutes'], [60, '1 hour'], [240, '4 hours'], [720, '12 hours'], [1440, '24 hours']].map(([v, l]) => `<option value="${v}" ${Number(c.relock ?? 1) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="lk-row"><span>Trusted places <em>(no PIN within ~250 m)</em></span><button class="btn sm" onclick="wrLock.addPlace()">Add this place</button></div>
+      ${(c.places || []).map((x, i) => `<div class="lk-row"><span>📍 ${String(x.n).replace(/[<>&]/g, '')}</span><button class="btn sm ghost" onclick="wrLock.removePlace(${i})">Remove</button></div>`).join('')}
       ${c.pin || c.cred ? `<button class="btn sm ghost" style="margin-top:8px" onclick="wrLock.off()">Remove the lock from this device</button>` : ''}</div>`;
   }
-  window.wrLock = { key, del, bio, forgot, setPin, addBio, off, toggle, relock, removeBio, show, card, on };
+  window.wrLock = { key, del, bio, forgot, setPin, addBio, off, toggle, relock, removeBio, show, card, on, addPlace, removePlace };
 
-  document.addEventListener('visibilitychange', () => { if (!on()) return; if (document.hidden) { hiddenAt = Date.now(); return; } const c = get(); if (hiddenAt && Date.now() - hiddenAt >= (Number(c.relock ?? 1)) * 60000) show(); });
-  const boot = () => { if (on()) show(); };
+  document.addEventListener('visibilitychange', () => { if (!on()) return; if (document.hidden) { if (unlocked) { hiddenAt = Date.now(); seenSet(); } return; } const c = get(); if (hiddenAt && Date.now() - hiddenAt >= (Number(c.relock ?? 1)) * 60000) show(); });
+  window.addEventListener('pagehide', () => { if (on() && unlocked) seenSet(); });
+  setInterval(() => { if (on() && unlocked && !document.hidden) seenSet(); }, 30000);
+  const boot = () => { if (on() && !unlocked) show(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
   /* settings card inside Me → Appearance (after the app's scripts load) */
