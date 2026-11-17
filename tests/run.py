@@ -496,6 +496,19 @@ with sync_playwright() as p:
     check('Scorecard: manual tests tick with a date and untick; Courses stage follows the scorecard; Playbook page exists', r['ticked'] and r['stage'] == 0 and r['page'], r)
     check('Scorecard: no page errors', not errs, errs[:3]); b.close()
 
+    # Mindset 2026 13.13: new pages, diagrams, tools
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    ev("acqRead=null;acqTab='mind';show('acq')"); pg.wait_for_timeout(1500); ev("render()"); pg.wait_for_timeout(300)
+    r = ev("""() => { const n = document.querySelectorAll('#view-acq .vz').length, tool = !!document.querySelector('#view-acq .mt');
+      mtArea('Friends','rank','2'); mtArea('Friends','eff','1'); const flag = (document.querySelector('#view-acq .mt-ar i.lo')||{}).textContent;
+      mtTool='docs'; render(); document.getElementById('mt-d-t').value='Stay on Caregiver Bench'; mtDocAdd(); const docs = mtGet('mi:docs',[]).length;
+      return { n, tool, flag, docs }; }""")
+    check('Mindset 2026: 10 diagrams and the tools card on the Mindset tab', r['n'] >= 10 and r['tool'], r)
+    check('Mindset 2026: Pick your regrets flags an under-fed area; decision documents save', r['flag'] == 'under-fed' and r['docs'] == 1, r)
+    ev("acqOpen('mind',1)"); pg.wait_for_timeout(1500)
+    check('Mindset 2026: the best-of page opens with its diagram', ev("/NEW 2026/.test(document.querySelector('#view-acq .aq-page h2').textContent) && !!document.querySelector('#view-acq .vz-lesson')"))
+    check('Mindset 2026: no page errors', not errs, errs[:3]); b.close()
+
     # Time ranges 13.10: 7 d / 30 d / 90 d / 1 yr / all on every chart
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { mnInit(); Object.keys(S.txns).forEach(k=>delete S.txns[k]); const t=new Date(), s0=addDays(t,-200);
