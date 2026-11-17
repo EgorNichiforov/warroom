@@ -461,6 +461,20 @@ with sync_playwright() as p:
     check('Wealth: your own minimum monthly living overrides the calculated one; 6/9/12 targets side by side', r['minLive'] == 5000 and r['targets'] == 3, r)
     check('Courses: no page errors', not errs, errs[:3]); b.close()
 
+    # Library 13.11: every course readable, diagrams, search, ask
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    ev("acqTab='offer';show('acq')"); pg.wait_for_timeout(1500); ev("render()"); pg.wait_for_timeout(300)
+    r = ev("""() => ({ ls: document.querySelectorAll('#view-acq .aq-lib .aq-ls button').length, vz: document.querySelectorAll('#view-acq .vz').length })""")
+    check('Library: Offers shows every lesson and its diagrams', r['ls'] >= 10 and r['vz'] >= 6, r)
+    ev("acqOpen('offer',2)"); pg.wait_for_timeout(500)
+    r = ev("""() => ({ h: document.querySelector('#view-acq .aq-page h2').textContent, len: document.querySelector('#view-acq .aq-page').innerText.length, viz: !!document.querySelector('#view-acq .vz-lesson') })""")
+    check('Library: a lesson opens full screen with its diagram', r['len'] > 800 and r['viz'], r)
+    ev("acqAsk()"); pg.wait_for_timeout(300)
+    check('Library: Ask carries the lesson as context', ev("view==='ask' && (window.acqAskCtx||'').length > 500"))
+    ev("acqRead=null;acqTab='home';acqLibQ='guarantee';show('acq')"); pg.wait_for_timeout(2500); ev("render()"); pg.wait_for_timeout(300)
+    check('Library: search finds lessons across courses', ev("document.querySelectorAll('#view-acq .aq-hit').length") >= 3)
+    check('Library: no page errors', not errs, errs[:3]); b.close()
+
     # Time ranges 13.10: 7 d / 30 d / 90 d / 1 yr / all on every chart
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { mnInit(); Object.keys(S.txns).forEach(k=>delete S.txns[k]); const t=new Date(), s0=addDays(t,-200);
