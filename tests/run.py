@@ -232,7 +232,7 @@ with sync_playwright() as p:
 
     # stages: the app is as big as the evidence
     b, pg, errs = fresh(p); ev = pg.evaluate
-    check('Stage: with no owner conversation Work shows Dial, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,book,later')
+    check('Stage: with no owner conversation Work shows Dial, Courses, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,acq,book,later')
     ev("show('later');0"); pg.wait_for_timeout(300)
     check('Stage: "Later" opens the stage sheet, it is not a screen', ev("view") != 'later' and ev("document.getElementById('modal-bg').classList.contains('open')"))
     ev("closeModal();shRawGo('crm');0"); pg.wait_for_timeout(300); check('Stage: a waiting room can always be opened by hand', ev("view") == 'crm')
@@ -274,10 +274,10 @@ with sync_playwright() as p:
     check('Stage: the Caregivers workflow stays reachable at stage 1', ev("view") == 'dial' and 'bench' in pg.inner_text('#view-dial').lower())
     ev("benchMode='owners';lifeTab='score';show('life');0"); pg.wait_for_timeout(400)
     t = pg.inner_text('#view-life').lower(); check('You: school shows readiness and learning apart from time; body shows weight, strength, consistency; no score or level', 'school' in t and 'body' in t and 'readiness' in t and 'learning' in t and 'strength' in t and 'consistency' in t and 'level' not in t and 'xp' not in t.split())
-    check('Stage: Pipeline is open after a decision-maker conversation', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,book,later')
+    check('Stage: Pipeline is open after a decision-maker conversation', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,acq,book,later')
     ev("show('dial');0")
     check('Stage: one conversation moves the ladder to stage 2 (ten conversations)', ev("sgState().i") == 1 and ev("sgState().s.id") == 'learn')
-    ev("S.settings.stageAll=true;render();0"); check('Stage: "show everything" restores all rooms', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,intel,book')
+    ev("S.settings.stageAll=true;render();0"); check('Stage: "show everything" restores all rooms', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,intel,acq,book')
     check('Stage: no page errors', not errs, errs[:3])
     b.close()
 
@@ -435,6 +435,31 @@ with sync_playwright() as p:
     check('Parity: no page errors', not errs, errs[:3]); b.close()
     b = p.chromium.launch(); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.goto(URL); pg.wait_for_timeout(2200)
     check('Parity: laptop keeps its side rail, no doubled phone copies', pg.evaluate("show('money'),document.querySelectorAll('.ph-rail').length") == 0 and pg.evaluate("document.querySelectorAll('.ph-day').length") == 0); b.close()
+
+    # Courses 13.9: every course as a working module
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    r = ev("""() => { const out={}; show('acq'); out.seg = SH_HUBS.find(h=>h.id==='work').segs.some(s=>s[0]==='acq');
+      ['home','scale','offer','leads','mm','sales','mind'].forEach(t=>{ acqTab=t; render(); out[t]=document.querySelector('#view-acq .aq-hd') ? 1 : 0; });
+      out.stage0 = acqStage(); acqW('sc:stage',3,true); out.stageMan = acqStage(); acqW('sc:stage',null,true);
+      acqW('of:ve:me:d',8,true); acqW('of:ve:me:l',8,true); acqW('of:ve:me:t',2,true); acqW('of:ve:me:e',2,true); acqTab='offer'; render(); out.val = document.querySelector('#view-acq .aq-vv').textContent;
+      const before = acqPrimary(dk(new Date())); acqOut(10); out.out = acqPrimary(dk(new Date())) - before;
+      acqTab='sales'; render(); acqReads(5); out.reads = Number(day(new Date()).counters.reads);
+      document.getElementById ? 0 : 0; acqTab='mind'; render(); document.getElementById('aq-dec').value='Skip a dial block for a party'; acqDec(-1); out.dec = Object.values(S.acq).some(x=>x.v && x.v.t==='Skip a dial block for a party' && x.v.s===-1);
+      const rem = JSON.parse(JSON.stringify(S)); rem.acq['sc:0:0']={id:'sc:0:0',v:true,_u:now()+9999}; merge(rem); out.sync = acqV('sc:0:0',false)===true;
+      acqTab='scale'; render(); out.con = (document.querySelector('#view-acq .aq-con b')||{}).textContent || '';
+      S.settings.wealth = S.settings.wealth || {}; S.settings.wealth.minLive = 5000; out.minLive = wlNut().ess; out.tgt = document.querySelectorAll ? 0 : 0;
+      mnTab='wealth'; wlOpen='O'; show('money'); out.targets = document.querySelectorAll('#view-money .wl-tgt button').length;
+      return out; }""")
+    check('Courses: Work → Courses tab exists and every course module renders', r['seg'] and all(r[k] for k in ['home','scale','offer','leads','mm','sales','mind']), r)
+    check('Courses: scaling stage comes from the log (0 with no evidence), can be set by hand and back', r['stage0'] == 0 and r['stageMan'] == 3, r)
+    check('Courses: Value Equation = (dream × likelihood) ÷ (time × effort)', r['val'] == '16.0', r)
+    check('Courses: Rule of 100 counts dials + other outreach', r['out'] == 10, r)
+    check('Courses: script reads counted for the day', r['reads'] == 5, r)
+    check('Courses: the decision test logs more/less likely', r['dec'], r)
+    check('Courses: progress syncs per item between devices', r['sync'], r)
+    check('Courses: the constraint moves to the next unchecked step', 'Tell people every day' in r['con'], r)
+    check('Wealth: your own minimum monthly living overrides the calculated one; 6/9/12 targets side by side', r['minLive'] == 5000 and r['targets'] == 3, r)
+    check('Courses: no page errors', not errs, errs[:3]); b.close()
 
     # offline shell + cache hygiene (static checks on the real files)
     import re, os
