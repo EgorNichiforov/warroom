@@ -427,7 +427,7 @@ with sync_playwright() as p:
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { const out={}; ['dial','money','train','me','week'].forEach(v=>{ show(v); render(); out[v]=!!document.querySelector('#view-'+v+' > .ph-rail .card'); });
       moreTab='home'; show('me'); render(); out.jump=document.querySelectorAll('#view-me > .me-jump button').length;
-      shGoHub('day'); out.day=!!document.querySelector('.ph-day'); return out; }""")
+      if(typeof arcPhase==='function'){ arcPhase=()=>'day'; } shGoHub('day'); out.day=!!document.querySelector('.ph-day'); return out; }""")
     check('Parity: Work/Money/You side panels show on the phone too', r['dial'] and r['money'] and r['train'] and r['me'] and r['week'], r)
     ev("moreTab='home';show('me')"); pg.wait_for_timeout(400); r['lockCard'] = ev("!!document.getElementById('lock-card')")
     check('Parity: Settings has Jump to (App lock one tap away) and the App lock card on the phone', r['jump'] >= 6 and r['lockCard'], r)
