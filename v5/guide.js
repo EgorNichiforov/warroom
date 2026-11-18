@@ -170,7 +170,7 @@ function gdVid(u) { try { window.open(u, '_blank', 'noopener'); } catch (e) { lo
 function gdRoster(b) { return String(gdDesc(b)).split('\n').map((l) => l.trim()).filter((l) => /^[☐✅❌✔✓✗□▢-]\s*\S/.test(l)).map((l) => l.replace(/^[☐✅❌✔✓✗□▢-]\s*/, '').trim()).filter(Boolean); }
 function gdAttTog(id, i) { const d = gdAtt[id]; if (!d) return; d[i] = d[i] ? 0 : 1; gdBuzz(6); gdRender(); }
 function gdAttSave(id) {
-  const s = gdSteps().find((x) => x.id === id); if (!s) return; const names = gdRoster(s.b), d = gdAtt[id] || names.map(() => 1), o = day(gdDayDate());
+  const s = gdSteps().find((x) => x.id === id); if (!s) return; const names = gdRoster(s.b), d = gdAtt[id] || names.map(() => 0), o = day(gdDayDate()); if (names.length && !d.some(Boolean) && !confirm('Nobody came to ' + s.title + ' today? Everyone will be marked absent.')) return;
   o.att = o.att || {}; o.att[id] = { group: s.title, date: dk(gdDayDate()), at: now(), kids: Object.fromEntries(names.map((n, i) => [n, d[i] ? 1 : 0])) };
   o.blk = o.blk || {}; o.blk[id] = 'done'; touch(o); delete gdAtt[id]; gdFocusId = null; gdBuzz([12, 40, 12]);
   const p = names.filter((n, i) => d[i]).length; gdNext(`${s.title}: ${p}/${names.length} present.`);
@@ -236,9 +236,9 @@ function gdStepBody(s, o, d, inSD) {
       ${pair(`gdTrain('${s.id}','done')`)}`;
   }
   if (s.type === 'group') {
-    const names = gdRoster(s.b); if (!gdAtt[s.id]) gdAtt[s.id] = names.map(() => 1); const a = gdAtt[s.id], p = a.filter(Boolean).length;
-    return `<div class="gd-k2">${head} · attendance</div><div class="gd-t">${esc(s.title)}</div><div class="gd-s">Everyone starts as present. Tap who was absent.</div>
-      ${names.length ? `<div class="gd-kids">${names.map((n, i) => `<button class="${a[i] ? 'on' : 'off'}" onclick="gdAttTog('${s.id}',${i})"><i>${a[i] ? '✓' : '✗'}</i>${esc(n)}</button>`).join('')}</div>` : '<div class="gd-s">No names in the calendar event. Add "☐ Name" lines to its description.</div>'}
+    const names = gdRoster(s.b); if (!gdAtt[s.id]) gdAtt[s.id] = names.map(() => 0); const a = gdAtt[s.id], p = a.filter(Boolean).length;
+    return `<div class="gd-k2">${head} · attendance</div><div class="gd-t">${esc(s.title)}</div><div class="gd-s">Tap who came. Everyone you don't tap counts as absent.</div>
+      ${names.length ? `<div class="gd-kids">${names.map((n, i) => `<button class="${a[i] ? 'on' : 'off'}" onclick="gdAttTog('${s.id}',${i})"><i>${a[i] ? '✓' : ''}</i>${esc(n)}</button>`).join('')}</div>` : '<div class="gd-s">No names in the calendar event. Add "☐ Name" lines to its description.</div>'}
       <button class="gd-btn" onclick="gdAttSave('${s.id}')">Save · ${p}/${names.length} present</button><button class="gd-lnk" onclick="gdAttCancel('${s.id}')">Lesson didn't happen</button>`;
   }
   if (s.type === 'dials') {
@@ -406,7 +406,7 @@ if (typeof appearanceCard === 'function' && !appearanceCard._gd) {
   #arc .gd-kids{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
   #arc .gd-kids button{display:flex;align-items:center;gap:12px;min-height:50px;padding:0 14px;border:1px solid var(--ln);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:16px;text-align:left;cursor:pointer}
   #arc .gd-kids button i{width:26px;height:26px;display:grid;place-items:center;border-radius:6px;border:1px solid var(--ln);font-style:normal;font-weight:700}
-  #arc .gd-kids button.on i{background:var(--acc);border-color:var(--acc);color:var(--acc-ink,#000)}#arc .gd-kids button.off{opacity:.6;text-decoration:line-through}#arc .gd-kids button.off i{color:var(--bad,#e5484d);border-color:var(--bad,#e5484d)}
+  #arc .gd-kids button.on i{background:var(--acc);border-color:var(--acc);color:var(--acc-ink,#000)}#arc .gd-kids button.off{opacity:.8}
   #arc .gd-num{display:grid;grid-template-columns:1fr 44px 74px 44px;gap:6px;align-items:center;padding:6px 0;border-top:1px solid var(--ln)}#arc .gd-num span{font-size:14px}#arc .gd-num i{font-style:normal;color:var(--mut);font-size:12px}
   #arc .gd-num button{height:44px;border:1px solid var(--ln);border-radius:8px;background:transparent;color:var(--ink);font-size:20px;cursor:pointer}#arc .gd-num input{height:44px;text-align:center;font-size:20px;font-weight:700;background:transparent;border:1px solid var(--ln);border-radius:8px;color:var(--ink)}
   #arc .gd-row{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--ln);font-size:14px;cursor:pointer}#arc .gd-row b{min-width:56px;font-variant-numeric:tabular-nums}
