@@ -91,9 +91,11 @@ if (typeof render === 'function' && !render._sh) {
 function shInd(bar) { requestAnimationFrame(() => { const on = bar.querySelector('button.on'), ind = bar.querySelector('.sh-ind'); if (!on || !ind) return; ind.style.width = on.offsetWidth + 'px'; ind.style.transform = `translateX(${on.offsetLeft}px)`; if (bar.scrollWidth > bar.clientWidth) { const x = on.offsetLeft - bar.clientWidth / 2 + on.offsetWidth / 2; bar.scrollTo({ left: x, behavior: 'smooth' }); } }); }
 
 /* ── swipe between segments (phone) ── */
+/* 13.13.3: a swipe that starts inside anything that scrolls sideways (course tabs, chip rows) scrolls that row, never changes the page */
+function shHScroll(el) { for (let n = el; n && n !== document.body; n = n.parentElement) { if (n.scrollWidth > n.clientWidth + 2) { const ox = getComputedStyle(n).overflowX; if (ox === 'auto' || ox === 'scroll') return true; } } return false; }
 (function () {
   let x0 = 0, y0 = 0, t0 = 0, ok = false;
-  document.addEventListener('touchstart', (e) => { const t = e.touches[0], el = e.target; ok = !document.getElementById('modal-bg').classList.contains('open') && !shArcOn() && !el.closest('svg,input,textarea,select,.sh-seg,.mn2-chips,.mn2-accs,.mn2-ins,.st-tabs,.chips,.trl-row,.lf-start,[data-noswipe],.sh-bar'); x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); }, { passive: true });
+  document.addEventListener('touchstart', (e) => { const t = e.touches[0], el = e.target; ok = !document.getElementById('modal-bg').classList.contains('open') && !shArcOn() && !el.closest('svg,input,textarea,select,.sh-seg,.mn2-chips,.mn2-accs,.mn2-ins,.st-tabs,.chips,.aq-tabs,.trl-row,.lf-start,[data-noswipe],.sh-bar') && !shHScroll(el); x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); }, { passive: true });
   document.addEventListener('touchend', (e) => {
     if (!ok) return; const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; if (Math.abs(dx) < 70 || Math.abs(dy) > 45 || Date.now() - t0 > 600) return;
     const cur = shCur(), H = SH_HUBS.find((h) => h.id === cur.hub), list = H && (H.segs || H.inner); if (!list) return; const n = cur.seg + (dx < 0 ? 1 : -1); if (n >= 0 && n < list.length) shSeg(n);

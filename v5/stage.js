@@ -39,9 +39,12 @@ function sgState() {
   return { e, f: e, i, s, done, n: SG_LADDER.length, cur: s.val(e), rooms, all: !!(S.settings && S.settings.stageAll) };
 }
 function sgApply() { try { const H = SH_HUBS.find((h) => h.id === 'work'), st = sgState(), segs = [['dial', 'Dial']]; st.rooms.forEach((r) => { if (r.open || st.all) segs.push([r.v, r.label]); }); segs.push(['book', 'Playbook']); if (!st.all && st.rooms.some((r) => !r.open)) segs.push(['later', 'Later']); H.segs = segs; } catch (e) { } }
-function sgSheet() {
+function sgSheet() { openModal(sgSheetHtml(), true); }
+/* 13.13.3: the same content as a real page (Work → Later), so the tab is never blank */
+function renderLater() { const el = document.getElementById('view-later'); if (!el) return; el.innerHTML = `<div class="card sg-page">${sgSheetHtml().replace(/closeModal\(\);/g, '')}</div>`; }
+function sgSheetHtml() {
   const st = sgState(), e = st.e, row = (l, v, h) => `<div><span>${l}</span><b>${v}</b><em>${h}</em></div>`;
-  openModal(`<h2>Stage ${st.i + 1} of ${st.n}</h2><div class="sg-now"><b>${esc(st.s.name)}</b><span>${st.cur} of ${st.s.need} · ${esc(st.s.why)}</span></div>
+  return (`<h2>Stage ${st.i + 1} of ${st.n}</h2><div class="sg-now"><b>${esc(st.s.name)}</b><span>${st.cur} of ${st.s.need} · ${esc(st.s.why)}</span></div>
     <div class="sg-lad">${SG_LADDER.map((s, i) => `<div class="${i < st.i || st.done ? 'done' : i === st.i ? 'cur' : ''}"><i>${i + 1}</i><span>${esc(s.name)}</span><em>${i < st.i || st.done ? 'done' : i === st.i ? `${st.cur}/${s.need}` : ''}</em></div>`).join('')}</div>
     <div class="bf-h" style="margin-top:18px">Evidence in your log</div>
     <div class="sg-ev">${row('Call attempts', e.attempts, e.counterOnly ? `logged calls · ${e.counterOnly} more were only counted, without a record` : 'each one a logged call')}${row('Answered', e.answered, 'a person picked up')}${row('Decision-maker conversations', e.dm, `qualified: live, with their words written down · ${e.dmAgencies} unique agenc${e.dmAgencies === 1 ? 'y' : 'ies'}${e.conv > e.dm ? ` · ${e.conv - e.dm} more without notes do not count` : ''}`)}${row('Specific staffing needs', e.needs, 'agencies that named one, from a call, email or meeting')}${row('Requests for profiles', e.requests, 'agencies that explicitly agreed to receive candidates')}${row('Concrete demand', e.demand, 'the same agency has both')}${row('Completed shifts', e.working, 'a named caregiver from your bench, date passed')}${row('Payments received', e.paid, e.paid ? `$${fmt(e.paidSum)} cleared` : 'an invoice marked paid, with its date')}</div>
@@ -55,7 +58,7 @@ function sgSheet() {
     <div class="bf-h" style="margin-top:14px">Waiting for evidence</div>
     ${st.rooms.filter((r) => !r.open).map((r) => `<div class="sg-room"><div><b>${r.label}</b><span>Opens at ${esc(r.need)} · now ${esc(r.have)}. ${esc(r.why)}</span></div><button onclick="closeModal();shRawGo('${r.v}')">Open anyway</button></div>`).join('') || '<div class="xs muted">Everything is open.</div>'}
     <div class="row" style="gap:8px;margin-top:16px"><button class="btn primary grow" onclick="closeModal();show('dial')">Back to the dialer</button><button class="btn" onclick="S.settings.stageAll=${st.all ? 'false' : 'true'};touch(S.settings);save();closeModal();render();toast('${st.all ? 'Stages on' : 'Everything shown'}')">${st.all ? 'Use stages' : 'Show everything'}</button></div>
-    <div class="xs muted" style="margin-top:10px">Every number above is counted from logged calls, placements and invoices. Nothing is typed in by hand, deleted or hidden for good.</div>`, true);
+    <div class="xs muted" style="margin-top:10px">Every number above is counted from logged calls, placements and invoices. Nothing is typed in by hand, deleted or hidden for good.</div>`);
 }
 /* Evidence that did not arrive in a logged call: an email, a meeting, a call made outside the dialer. It keeps its real source
    and time. An email is never a conversation; a meeting or call is one only if you say it was live with the decision-maker. */
@@ -82,7 +85,7 @@ function sgEvSave() {
 /* 'later' is a door, not a screen */
 let shRawGo = function (v) { show(v); };
 (function () {
-  const _show = show; show = function (v) { if (v === 'later') { sgSheet(); return; } return _show.apply(this, arguments); }; shRawGo = function (v) { _show(v); };
+  const _show = show; show = function (v) { return _show.apply(this, arguments); }; shRawGo = function (v) { _show(v); };
   ['renderNav', 'render'].forEach((n) => { const f = window[n]; if (typeof f === 'function' && !f._sg) { window[n] = function () { sgApply(); return f.apply(this, arguments); }; window[n]._sg = 1; } });
   /* the spine, on the dialer: where you are, and the one number that moves you */
   const _r = render; render = function () { const x = _r.apply(this, arguments); try { if (view === 'dial' && !(typeof shArcOn === 'function' && shArcOn())) { const v = document.getElementById('view-dial'), st = sgState(), h = `<b>Stage ${st.i + 1}/${st.n}</b><span>${esc(st.s.name)} · ${st.cur}/${st.s.need}</span><em>why ›</em>`; let el = v.querySelector(':scope > .sg-strip'); if (!el) { el = document.createElement('button'); el.className = 'sg-strip'; el.onclick = sgSheet; const seg = v.querySelector(':scope > .sh-seg'); if (seg) seg.after(el); else v.prepend(el); } if (el.innerHTML !== h) el.innerHTML = h; } } catch (e) { } return x; };
