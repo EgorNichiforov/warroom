@@ -1,3 +1,5 @@
+> **19 Nov 2026:** the current module map, sources of truth and recommendation flow are in `WAR_ROOM_MASTER_ARCHITECTURE.md`. Sections 1 and 2 below describe 5.12 and are kept for history; the runbook parts still apply.
+
 # ⛔ BUILD GATE (system audit, 18 Nov 2026) — read before changing anything
 
 Evidence: since the 22 Oct commitment (225, then 350 dials/week) War Room logged 3 dials and 0 owner

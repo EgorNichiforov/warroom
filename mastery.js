@@ -52,7 +52,7 @@ function msQueue(max) {
 }
 function msStats() {
   const L = msLearned(), t = dk(new Date()), rs = L.map(msR);
-  return { learned: L.length, due: L.filter((id) => { const c = msCard(id); return c && c.due && c.due <= t; }).length, fading: rs.filter((r) => r < 0.7).length, mastered: L.filter((id) => bcRung(id) >= 5).length, used: L.filter((id) => bcRung(id) >= 4).length, bands: MS_BANDS.map((b) => L.filter((id) => msBand(msR(id)) === b[0]).length) };
+  return { learned: L.length, due: L.filter((id) => { const c = msCard(id); return c && c.due && c.due <= t; }).length, fading: rs.filter((r) => r < 0.7).length, mastered: L.filter((id) => bcRung(id) >= 6).length, used: L.filter((id) => !!bcV('u:' + id, null)).length, bands: MS_BANDS.map((b) => L.filter((id) => msBand(msR(id)) === b[0]).length) };
 }
 
 /* ── RECALL REVIEW: blank page → card → honest grade ── */
@@ -110,7 +110,7 @@ function msPanel() {
   const stat = (n, l, cls) => `<div class="ms-st ${cls || ''}"><b>${n}</b><span>${l}</span></div>`;
   let mission = '';
   if (c) {
-    const rg = bcRung(id), r = msR(id), steps = [['Recall it from memory', rg >= 2], ['Pick it right in a scenario', rg >= 3], ['Use it on a real call or today', rg >= 4], ['Still there 21+ days later', rg >= 5]];
+    const rg = bcRung(id), r = msR(id), steps = [['Understood: explained in your own words', rg >= 2], ['Retained: recalled after a gap', rg >= 3], ['Applied: used correctly, for real where it is a skill', rg >= 4], ['Integrated: used somewhere new', rg >= 5], ['Maintained: still there 30+ days later', rg >= 6]];
     const nx = (() => { let st = msStab(id), d = 0; return [1, 2, 3, 4].map(() => { st = Math.max(2, st * 2.5); d += Math.round(st); return d; }); })();
     mission = `<div class="ms-mis"><div class="ms-mh"><span>Today's retention mission</span><span class="ms-b ${msBand(r)}">${Math.round(r * 100)}% · ${MS_BANDS.find((b) => b[0] === msBand(r))[1]}</span></div>
       <b class="ms-mt">${esc(c.t)}</b><div class="ms-mp">Explain it without looking: what it is, why it works, how you'd use it tonight.</div>
@@ -119,7 +119,7 @@ function msPanel() {
       <button class="btn primary block" onclick="msReview()">Start recall review · ${Math.max(s.due, Math.min(8, msQueue(8).length))} idea${msQueue(8).length === 1 ? '' : 's'}</button></div>`;
   } else if (s.learned) mission = `<div class="ms-mis calm"><b>Nothing due or fading.</b><span>Your ${s.learned} ideas are holding. Learn the next lesson, or use one on a call.</span></div>`;
   else mission = `<div class="ms-mis calm"><b>Your memory starts with the first lesson.</b><span>Finish a lesson below; it comes back for recall tomorrow, then in 3, 7, 21 and 60 days, spaced by how well you remember.</span></div>`;
-  return `<div class="ms-panel"><div class="ms-row">${stat(s.learned, 'learned')}${stat(s.due, 'due today', s.due ? 'hot' : '')}${stat(s.fading, 'fading', s.fading ? 'warn' : '')}${stat(s.used, 'used for real')}${stat(s.mastered, 'mastered')}</div>${mission}</div>`;
+  return `<div class="ms-panel"><div class="ms-row">${stat(s.learned, 'learned')}${stat(s.due, 'due today', s.due ? 'hot' : '')}${stat(s.fading, 'fading', s.fading ? 'warn' : '')}${stat(s.used, 'used for real')}${stat(s.mastered, 'maintained')}</div>${mission}</div>`;
 }
 
 /* ── MEMORY CURVE (Progress tab) ── */

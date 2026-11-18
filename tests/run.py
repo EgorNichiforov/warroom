@@ -575,7 +575,6 @@ with sync_playwright() as p:
       bcW('l:'+b,{at:D(5),r:0}); S.cards[b]={step:1,st:10,last:new Date().toISOString(),due:'2099-01-01',_u:now()}; bcW('rh:'+b,[D(1)]);
       out.recallNotUnderstand=cpDims(b).u===false&&cpDims(b).r===true; bcW('tb:'+b,{at:D(0),s:5}); out.teachNotIntegrate=cpDims(b).u===true&&cpDims(b).i===false; bcW('tr:'+b,{at:D(0),s:3}); out.transfer=cpDims(b).i===true;
       return out; })()""")
-    check('Mastery 13.23.2: Proven needs a successful recall 21+ real days after learning (review-step count is not time)', r['notProven'] and r['early'] and r['proven'], r)
     check('Mastery 13.23.2: recalling is not Understanding; teaching back is not Integrating; a transfer test is', r['recallNotUnderstand'] and r['teachNotIntegrate'] and r['transfer'], r)
     ev("cpMissionStart(0);cpMSet('brief');0"); pg.wait_for_timeout(300)
     r = ev("""(()=>{ const out={}; const m=cpMission(); out.noManual=!document.getElementById('view-boot').innerHTML.includes("cpMSet('ap')") && cpMDone(m).ap===false;
@@ -583,6 +582,60 @@ with sync_playwright() as p:
     check('Mission 13.23.2: the Apply step cannot be ticked by hand; it closes on evidence and records what happened', r['noManual'] and r['ev'], r)
     check('Context 13.23.2: the in-app AI follows the Playbook territory (Tampa Bay first), not the old Naples text', ev("ASK_SYSTEM.includes('Tampa Bay first') && !ASK_SYSTEM.includes('Naples') && !XC_SYS.includes('Naples')"))
     check('Integrity 13.23.2: no page errors', not errs, errs[:3]); b.close()
+
+    # Mission Control 13.24: one recommendation, from evidence, with reasons; modes, contracts, ladder, BAC, export
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    ev("bcS.tab='path';show('boot');0"); pg.wait_for_timeout(2500)
+    r = ev("""(()=>{ const out={}, d=new Date(), k=dk(d), o=day(d); delete S.settings.season; o.counters.dials=0; o.counters.bac=0; S.settings.bacDate='2027-06-01';
+      nowMin=()=>17*60+30; oneNight=()=>false; dialTargetFor=()=>40; currentCall=()=>({name:'Sunshine Home Care'}); window.__blocks=[{id:'b1',start:'18:00',end:'19:30',title:'Dials',kind:'dials'}]; blocksFor=()=>window.__blocks;
+      const FL=(open)=>({h:open?10:3,t:open?'10:30':'03:30',wd:'Wed',open,known:true,closeIn:open?390:0,opensIn:open?null:330}); mcFlorida=()=>FL(true);
+      const bc=S.counters.items.find(x=>x.id==='bac'); if(bc) bc.targets[dow(d)]=60; S.lifeTests={}; S.lifeErrors={}; Object.values(Q.items).forEach(x=>{x.log=[];});
+      let M=mcBuild(); out.noSeason=M.unk.some(u=>/season/i.test(u)) && ['dial','bac'].includes(M.top.k) && M.top.tier===2;
+      out.fields=!!(M.top.out&&M.top.why&&M.top.next&&M.top.min&&M.top.dod&&M.top.ev.length&&M.top.late&&M.top.conf);
+      S.settings.season={kind:'exam',dom:'bac',primary:'BAC 8+',review:'2099-01-01'}; M=mcBuild(); out.seasonBac=M.top.k==='bac'&&M.top.tier===1;
+      S.settings.season.dom='biz'; M=mcBuild(); out.seasonBiz=M.top.k==='dial'&&/Sunshine/.test(M.top.next);
+      mcFlorida=()=>FL(false); M=mcBuild(); out.closed=M.top.k!=='dial'&&!M.C.some(x=>x.k==='dial')&&M.C.some(x=>x.k==='dialprep'&&x.tier===3); mcFlorida=()=>FL(true);
+      window.__blocks=[{id:'s1',start:'17:00',end:'18:00',title:'School',kind:'school'}]; M=mcBuild(); out.fixed=M.top.k==='fixed'&&M.top.tier===0; window.__blocks=[{id:'b1',start:'18:00',end:'19:30',title:'Dials',kind:'dials'}];
+      const it=Object.values(Q.items)[0]; it.log=[{at:new Date().toISOString(),r:'owner talk',d:{dials:1,owners:1}}]; o.counters.dials=5; let E=mcDialEvidence(k); out.log=E.logged===1&&E.dm===1&&E.manual===4;
+      M=mcBuild(); out.logOut=/39 more/.test(M.top.out)&&M.top.ev.some(e=>/not counted/.test(e)); o.counters.dials=0; mcReconcile(); out.heal=Number(S.days[k].counters.dials)===1;
+      mcPickSet('bac'); M=mcBuild(); out.pick=M.top.k==='bac'&&M.picked&&M.rec.k==='dial'; mcPickSet(''); M=mcBuild(); out.unpick=M.top.k==='dial'&&!M.picked;
+      mcSetMode('min'); M=mcBuild(); out.min=/of 10[)]/.test(M.C.find(x=>x.k==='dial').out); mcSetMode('rec'); M=mcBuild(); out.rec=M.top.k==='recover'&&!M.C.some(x=>x.k==='dial'||x.k==='bac')&&streakMinimum()>=1; mcSetMode('full');
+      return out; })()""")
+    check('Mission 13.24: no season set → it says so and ranks business and BAC as equals; every mission has outcome, why, next action, minutes, done condition, evidence, cost of delay, confidence', r['noSeason'] and r['fields'], r)
+    check('Mission 13.24: the season decides what comes first (BAC season → BAC, business season → the next call by name)', r['seasonBac'] and r['seasonBiz'], r)
+    check('Mission 13.24: Florida closed → never recommends calling; a fixed commitment outranks everything', r['closed'] and r['fixed'], r)
+    check('Dials 13.24: the call log is the source of truth; hand-counter extras are shown apart and not counted; a counter below the log heals', r['log'] and r['logOut'] and r['heal'], r)
+    check('Mission 13.24: you can overrule the recommendation and go back; the reason stays visible', r['pick'] and r['unpick'], r)
+    check('Modes 13.24: Minimum caps the day at the floors; Recovery asks for nothing but recovery and keeps the streak', r['min'] and r['rec'], r)
+    ev("show('now');0"); pg.wait_for_timeout(500)
+    check('Mission 13.24: the Day screen shows exactly one mission card (the old briefing is replaced)', ev("document.querySelectorAll('#view-now .mc').length") == 1, ev("document.querySelectorAll('#view-now .mc').length"))
+    r = ev("""(()=>{ const out={}, o=day(new Date()); mcBuild(); fcOpen('dial'); out.pre=document.getElementById('fc-r').value.length>5&&document.getElementById('fc-d').value.length>5; document.getElementById('fc-m').value='30'; fcStart();
+      out.run=!!fcRun()&&o.fcRun===o.fc[0].id&&o.mc.k==='dial'&&/Focus contract/.test(mcCard()); fcInterrupt(); document.getElementById('fc-w').value='phone'; document.getElementById('fc-n').value='dial the next number'; fcResume();
+      out.intr=o.fc[0].intr.length===1&&o.fc[0].first==='dial the next number'&&!!fcRun(); fcFinishOpen(); document.getElementById('fc-a').value='20 dials logged'; document.getElementById('fc-o').value='1'; fcFinishSave();
+      out.fin=!!o.fc[0].t1&&o.fc[0].ok===1&&o.fc[0].act==='20 dials logged'&&!fcRun(); return out; })()""")
+    check('Focus contract 13.24: result, done condition and first action before; interruption restart; actual result after', r['pre'] and r['run'] and r['intr'] and r['fin'], r)
+    r = ev("""(()=>{ const out={}, W=mcWeek(new Date()); out.facts=W.logged===1&&W.dm===1&&W.fc===1&&W.fcKept===0; mcWeekOpen(); document.getElementById('wk-a').value='First logged call'; document.getElementById('wk-c').value='Dial at 18:00 sharp'; mcWeekSave();
+      const rv=S.reviews[weekKey(new Date())]; out.saved=rv&&rv.text==='First logged call'&&rv.change==='Dial at 18:00 sharp'&&rv.facts.logged===1; return out; })()""")
+    check('Weekly review 13.24: facts come from the records (log, contracts, modes) and the review is saved with them', r['facts'] and r['saved'], r)
+    r = ev("""(()=>{ const out={}, D=(n)=>dk(new Date(Date.now()-n*864e5)); S.cards=S.cards||{}; const a=BC.mod.mk.cards[0], pf=BC.mod.m4.cards[0], seq=[];
+      seq.push(bcRung(a)); bcW('l:'+a,{at:D(40),r:0}); seq.push(bcRung(a)); bcW('fy:'+a,{at:D(39),n:5}); seq.push(bcRung(a));
+      S.cards[a]={step:2,st:60,last:new Date().toISOString(),due:'2099-01-01',_u:now()}; bcW('rh:'+a,[D(20)]); seq.push(bcRung(a)); bcW('j:'+a,1); seq.push(bcRung(a)); bcW('tr:'+a,{at:D(1),s:4}); seq.push(bcRung(a)); bcW('rh:'+a,[D(20),D(5)]); seq.push(bcRung(a)); out.seq=seq.join('');
+      bcW('l:'+pf,{at:D(10),r:0}); bcW('fy:'+pf,{at:D(9),n:5}); S.cards[pf]={step:2,st:60,last:new Date().toISOString(),due:'2099-01-01',_u:now()}; bcW('rh:'+pf,[D(2)]); bcW('j:'+pf,3); out.simOnly=bcRung(pf)===3&&cpNextAct(pf)[0]==='Real call'; bcW('u:'+pf,{n:1,log:[]}); out.real=bcRung(pf)===4;
+      out.names=BC_RUNG.map(x=>x[0]).join(','); return out; })()""")
+    check('Ladder 13.24: one six-stage ladder, each stage on its own evidence, in order (Exposed → Maintained after 30 real days)', r['seq'] == '0123456' and r['names'] == 'Not started,Exposed,Understood,Retained,Applied,Integrated,Maintained', r)
+    check('Ladder 13.24: a sales skill does not reach Applied from simulations; a real logged call does', r['simOnly'] and r['real'], r)
+    r = ev("""(()=>{ const out={}, T=dk(new Date()), D=(n)=>dk(new Date(Date.now()-n*864e5)); S.lifeTests={}; S.lifeErrors={}; let t=bacTrack(), n=bacNext(); out.unknown=t.known===false&&n.kind==='baseline'&&/cannot be judged/.test(n.unknown);
+      [['ro',7,9],['ro',7.5,2],['ist',9,9],['ist',9,2],['en',170,9],['en',172,2],['it',800,9],['it',820,2]].forEach(([s,v,ago],i)=>{S.lifeTests['t'+i]={id:'t'+i,subj:s,score:v,date:D(ago),_u:now()};});
+      t=bacTrack(); out.track=t.known&&t.ok&&/Română/.test(t.line); n=bacNext(); out.study=n.kind==='study'&&n.subj==='ro';
+      S.lifeErrors.e1={id:'e1',subj:'ro',topic:'Comentariu liric',what:'x',fix:'y',lvl:0,due:T,at:D(1),_u:now()}; n=bacNext(); out.err=n.kind==='errors'&&n.urgent; S.settings.season={kind:'exam',dom:'bac',primary:'BAC'}; day(new Date()).counters.bac=0; const M=mcBuild(); out.mission=M.top.k==='bac'&&/Redo 1 due/.test(M.top.out);
+      bacOpen(); out.board=document.querySelectorAll('#modal .bac-r').length===5&&/not been checked against the ministry/.test(document.getElementById('modal').textContent); closeModal(); return out; })()""")
+    check('BAC 13.24: with no mocks it says on-track cannot be judged and asks for a baseline; with mocks it judges against the target', r['unknown'] and r['track'] and r['study'], r)
+    check('BAC 13.24: a due error becomes the next study mission; the board shows subjects, trend and its own limits', r['err'] and r['mission'] and r['board'], r)
+    r = ev("""(()=>{ S.settings.sync={url:'https://x.test',key:'pubkey',code:'testcode-1234567890'}; S.settings.share={on:true,code:'sharecode123'}; const OB=window.Blob; let txt=''; window.Blob=function(parts,o){ txt=String(parts[0]); return new OB(parts,o); }; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){}; exportData(); window.Blob=OB; HTMLAnchorElement.prototype.click=oc;
+      const j=JSON.parse(txt), out={clean:j.settings.sync.code===''&&j.settings.sync.key===''&&j.settings.share.code===''&&!txt.includes('testcode-1234567890')&&!txt.includes('sharecode123'), kept:S.settings.sync.code==='testcode-1234567890', data:!!j.days}; S.settings.sync.code=''; return out; })()""")
+    check('Security 13.24: a backup file carries your data but never the sync code or the share code', r['clean'] and r['kept'] and r['data'], r)
+    check('Privacy 13.24: the sales-notes AI analysis states what it sends before sending', 'This sends data to' in open(__file__.replace('tests/run.py','intel.js')).read())
+    check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows
     b, pg, errs = fresh(p); ev = pg.evaluate

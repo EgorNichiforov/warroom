@@ -156,7 +156,7 @@ function dvRender() {
 }
 
 /* ── Teach it back: AI grades your own-words explanation in the Recall step ── */
-const TB_SYS = `You grade a student's own-words explanation of one business or life idea against the reference card. The student is Egor, 18, building a caregiver-recruiting business by cold calling Florida home care agency owners. Be honest and specific, warm but not soft. Return ONLY JSON: {"score":1-5,"got":["what he got right, short"],"missed":["the most important missing or wrong pieces, short"],"fix":"one sentence he should say instead, in his voice","use":"one concrete way to use it on tonight's calls"}`;
+const TB_SYS = `You grade a student's own-words explanation of one business or life idea against the reference card. The student is Egor, building a caregiver-recruiting business by cold calling Florida home care agency owners. Be honest and specific, warm but not soft. Return ONLY JSON: {"score":1-5,"got":["what he got right, short"],"missed":["the most important missing or wrong pieces, short"],"fix":"one sentence he should say instead, in his voice","use":"one concrete way to use it on tonight's calls"}`;
 async function tbGrade(btn) {
   const c = XC.byId[bcS.id], box = btn.closest('.tb'); if (!c || !box) return;
   const said = String(bcS.rc || '').trim(); if (said.length < 12) { toast('Write a sentence or two first, then grade it'); return; }
