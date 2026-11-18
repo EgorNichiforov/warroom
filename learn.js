@@ -35,7 +35,7 @@ function lnCards(k) { return typeof XC !== 'undefined' && XC && XC.cards ? XC.ca
 function lnRung(id) { try { return typeof bcRung === 'function' && typeof BC !== 'undefined' && BC && BC.cardMod && BC.cardMod[id] ? bcRung(id) : 0; } catch (e) { return 0; } }
 
 /* ── navigation ── */
-function lnGo() { if (typeof bcS !== 'undefined') bcS = { scr: 'home' }; show('boot'); window.scrollTo(0, 0); }
+function lnGo() { if (typeof bcS !== 'undefined') bcS = { scr: 'home', tab: 'courses' }; show('boot'); window.scrollTo(0, 0); }
 function lnCourse(k, tab) { acqRead = null; acqTab = k; lnTab = tab || 'lessons'; show('acq'); render(); window.scrollTo(0, 0); }
 function lnLesson(k, i) { if (k === 'mentors') return lnCourse(k, 'ideas'); acqOpen(k, i); }
 function lnMark(k, i, on) { acqW('ln:' + k + ':' + i, on ? new Date().toISOString().slice(0, 10) : null, true); }
@@ -44,48 +44,20 @@ function lnDoneNext(k, i) {
   if (i + 1 < n) { toast('Lesson done ✓ Next one'); acqOpen(k, i + 1); } else { toast('Course finished ✓'); lnCourse(k); }
 }
 
-/* ── Learn home ── */
-function lnHome() {
-  const rk = bcRank(), nb = bcNextLesson('biz'), nl = bcNextLesson('life'), due = bcDueCards(), st = bcStreak();
-  const total = Object.keys(BC.cardMod).length, learned = Object.keys(BC.cardMod).filter((id) => bcV('l:' + id, null)).length;
-  const gb = bcGate('biz'), gl = bcGate('life');
-  const up = (n, tr, g) => {
-    const life = tr === 'life', lab = life ? 'Life lesson' : 'Business lesson';
-    if (!n) { const m = bcTrack(tr).find((x) => !bcCleared(x) && bcOpen(x)); return m ? `<button class="ln-up boss" onclick="bcQuizStart('boss','${m.id}')"><span class="ln-k">⚔ Module test</span><b>${esc(m.n)}</b><em>All lessons done. Score 80% to open the next module.</em><u>Start test</u></button>` : ''; }
-    const c = XC.byId[n.c];
-    if (!g.ok) return `<div class="ln-up lock"><span class="ln-k">🔒 ${lab}</span><b>Earn the next lesson with dials</b><em>${g.d} of ${BC_DIAL_GATE} dials today. One lesson a day is free; the next is paid for in dials.</em></div>`;
-    return `<button class="ln-up ${life ? 'life' : ''}" onclick="bcLesson('${n.c}')"><span class="ln-k">${lab} · Module ${bcNo(n.m)} · ${esc(n.m.n)}</span><b>${esc(c.t)}</b><em>${esc(bcTxt(c.hook || '').slice(0, 140))}</em><u>Start · about 8 min</u></button>`;
-  };
+/* ── Courses tab (inside Learn, next to Bootcamp's Path / Practice / Missions / Progress) ── */
+function lnShelf() {
   const shelf = LN_COURSES.map(([k, ico, name, who, sub, col]) => {
     const p = k === 'mentors' ? null : lnCount(k), cards = lnCards(k).length, M = LN_META[k];
     const meta = k === 'mentors' ? `${cards} key ideas · video clips` : k === 'mind' ? `${M[0]} sections · ${cards} key ideas` : `${M[0]} lessons · ${lnHrs(M[1])}`;
     const pct = p && p.n ? Math.round(p.d / p.n * 100) : 0;
     return `<button class="ln-co" style="--c:${col}" onclick="lnCourse('${k}')"><i>${ico}</i><b>${esc(name)}</b><em>${meta}</em>${p ? `<span class="ln-bar"><u style="width:${pct}%"></u></span><small>${p.d ? `${p.d}/${p.n} done` : 'Not started'}</small>` : '<small>Open</small>'}</button>`;
   }).join('');
+  const q = typeof acqLibQ !== 'undefined' ? acqLibQ : '';
   return `<div class="ln">
-    <div class="ln-hd"><h1>Learn</h1><p>Learn it in the morning. Use it on tonight's calls.</p></div>
-    <div class="ln-search"><input placeholder="Search every course: price, guarantee, voicemail…" value="${esc(typeof acqLibQ !== 'undefined' ? acqLibQ : '')}" oninput="acqLibQ=this.value;clearTimeout(window.__lnq);window.__lnq=setTimeout(()=>{render();const i=document.querySelector('.ln-search input');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},350)"></div>
-    ${typeof acqLibQ !== 'undefined' && acqLibQ.trim().length >= 3 && typeof acqSearch === 'function' ? `<div class="ln-hits">${acqSearch()}</div>` : ''}
-    <div class="ln-sec">Up next</div>
-    ${due.length ? `<button class="ln-mini warm" onclick="bcReviewStart()"><b>Warm-up · ${Math.min(due.length, 6)} quick questions</b><span>Ideas due for review. 2 minutes.</span><u>›</u></button>` : ''}
-    ${up(nb, 'biz', gb)}${up(nl, 'life', gl)}
-    <div class="ln-stats" onclick="bcGo('path')" role="button">
-      <div><b>${rk.name}</b><span>Rank · ${rk.n}/${BC.modules.length} modules</span></div>
-      <div><b>${st}</b><span>Day streak</span></div>
-      <div><b>${learned}<small>/${total}</small></b><span>Ideas learned</span></div>
-      <em>Your path ›</em></div>
-    <div class="ln-sec">Practice</div>
-    <div class="ln-prac">
-      <button onclick="bcQuizStart('drill')"><i>🎯</i><b>Mixed drill</b><span>10 questions</span></button>
-      <button onclick="bcGo('sim')"><i>🎙️</i><b>Owner simulator</b><span>AI cold-call practice</span></button>
-      <button onclick="bcQuizStart('mini')"><i>⚡</i><b>Short day</b><span>10 min, never zero</span></button>
-      <button onclick="${bcWeak().length ? "bcQuizStart('weak')" : "bcReviewStart()"}"><i>🔁</i><b>${bcWeak().length ? 'Weak spots' : 'Review'}</b><span>${bcWeak().length ? Math.min(8, bcWeak().length) + ' ideas you miss' : due.length + ' due'}</span></button>
-    </div>
-    <div class="ln-sec">Courses <span>the full trainings, with the real videos</span></div>
-    <div class="ln-shelf">${shelf}</div>
-    ${bcMisCard(bcV('mis', null), 'mis')}${bcMisCard(bcV('misL', null), 'misL')}
-    <div class="ln-how"><b>How it works</b><ol><li><b>Up next</b> is your daily lesson: one idea, about 8 minutes, then a mission you use on calls tonight.</li><li><b>Courses</b> hold the full trainings: watch a lesson, jump to the key moments, mark it done.</li><li><b>Your path</b> shows every module. Pass a module's test (80%) to open the next.</li></ol></div>
-  </div>`;
+    <p class="ln-note">The full trainings with the real videos. Your daily Path lessons come from these; open a course to watch any lesson, jump to its key moments and mark it done.</p>
+    <div class="ln-search"><input placeholder="Search every course: price, guarantee, voicemail…" value="${esc(q)}" oninput="acqLibQ=this.value;clearTimeout(window.__lnq);window.__lnq=setTimeout(()=>{render();const i=document.querySelector('.ln-search input');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},350)"></div>
+    ${q.trim().length >= 3 && typeof acqSearch === 'function' ? `<div class="ln-hits">${acqSearch()}</div>` : ''}
+    <div class="ln-shelf">${shelf}</div></div>`;
 }
 
 /* ── course page ── */
@@ -127,13 +99,14 @@ function lnCourseHtml(k) {
 
   /* opening a lesson from anywhere (Bootcamp, search, a link) always lands on the lesson screen */
   if (typeof acqOpen === 'function' && !acqOpen._ln) { const g = function (k, i, v) { acqRead = { k, i, v: !!v }; acqTab = k === 'home' ? acqTab : k; if (typeof view !== 'undefined' && view !== 'acq') show('acq'); else render(); window.scrollTo(0, 0); }; g._ln = 1; window.acqOpen = g; acqOpen = g; }
-  /* Learn home replaces the Bootcamp home; the old one lives on as "Your path" */
+  /* Courses = a tab of Learn; the page title says Learn */
+  if (typeof BC_TABS !== 'undefined' && !BC_TABS.some((t) => t[0] === 'courses')) BC_TABS.splice(1, 0, ['courses', 'Courses']);
+  if (typeof bcTop === 'function' && !bcTop._ln) { const f = bcTop; const g = function () { return f.apply(this, arguments).replace('<b>Bootcamp</b>', '<b>Learn</b>'); }; g._ln = 1; window.bcTop = g; bcTop = g; }
   if (typeof bcHome === 'function' && !bcHome._ln) {
     const f = bcHome;
-    const g = function () { if (window.LN_OFF) return f.apply(this, arguments); if (bcS && bcS.scr === 'path') return f.apply(this, arguments).replace(/<div class="bc-hd">[\s\S]*?<\/div><\/div>/, bcHead('Your path', 'Every module, in order. Pass a module test (80%) to open the next.', 'lnGo()')); return lnHome(); };
+    const g = function () { if (!window.LN_OFF && bcS && bcS.tab === 'courses' && typeof bcTop === 'function') return bcTop() + lnShelf(); return f.apply(this, arguments); };
     g._ln = 1; window.bcHome = g; bcHome = g;
   }
-
   /* course pages */
   if (typeof renderAcq === 'function' && !renderAcq._ln) {
     const f = renderAcq;
@@ -178,6 +151,8 @@ function lnDecorateReader() {
   #view-boot h1,#view-boot h2,#view-boot h3,#view-acq h1,#view-acq h2,#view-acq h3{font-family:var(--sans)!important;text-transform:none!important;letter-spacing:-.01em!important;line-height:1.25!important}
   #view-acq .cl-mh,#view-acq .cl-h span{font-family:var(--sans)!important;text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important}
   .ln-lmeta{font-size:13px;color:var(--muted);margin:-6px 0 14px}
+  #view-boot .bcx-tabs{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:0}#view-boot .bcx-tabs::-webkit-scrollbar{display:none}#view-boot .bcx-tabs button{flex:1 0 auto!important;white-space:nowrap;padding-left:12px!important;padding-right:12px!important}
+  #view-acq > .ph-rail,#view-boot > .ph-rail{display:none!important}
   .ln{display:grid;gap:12px;max-width:760px;margin:0 auto;min-width:0}
   .ln h1{font-size:28px;line-height:1.15;margin:0;color:var(--text);letter-spacing:-.01em}.ln-hd p{margin:6px 0 0;color:var(--muted);font-size:14.5px}
   .ln-search input{width:100%;box-sizing:border-box;background:#0F1215;border:1px solid #20252C;border-radius:10px;padding:12px 14px;color:var(--text);font:15px/1.2 var(--sans)}

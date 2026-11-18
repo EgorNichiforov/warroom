@@ -94,8 +94,103 @@ function bcBoss(m, test) {
 function bcBlur() { const a = document.activeElement; if (a && a.blur && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) a.blur(); }
 function bcGo(scr, extra) { bcBlur(); bcS = Object.assign({ scr }, extra || {}); render(); window.scrollTo(0, 0); }
 function bcHead(t, sub, back) { return `<div class="bc-hd">${back ? `<button class="bc-back" onclick="${back}">‹</button>` : ''}<div><b>${t}</b>${sub ? `<span>${sub}</span>` : ''}</div></div>`; }
+/* ── layout: 4 tabs, like a learning app. Path (what to do next) · Practice · Missions · Progress ── */
+const BC_TABS = [['path', 'Path'], ['practice', 'Practice'], ['missions', 'Missions'], ['progress', 'Progress']];
+function bcTop() {
+  const rk = bcRank(), st = bcStreak(), total = Object.keys(BC.cardMod).length, learned = Object.keys(BC.cardMod).filter((id) => bcV('l:' + id, null)).length, tab = bcS.tab || 'path', mis = (bcV('mis', null) ? 1 : 0) + (bcV('misL', null) ? 1 : 0);
+  return `<div class="bcx-top"><div class="bcx-ttl"><b>Bootcamp</b><button class="bcx-help" onclick="bcHelp()" aria-label="How it works">?</button></div>
+    <div class="bcx-chips"><span title="days in a row with Bootcamp">🔥 ${st}</span><span title="ideas learned">🧠 ${learned}/${total}</span><span title="rank">🎖 ${rk.name}</span></div></div>
+    <div class="bcx-tabs">${BC_TABS.map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" onclick="bcGo('home',{tab:'${k}'})">${l}${k === 'missions' && mis ? `<i>${mis}</i>` : ''}</button>`).join('')}</div>`;
+}
+function bcHelp(force) {
+  openModal(`<div class="bcx-help-m"><h2>How Bootcamp works</h2>
+    <div class="bcx-how"><div><u>1</u><b>Two lessons a day</b><span>One Business lesson in the morning, one Life lesson at lunch. About 8 minutes each. The Path tab always shows the next one.</span></div>
+    <div><u>2</u><b>Use it the same day</b><span>Every lesson ends with a mission. Business missions show on the Dial screen; Life missions on your Day screen. Tap "Used it" after you do it.</span></div>
+    <div><u>3</u><b>Beat the boss, open the next module</b><span>When a module's lessons are done, a boss fight (13 questions, 80%) unlocks the next one. Know it already? Test out at 90%.</span></div>
+    <div><u>4</u><b>Practice keeps it</b><span>Missed questions come back in the warm-up. Practice tab: drills, weak spots, the owner simulator.</span></div></div>
+    <div class="bcx-why"><b>Why this order?</b> Hormozi's rule: study your stage first. You're before your first paying agency, so the path starts with what tonight's calls need (mindset, execution, your market, the opener, discovery, objections) and ends with scaling and wealth.</div>
+    <div class="bcx-why"><b>Why are some lessons locked?</b> One Business + one Life lesson a day are free. More unlock after 10 dials that day, so learning never replaces the work.</div>
+    <button class="btn primary block" onclick="bcW('intro',1);closeModal();render()">Got it</button></div>`, true);
+}
+/* what the path should show as "next" for a track */
+function bcNext(tr) {
+  const n = bcNextLesson(tr); if (n) { const g = bcGate(tr); return { kind: g.ok ? 'lesson' : 'locked', m: n.m, c: XC.byId[n.c], g }; }
+  const m = bcTrack(tr).find((x) => !bcCleared(x) && bcOpen(x)); if (m) return { kind: 'boss', m };
+  if (tr === 'biz' && bcTrack('biz').every(bcCleared)) return { kind: 'final' };
+  return { kind: 'done' };
+}
+function bcContinue(tr) {
+  const n = bcNext(tr), L = tr === 'life';
+  if (n.kind === 'lesson') return `<button class="bcx-cont ${L ? 'life' : ''}" onclick="bcLesson('${n.c.id}')"><span>${n.g.done ? 'Bonus lesson · earned with dials' : L ? 'Next Life lesson' : 'Next Business lesson'} · ~8 min</span><b>${esc(n.c.t)}</b><em>Module ${bcNo(n.m)} · ${esc(n.m.n)} · lesson ${n.m.cards.indexOf(n.c.id) + 1} of ${n.m.cards.length}</em><i>Start ›</i></button>`;
+  if (n.kind === 'locked') return `<div class="bcx-cont lockd"><span>Today's free ${L ? 'Life' : 'Business'} lesson: done ✓</span><b>Next one unlocks after ${BC_DIAL_GATE} dials</b><em>${n.g.d}/${BC_DIAL_GATE} dials today · go to Dial, then come back</em><div class="bcx-bar"><i style="width:${Math.min(100, n.g.d / BC_DIAL_GATE * 100)}%"></i></div><button class="btn sm" onclick="show('dial')">Open Dial ›</button></div>`;
+  if (n.kind === 'boss') return `<button class="bcx-cont boss" onclick="bcQuizStart('boss','${n.m.id}')"><span>Boss fight · ~8 min</span><b>⚔ ${esc(n.m.n)}</b><em>All lessons done. 13 questions, 80% opens the next module.</em><i>Fight ›</i></button>`;
+  if (n.kind === 'final') { const fx = bcV('fx', null); return `<button class="bcx-cont boss" onclick="bcQuizStart('final')"><span>Final exam</span><b>🏁 Business certification</b><em>${fx ? `best ${fx.best}%` : '30 questions from everything, 85% to certify'}</em><i>Start ›</i></button>`; }
+  return `<div class="bcx-cont lockd"><b>${L ? 'Life track complete ✓' : 'Business track complete ✓'}</b><em>Keep it sharp in Practice.</em></div>`;
+}
+function bcTodayStrip() {
+  const t = dk(new Date()), b = bcToday('biz') > 0, l = bcToday('life') > 0, d = bcDials(), due = bcDueCards().length;
+  const it = (ok, lab) => `<span class="${ok ? 'ok' : ''}"><i>${ok ? '✓' : ''}</i>${lab}</span>`;
+  return `<div class="bcx-today"><div class="bcx-tl">Today</div>${due ? it(false, `Warm-up (${Math.min(due, 6)})`) : ''}${it(b, 'Business lesson')}${it(l, 'Life lesson')}${it(d >= BC_DIAL_GATE, `${Math.min(d, BC_DIAL_GATE)}/${BC_DIAL_GATE} dials`)}</div>`;
+}
+function bcLessonState(m, id) {
+  if (bcV('l:' + id, null)) return 'done';
+  if (!bcOpen(m)) return 'lock';
+  const first = m.cards.find((x) => !bcV('l:' + x, null)); return first === id ? 'cur' : 'lock';
+}
+function bcPathMod(m) {
+  const o = bcOpen(m), L = bcLearned(m), all = L === m.cards.length, clr = bcCleared(m), b = bcV('b:' + m.id, null), p = bcV('p:' + m.id, null);
+  const cur = o && !clr && (bcNextLesson(m.tr) || {}).m === m || (o && !clr && all);
+  const open = bcS.exp && bcS.exp[m.id] != null ? bcS.exp[m.id] : cur;
+  const state = clr ? 'clr' : o ? (cur ? 'cur' : 'open') : 'lock';
+  const head = `<button class="bcx-mh ${state}" onclick="bcS.exp=bcS.exp||{};bcS.exp['${m.id}']=${open ? 0 : 1};render()"><u>${clr ? '✓' : o ? bcNo(m) : '🔒'}</u><span><b>${esc(m.n)}</b><em>${clr ? `Cleared${b && b.best ? ' · boss ' + b.best + '%' : ''}${p ? ' · proven for real' : ''}` : o ? `${L}/${m.cards.length} lessons${all ? ' · boss ready' : ''}` : `Opens after the boss of module ${bcNo(bcPrev(m))}`}</em></span><i>${open ? '▾' : '▸'}</i></button>`;
+  if (!open) return `<div class="bcx-mod ${state}">${head}</div>`;
+  const nodes = m.cards.map((id, i) => { const c = XC.byId[id], s = bcLessonState(m, id), clips = (c.clip || []).length + (bcMoment(c) ? 1 : 0);
+    return `<button class="bcx-n ${s}" onclick="${s === 'lock' ? `xcOpen('${id}')` : `bcLesson('${id}')`}"><u>${s === 'done' ? '✓' : s === 'cur' ? '▶' : i + 1}</u><span><b>${esc(c.t)}</b><em>${esc(c.who || XC_COURSES[c.c] || '')}${clips ? ' · ▶ video' : ''}${s === 'lock' ? ' · tap to preview' : s === 'done' ? ' · ' + BC_RUNG[bcRung(id)][0] : ''}</em></span>${s === 'cur' ? '<i>Start</i>' : ''}</button>`; }).join('');
+  const boss = `<button class="bcx-n boss ${clr ? 'done' : all && o ? 'cur' : 'lock'}" onclick="${o ? `bcQuizStart('${all ? 'boss' : 'test'}','${m.id}')` : ''}"><u>${clr ? '✓' : '⚔'}</u><span><b>Boss fight</b><em>${clr ? 'cleared' : all ? '13 questions · 80% opens the next module' : o ? 'finish the lessons, or test out now (90%)' : 'locked'}</em></span>${all && o && !clr ? '<i>Fight</i>' : ''}</button>`;
+  return `<div class="bcx-mod ${state}">${head}<div class="bcx-why2">${esc(m.why)}</div><div class="bcx-job"><span>The real-world job</span>${esc(m.job)}${o ? ` <a onclick="bcGo('mod',{m:'${m.id}'})">details ›</a>` : ''}</div><div class="bcx-nodes">${nodes}${boss}</div></div>`;
+}
+function bcPath() {
+  const tr = bcS.trk || 'biz';
+  return `${bcV('intro', 0) ? '' : `<div class="bcx-intro"><b>New here? 30 seconds.</b><span>Two lessons a day, use each one the same day, beat the boss to unlock the next module.</span><button class="btn sm primary" onclick="bcHelp()">How it works</button></div>`}
+    ${bcTodayStrip()}
+    ${bcDueCards().length ? `<button class="bcx-warm" onclick="bcReviewStart()"><b>Warm-up first · ${Math.min(bcDueCards().length, 6)} quick questions</b><span>ideas due for review · 2 min</span><i>›</i></button>` : ''}
+    ${bcContinue('biz')}${bcContinue('life')}
+    <div class="bcx-seg"><button class="${tr === 'biz' ? 'on' : ''}" onclick="bcS.trk='biz';render()">Business path <em>${bcTrack('biz').filter(bcCleared).length}/${bcTrack('biz').length}</em></button><button class="${tr === 'life' ? 'on life' : ''}" onclick="bcS.trk='life';render()">Life path <em>${bcTrack('life').filter(bcCleared).length}/${bcTrack('life').length}</em></button></div>
+    <div class="bcx-path ${tr}">${bcTrack(tr).map(bcPathMod).join('')}</div>`;
+}
+function bcPractice() {
+  const due = bcDueCards().length, weak = bcWeak(), allClear = bcTrack('biz').every(bcCleared), sims = bcV('sim', []) || [];
+  const row = (on, ic, t, d, when, act) => `<button class="bcx-pr ${on ? '' : 'off'}" ${on ? `onclick="${act}"` : 'disabled'}><u>${ic}</u><span><b>${t}</b><em>${d}</em><s>${when}</s></span><i>${on ? '›' : ''}</i></button>`;
+  return `<div class="bcx-sec">Keep what you learned</div>
+    ${row(due > 0, '🔁', `Warm-up${due ? ' · ' + Math.min(due, 6) + ' due' : ''}`, 'Quick questions on ideas due for review (1, 3, 7, 21, 60 days).', due ? 'Do it first, every day' : 'Nothing due right now', 'bcReviewStart()')}
+    ${row(true, '🔀', 'Mixed drill · 10 questions', 'Everything you have opened, shuffled. Trains picking the right idea.', 'Any time you have 5 minutes', "bcQuizStart('drill')")}
+    ${row(weak.length > 0, '🎯', `Weak spots${weak.length ? ' · ' + Math.min(8, weak.length) : ''}`, weak.length ? 'Your most-missed: ' + weak.slice(0, 3).map((id) => esc(XC.byId[id].t)).join(', ') : 'Ideas you get wrong collect here.', 'Sundays, or after a bad boss fight', "bcQuizStart('weak')")}
+    ${row(true, '⚡', 'Short day · 10 min', '3 reviews + 1 hard scenario. Keeps the streak alive.', 'Busy or bad days. Never zero.', "bcQuizStart('mini')")}
+    <div class="bcx-sec">Practise the calls</div>
+    ${row(true, '🎙', 'Owner simulator', `AI plays a Tampa agency owner (5 levels). You reply, then get graded against the cards.${sims.length ? ' Last score: ' + sims[sims.length - 1].score : ''}`, 'Sundays: 2 calls at level 3+', "bcGo('sim')")}
+    <div class="bcx-sec">Exams</div>
+    ${row(allClear, '🏁', 'Final exam · Business', '30 questions from everything. 85% to certify.', allClear ? 'Ready' : 'Opens when every Business module is cleared', "bcQuizStart('final')")}`;
+}
+function bcMissions() {
+  const used = Object.keys(BC.cardMod).map((id) => [id, bcV('u:' + id, null)]).filter((x) => x[1]).sort((a, b) => ((b[1].log || []).slice(-1)[0] || {}).at > ((a[1].log || []).slice(-1)[0] || {}).at ? 1 : -1);
+  const proven = BC.modules.filter((m) => bcV('p:' + m.id, null));
+  return `<div class="bcx-sec">Active now</div>
+    ${bcMisCard(bcV('mis', null), 'mis') || `<div class="bcx-empty">No call mission. Finish a Business lesson and tap 🎯 Call mission.</div>`}
+    ${bcMisCard(bcV('misL', null), 'misL') || `<div class="bcx-empty">No life mission. Finish a Life lesson and tap 🎯 Today's mission.</div>`}
+    <div class="bcx-sec">Ideas you used for real <span>${used.length}</span></div>
+    ${used.length ? used.map(([id, u]) => { const last = (u.log || []).slice(-1)[0] || {}; return `<button class="bcx-used" onclick="xcOpen('${id}')"><b>${esc(XC.byId[id].t)}</b><em>${u.n}× used${u.tried ? ` · ${u.tried} calls, ${u.fwd || 0} moved forward` : ''}${last.at ? ' · ' + esc(last.at) : ''}</em>${last.note ? `<span>${esc(last.note)}</span>` : ''}</button>`; }).join('') : `<div class="bcx-empty">Nothing yet. This list is your proof: knowledge only counts once it changed a call or a day.</div>`}
+    <div class="bcx-sec">Module jobs proven <span>${proven.length}/${BC.modules.length}</span></div>
+    ${proven.length ? proven.map((m) => `<div class="bcx-used"><b>${esc(m.n)}</b><em>${esc(bcV('p:' + m.id, {}).at || '')}</em><span>${esc(bcV('p:' + m.id, {}).note || '')}</span></div>`).join('') : `<div class="bcx-empty">Each module has one real-world job (see the module). Prove it and it lands here.</div>`}`;
+}
+function bcProgress() {
+  const rk = bcRank(), days = Array.from({ length: 28 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 27 + i); return `<i class="${bcV('d:' + dk(d), null) ? 'on' : ''}" title="${dk(d)}"></i>`; }).join('');
+  return `<div class="card bcx-rk"><div class="bcx-sec" style="margin:0 0 8px">Rank</div><div class="bcx-ranks">${BC.ranks.map((r) => `<div class="${rk.name === r[1] ? 'on' : rk.n >= r[0] ? 'done' : ''}"><b>${r[1]}</b><span>${r[0]} modules</span></div>`).join('')}</div><div class="aq-note">${rk.n}/${BC.modules.length} modules cleared${rk.next ? `. Next rank: ${rk.next[1]} at ${rk.next[0]}.` : '.'}</div></div>
+    <div class="card"><div class="bcx-sec" style="margin:0 0 8px">Last 4 weeks</div><div class="bcx-days">${days}</div></div>
+    <div class="card"><div class="bcx-sec" style="margin:0 0 8px">How an idea becomes yours</div>${bcChain()}<div class="aq-note">Learned = you did the lesson. Recalled = you said it from memory. Judged = you picked it right in a scenario. Used = you did it on a real call or in your day. Proven = still there 21+ days later.</div></div>
+    ${bcMap()}`;
+}
 function bcMap() {
-  return `<div class="card bc-map"><div class="aq-t">The map <span>each square is one idea · tap it</span></div>
+  return `<div class="card bc-map"><div class="bcx-sec" style="margin:0 0 8px">The map <span>each square is one idea · tap it</span></div>
     ${BC.modules.map((m) => `${m.k === 0 ? `<div class="bc-trk">${m.tr === 'life' ? 'Life track' : 'Business track'}</div>` : ''}<div class="bc-row ${bcOpen(m) ? '' : 'lock'}"><button class="bc-rl" onclick="bcGo('mod',{m:'${m.id}'})"><u>${bcNo(m)}</u>${esc(m.n)}${bcCleared(m) ? ' <i>✓</i>' : ''}</button><div class="bc-cells">${m.cards.map((id) => `<button class="r${bcRung(id)}" title="${esc((XC.byId[id] || {}).t || id)} · ${BC_RUNG[bcRung(id)][0]}" onclick="xcOpen('${id}')"></button>`).join('')}</div></div>`).join('')}
     <div class="bc-leg">${BC_RUNG.slice(1).map((r, i) => `<span><i class="r${i + 1}"></i>${r[0]}</span>`).join('')}</div></div>`;
 }
@@ -104,74 +199,57 @@ function bcChain() {
   return `<div class="bc-chain">${BC_RUNG.slice(1).map((r, i) => `<div><b>${n[i]}</b><span>${r[0]}</span><em>${r[1]}</em></div>`).join('<i>›</i>')}</div>`;
 }
 function bcHome() {
-  const rk = bcRank(), nb = bcNextLesson('biz'), nl = bcNextLesson('life'), due = bcDueCards(), st = bcStreak(), total = Object.keys(BC.cardMod).length, learned = Object.keys(BC.cardMod).filter((id) => bcV('l:' + id, null)).length;
-  const days = Array.from({ length: 14 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 13 + i); const o = bcV('d:' + dk(d), null); return `<i class="${o ? 'on' : ''}" title="${dk(d)}"></i>`; }).join('');
-  const biz = bcTrack('biz'), allClear = biz.every(bcCleared), fx = bcV('fx', null), gb = bcGate('biz'), gl = bcGate('life');
-  const lessonBtn = (n, tr, g, num) => {
-    if (!n) { const m = bcTrack(tr).find((x) => !bcCleared(x) && bcOpen(x)); return m ? `<button class="bc-big boss" onclick="bcQuizStart('boss','${m.id}')"><b>⚔ Boss fight: ${esc(m.n)}</b><span>all lessons done · 80% to clear and open the next module</span></button>` : ''; }
-    const c = XC.byId[n.c], lab = tr === 'life' ? 'Life' : 'Business';
-    if (!g.ok) return `<div class="bc-big lockd"><b>🔒 ${lab}: next lesson is earned by dials</b><span>${g.d}/${BC_DIAL_GATE} dials today. One lesson per track a day is free; the next one is paid for in dials. Learning never replaces the work.</span></div>`;
-    return `<button class="bc-big ${tr === 'life' ? 'life' : ''}" onclick="bcLesson('${n.c}')"><b>${num} · ${lab}: ${esc(c.t)}</b><span>${g.done ? "bonus lesson, earned with today's dials · " : ''}Module ${bcNo(n.m)} · ${esc(n.m.n)} · ${tr === 'life' ? 'use it today' : "use it on tonight's calls"}</span></button>`;
-  };
-  return `${bcHead('Bootcamp', 'Zero to operator: every course, every mentor and your life library, in the order your business needs it. Learn it, then use it the same day.')}
-    <div class="card bc-hero"><div class="bc-rank"><span>Rank</span><b>${rk.name}</b><em>${rk.n}/${BC.modules.length} modules cleared${rk.next ? ` · ${rk.next[1]} at ${rk.next[0]}` : ''}</em></div>
-      <div class="bc-stat"><b>${learned}<small>/${total}</small></b><span>ideas learned</span></div><div class="bc-stat"><b>${st}</b><span>day streak</span></div>
-      <div class="bc-days">${days}</div></div>
-    <div class="card bc-today"><div class="aq-t">Today's session <span>about 20 minutes</span></div>
-      ${due.length ? `<button class="bc-big alt" onclick="bcReviewStart()"><b>1 · Warm-up: ${Math.min(due.length, 6)} quick questions</b><span>ideas due for review · retrieval, not rereading</span></button>` : `<div class="bc-ok">✓ No reviews due</div>`}
-      ${lessonBtn(nb, 'biz', gb, due.length ? 2 : 1)}
-      ${lessonBtn(nl, 'life', gl, due.length ? 3 : 2)}
-      ${allClear ? `<button class="bc-big boss" onclick="bcQuizStart('final')"><b>🏁 Final exam · Business</b><span>${fx ? `best ${fx.best}%${fx.pass ? ' · certified ' + fx.at : ''}` : '30 questions from everything · 85% to certify'}</span></button>` : ''}
-      <div class="bc-two"><button class="bc-big ghost" onclick="bcQuizStart('drill')"><b>Mixed drill</b><span>10 questions, shuffled across everything open</span></button><button class="bc-big ghost" onclick="bcQuizStart('mini')"><b>⚡ Short day: 10 min</b><span>3 reviews + 1 hard scenario. Never zero.</span></button></div>
-      ${bcWeak().length ? `<button class="bc-big alt" onclick="bcQuizStart('weak')"><b>Weak spots · ${Math.min(8, bcWeak().length)} ideas</b><span>the ideas you've missed most: ${bcWeak().slice(0, 3).map((id) => esc(XC.byId[id].t)).join(', ')}</span></button>` : ''}
-      <button class="bc-big sim" onclick="bcGo('sim')"><b>🎙 Owner simulator</b><span>AI plays a Tampa agency owner. You reply. Then you get graded against the cards.</span></button></div>
-    ${bcMisCard(bcV('mis', null), 'mis')}${bcMisCard(bcV('misL', null), 'misL')}
-    <div class="card"><div class="aq-t">How an idea becomes yours</div>${bcChain()}</div>
-    ${bcMap()}
-    <div class="card"><div class="aq-t">Business track <span>courses + sales mentors + your market</span></div><div class="bc-mods">${biz.map(bcModBtn).join('')}</div></div>
-    <div class="card"><div class="aq-t">Life track <span>sleep, habits, study, body, tennis, people, mind</span></div><div class="bc-mods">${bcTrack('life').map(bcModBtn).join('')}</div></div>
-    <div class="aq-note">How it works: each lesson is about 8 minutes. Every day: one Business lesson (use it on tonight's calls) and one Life lesson (use it today). More lessons unlock after ${BC_DIAL_GATE} dials. A module opens when you beat the boss fight of the one before (80%); already know it? Test out (90%). Wrong answers come back in tomorrow's warm-up. Paraphrased study notes, not quotes; health and money notes are educational, not medical or financial advice.</div>`;
+  const tab = bcS.tab || 'path';
+  return bcTop() + ({ path: bcPath, practice: bcPractice, missions: bcMissions, progress: bcProgress }[tab] || bcPath)();
 }
-function bcModBtn(m) {
-  const o = bcOpen(m), L = bcLearned(m), b = bcV('b:' + m.id, null), p = bcV('p:' + m.id, null);
-  return `<button class="bc-mod ${o ? '' : 'lock'} ${bcCleared(m) ? 'clr' : ''} ${m.tr}" onclick="bcGo('mod',{m:'${m.id}'})"><u>${bcNo(m)}</u><span><b>${esc(m.n)}</b><em>${o ? `${L}/${m.cards.length} lessons${b ? ` · boss best ${b.best}%` : ''}${p ? ' · proven for real' : ''}` : '🔒 beat the boss of module ' + bcNo(bcPrev(m))}</em></span><i style="--p:${Math.round(L / m.cards.length * 100)}%"></i></button>`;
-}
+function bcModBtn(m) { return bcPathMod(m); }
 function bcMod(mid) {
-  const m = BC.mod[mid]; if (!m) return bcHome(); const o = bcOpen(m), L = bcLearned(m), all = L === m.cards.length, b = bcV('b:' + m.id, null), p = bcV('p:' + m.id, null);
-  return `${bcHead(`${bcNo(m)} · ${esc(m.n)}`, esc(m.why), "bcGo('home')")}
-    ${o ? '' : `<div class="aq-lock"><b>Locked</b><span>Beat the boss of module ${bcNo(bcPrev(m))} (“${esc(bcPrev(m).n)}”) to open this. You can still look at each card.</span></div>`}
-    <div class="card"><div class="aq-t">The job this module trains <span>${m.tr === 'life' ? 'prove it in your day' : 'prove it on a real call'}</span></div><div class="aq-line">${esc(m.job)}</div>
-      ${p ? `<div class="bc-ok">✓ Proven ${esc(p.at)}${p.note ? ': ' + esc(p.note) : ''}</div>` : `<textarea class="aq-in" id="bc-pn" placeholder="What happened when you did it?"></textarea><button class="btn sm" onclick="bcProve('${m.id}')">${m.tr === 'life' ? 'Did it for real' : 'Did it on a real call'}</button>`}</div>
-    <div class="card"><div class="aq-t">Lessons <span>${L}/${m.cards.length}</span></div><div class="bc-ls">${m.cards.map((id, i) => { const c = XC.byId[id], r = bcRung(id), done = !!bcV('l:' + id, null), nxt = o && !done && m.cards.slice(0, i).every((x) => bcV('l:' + x, null)); return `<button class="bc-l ${done ? 'done' : ''} ${nxt ? 'nx' : ''}" onclick="${o ? `bcLesson('${id}')` : `xcOpen('${id}')`}"><i class="r${r}"></i><span><b>${esc(c.t)}</b><em>${esc(c.who || XC_COURSES[c.c] || '')} · ${BC_RUNG[r][0]}${(c.clip || []).length ? ' · ▶ ' + c.clip.length : ''}</em></span>${nxt ? '<u>next</u>' : ''}</button>`; }).join('')}</div></div>
-    ${o ? `<div class="card bc-bossc"><div class="aq-t">Boss fight</div><div class="aq-line">${all ? 'All lessons done. 13 questions: scenarios, script mistakes, order the steps, plus 2 from earlier modules.' : `Finish the lessons, or test out now if you already know this (15 questions, 90%).`}</div>
-      ${b ? `<div class="aq-note">Best ${b.best}% · ${b.pass ? 'cleared ' + esc(b.at) : 'not cleared yet'}</div>` : ''}
-      <button class="btn ${all ? 'primary' : ''} block" onclick="bcQuizStart('${all ? 'boss' : 'test'}','${m.id}')">${all ? '⚔ Start the boss fight' : 'Test out of this module'}</button></div>` : ''}`;
+  const m = BC.mod[mid]; if (!m) return bcHome(); const o = bcOpen(m), p = bcV('p:' + m.id, null), b = bcV('b:' + m.id, null);
+  return `${bcHead(`Module ${bcNo(m)} · ${esc(m.n)}`, `${m.tr === 'life' ? 'Life' : 'Business'} path · ${bcLearned(m)}/${m.cards.length} lessons${b ? ' · boss best ' + b.best + '%' : ''}`, `bcGo('home',{tab:'path',trk:'${m.tr}'})`)}
+    <div class="card"><div class="aq-t">Why this module</div><div class="aq-line">${esc(m.why)}</div></div>
+    <div class="card"><div class="aq-t">The real-world job <span>${m.tr === 'life' ? 'prove it in your day' : 'prove it on a real call'}</span></div><div class="aq-line">${esc(m.job)}</div>
+      ${p ? `<div class="bc-ok">✓ Proven ${esc(p.at)}${p.note ? ': ' + esc(p.note) : ''}</div>` : o ? `<textarea class="aq-in" id="bc-pn" placeholder="What happened when you did it?"></textarea><button class="btn sm" onclick="bcProve('${m.id}')">${m.tr === 'life' ? 'Did it for real' : 'Did it on a real call'}</button>` : '<div class="aq-note">Opens with the module.</div>'}</div>
+    <div class="bcx-path ${m.tr}">${(() => { bcS.exp = bcS.exp || {}; bcS.exp[m.id] = 1; return bcPathMod(m); })()}</div>`;
 }
 function bcProve(mid) { const n = (document.getElementById('bc-pn') || {}).value || ''; if (!n.trim()) { toast('Write one line about what happened first'); return; } bcBlur(); bcW('p:' + mid, { at: dk(new Date()), note: n.trim() }); toast('Proven. That is the point of all this.'); render(); }
 
 /* ── lesson stepper ── */
-const BC_STEPS = [['predict', 'Predict'], ['learn', 'Learn'], ['watch', 'Watch'], ['recall', 'Recall'], ['use', 'Use']];
+const BC_STEPS = [['predict', 'Guess'], ['learn', 'Learn'], ['watch', 'Watch'], ['recall', 'Recall'], ['use', 'Use']];
+const BC_DO = { predict: 'Guess before you learn. Being wrong is fine: guessing first makes it stick.', learn: 'Read the idea and look at the picture. Take your time here.', watch: 'Watch him say it. Each video plays only the moment that matters, here in the app.', recall: 'Close the book in your head. Say or write the idea from memory, then compare.', use: 'Decide exactly how you will use it, then make it a mission.' };
+/* the real course video at the moment that matches this card (from clips.js / lib/clips.json) */
+function bcMoment(c) {
+  try {
+    if (!c || !c.lesson || typeof CL === 'undefined' || !CL || !CL.byUrl) return null; const hit = CL.byUrl[String(c.lesson[0]).replace(/\/$/, '')]; if (!hit || !hit.e || !hit.e.pid) return null;
+    const words = new Set((c.t + ' ' + (c.hook || '')).toLowerCase().match(/[a-z]{4,}/g) || []); let m = null, bs = 0;
+    (hit.e.m || []).forEach((x) => { const s = (String(x[1]).toLowerCase().match(/[a-z]{4,}/g) || []).filter((w) => words.has(w)).length; if (s > bs) { bs = s; m = x; } });
+    return { pid: hit.e.pid, s: m ? m[0] : 0, label: m ? 'Course: ' + m[1] : 'Course lesson: ' + c.lesson[1], whole: !m };
+  } catch (e) { return null; }
+}
 function bcLesson(id) { const c = XC.byId[id]; if (!c) return; if (!bcV('l:' + id, null)) { const g = bcGate(BC.mod[BC.cardMod[id]].tr); if (!g.ok) { toast(`Earned by dials: ${g.d}/${BC_DIAL_GATE} today. Dial first, then learn.`); return; } } const pool = bcCardsOf(BC.mod[BC.cardMod[id]]); bcGo('lesson', { id, st: 0, pq: bcGen(c, pool.length > 3 ? pool : XC.cards, ['order', 'vs', 'eq', 'grid', 'acro', 'trap', 'move']), pick: null, ord: [] }); }
-function bcSteps(c) { return BC_STEPS.filter((s) => s[0] !== 'watch' || (c.clip || []).length); }
+function bcSteps(c) { return BC_STEPS.filter((s) => s[0] !== 'watch' || (c.clip || []).length || bcMoment(c)); }
 function bcLessonHtml() {
-  const c = XC.byId[bcS.id], m = BC.mod[BC.cardMod[c.id]], steps = bcSteps(c), s = steps[bcS.st][0];
-  const bar = `<div class="bc-steps">${steps.map((x, i) => `<span class="${i < bcS.st ? 'done' : i === bcS.st ? 'on' : ''}">${x[1]}</span>`).join('')}</div>`;
-  const next = (lab) => `<button class="btn primary block" onclick="bcS.st++;render();window.scrollTo(0,0)">${lab || 'Next ›'}</button>`;
+  const c = XC.byId[bcS.id], m = BC.mod[BC.cardMod[c.id]], steps = bcSteps(c), s = steps[bcS.st][0], L = m.tr === 'life', back = `bcGo('home',{tab:'path',trk:'${m.tr}'})`;
+  const head = `<div class="bcx-lh"><button class="bc-back" onclick="${back}" aria-label="Leave lesson">✕</button><div class="bcx-lp"><div class="bcx-bar"><i style="width:${(bcS.st + 1) / steps.length * 100}%"></i></div><span>Step ${bcS.st + 1} of ${steps.length} · ${steps[bcS.st][1]}</span></div></div>
+    <div class="bcx-lt"><em>Module ${bcNo(m)} · ${esc(m.n)} · lesson ${m.cards.indexOf(c.id) + 1}/${m.cards.length}</em><b>${esc(c.t)}</b><span>${esc(c.who || XC_COURSES[c.c] || '')}</span></div>
+    <div class="bcx-do"><i>${bcS.st + 1}</i>${BC_DO[s]}</div>`;
+  const next = (lab) => `<div class="bcx-foot"><button class="btn primary block" onclick="bcS.st++;render();window.scrollTo(0,0)">${lab || 'Continue ›'}</button></div>`;
   let body = '';
-  if (s === 'predict') body = `<div class="card"><div class="aq-t">Predict first <span>guessing before you learn makes it stick, even when you're wrong</span></div>${bcS.pq ? bcQHtml(bcS.pq, 'lp') : '<div class="aq-line">What do you think this idea says? Guess in one sentence, out loud.</div>'}</div>${bcS.pq && bcS.pick == null && bcS.pq.t !== 'self' ? '<button class="btn ghost block" onclick="bcS.st++;render()">Skip the guess</button>' : next()}`;
+  if (s === 'predict') body = `<div class="card">${bcS.pq ? bcQHtml(bcS.pq, 'lp') : '<div class="aq-line">What do you think this idea says? Guess in one sentence, out loud.</div>'}</div>${bcS.pq && bcS.pick == null && bcS.pq.t !== 'self' ? '<div class="bcx-foot"><button class="btn ghost block" onclick="bcS.st++;render()">Skip the guess</button></div>' : next()}`;
   if (s === 'learn') body = `<div class="card bc-learn xc-card"><div class="xc-hook">${pbInline(c.hook)}</div>${xcVis(c.vis)}
       ${[['In plain words', c.plain], ['Picture it', c.analogy], ['Worked example', c.ex], ['The trap', c.trap]].filter((x) => x[1]).map((x) => `<div class="xc-s"><div class="xc-l">${x[0]}</div><div class="xc-b">${pbInline(x[1])}</div></div>`).join('')}
-      ${c.lesson ? `<a class="xc-lesson" href="${esc(c.lesson[0])}" target="_blank" rel="noopener"><i>🎓</i><span><b>Full course lesson: ${esc(c.lesson[1])}</b><em>free on acquisition.com</em></span></a>` : ''}</div>${next()}`;
-  if (s === 'watch') body = `<div class="card"><div class="aq-t">Watch him explain it <span>${c.clip.length} clip${c.clip.length > 1 ? 's' : ''} · 1–4 min each</span></div><div class="xc-clips">${c.clip.map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div></div>${next()}`;
-  if (s === 'recall') body = `<div class="card"><div class="aq-t">Closed book <span>no scrolling up</span></div><div class="aq-line">In your own words: what is “${esc(c.t)}”, and when would it help you on a call?</div>
+      ${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}</div>${next()}`;
+  if (s === 'watch') { const mo = bcMoment(c), n = (c.clip || []).length + (mo ? 1 : 0);
+    body = `<div class="card"><div class="aq-t">${n} video${n > 1 ? 's' : ''} <span>tap one · plays here · 1–4 min</span></div><div class="xc-clips">${mo ? xcClipBtn(mo.pid, mo.s, 0, mo.label) : ''}${(c.clip || []).map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div>${mo ? '<div class="aq-note">🎓 = the real acquisition.com course video, at the moment this idea is taught.</div>' : ''}</div>${next()}`; }
+  if (s === 'recall') body = `<div class="card"><div class="aq-line">What is “${esc(c.t)}”, and when would it help you${L ? ' today' : ' on a call'}?</div>
       <textarea class="aq-in bc-rc" id="bc-rc" placeholder="Write it, or say it out loud and type a few words">${esc(bcS.rc || '')}</textarea>
       ${bcS.show ? `<div class="bc-cmp"><span>Compare</span><div class="xc-hook">${pbInline(c.hook)}</div>${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}${(c.q || []).map((x) => `<div class="bc-qa"><b>${esc(x[0])}</b><span>${pbInline(x[1])}</span></div>`).join('')}</div>
-        <div class="bc-grade"><button class="btn sm" onclick="bcGrade(0)">Missed it</button><button class="btn sm" onclick="bcGrade(1)">Partly</button><button class="btn sm primary" onclick="bcGrade(2)">Nailed it</button></div>`
-      : `<button class="btn primary block" onclick="bcS.rc=(document.getElementById('bc-rc')||{}).value;bcBlur();bcS.show=1;render()">Compare with the card</button>`}</div>`;
-  if (s === 'use') { const L = m.tr === 'life'; body = `<div class="card"><div class="aq-t">Use it <span>${L ? 'knowledge only counts once it changes your day' : 'knowledge only counts once it changes a call'}</span></div><div class="xc-s move"><div class="xc-l">${L ? 'Your move · today' : 'Your move · Caregiver Bench'}</div><div class="xc-b">${pbInline(c.move || '')}</div></div>
-      <textarea class="aq-in" id="bc-use" placeholder="${L ? 'Exactly what you will do today, and when' : "Exactly what you'll say or do on tonight's calls"}"></textarea>
-      <div class="bc-grade"><button class="btn sm" onclick="bcFinish(0)">Finish lesson</button><button class="btn sm primary" onclick="bcFinish(1)">🎯 ${L ? "Today's mission" : 'Call mission'}</button></div></div>`; }
-  return `${bcHead(esc(c.t), `Module ${bcNo(m)} · ${esc(m.n)} · lesson ${m.cards.indexOf(c.id) + 1}/${m.cards.length}`, `bcGo('mod',{m:'${m.id}'})`)}${bar}${body}`;
+        <div class="bcx-sec" style="margin:12px 0 6px">How did you do?</div><div class="bc-grade"><button class="btn sm" onclick="bcGrade(0)">Missed it</button><button class="btn sm" onclick="bcGrade(1)">Partly</button><button class="btn sm primary" onclick="bcGrade(2)">Nailed it</button></div>`
+      : ''}</div>${bcS.show ? '' : `<div class="bcx-foot"><button class="btn primary block" onclick="bcS.rc=(document.getElementById('bc-rc')||{}).value;bcBlur();bcS.show=1;render()">Compare with the card</button></div>`}`;
+  if (s === 'use') body = `<div class="card"><div class="xc-s move"><div class="xc-l">${L ? 'Your move · today' : 'Your move · Caregiver Bench'}</div><div class="xc-b">${pbInline(c.move || '')}</div></div>
+      <textarea class="aq-in" id="bc-use" placeholder="${L ? 'Exactly what you will do today, and when' : "Exactly what you'll say or do on tonight's calls"}"></textarea></div>
+      <div class="bcx-foot two"><button class="btn" onclick="bcFinish(0)">Just finish</button><button class="btn primary" onclick="bcFinish(1)">🎯 ${L ? "Make it today's mission" : 'Make it a call mission'}</button></div>
+      <div class="aq-note" style="text-align:center">${L ? 'The mission shows on your Day screen.' : 'The mission shows on the Dial screen tonight.'}</div>`;
+  return head + body;
 }
 function bcGrade(r) { bcBlur(); bcS.r = r; bcSrs(bcS.id, r >= 1); bcS.st = Math.min(bcS.st + 1, bcSteps(XC.byId[bcS.id]).length - 1); render(); window.scrollTo(0, 0); }
 function bcFinish(mission) {
@@ -183,7 +261,7 @@ function bcFinish(mission) {
   bcDay('l'); save();
   const m = BC.mod[BC.cardMod[id]];
   toast(mission ? (mk === 'misL' ? '🎯 Mission set: it shows on your Day screen' : '🎯 Mission set: it shows on the Dial screen tonight') : 'Lesson done');
-  if (m.cards.every((x) => bcV('l:' + x, null)) && !bcCleared(m)) bcGo('mod', { m: m.id }); else bcGo('home');
+  bcGo('home', { tab: 'path', trk: m.tr });
 }
 
 /* ── field mission ── */
@@ -283,7 +361,7 @@ async function bcSimGrade() {
 }
 function bcSimHtml() {
   const r = bcS.run, past = bcV('sim', []) || [], on = typeof aiOn === 'function' && aiOn();
-  if (!r) return `${bcHead('🎙 Owner simulator', 'Practise before the real calls. The AI plays the owner; you type what you would say (or say it out loud first, then type it).', "bcGo('home')")}
+  if (!r) return `${bcHead('🎙 Owner simulator', 'Practise before the real calls. The AI plays the owner; you type what you would say (or say it out loud first, then type it).', "bcGo('home',{tab:'practice'})")}
     ${on ? '' : `<div class="aq-lock"><b>Needs the AI key</b><span>Same key as Ask and the food photo (More → settings). Until then, practise the scenarios in the boss fights.</span></div>`}
     <div class="card"><div class="aq-t">Difficulty</div><div class="bc-lvls">${BC_LVL.map((l, i) => `<button class="${(bcS.lvl || 0) === i ? 'on' : ''}" onclick="bcS.lvl=${i};render()"><b>${i + 1}</b><span>${l[0]}</span></button>`).join('')}</div><div class="aq-note">${BC_LVL[bcS.lvl || 0][1]}</div></div>
     <div class="card"><div class="aq-t">Pick the call</div><div class="bc-ls">${BC_SIMS.map((x) => `<button class="bc-l" ${on ? `onclick="bcSimStart('${x[0]}',${bcS.lvl || 0})"` : 'disabled'}><span><b>${esc(x[1])}</b><em>${esc(x[2])}</em></span><u>call</u></button>`).join('')}</div></div>
@@ -366,6 +444,45 @@ function renderBoot() {
   .bc-chat .own{background:#1a1d22;justify-self:start}.bc-chat .me{background:#1d2a33;justify-self:end}.bc-chat .err{color:#e0a07a}
   .bc-fb.red{border-color:#c0574f}.bc-fb .bc-res{padding:6px 0 12px}.bc-link{display:block;color:var(--acc);cursor:pointer;padding:5px 0;font-size:14px}.bc-cmp b{font-size:15px;color:var(--text);line-height:1.45}
   .bc-hist{display:flex;gap:4px;align-items:flex-end;height:80px}.bc-hist div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px}.bc-hist i{width:100%;background:#2f6b8a;border-radius:2px 2px 0 0}.bc-hist .red i{background:#c0574f}.bc-hist span{font:600 10px/1 var(--mono,monospace);color:var(--muted)}
+
+  .bcx-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:2px}.bcx-ttl{display:flex;align-items:center;gap:8px}.bcx-ttl b{font-size:22px;color:var(--text)}
+  .bcx-help{width:28px;height:28px;border-radius:50%;border:1px solid #2C333C;background:transparent;color:var(--muted);font:600 14px/1 inherit;cursor:pointer}
+  .bcx-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.bcx-chips span{font:600 12px/1 var(--mono,monospace);padding:7px 9px;border:1px solid #232830;border-radius:999px;color:var(--text);white-space:nowrap}
+  .bcx-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #1B1F24;position:sticky;top:0;z-index:5;background:var(--bg,#0B0D10)}.bcx-tabs button{position:relative;background:none;border:0;padding:12px 2px;color:var(--muted);font:600 13px/1 inherit;cursor:pointer;border-bottom:2px solid transparent}.bcx-tabs button.on{color:var(--text);border-color:var(--acc)}.bcx-tabs i{font-style:normal;font-size:10px;background:var(--acc);color:#111;border-radius:999px;padding:2px 5px;margin-left:4px;vertical-align:2px}
+  .bcx-intro{display:grid;gap:4px;border:1px dashed var(--acc);border-radius:8px;padding:12px}.bcx-intro b{font-size:15px;color:var(--text)}.bcx-intro span{font-size:13px;color:var(--muted);line-height:1.4}.bcx-intro .btn{justify-self:start;margin-top:4px}
+  .bcx-today{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.bcx-tl{font:600 10.5px/1 var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+  .bcx-today span{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);border:1px solid #232830;border-radius:999px;padding:5px 10px 5px 6px}.bcx-today i{width:16px;height:16px;border-radius:50%;border:1px solid #39414b;display:flex;align-items:center;justify-content:center;font:700 10px/1 inherit;font-style:normal}.bcx-today .ok{color:var(--text);border-color:#2f4a33}.bcx-today .ok i{background:var(--green,#8fae8b);border-color:var(--green,#8fae8b);color:#0b0d10}
+  .bcx-warm{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#0f1a22;border:1px solid #3a6f8f;border-radius:8px;padding:11px 14px;cursor:pointer;color:var(--text);font-family:inherit}.bcx-warm b{display:block;font-size:14px}.bcx-warm span{display:block;font-size:12px;color:var(--muted);margin-top:2px}.bcx-warm i{margin-left:auto;font-style:normal;font-size:20px;color:#6fb0d6}
+  .bcx-cont{position:relative;display:grid;gap:3px;width:100%;text-align:left;background:#15130d;border:1.5px solid var(--acc);border-radius:10px;padding:14px 16px;cursor:pointer;color:var(--text);font-family:inherit}.bcx-cont>span{font:600 10.5px/1.3 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}.bcx-cont>b{font-size:18px;line-height:1.3;padding-right:70px}.bcx-cont>em{font-style:normal;font-size:12.5px;color:var(--muted)}
+  .bcx-cont>i{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-style:normal;font:700 13px/1 inherit;background:var(--acc);color:#111;padding:9px 12px;border-radius:6px}
+  .bcx-cont.life{background:#0f1712;border-color:#5f9e6e}.bcx-cont.life>span{color:#8fd19e}.bcx-cont.life>i{background:#5f9e6e}.bcx-cont.boss{background:#1a1410;border-color:#c9774a}.bcx-cont.boss>span{color:#e0a07a}.bcx-cont.boss>i{background:#c9774a}
+  .bcx-cont.lockd{cursor:default;border:1px dashed #39414b;background:transparent}.bcx-cont.lockd>span{color:var(--muted)}.bcx-cont.lockd .btn{justify-self:start;margin-top:6px}
+  .bcx-bar{height:5px;background:#1B1F24;border-radius:3px;overflow:hidden;margin-top:6px}.bcx-bar i{display:block;height:100%;background:var(--acc);border-radius:3px}
+  .bcx-seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#111418;border:1px solid #1B1F24;border-radius:8px;padding:3px;margin-top:6px}.bcx-seg button{border:0;background:transparent;color:var(--muted);font:600 13px/1 inherit;padding:10px 4px;border-radius:6px;cursor:pointer}.bcx-seg button.on{background:#1d2229;color:var(--text)}.bcx-seg button.on.life{color:#8fd19e}.bcx-seg em{font-style:normal;font:500 11px/1 var(--mono,monospace);color:var(--muted);margin-left:4px}
+  .bcx-path{display:grid;gap:8px}.bcx-mod{border:1px solid #1B1F24;border-radius:10px;overflow:hidden}.bcx-mod.cur{border-color:var(--acc)}.bcx-path.life .bcx-mod.cur{border-color:#5f9e6e}.bcx-mod.lock{opacity:.6}
+  .bcx-mh{display:flex;gap:12px;align-items:center;width:100%;background:transparent;border:0;padding:12px 14px;text-align:left;color:var(--text);cursor:pointer;font-family:inherit}.bcx-mh u{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font:700 13px/1 var(--mono,monospace);border:1.5px solid #39414b;color:var(--muted)}
+  .bcx-mh.cur u{border-color:var(--acc);color:var(--acc)}.bcx-path.life .bcx-mh.cur u{border-color:#5f9e6e;color:#8fd19e}.bcx-mh.clr u{background:var(--green,#8fae8b);border-color:var(--green,#8fae8b);color:#0b0d10}.bcx-mh.lock u{font-size:13px}
+  .bcx-mh span{flex:1;min-width:0}.bcx-mh b{display:block;font-size:15px}.bcx-mh em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}.bcx-mh>i{font-style:normal;color:var(--muted)}
+  .bcx-why2{padding:0 14px 6px 60px;font-size:13px;color:var(--muted);line-height:1.45}.bcx-job{margin:0 14px 10px 60px;font-size:12.5px;color:var(--text);line-height:1.4;border-left:2px solid #39414b;padding:2px 0 2px 8px}.bcx-job span{display:block;font:600 10px/1.4 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.bcx-job a{color:var(--acc);cursor:pointer}
+  .bcx-nodes{position:relative;padding:4px 10px 12px 14px}.bcx-nodes:before{content:'';position:absolute;left:30px;top:16px;bottom:28px;width:2px;background:#232830}
+  .bcx-n{position:relative;display:flex;gap:12px;align-items:center;width:100%;background:transparent;border:0;padding:7px 4px;text-align:left;color:var(--text);cursor:pointer;font-family:inherit}.bcx-n u{flex:none;position:relative;z-index:1;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font:700 12px/1 var(--mono,monospace);background:#14171B;border:1.5px solid #2C333C;color:var(--dim,#5B626B)}
+  .bcx-n span{flex:1;min-width:0}.bcx-n b{display:block;font-size:14px;font-weight:500;line-height:1.3}.bcx-n em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:2px}.bcx-n>i{font-style:normal;font:700 12px/1 inherit;background:var(--acc);color:#111;padding:7px 10px;border-radius:6px}
+  .bcx-n.done u{background:#2f6b8a;border-color:#2f6b8a;color:#fff}.bcx-n.done b{color:var(--muted)}.bcx-n.cur u{background:var(--acc);border-color:var(--acc);color:#111;box-shadow:0 0 0 4px rgb(201 162 74 / .18)}.bcx-n.lock b{color:var(--muted)}
+  .bcx-path.life .bcx-n.cur u{background:#5f9e6e;border-color:#5f9e6e;box-shadow:0 0 0 4px rgb(95 158 110 / .2)}.bcx-path.life .bcx-n>i{background:#5f9e6e}
+  .bcx-n.boss u{border-radius:8px;border-color:#c9774a;color:#e0a07a}.bcx-n.boss.cur u{background:#c9774a;color:#111}.bcx-n.boss.done u{background:var(--green,#8fae8b);border-color:var(--green,#8fae8b);color:#0b0d10}.bcx-n.boss>i{background:#c9774a}
+  .bcx-sec{font:600 10.5px/1 var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:10px 2px 2px}.bcx-sec span{color:var(--text);margin-left:6px}
+  .bcx-pr{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:#111418;border:1px solid #1B1F24;border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--text);font-family:inherit}.bcx-pr u{flex:none;font-size:22px;text-decoration:none;width:30px;text-align:center}.bcx-pr span{flex:1;min-width:0}.bcx-pr b{display:block;font-size:15px}.bcx-pr em{display:block;font-style:normal;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}.bcx-pr s{display:block;text-decoration:none;font:600 10.5px/1.3 var(--mono,monospace);color:var(--acc);margin-top:5px}.bcx-pr>i{font-style:normal;font-size:20px;color:var(--muted)}.bcx-pr.off{opacity:.5;cursor:default}
+  .bcx-empty{font-size:13px;color:var(--muted);border:1px dashed #2C333C;border-radius:8px;padding:12px;line-height:1.45}
+  .bcx-used{display:grid;gap:2px;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid #15181C;padding:9px 2px;color:var(--text);font-family:inherit;cursor:pointer}.bcx-used b{font-size:14px}.bcx-used em{font-style:normal;font-size:12px;color:var(--muted)}.bcx-used span{font-size:12.5px;color:var(--text);opacity:.85}
+  .bcx-ranks{display:flex;gap:4px;overflow-x:auto}.bcx-ranks div{flex:1;min-width:64px;border:1px solid #1B1F24;border-radius:6px;padding:7px 6px;text-align:center}.bcx-ranks b{display:block;font-size:12px;color:var(--muted)}.bcx-ranks span{font:500 10px/1 var(--mono,monospace);color:var(--dim,#5B626B)}.bcx-ranks .done b{color:var(--text)}.bcx-ranks .on{border-color:var(--acc)}.bcx-ranks .on b{color:var(--acc)}
+  .bcx-days{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}.bcx-days i{height:12px;border-radius:2px;background:#1B1F24}.bcx-days i.on{background:var(--acc)}
+  .bcx-lh{display:flex;gap:10px;align-items:center}.bcx-lp{flex:1}.bcx-lp .bcx-bar{margin:0;height:7px}.bcx-lp span{display:block;font:600 11px/1 var(--mono,monospace);color:var(--muted);margin-top:6px;letter-spacing:.04em}
+  .bcx-lt{padding:4px 2px 0}.bcx-lt em{display:block;font-style:normal;font-size:12px;color:var(--muted)}.bcx-lt b{display:block;font-size:21px;line-height:1.3;color:var(--text);margin:3px 0}.bcx-lt span{font-size:12.5px;color:var(--acc)}
+  .bcx-do{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:var(--text);background:#111418;border:1px solid #1B1F24;border-radius:8px;padding:10px 12px}.bcx-do i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#111;font:700 12px/22px inherit;text-align:center;font-style:normal}
+  .bcx-foot{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);z-index:4;padding-top:6px}.bcx-foot.two{display:grid;grid-template-columns:1fr 1.6fr;gap:8px}.bcx-foot .btn{min-height:48px}
+  .bcx-mh u,.bcx-n u,.bcx-help,.bcx-how u,.bcx-today i,.bcx-do i{border-radius:50%!important}.bcx-n.boss u{border-radius:8px!important}.bcx-cont>em{padding-right:70px}.bcx-chips span{padding:6px 8px;font-size:11.5px}
+  .bcx-help-m h2{margin:0 0 12px}.bcx-how{display:grid;gap:12px;margin-bottom:12px}.bcx-how div{display:grid;grid-template-columns:30px 1fr;gap:2px 10px}.bcx-how u{grid-row:span 2;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#111;font:700 13px/28px inherit;text-align:center;text-decoration:none}.bcx-how b{font-size:15px}.bcx-how span{font-size:13px;color:var(--muted);line-height:1.45}
+  .bcx-why{font-size:13px;line-height:1.5;color:var(--muted);border-top:1px solid #1B1F24;padding:10px 0}.bcx-why b{color:var(--text)}
   @media (max-width:560px){.bc-chain>i{display:none}.bc-chain>div{padding:6px 4px}.bc-chain em{display:none}.bc-chain span{font-size:10.5px}.bc-hero{grid-template-columns:1fr 1fr}.bc-rank{grid-column:1/-1}.bc-row{grid-template-columns:1fr}.bc-cells button{width:20px;height:20px}}`;
   document.head.appendChild(st);
 })();
