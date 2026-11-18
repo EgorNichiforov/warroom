@@ -11,7 +11,7 @@
 let XC = null, xcLoading = false;
 function xcLoad() { if (XC || xcLoading) return; xcLoading = true; fetch('./lib/cards.json').then((r) => r.json()).then((d) => { XC = d; XC.byId = {}; d.cards.forEach((c) => { XC.byId[c.id] = c; c._re = (c.m || []).map((s) => s[0] === '=' ? new RegExp(s.slice(1)) : new RegExp(s, 'i')); }); xcLoading = false; if (typeof render === 'function') render(); }).catch(() => { xcLoading = false; }); }
 xcLoad();
-const XC_COURSES = { mind: 'Mindset', scale: 'Scaling', offer: 'Offers', leads: 'Leads', mm: 'Money Models', sales: 'Sales Teams', wealth: 'Wealth', mentors: 'Mentors' };
+const XC_COURSES = { mind: 'Mindset', scale: 'Scaling', offer: 'Offers', leads: 'Leads', mm: 'Money Models', sales: 'Sales Teams', wealth: 'Wealth', mentors: 'Mentors', life: 'Life' };
 const XC_STEPS = [1, 3, 7, 21, 60];
 
 /* ── matching an idea to a card ── */
