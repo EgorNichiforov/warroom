@@ -21,7 +21,7 @@ function vpFrame(src, s, e) {
 }
 function vpHtml(src, s, e, label) {
   return `<div class="vp"><div class="vp-h"><b>▶ ${esc(label || 'Video')}</b><span>${s ? vpClock(s) : 'from the start'}${e > s ? ' → ' + vpClock(e) : ''}</span></div>
-    <div class="exc-frame"><iframe src="${vpFrame(src, s, e)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <div class="exc-frame"><iframe sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" src="${vpFrame(src, s, e)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
     ${e > s ? `<div class="xs muted" style="margin-top:6px">Plays only the clip that matters (${vpClock(e - s)}).</div>` : ''}</div>`;
 }
 function vpOpen(src, s, e, label) { if (typeof src === 'string') src = vpParse(src); if (!src) return; openModal(`${vpHtml(src, s != null ? s : src.s, e != null ? e : src.e, label)}<div class="actions"><button class="btn primary" onclick="closeModal()">Done</button></div>`); }
