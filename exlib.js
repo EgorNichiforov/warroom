@@ -85,7 +85,7 @@ function exCard(e, key) {
 function exHowToggle(name) { _exOpen[name] = !_exOpen[name]; render(); }
 function exPlay(key, v) {
   const box = document.getElementById('exv_' + key); if (!box) return;
-  box.innerHTML = `<div class="exc-frame"><iframe src="https://www.youtube-nocookie.com/embed/${v}?autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" title="Exercise video"></iframe></div><a class="xs muted" href="https://www.youtube.com/watch?v=${v}" target="_blank" rel="noopener">Video won't play here? Open in YouTube</a>`;
+  box.innerHTML = `<div class="exc-frame"><iframe sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube-nocookie.com/embed/${v}?autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" title="Exercise video"></iframe></div><a class="xs muted" href="https://www.youtube.com/watch?v=${v}" target="_blank" rel="noopener">Video won't play here? Open in YouTube</a>`;
 }
 (function () {
   const css = `.exhow{margin:2px 0 8px}.exhow-b{min-height:28px;padding:2px 10px;font-size:12px}

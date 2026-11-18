@@ -34,7 +34,7 @@ function clPlay(t) {
   const e = clEntry(), el = document.getElementById('cl-pl'); if (!e || !el) return;
   if (e.page) { el.innerHTML = `<div class="cl-page"><iframe src="${esc(e.page)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div><div class="xs muted" style="margin-top:6px">Scroll inside the frame to their video and press play.</div>`; return; }
   const base = e.s || 0;
-  el.innerHTML = `<div class="exc-frame"><iframe src="${clSrc(e, t)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+  el.innerHTML = `<div class="exc-frame"><iframe sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" src="${clSrc(e, t)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
     <div class="xs muted" style="margin-top:6px">${t > base ? 'From ' + clClock(t - base) + ' into the lesson · ' : ''}${e.yt ? 'the full course video' : 'the real course video'}, playing in War Room.</div>`;
   document.getElementById('cl-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
