@@ -5,7 +5,7 @@
 'use strict';
 (function () {
   const wideRail = () => matchMedia('(min-width:1280px)').matches;
-  const NO_RAIL = ['now', 'stats', 'food', 'cal', 'book', 'intel', 'crm'];
+  const NO_RAIL = ['now', 'stats', 'food', 'cal', 'book', 'intel', 'crm', 'boot'];
 
   /* 1 · the rail: on screens where the laptop shows it, the phone gets the same cards at the bottom of the screen */
   if (typeof renderRail === 'function' && !renderRail._pp) {

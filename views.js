@@ -99,14 +99,14 @@ function renderTop() {
   $('top-right').innerHTML = nav + (view === 'ask' ? '' : `<button class="iconbtn askbtn" onclick="show('ask')" title="Ask" aria-label="Ask">${ic('chat', 19)}${inboxUnread() ? `<i class="dot"></i>` : ''}</button>`) + `<button class="iconbtn" onclick="cmdOpen()" title="Command (press /)" aria-label="Command" style="font-weight:800">⌘</button>` + `<button class="iconbtn capbtn" onclick="openCapture()" title="Add (task, idea, note, spend, meal)" aria-label="Add">+</button>`;
 }
 function renderRail() {
-  const el = $('rail'); if (!el) return; if (['now', 'stats', 'food', 'cal', 'book', 'intel'].includes(view)) { el.innerHTML = ''; return; }
+  const el = $('rail'); if (!el) return; if (['now', 'stats', 'food', 'cal', 'book', 'intel', 'boot'].includes(view)) { el.innerHTML = ''; return; }
   const t = new Date(); el.innerHTML = ringsCard(t, true) + rankCard() + weekCard(t);
 }
 function render() {
   document.body.dataset.view = view;
   renderNav(); renderTop();
   document.querySelectorAll('.view').forEach((el) => el.classList.toggle('active', el.id === 'view-' + view));
-  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, later: () => (typeof renderLater === 'function' ? renderLater() : 0), acq: () => (typeof renderAcq === 'function' ? renderAcq() : 0), ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife(), trlog: () => renderTrlog(), money: () => renderMoney() })[view]();
+  ({ now: renderNow, dial: renderDial, train: renderTrainView, food: renderFood, stats: renderStats, week: renderWeek, me: renderMe, cal: renderCal, book: renderBook, later: () => (typeof renderLater === 'function' ? renderLater() : 0), acq: () => (typeof renderAcq === 'function' ? renderAcq() : 0), boot: () => (typeof renderBoot === 'function' ? renderBoot() : 0), ask: renderAsk, intel: renderIntel, crm: () => renderCrm(), life: () => renderLife(), trlog: () => renderTrlog(), money: () => renderMoney() })[view]();
   if (!window.SHELL_ON && ['train', 'trlog', 'food', 'stats', 'life'].includes(view)) { const pv = $('view-' + view); if (pv) pv.insertAdjacentHTML('afterbegin', `<div class="chips" style="margin-bottom:12px">${[['life', 'Life'], ['train', 'Train'], ['trlog', 'Training log'], ['food', 'Food'], ['stats', 'Stats & body']].map(([v, l]) => `<span class="chip ${view === v ? 'on' : ''}" style="flex:1;text-align:center" onclick="show('${v}')">${l}</span>`).join('')}<span class="chip" style="flex:1;text-align:center" onclick="moreTab='weight';show('me')">Weight</span></div>`); }
   renderRail();
   const rs = $('rec-slot'); if (rs) rs.innerHTML = recBanner();

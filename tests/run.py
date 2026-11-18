@@ -232,8 +232,8 @@ with sync_playwright() as p:
 
     # stages: the app is as big as the evidence
     b, pg, errs = fresh(p); ev = pg.evaluate
-    check('Stage: with no owner conversation Work shows Dial, Courses, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,acq,book,later')
-    ev("show('dial');0"); pg.wait_for_timeout(500); ev("shSeg(3);0"); pg.wait_for_timeout(900)
+    check('Stage: with no owner conversation Work shows Dial, Bootcamp, Courses, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,boot,acq,book,later')
+    ev("show('dial');0"); pg.wait_for_timeout(500); ev("shSeg(SH_HUBS.find(h=>h.id==='work').segs.findIndex(s=>s[0]==='later'));0"); pg.wait_for_timeout(900)
     check('Stage: "Later" (tab or swipe) is a real page with the stage, never blank (13.13.3)', ev("view") == 'later' and 'Stage 1 of' in ev("document.getElementById('view-later').textContent") and not ev("document.getElementById('modal-bg').classList.contains('open')"))
     ev("closeModal&&closeModal();show('dial');0")
     ev("closeModal();shRawGo('crm');0"); pg.wait_for_timeout(300); check('Stage: a waiting room can always be opened by hand', ev("view") == 'crm')
@@ -275,10 +275,10 @@ with sync_playwright() as p:
     check('Stage: the Caregivers workflow stays reachable at stage 1', ev("view") == 'dial' and 'bench' in pg.inner_text('#view-dial').lower())
     ev("benchMode='owners';lifeTab='score';show('life');0"); pg.wait_for_timeout(400)
     t = pg.inner_text('#view-life').lower(); check('You: school shows readiness and learning apart from time; body shows weight, strength, consistency; no score or level', 'school' in t and 'body' in t and 'readiness' in t and 'learning' in t and 'strength' in t and 'consistency' in t and 'level' not in t and 'xp' not in t.split())
-    check('Stage: Pipeline is open after a decision-maker conversation', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,acq,book,later')
+    check('Stage: Pipeline is open after a decision-maker conversation', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,boot,acq,book,later')
     ev("show('dial');0")
     check('Stage: one conversation moves the ladder to stage 2 (ten conversations)', ev("sgState().i") == 1 and ev("sgState().s.id") == 'learn')
-    ev("S.settings.stageAll=true;render();0"); check('Stage: "show everything" restores all rooms', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,intel,acq,book')
+    ev("S.settings.stageAll=true;render();0"); check('Stage: "show everything" restores all rooms', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,intel,boot,acq,book')
     check('Stage: no page errors', not errs, errs[:3])
     b.close()
 
