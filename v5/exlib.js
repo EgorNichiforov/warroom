@@ -80,7 +80,7 @@ function exCard(e, key) {
   return `<div class="exc"><div class="exc-t">${esc(e.t)}</div>
     ${imgs.length ? `<div class="exc-img">${imgs.map((s, i) => `<figure><img src="./${s}" loading="lazy" alt=""><figcaption>${imgs.length > 1 && i === 0 ? 'Start' : imgs.length > 1 && i === 1 ? 'Finish' : ''}</figcaption></figure>`).join('')}</div>` : ''}
     <ol class="exc-c">${e.c.map((c) => `<li>${esc(c)}</li>`).join('')}</ol>
-    ${vids.map((v, i) => `<div class="exc-v" id="exv_${key}_${i}"><button class="btn sm exc-play" onclick="exPlay('${key}_${i}','${v}')">▶ Play video${vids.length > 1 ? ' ' + (i + 1) : ''}</button><a class="xs muted" href="https://www.youtube.com/watch?v=${v}" target="_blank" rel="noopener">open in YouTube</a></div>`).join('')}</div>`;
+    ${vids.map((v, i) => `<div class="exc-v" id="exv_${key}_${i}"><button class="btn sm exc-play" onclick="exPlay('${key}_${i}','${v}')">▶ Play video${vids.length > 1 ? ' ' + (i + 1) : ''}</button></div>`).join('')}</div>`;
 }
 function exHowToggle(name) { _exOpen[name] = !_exOpen[name]; render(); }
 function exPlay(key, v) {
