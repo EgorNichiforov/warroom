@@ -46,9 +46,9 @@ document.addEventListener('click', (ev) => {
     const C = window.Capacitor; if (!C || !C.isNativePlatform || !C.isNativePlatform() || !C.nativePromise) return;
     const k = 'wr-apk-nag', today = new Date().toISOString().slice(0, 10);
     C.nativePromise('WrNative', 'info', {}).then((o) => {
-      const v = parseFloat((o && o.version) || '0'); if (v >= 1.8) return;
+      const v = parseFloat((o && o.version) || '0'); if (v >= 1.9) return;
       try { if (localStorage.getItem(k) === today) return; localStorage.setItem(k, today); } catch (e) { }
-      setTimeout(() => { if (typeof openModal === 'function') openModal(`<div class="vp"><div class="vp-h"><b>Update the War Room app</b><span>app ${esc(String((o && o.version) || 'old'))} → 1.8</span></div><div class="small" style="margin-bottom:12px">This version can send course videos out to YouTube. 1.8 keeps every video playing here and gives Drive mode its voice. Takes 30 seconds, nothing is lost.</div></div><div class="actions"><button class="btn" onclick="closeModal()">Later</button><a class="btn primary" href="https://egornichiforov.github.io/warroom/download/WarRoom.apk">Download 1.8</a></div>`); }, 2500);
+      setTimeout(() => { if (typeof openModal === 'function') openModal(`<div class="vp"><div class="vp-h"><b>Update the War Room app</b><span>app ${esc(String((o && o.version) || 'old'))} → 1.9</span></div><div class="small" style="margin-bottom:12px">This version can send course videos out to YouTube. 1.9 keeps every video playing here and gives Drive mode a stronger voice that works on more phones. Takes 30 seconds, nothing is lost.</div></div><div class="actions"><button class="btn" onclick="closeModal()">Later</button><a class="btn primary" href="https://egornichiforov.github.io/warroom/download/WarRoom.apk">Download 1.9</a></div>`); }, 2500);
     }).catch(() => { });
   } catch (e) { }
 })();

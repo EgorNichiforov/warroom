@@ -516,6 +516,22 @@ with sync_playwright() as p:
     check('Videos: exercise cards have no "open in YouTube" link', 'open in YouTube' not in open(__file__.replace('tests/run.py','exlib.js')).read())
     check('Videos: no page errors', not errs, errs[:3]); b.close()
 
+    # Drive mode 13.23.1: never silent. Tests the voices on the phone and fails over.
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    ev("bcS.tab='path';show('boot');0"); pg.wait_for_timeout(2500)
+    ev("""(()=>{window.__said=[];const mk=(voices)=>({speaking:false,pending:false,paused:false,getVoices:()=>voices,addEventListener(){},cancel(){this.speaking=false},pause(){},resume(){},speak(u){if(!voices.length)return;window.__said.push(u.text);this.speaking=true;setTimeout(()=>{u.onstart&&u.onstart();setTimeout(()=>{this.speaking=false;u.onend&&u.onend();},30)},20);}});
+      window.__mk=mk;Object.defineProperty(window,'speechSynthesis',{value:mk([{lang:'en-US',name:'Test',localService:true}]),configurable:true,writable:true});dvStart();})();0"""); pg.wait_for_timeout(1500)
+    r = ev("({eng:DV.eng, n:window.__said.filter(x=>x.trim()).length, ui:!!document.querySelector('#dv .dv-voice')})")
+    check('Drive 13.23.1: with a working phone voice it speaks the lesson out loud', r['eng'] == 'web' and r['n'] >= 2 and r['ui'], r)
+    ev("dvClose();Object.defineProperty(window,'speechSynthesis',{value:window.__mk([]),configurable:true,writable:true});window.__said=[];dvStart();0"); pg.wait_for_timeout(5500)
+    r = ev("({eng:DV.eng, why:!!document.querySelector('#dv .dv-why'), part:DV.part, txt:(document.querySelector('#dv .dv-why')||{}).textContent||''})")
+    check('Drive 13.23.1: a silent voice is detected, never stuck: it says why, shows the fix and keeps going', r['eng'] == 'text' and r['why'] and 'Speech Services by Google' in r['txt'], r)
+    ev("""(()=>{dvClose();window.__ac=0;aiCfg=()=>({key:'k',provider:'gemini'});aiNet=async(url,opt)=>{window.__ac++;window.__url=url;const pcm=new Uint8Array(4800);let bin='';pcm.forEach(x=>bin+=String.fromCharCode(x));return {ok:true,status:200,json:async()=>({candidates:[{content:{parts:[{inlineData:{mimeType:'audio/L16;codec=pcm;rate=24000',data:btoa(bin)}}]}}]})};};dvStart();})();0"""); pg.wait_for_timeout(5000)
+    r = ev("({eng:DV.eng, calls:window.__ac, url:window.__url||''})")
+    check('Drive 13.23.1: no phone voice but an AI key → the Gemini AI voice reads it (and prefetches the next sentence)', r['eng'] == 'cloud' and r['calls'] >= 2 and 'tts' in r['url'], r)
+    ev("dvClose();0")
+    check('Drive 13.23.1: no page errors', not errs, errs[:3]); b.close()
+
     # Parity 13.8: the phone gets everything the laptop shows
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { const out={}; ['dial','money','train','me','week'].forEach(v=>{ show(v); render(); out[v]=!!document.querySelector('#view-'+v+' > .ph-rail .card'); });
