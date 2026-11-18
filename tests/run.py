@@ -503,6 +503,8 @@ with sync_playwright() as p:
     check('Deep cards: Overview shows the money machine and the learning path', ev("document.querySelectorAll('#view-acq .xm-st').length===7 && document.querySelectorAll('#view-acq .xm-dot').length===16"))
     ev("xcOpen('of-magic')"); pg.wait_for_timeout(200)
     check('Deep cards: a card links its free full course lesson', 'acquisition.com/training/offers10' in (ev("(document.querySelector('#modal .xc-lesson')||{}).href||''")))
+    ev("closeModal();acqRead=null;acqTab='mentors';render()"); pg.wait_for_timeout(300)
+    check('Deep cards: Mentors tab lists mentor decks with clean previews', ev("document.querySelectorAll('#view-acq .xc-tile').length") >= 20 and not ev("/&(amp|quot|#39);/.test(document.querySelector('#view-acq').innerText)"))
     check('Deep cards: no page errors', not errs, errs[:3]); b.close()
 
     # Smooth open 13.11.1: curtain until the real first screen, silent updates

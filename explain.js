@@ -11,7 +11,7 @@
 let XC = null, xcLoading = false;
 function xcLoad() { if (XC || xcLoading) return; xcLoading = true; fetch('./lib/cards.json').then((r) => r.json()).then((d) => { XC = d; XC.byId = {}; d.cards.forEach((c) => { XC.byId[c.id] = c; c._re = (c.m || []).map((s) => s[0] === '=' ? new RegExp(s.slice(1)) : new RegExp(s, 'i')); }); xcLoading = false; if (typeof render === 'function') render(); }).catch(() => { xcLoading = false; }); }
 xcLoad();
-const XC_COURSES = { mind: 'Mindset', scale: 'Scaling', offer: 'Offers', leads: 'Leads', mm: 'Money Models', sales: 'Sales Teams', wealth: 'Wealth' };
+const XC_COURSES = { mind: 'Mindset', scale: 'Scaling', offer: 'Offers', leads: 'Leads', mm: 'Money Models', sales: 'Sales Teams', wealth: 'Wealth', mentors: 'Mentors' };
 const XC_STEPS = [1, 3, 7, 21, 60];
 
 /* ── matching an idea to a card ── */
@@ -54,7 +54,7 @@ function xcCardHtml(c, opts) {
   opts = opts || {}; const r = xcSrs(c.id), due = r && r.due <= dk(new Date());
   const sec = (k, lab, body) => body ? `<div class="xc-s ${k}"><div class="xc-l">${lab}</div><div class="xc-b">${pbInline(body)}</div></div>` : '';
   return `<div class="xc-card" data-id="${esc(c.id)}">
-    <div class="xc-top"><span>${esc(XC_COURSES[c.c] || '')} · deep card</span>${r ? `<em class="${due ? 'due' : ''}">${due ? 'review due' : 'next review ' + fmtDate(new Date(r.due + 'T12:00'))}</em>` : ''}</div>
+    <div class="xc-top"><span>${esc(c.who || XC_COURSES[c.c] || '')} · deep card</span>${r ? `<em class="${due ? 'due' : ''}">${due ? 'review due' : 'next review ' + fmtDate(new Date(r.due + 'T12:00'))}</em>` : ''}</div>
     <h2 class="xc-t">${esc(c.t)}</h2>
     <div class="xc-hook">${pbInline(c.hook)}</div>
     ${xcVis(c.vis)}
@@ -85,7 +85,7 @@ function xcReview(course) { const list = xcDue().filter((c) => !course || c.c ==
 function xcRevShow() {
   const r = xcRev; if (!r || r.i >= r.list.length) { xcRev = null; closeModal(); toast('Review done'); render(); return; }
   const c = r.list[r.i];
-  openModal(`<div class="xc-modal"><div class="xc-revh">Review ${r.i + 1} / ${r.list.length}</div><div class="xc-recall"><span>${esc(XC_COURSES[c.c])}</span><h2>${esc(c.t)}</h2><p>Say it before you look: what's the idea, the formula or the steps, and what does it mean for you this week?</p><button class="btn primary block" onclick="this.parentNode.outerHTML=xcCardHtml(XC.byId['${c.id}'],{noNav:1})">Show the card</button></div></div>`, true);
+  openModal(`<div class="xc-modal"><div class="xc-revh">Review ${r.i + 1} / ${r.list.length}</div><div class="xc-recall"><span>${esc(c.who || XC_COURSES[c.c])}</span><h2>${esc(c.t)}</h2><p>Say it before you look: what's the idea, the formula or the steps, and what does it mean for you this week?</p><button class="btn primary block" onclick="this.parentNode.outerHTML=xcCardHtml(XC.byId['${c.id}'],{noNav:1})">Show the card</button></div></div>`, true);
 }
 
 /* ── the deck per course (top of each course tab) ── */
@@ -94,7 +94,7 @@ function xcDeck(k) {
   const due = xcDue().filter((c) => c.c === k).length, met = list.filter((c) => S.cards && S.cards[c.id]).length;
   return `<div class="card xc-deck"><div class="aq-t">🧠 Deep cards <span>${list.length} core ideas, each with a picture, an example, your move, the video moment and a self-test · ${met}/${list.length} learned${due ? ` · <b>${due} due</b>` : ''}</span></div>
     ${due ? `<button class="btn primary block" style="margin-bottom:10px" onclick="xcReview('${k}')">Review ${due} due card${due > 1 ? 's' : ''} (2 min)</button>` : ''}
-    <div class="xc-grid">${list.map((c) => { const r = S.cards && S.cards[c.id]; return `<button class="xc-tile${r ? ' met' : ''}" onclick="xcOpen('${c.id}')"><b>${esc(c.t)}</b><span>${esc(String(c.hook).replace(/\*\*/g, '')).slice(0, 90)}</span>${r ? `<i>${r.step >= 2 ? '●●●' : r.step === 1 ? '●●○' : '●○○'}</i>` : '<i>new</i>'}</button>`; }).join('')}</div>
+    <div class="xc-grid">${list.map((c) => { const r = S.cards && S.cards[c.id]; return `<button class="xc-tile${r ? ' met' : ''}" onclick="xcOpen('${c.id}')"><b>${esc(c.t)}</b><span>${esc((() => { const h = String(c.hook).replace(/\*\*/g, ''); return h.length > 92 ? h.slice(0, 90).replace(/\s+\S*$/, '') + '…' : h; })())}</span>${r ? `<i>${r.step >= 2 ? '●●●' : r.step === 1 ? '●●○' : '●○○'}</i>` : '<i>new</i>'}</button>`; }).join('')}</div>
     <div class="xs muted" style="margin-top:8px">Tip: in any lesson below, tap an idea to open its card, watch the moment, or get a deeper explanation.</div></div>`;
 }
 (function () { const f = window.acqLibCard; if (typeof f !== 'function' || f._xc) return; const g = function (k, opts) { return (k !== 'home' ? xcDeck(k) : '') + f.apply(this, arguments); }; g._xc = 1; window.acqLibCard = g; acqLibCard = g; })();
@@ -126,6 +126,19 @@ function xcMachine() {
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${next ? `<button class="btn primary" onclick="xcOpen('${next}')">Next card: ${esc(XC.byId[next].t)}</button>` : ''}${due ? `<button class="btn" onclick="xcReview()">Review ${due} due</button>` : ''}</div></div></div>`;
 }
 (function () { const f = window.acqHome; if (typeof f !== 'function' || f._xm) return; const g = function () { const h = f.apply(this, arguments); const i = h.indexOf('<div class="card aq-now">'); const m = xcMachine(); return i > 0 ? h.slice(0, i) + m + h.slice(i) : m + h; }; g._xm = 1; for (const k in f) g[k] = f[k]; window.acqHome = g; acqHome = g; })();
+
+
+/* ── MENTORS tab: deep cards from the rest of the library (Braun, 30MPC, Voss, …) ── */
+if (typeof ACQ_TABS !== 'undefined' && !ACQ_TABS.some((t) => t[0] === 'mentors')) ACQ_TABS.push(['mentors', 'Mentors']);
+function xcMentors() {
+  if (!XC) { xcLoad(); return '<div class="card"><div class="muted">Loading…</div></div>'; }
+  const list = XC.cards.filter((c) => c.c === 'mentors'), who = [...new Set(list.map((c) => c.who))], due = xcDue().filter((c) => c.c === 'mentors').length;
+  const MBLURB = { 'Josh Braun': 'Cold calls without neediness: openers, poke-the-bear questions, objections.', '30MPC (Armand & Nick)': 'Cold-call scripts, objections, voicemails, sequences, discovery.', 'Chris Voss': 'Negotiation: labels, "that\'s right", no-oriented questions, voice.' };
+  return `<div class="card"><div class="aq-t">🎙 Mentors <span>Deep cards from your mentor library, each with the video segment playing here. Hormozi is in the other tabs.${due ? ` · <b>${due} due</b>` : ''}</span></div>${due ? `<button class="btn primary block" onclick="xcReview('mentors')">Review ${due} due</button>` : ''}</div>` +
+    who.map((w) => { const L = list.filter((c) => c.who === w); return `<div class="card xc-deck"><div class="aq-t">${esc(w)} <span>${esc(MBLURB[w] || '')} · ${L.filter((c) => S.cards && S.cards[c.id]).length}/${L.length} learned</span></div><div class="xc-grid">${L.map((c) => { const r = S.cards && S.cards[c.id]; return `<button class="xc-tile${r ? ' met' : ''}" onclick="xcOpen('${c.id}')"><b>${esc(c.t)}</b><span>${esc((() => { const h = String(c.hook).replace(/\*\*/g, ''); return h.length > 92 ? h.slice(0, 90).replace(/\s+\S*$/, '') + '…' : h; })())}</span>${r ? `<i>${r.step >= 2 ? '●●●' : r.step === 1 ? '●●○' : '●○○'}</i>` : '<i>new</i>'}</button>`; }).join('')}</div></div>`; }).join('') +
+    `<div class="card"><div class="xs muted">Next in the library: Leila Hormozi, Jocko Willink, Naval, Paul Graham, Charlie Munger, Dan Kennedy, Tony Robbins.</div></div>`;
+}
+(function () { const f = window.renderAcq; if (typeof f !== 'function' || f._xm) return; const g = function () { if (acqTab === 'mentors' && !acqRead) { const el = document.getElementById('view-acq'); if (!el) return; el.innerHTML = `<div class="aq"><div class="aq-tabs">${ACQ_TABS.map(([k, l]) => `<button class="${acqTab === k ? 'on' : ''}" onclick="acqRead=null;acqTab='${k}';render();window.scrollTo(0,0)">${l}</button>`).join('')}</div>${xcMentors()}</div>`; return; } return f.apply(this, arguments); }; g._xm = 1; window.renderAcq = g; renderAcq = g; })();
 
 /* ── tap an idea → panel ── */
 const XP_KEY = 'wr-xp'; let xpCache = {}; try { xpCache = JSON.parse(localStorage.getItem(XP_KEY) || '{}'); } catch (e) { xpCache = {}; }
