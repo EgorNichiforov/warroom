@@ -285,7 +285,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2400); ev = pg.evaluate
     cur = ev("(()=>{const d=new Date(),nm=nowMin(),L=arcBlocks(d);let b=L.find(x=>tmin(x.start)<=nm&&nm<tmin(x.end)&&!['dials','bac','agency','train','program'].includes(x.kind));if(!b){const o=day(d);o.sched=o.sched||{};const s=String(Math.floor(nm/60)).padStart(2,'0')+':'+String(nm%60).padStart(2,'0'),e2=Math.min(nm+30,1439),e=String(Math.floor(e2/60)).padStart(2,'0')+':'+String(e2%60).padStart(2,'0');return null}return {id:b.id,title:b.title}})()")
-    if cur:
+    if cur and pg.query_selector('#arc .arc-now'):
         before = pg.inner_text('#arc .arc-now'); pg.click('#arc .arc-btn'); pg.wait_for_timeout(700); after = pg.inner_text('#arc .arc-now')
         check('Day: tapping Done confirms the block and shows what is next', 'done' in after.lower() and after != before and ev(f"day(new Date()).blk['{cur['id']}']") == 'done', after[:120])
         pg.click('#arc .arc-done a'); pg.wait_for_timeout(500)
@@ -499,6 +499,10 @@ with sync_playwright() as p:
     ev("closeModal();acqOpen('mind',2)"); pg.wait_for_timeout(1200); ev("render()"); pg.wait_for_timeout(200)
     pg.click("#view-acq .aq-page a[href*='youtube.com'] >> nth=0"); pg.wait_for_timeout(300)
     check('Deep cards: minute links play inline instead of leaving the app', ev("!!document.querySelector('#view-acq .aq-page iframe')") and 'localhost' in pg.url)
+    ev("closeModal();acqRead=null;acqTab='home';render()"); pg.wait_for_timeout(300)
+    check('Deep cards: Overview shows the money machine and the learning path', ev("document.querySelectorAll('#view-acq .xm-st').length===7 && document.querySelectorAll('#view-acq .xm-dot').length===16"))
+    ev("xcOpen('of-magic')"); pg.wait_for_timeout(200)
+    check('Deep cards: a card links its free full course lesson', 'acquisition.com/training/offers10' in (ev("(document.querySelector('#modal .xc-lesson')||{}).href||''")))
     check('Deep cards: no page errors', not errs, errs[:3]); b.close()
 
     # Smooth open 13.11.1: curtain until the real first screen, silent updates

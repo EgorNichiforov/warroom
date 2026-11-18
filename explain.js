@@ -64,6 +64,7 @@ function xcCardHtml(c, opts) {
     ${sec('move', 'Your move · Caregiver Bench', c.move)}
     ${sec('trap', 'The trap', c.trap)}
     ${(c.clip || []).length ? `<div class="xc-s"><div class="xc-l">Watch him explain it</div><div class="xc-clips">${c.clip.map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div></div>` : ''}
+    ${c.lesson ? `<a class="xc-lesson" href="${esc(c.lesson[0])}" target="_blank" rel="noopener"><i>🎓</i><span><b>Full course lesson: ${esc(c.lesson[1])}</b><em>free on acquisition.com · opens their player</em></span></a>` : ''}
     ${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}
     ${(c.q || []).length ? `<div class="xc-s"><div class="xc-l">Test yourself · answer out loud first, then tap</div>${c.q.map((x) => `<details class="xc-q"><summary>${esc(x[0])}</summary><div>${pbInline(x[1])}</div></details>`).join('')}</div>` : ''}
     <div class="xc-rate"><span>How well do you know it now?</span><button class="btn sm" onclick="xcRate('${esc(c.id)}',0)">Shaky · show me again tomorrow</button><button class="btn sm primary" onclick="xcRate('${esc(c.id)}',1)">Got it</button></div>
@@ -97,6 +98,34 @@ function xcDeck(k) {
     <div class="xs muted" style="margin-top:8px">Tip: in any lesson below, tap an idea to open its card, watch the moment, or get a deeper explanation.</div></div>`;
 }
 (function () { const f = window.acqLibCard; if (typeof f !== 'function' || f._xc) return; const g = function (k, opts) { return (k !== 'home' ? xcDeck(k) : '') + f.apply(this, arguments); }; g._xc = 1; window.acqLibCard = g; acqLibCard = g; })();
+
+
+/* ── HOW IT ALL WORKS: the money machine, top of Courses → Overview ── */
+const XC_MACHINE = [
+  { k: 'offer', n: 'Market', q: 'Who do you sell to?', a: 'Pick people in pain who can pay and are easy to reach.', ids: ['of-market', 'sc-niche'] },
+  { k: 'offer', n: 'Offer', q: 'Why would they say yes?', a: 'Make it so good that saying no feels stupid.', ids: ['of-value', 'of-gso', 'of-guarantee', 'of-price'] },
+  { k: 'leads', n: 'Leads', q: 'How do they find out you exist?', a: 'Core Four at volume until it works.', ids: ['ld-core4', 'ld-rule100', 'ld-magnet'] },
+  { k: 'sales', n: 'Sales', q: 'How do conversations become yes?', a: 'Diagnose, prescribe, name the price, handle fears.', ids: ['sa-closer', 'sa-bant', 'sa-objections', 'sa-close'] },
+  { k: 'mm', n: 'Money model', q: 'How much do you make per customer, how fast?', a: 'Attraction → upsell → downsell → continuity.', ids: ['mm-3nums', 'mm-attraction', 'mm-upsell', 'mm-continuity'] },
+  { k: 'scale', n: 'Scale', q: 'What breaks next as you grow?', a: 'One stage, one constraint at a time.', ids: ['sc-stages', 'sc-constraint', 'sc-timestudy'] },
+  { k: 'wealth', n: 'Wealth', q: 'How does business money become your freedom?', a: 'Margin → optionality → $100k → equity → your terms.', ids: ['we-money', 'we-margin'] },
+];
+const XC_PATH = ['sc-stages', 'sc-constraint', 'of-value', 'of-guarantee', 'ld-core4', 'ld-rule100', 'sa-closer', 'sa-bant', 'sa-objections', 'sa-close', 'mm-3nums', 'mm-attraction', 'mm-upsell', 'mm-continuity', 'mi-tough', 'mi-decide'];
+function xcMachine() {
+  if (!XC) { xcLoad(); return ''; }
+  const chip = (id) => { const c = XC.byId[id]; if (!c) return ''; const r = S.cards && S.cards[id]; return `<button class="xm-chip${r ? ' met' : ''}" onclick="xcOpen('${id}')">${r ? '✓ ' : ''}${esc(c.t.replace(/\s*\(.*\)$/, ''))}</button>`; };
+  const here = { 2: 1, 3: 1 };
+  const st = XC_MACHINE.map((m, i) => `<div class="xm-st${here[i] ? ' here' : ''}"><div class="xm-n"><u>${i + 1}</u><div><b>${m.n}</b><span>${m.q}</span></div>${here[i] ? '<em>you are here</em>' : ''}</div><div class="xm-a">${m.a}</div><div class="xm-chips">${m.ids.map(chip).join('')}<button class="xm-go" onclick="acqTab='${m.k}';acqRead=null;render();window.scrollTo(0,0)">course ›</button></div></div>${i === 4 ? '<div class="xm-loop">↺ cash from every customer pays for more leads (back to 3): that loop is the whole game</div>' : i < XC_MACHINE.length - 1 ? '<div class="xm-arr">↓</div>' : ''}`).join('');
+  const done = XC_PATH.filter((id) => S.cards && S.cards[id]).length, next = XC_PATH.find((id) => !(S.cards && S.cards[id]));
+  const due = xcDue().length;
+  return `<div class="card xm"><div class="aq-t">🗺 How it all works <span>The courses are one machine. Each station answers one question; a business is only as strong as its weakest station.</span></div>
+    <div class="xm-flow">${st}</div>
+    <div class="xm-engine"><b>⚙ Engine under all of it: Mindset</b><span>What keeps you doing the boring, hard, repeated work when it\'s not working yet.</span><div class="xm-chips">${['mi-tough', 'mi-decide', 'mi-reps', 'mi-baddays'].map(chip).join('')}<button class="xm-go" onclick="acqTab='mind';acqRead=null;render();window.scrollTo(0,0)">course ›</button></div></div>
+    <div class="xm-path"><div class="aq-t" style="margin:0">🧭 Your learning path <span>16 cards in the order that matters for you now (stage 1: first paying agency) · ${done}/16 learned${due ? ` · <b>${due} due for review</b>` : ''}</span></div>
+      <div class="xm-dots">${XC_PATH.map((id, i) => { const c = XC.byId[id], r = S.cards && S.cards[id]; return `<button class="xm-dot${r ? ' met' : ''}${id === next ? ' next' : ''}" onclick="xcOpen('${id}')" title="${esc(c.t)}"><u>${i + 1}</u><span>${esc(c.t.replace(/\s*\(.*\)$/, '').replace(/:.*/, ''))}</span></button>`; }).join('')}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${next ? `<button class="btn primary" onclick="xcOpen('${next}')">Next card: ${esc(XC.byId[next].t)}</button>` : ''}${due ? `<button class="btn" onclick="xcReview()">Review ${due} due</button>` : ''}</div></div></div>`;
+}
+(function () { const f = window.acqHome; if (typeof f !== 'function' || f._xm) return; const g = function () { const h = f.apply(this, arguments); const i = h.indexOf('<div class="card aq-now">'); const m = xcMachine(); return i > 0 ? h.slice(0, i) + m + h.slice(i) : m + h; }; g._xm = 1; for (const k in f) g[k] = f[k]; window.acqHome = g; acqHome = g; })();
 
 /* ── tap an idea → panel ── */
 const XP_KEY = 'wr-xp'; let xpCache = {}; try { xpCache = JSON.parse(localStorage.getItem(XP_KEY) || '{}'); } catch (e) { xpCache = {}; }
@@ -141,6 +170,12 @@ async function xcExplain(btn) {
 /* ── styles ── */
 (function () {
   const st = document.createElement('style'); st.textContent = `
+.xc-lesson{display:flex;gap:10px;align-items:center;text-decoration:none;color:inherit;border:1px solid #262B32;border-radius:4px;padding:9px 10px}.xc-lesson:hover{border-color:var(--acc)}.xc-lesson i{font-style:normal;font-size:18px}.xc-lesson span{display:grid;gap:2px}.xc-lesson b{font-size:13.5px;color:var(--text)}.xc-lesson em{font-style:normal;font-size:11.5px;color:var(--muted)}
+  .xm-flow{display:grid;gap:0}.xm-st{border:1px solid #1B1F24;border-radius:6px;padding:10px 12px;display:grid;gap:6px}.xm-st.here{border-color:var(--acc);background:rgb(255 255 255 / .02)}.xm-n{display:flex;gap:10px;align-items:center}.xm-n u{text-decoration:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--acc);display:grid;place-items:center;font:700 12px/1 var(--mono,monospace);color:var(--acc);flex:none}.xm-n div{display:grid;gap:1px;flex:1}.xm-n b{font-size:15px;color:var(--text)}.xm-n span{font-size:12.5px;color:var(--muted)}.xm-n em{font-style:normal;font:600 10px/1 var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#0B0D10;background:var(--acc);padding:4px 6px;border-radius:3px}
+  .xm-a{font-size:13px;color:var(--text);line-height:1.45}.xm-chips{display:flex;gap:6px;flex-wrap:wrap}.xm-chip{background:transparent;border:1px solid #262B32;border-radius:14px;padding:5px 10px;font:inherit;font-size:12px;color:var(--text);cursor:pointer}.xm-chip:hover{border-color:var(--acc)}.xm-chip.met{border-color:#3a4a3a;color:var(--green,#8fae8b)}.xm-go{background:transparent;border:0;color:var(--acc);font:inherit;font-size:12px;cursor:pointer;padding:5px 4px}
+  .xm-arr{text-align:center;color:var(--acc);font-size:16px;line-height:1;padding:4px 0}.xm-loop{text-align:center;color:var(--acc);font-size:12.5px;padding:8px 6px;border:1px dashed var(--acc);border-radius:4px;margin:6px 0}
+  .xm-engine{margin-top:10px;border:1px dashed #3a4048;border-radius:6px;padding:10px 12px;display:grid;gap:6px}.xm-engine b{font-size:14px;color:var(--text)}.xm-engine span{font-size:12.5px;color:var(--muted)}
+  .xm-path{margin-top:14px;border-top:1px solid #1B1F24;padding-top:12px}.xm-dots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}.xm-dot{display:flex;gap:8px;align-items:center;text-align:left;background:transparent;border:1px solid #1B1F24;border-radius:4px;padding:6px 8px;font:inherit;color:inherit;cursor:pointer}.xm-dot u{text-decoration:none;font:600 11px/1 var(--mono,monospace);color:var(--muted);width:18px}.xm-dot span{font-size:12px;color:var(--text);line-height:1.3}.xm-dot.met{border-color:#3a4a3a}.xm-dot.met u{color:var(--green,#8fae8b)}.xm-dot.next{border-color:var(--acc)}.xm-dot.next u{color:var(--acc)}
   .aq-page li{cursor:pointer;border-radius:4px;transition:background .15s}.aq-page li:hover{background:rgb(255 255 255 / .025)}.aq-page li.xp-on{background:rgb(255 255 255 / .03)}
   .xp{margin:8px 0 12px;padding:10px;border:1px solid #20252B;border-left:2px solid var(--acc);border-radius:4px;display:grid;gap:10px;cursor:default}
   .xp-card{display:grid;gap:3px;text-align:left;background:transparent;border:1px solid #262B32;border-radius:4px;padding:10px;cursor:pointer;font-family:inherit;color:inherit}.xp-card:hover{border-color:var(--acc)}.xp-card span{font:600 10.5px/1 var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}.xp-card b{font-size:15px;color:var(--text)}.xp-card em{font-style:normal;font-size:13px;color:var(--muted);line-height:1.4}.xp-card i{font-style:normal;font-size:11.5px;color:var(--acc)}
