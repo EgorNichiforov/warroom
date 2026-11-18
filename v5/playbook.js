@@ -4,8 +4,8 @@
    v4 sales system (17 Nov 2026): this file is the single source of truth; the Drive doc is a mirror of it. */
 'use strict';
 
-const PB_CATS = [['system', 'How it works', 'hq'], ['mission', 'Mission', 'target'], ['rules', 'Rules', 'shield'], ['scripts', 'Scripts', 'dial'], ['sops', 'SOPs', 'check'], ['business', 'Business', 'stats'], ['body', 'Body & BAC', 'train'], ['mine', 'My notes', 'pen']];
-const PB_SEED_V = 4;
+const PB_CATS = [['system', 'How it works', 'hq'], ['mission', 'Mission', 'target'], ['council', 'Mentor council', 'bolt'], ['rules', 'Rules', 'shield'], ['scripts', 'Scripts', 'dial'], ['sops', 'SOPs', 'check'], ['business', 'Business', 'stats'], ['body', 'Body & BAC', 'train'], ['mine', 'My notes', 'pen']];
+const PB_SEED_V = 5;
 const PB_SEED = [
 /* ───────── SYSTEM ───────── */
 { id: 'system', cat: 'system', title: 'One job per tool', body: `The whole system is five tools. Each one does one job. If information has two homes, one of them is wrong.
@@ -65,6 +65,7 @@ Claude does steps 1–6. You only decide the change.
 { id: 'changelog', cat: 'system', title: 'Changelog', body: `Newest first. One line per change: what, why, which rule.
 
 | Date | Change | Why |
+| 18 Nov | **War Room 13.17.0 · Mentor council v5**: all 28 mentors mapped to your system (Council pages: who to ask, the 12 laws, people), The long game backward to ~2036, life audit 18 Nov, 2026 industry numbers in the scripts, shoulder armour + Zone 2, sleep rules (Walker), lawyer question on AHCA licensing, the 45-second Launch before every dial session | You asked for one system built backward from the long goal using every mentor, Hormozi first |
 | 18 Nov | **War Room 13.16.0 · How it all works**: Courses → Overview opens with the money machine (Market → Offer → Leads → Sales → Money model → Scale → Wealth, Mindset as the engine, the cash loop, 'you are here' on Leads + Sales) and your 16-card learning path with Next card. Every deep card now links its free full acquisition.com lesson (51 cards); 144 in-app segments (new: Ultimate Sales Training for the close, BAMFAM, money objection and show rates; Sharran on inflation, taxes and fees; the lonely chapter) | You said you don't yet see how the courses fit together |
 | 17 Nov | **War Room 13.15.1 · Deep cards**: tap any idea in any course (Mindset, Scaling, Offers, Leads, Money Models, Sales Teams, Wealth) → a panel with the matching deep card, the video moment playing inside the app (only that segment, nothing opens YouTube) and 'Explain it deeper' (written on the spot with your AI key, saved). 100 hand-written cards: hook, a visual made for the concept, plain words, tennis analogy, worked example with numbers, your move for Caregiver Bench, the trap, a memory hook and self-test questions; 132 video segments (incl. Sharran's money milestones). Got it / Shaky → spaced review (1-3-7-21-60 days), synced. Every ▶ minute link now plays inline | You asked to understand and remember each concept, not just read it, with the exact video moment |
 | 17 Nov | **War Room 13.14.0 · Mindset batch 2**: 4 Modern Wisdom marathons (41 Harsh Truths, Be Ruthless, Raise Your Standards, Success Is a Side Effect), Diary of a CEO 2026 and 2 Ed Mylett interviews read in full → 525 ideas across 13 source pages with minute links; best-of gains 3 sections (mental toughness, standards & reps, building it); 4 new diagrams (four dials of toughness, the tower, bad days are statistics, 100 golden BBs); new tool 'Will it change my day?'. Plus all 20 of his 2025-26 live streams read in full (621 ideas, one page each, minute links), a new best-of section 'The hotline' and 2 diagrams (Influence · SPCL, Get out of the bottleneck). Mindset 2026 now holds 1,146 ideas from 33 sources | You asked for everything from his podcasts in the app, as visuals and tools, not just text |
@@ -115,8 +116,34 @@ Claude does steps 1–6. You only decide the change.
 
 ## Priority order
 The company is #1. When things clash, the cut order decides (see Rules → When the day doesn't fit).` },
-{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# v4 · 17 Nov (overrides anything older)
-0 owner conversations so far. The plan is done. **The work is dialing, screening and delivering.**
+{ id: 'longgame', cat: 'mission', title: 'The long game, built backward', body: `Read on Sundays. Every line must be true for the line above it to happen. **Only the bottom line is today's job.**
+
+| By | Must be true | Mentor behind it |
+| ~2036 | **$300–400k a month** ("actual freedom"): a Florida home care group (several licensed agencies you own) fed by your own recruiting engine | Hormozi: the tower, build what compounds · Naval: own equity, not hours |
+| ~2030 | 3–5 licensed agencies started or bought; Caregiver Bench staffs them first. Supply is the moat | Munger: buy boring, cash-flowing businesses at a fair price · Hormozi: keep the customers you get |
+| ~2028 | Living in Florida, US company, **$50–100k MRR** from recruiting, a team of screeners and a setter, first owned agency (start or buy) | Hormozi Scaling Roadmap: hire after the process works · Leila: workflows, not roles |
+| **1 Jul 2027** | **$20k MRR** (floor: $10k, "$0 is not an option") · BAC passed · 85 kg · school done | Plan backward (Mission) |
+| 31 Mar 2027 | 5 paying agencies · screener #1 | Savage: exclusive cases fill · Hormozi: nail it before you scale it |
+| 31 Jan 2027 | First paying agency | Hormozi Money Models: first win → upsell |
+| 31 Dec 2026 | First caregiver works a shift | Tweed: speed to hire + the 90-day window |
+| 8 Dec 2026 | 100 owner conversations | Hormozi Leads: Rule of 100 |
+| 30 Nov 2026 | 20 owner conversations · 15 screened caregivers · lawyer booked | Graham: talk to customers by hand |
+| **This week** | **350 dials** | Volume negates luck |
+| **Today** | **Today's dial number + the 06:15 block + bed 21:00** | Jocko: discipline equals freedom |
+
+## Open decisions that block the long game (set a date, don't drift)
+| Decision | Why it matters | Decide by |
+| Legal route to live and work in Florida from July 2027 | The 2028 line depends on it | Talk to an immigration lawyer by 31 Jan 2027 |
+| Military service after school (handle it legally) | It can block the July move | Get the facts from a Moldovan lawyer by 31 Jan 2027 |
+| Payment route (dad's company) | No invoice can go out without it | Before day 30 of the first trial |
+| Own agency: start or buy? | Decides the 2028 capital need | Not before $10k MRR (gate 5) |
+
+## The rules of the long game
+- Long term is decided on Sunday. Daily, only the bottom two lines exist.
+- No new business ideas until 100 owner conversations (Hormozi: more before better before new).
+- Reputation is the asset (Munger): never cross a legal line to go faster.` },
+{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# v5 · 18 Nov (overrides anything older)
+3 dials and 0 owner conversations so far. The plan is done, the system is frozen. **The work is dialing, screening and delivering.** Before every block: Council → The 12 laws (1 minute).
 
 ## The 5 numbers that run the business
 | What | Rule |
@@ -148,30 +175,26 @@ The company is #1. When things clash, the cut order decides (see Rules → When 
 ## Blocks revenue, not dials (needed before day 30 of the first trial)
 1. Payment route: dad's company invoices in USD (accountant's OK).
 2. One-page agreement checked by a Florida healthcare lawyer.
-3. A person who sees the dial number every night.
+3. A person who sees the dial number every night (first choice: Gabi; send him the share link).
 
 ## Feature freeze
 No new War Room features until **1,000 dials or the first paying client.** Plan changes at the Sunday review only (System → One source of truth).` },
-{ id: 'life', cat: 'mission', title: 'Life audit · 17 Nov (from your War Room log)', body: `Every area, measured against its target, from the numbers you actually logged 1–17 Nov. **One test for each: does it make 1 July 2027 more or less likely?**
+{ id: 'life', cat: 'mission', title: 'Life audit · 18 Nov (from your War Room log)', body: `Every area against its target, from what you actually logged 1–18 Nov. **One test: does it make 1 July 2027 more or less likely?**
 
 | Area | Target | Logged reality | Verdict | The one fix |
-| **Dials** | 350 a week | **3 dials** from 9 to 17 Nov, 0 owner conversations | **Off track. This is the whole business.** | First dial inside 2 minutes of every block. Today 15:30: 60 |
-| **Caregiver bench** | 15 screened by 30 Nov | 0 on the bench | Off track | Saturday block: post the ad (Leila structure), call every applicant same day |
-| **Sleep / wake** | Up 05:20, bed 21:00 | Woke 09:15, 09:30, 10:00, 10:00 on 4 of the last 8 logged days; 05:29 and 06:27 since Monday | Improving | Phone out of the bedroom at 20:45, no exceptions. Wake logged in the app every day |
-| **Training** | Every day | Trained Mon 16 and Tue 17 | On track this week | Keep the 10-minute floor on bad days |
-| **Weight** | Nov avg 77 → 85 by June | 77.0 → 78.0 (79.1 peak), month avg 77.7 | **Ahead** of the curve | No change. Weekly average, not the daily number |
-| **BAC** | Daily block + Anki; Python exam 14–18 Dec | 123 min logged this month; today's block skipped | Behind | The 06:15 block is not optional: 25 min, phone in another room |
-| **Money** | Spend < earn, earn more each month | Nov: made 6,000 MDL, spent 1,770 (30%) | **On track** | Log every cash spend the same minute |
-| **Standards** | 7 a day | Average day score 32% | Off track | Tick them in the shutdown honestly: what you measure moves |
-| **Learning** | Card daily, applied same day | Running | On track | Every lesson ends in one line tried on today's calls |
-| **Accountability** | One person sees the dial number nightly | Not named | Missing | Name them this week. The stake starts that day |
-| **Tennis coaching** | Income + attendance | Groups running | On track | Attendance through the guided day |
+| **Dials** | 350 a week | **3 dials in total since 8 Nov.** Tuesday's 100-dial block: 0. 0 owner conversations | **Off track. This is the whole business** | The 45-second Launch in the dialer, then dial the first number before you think. Thursday 15:00: 100 |
+| **Building vs doing** | War Room ≤ 10% of work time | 10 app versions shipped 13–17 Nov (13.6 → 13.15), 3 dials in the same week | **The hiding place** | Freeze is real now: no app work until 1,000 dials or the first paying client. This 18 Nov rebuild is the last one |
+| **Caregiver bench** | 15 screened by 30 Nov | 0 on the bench | Off track | Saturday 17:00: post the ad, call every applicant the same day |
+| **Sleep / wake** | Bed 21:00, up 05:20 | Last 3 nights: bed 21:29, 21:35, 23:15 · up 05:29, 06:27, 07:23 | Slipping | Walker: after a late night, change nothing. Up at 05:20 anyway, no nap, bed 21:00 |
+| **Training** | Every day | Trained 16 and 17 Nov | On track | Add shoulder armour 3× a week (Body → Training) |
+| **Weight** | 85 kg by 1 Jul | ~78 kg, ahead of the curve | **Ahead** | No change. 7-day average only |
+| **BAC** | Daily 25-min block | 123 min this month; today's block lost to the late wake | Behind | 06:15 block is fixed. Missed = it moves to 13:15 the same day, never deleted |
+| **Money** | Spend < earn | Nov: 6,000 MDL made, 1,770 spent | **On track** | Keep logging at the moment you pay |
+| **Accountability** | One person sees the dial number nightly | Still nobody | **Missing** | Today: send the share link to Gabi (or dad). The stake starts that night |
+| **Evening phone** | Phone out at 20:45 | "Social media" written as the loss on 13 and 14 Nov | Off track | Phone charges in the kitchen at 20:45. The 20:45 shutdown is the only screen allowed after 20:30 |
 
 ## The honest read
-Body, money and learning are on track. **The business has not started: 3 dials in 9 days.** Everything else in this system exists to make the dial block happen. The plan doesn't need changing. The behaviour does: the block starts, the first number is dialed within 2 minutes, and the phone stays on the dialer until the count is hit.
-
-## This week's contract vs the plan
-Your board says 300 dials; the plan says 350. 300 is the floor you signed; 350 is the target in the calendar. Hit 300 and you kept your word; hit 350 and you're on plan.` },
+You have the best-documented business that has made 3 calls. Every mentor agrees on the diagnosis: **Hormozi** (volume negates luck), **Paul Graham** (do the unscalable thing: talk to customers), **Munger** (invert: the surest way to fail is to keep perfecting the plan), **Newport** (busyness is not productivity) and your own Reality RPG note: "endless system optimization is one of my traps". The system is finished. The next upgrade is 1,000 dials.` },
 { id: 'backward', cat: 'mission', title: 'The plan backward', body: `Read from the bottom up: for the top line to be true, every line below it must be true by its date. **Proof first, then plans.**
 
 ## Company: checkpoints
@@ -219,9 +242,76 @@ See Body & BAC → BAC deadlines.` },
 - **Transition fund (Wealth):** target 60,000 MDL (6 × 10,000). Move the ~17,000 you have into a separate savings account or sealed envelope, then 5,000 MDL every payday until full (~9 months). Decide on 23 Nov.
 - **Accountability partner:** who sees the dial number every night?
 - **Team:** a commission caller only after one paid placement.` },
+{ id: 'council', cat: 'council', title: 'The council: who to ask for what', body: `**Hormozi is the main voice.** The others are specialists: use the one whose field the problem is in. When they disagree, the tie goes to the one closest to cash this week. Full notes: Drive → Mentor Library (folder) and Mentor Library II (doc). Ask Claude: "what would ___ say?".
+
+| Problem | Ask first | Their one rule for you |
+| What to do next, offer, price, leads, money model | **Hormozi** | Fix only the constraint. Right now: dials |
+| Afraid to dial, rejection, the next call after a no | **Josh Braun** · Gallwey · Robbins | Detach from the outcome. Your job is the dial, not the yes |
+| Cold call opener, gatekeeper, voicemail | **30MPC** · Braun | Earn 30 seconds with a specific reason they care |
+| Discovery questions | **Jeremy Miner (NEPQ)** · 30MPC | Questions, not statements: they persuade themselves (situation → problem → consequence) |
+| Price talk, "too expensive", "let me think" | **Chris Voss** | Label it, then a calibrated "how/what" question, then silence |
+| Emails, the Bulletin, the Snapshot | **Dan Kennedy** | One reader, one problem, one ask |
+| What home care owners worry about | **Stephen Tweed** + the 2026 benchmarks | Recruiting, speed to hire and the first 90 days |
+| Running a recruiting business | **Greg Savage** | Exclusive cases, great intake, never compete on price |
+| Hiring, managing, your own discipline system | **Leila Hormozi** | A system = a prompt that triggers behaviour without memory |
+| Excuses, skipped blocks, bad days | **Jocko Willink** | Extreme ownership. No excuse survives the log |
+| First clients, focus | **Paul Graham** | Do things that don't scale. Talk to users |
+| Big decisions, risk, ethics | **Charlie Munger** | Invert. Avoid stupidity before seeking brilliance |
+| Long-term wealth, leverage | **Naval** | Specific knowledge + leverage + time |
+| Energy, state, beliefs, goals | **Tony Robbins** | Motion creates emotion. Change your state before the task |
+| Training | **Andy Galpin** · Mark Kovacs | Pick the adaptation, overload slowly; tennis power = strength × speed |
+| Long-term health | **Peter Attia** | Zone 2 + VO2 max + strength + stability |
+| Sleep | **Matthew Walker** | Same bedtime and wake time, every day |
+| Bulking | **Layne Norton** | Small surplus, slow gain, judge the weekly average |
+| Tennis matches | **Brad Gilbert** · Gallwey | Scout, plan A/B, force errors; quiet Self 1 |
+| BAC study | **Justin Sung** · Barbara Oakley | Rebuild from a blank page, then check: encode + retrieve |
+| Focus | **Cal Newport** | Deep work in fixed blocks, phone in another room |
+| Habits | **James Clear** | Never miss twice. Every action is a vote for who you become |
+| Persuasion, people | **Cialdini** · Voss | Set the frame before the ask (pre-suasion) |
+| Situational awareness | **Left of Bang** | Baseline + anomaly = decision |` },
+{ id: 'laws', cat: 'council', title: 'The 12 laws (all 28 mentors on one page)', body: `Read once before the first block of the day. These are the mentors' ideas in our words, applied to you.
+
+1. **Volume negates luck.** 350 dials a week is the job. Skill comes from reps, not reading (Hormozi).
+2. **Fix only the constraint.** Today it's dials. Anything else is hiding (Hormozi, Munger: invert).
+3. **Motion before emotion.** Stand up, speak loud, dial within 2 minutes. Feeling ready comes after the third call, never before (Robbins, Jocko).
+4. **Detach.** The goal of a call is the truth, not a yes. A no is a rep, and reps kill nerves (Braun, Gallwey, Hormozi).
+5. **Questions, not statements.** Situation → problem → what it costs → what fixing it changes. Then ask, and shut up for 8 seconds (Miner, Voss, Sales Teams).
+6. **Sell the 90 days and the speed.** Owners lose most caregivers in the first 90 days and lose applicants after 4 days. That is your product (Tweed, Augusta).
+7. **Own the case.** Exclusive cases, a full intake, never a discount (Savage, Hormozi).
+8. **Do the unscalable thing yourself.** You dial, you screen, you confirm. Hire only after it works (Graham, Leila).
+9. **Never miss twice.** A bad day is the minimum day, never zero (Clear, Hormozi: bad days are statistics).
+10. **Deep work in fixed blocks.** Phone in another room for BAC; only the dialer open for dials (Newport).
+11. **Sleep is the base.** Same bedtime, same wake time, caffeine before noon. After a bad night change nothing (Walker).
+12. **Reputation compounds.** Every sentence true, every legal line kept (Munger).
+
+## The traps (the mentors' warnings, matched to your log)
+- **Building the system instead of using it.** 10 app versions, 3 dials. The freeze is the cure.
+- **Learning instead of applying.** No new course until you've used the last one on 100 dials.
+- **The evening phone.** It costs the 21:00 bed, which costs the 05:20 start, which costs the BAC block.` },
+{ id: 'people', cat: 'council', title: 'People: persuasion, awareness, community', body: `## Persuasion (Cialdini's 7, used honestly)
+| Principle | Where it lives in Caregiver Bench |
+| Reciprocity | Hiring Snapshot and Bench Bulletin: give first |
+| Commitment | Small yes first ("Fair?"), the trial terms said out loud |
+| Social proof | Founding 5 case studies, only when real |
+| Authority | The 2026 benchmark numbers, said simply |
+| Liking | Use their words back; you're a recruiter, not a vendor |
+| Scarcity | Max 2 Priority Bench members per area: true, so say it |
+| Unity | "Owners around Tampa", "agencies like yours" (only once true) |
+**Pre-suasion:** open with their problem (staffing speed), never with you.
+
+## Situational awareness (Left of Bang), 2 minutes a day
+On the sunlight walk: name the **baseline** of the place (normal noise, pace, mood), then **one anomaly**. On calls: baseline the owner's voice in the first 20 seconds; notice the change when you mention the case or the price. Judge clusters, not one sign.
+
+## Communication gym
+Shutdown note: one interesting or funny thing you noticed today (30 seconds). One Story Card a day at breakfast. The Renaissance Protocol stays in Todoist → Persuasion.
+
+## Community (Fieldcraft: you need people, not only work)
+- **Accountability partner:** one person sees your dial number every night (the share link). First choice: Gabi.
+- **Tennis club:** coaches, parents, the managers' chat: be the most reliable coach there. Reputation is your Moldova network for later.
+- **One real social thing a week** (a match with Gabi counts). Scheduled, not scrolled.` },
 /* ───────── RULES ───────── */
 { id: 'daily8', cat: 'rules', title: 'The Daily 8 and the minimum day', body: `| # | What | In War Room |
-| 1 | **Sleep** 21:00 → 05:20. Phone outside the bedroom from 20:45 | Sleep |
+| 1 | **Sleep** 21:00 → 05:20, every day including weekends. Phone outside the bedroom from 20:45. Caffeine only before 12:00. After a late night: still up at 05:20, no nap (Walker) | Sleep |
 | 2 | **Train** at 05:30 every day. Bad day: 10 minutes. Never 0 | Train |
 | 3 | **Food:** 5 fixed meals, about 3,400 kcal, 170 g protein, 3 L water | Food & Water · Food tab |
 | 4 | **Sun:** 10+ minutes outside before 10:00 | Sun |
@@ -234,7 +324,10 @@ See Body & BAC → BAC deadlines.` },
 **10 minutes of training + 25 minutes of Anki + 10 dials + bed at 21:00.** Sick: silent lead prep replaces the 10 dials. A minimum day is a win. A zero day is the only loss.
 
 ## The 2-minute rule
-The first action of every block happens within 2 minutes. No messages first.` },
+The first action of every block happens within 2 minutes. No messages first.
+
+## Missed block rule
+A missed block is moved, never deleted: BAC to 13:15 the same day, dials to the next free Florida-hours slot. Two misses in a row = tell your accountability partner (Clear: never miss twice).` },
 { id: 'cutorder', cat: 'rules', title: "When the day doesn't fit", body: `Cut from the bottom. Never from the top.
 
 1. Sleep (never cut)
@@ -396,7 +489,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 - **Calls:** 8am–8pm their time, max 3 calls per number per 24 hours, no prerecorded voicemails, "don't call me" = do-not-call immediately.
 - **Fair job ads:** no words about age, sex, origin, religion, family or health.
 - **No fake scarcity:** "max 2 members per town area" is a real rule, so enforce it. "Founding 5" ends at the fifth paying agency.
-- **Nurse registries (1099 contractors):** not for now.
+- **Nurse registries (1099 contractors):** not for now. Florida licenses registries that refer contractors to patients for a fee (new rules from 1 Jul 2026). We never do that. **Ask the lawyer in writing:** "Does recruiting W-2 caregivers for licensed agencies, for a per-hire or 4-week fee, need any AHCA license or touch the Patient Brokering Act?"
 - **The agreement** is reviewed by a Florida lawyer before anyone signs. One page that says: we recruit employees for the agency; nothing is paid for patients, clients or referrals; the agency does its own Level 2 screening, I-9 and E-Verify.
 - **Telemarketing registration:** Florida exempts most business-to-business calls, but the exemption has conditions. Ask the lawyer in the same check. Calling-hour and 3-calls-a-day limits apply either way.
 - **Caregiver data:** names and phones of caregivers stay in War Room and go to an agency only with the caregiver's OK. Ask dad's accountant whether Moldova's data law needs anything for sending them to the US.
@@ -442,6 +535,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 - Help with the math if they don't know: "A 24/7 case is 168 hours a week. At about $32 an hour that's ~$5,400 a week you can't bill. Is that close?"
 - Dig: **"Tell me more about that."** · **"Can you give me an example?"** Stay here until there's a number.
 > Is the hard part getting applicants, or getting them to show up and stay?
+- If they hesitate, give the insider number (Tweed, 2026 benchmarks): "Most caregiver turnover happens in the first 90 days, and applicants who wait more than 4 days for an interview usually take another job. Is that what you see?"
 > What have you tried so far: Indeed, a recruiter, referrals? How did that go?
 > If that case were covered by someone reliable by next week, what would that change for you?
 
@@ -452,8 +546,8 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 ## 4 · Pitch (under 90 seconds) · problem → solution → benefit, 3 times
 > Given what you said, I think I can help. Mind if I walk you through it in 60 seconds?
 > **No-shows:** I call every caregiver myself and confirm her the evening before and the morning of the interview, and again before the first shift. If she doesn't show, you get a replacement profile within 24 hours. That's my Show-Up Guarantee. Would that help?
-> **Speed:** I post ads for your exact case the same day and phone-screen everyone who applies, so you get 2 to 3 local, screened profiles within 3 days, not a pile of résumés. Would that help with [case]?
-> **Staying:** I check in with her on days 1, 3, 7, 14, 30 and 90. If she leaves in the first 90 days, I replace her free. Would that help?
+> **Speed:** the agencies that win interview within 24 to 48 hours, so I post ads for your exact case the same day and phone-screen everyone who applies, so you get 2 to 3 local, screened profiles within 3 days, not a pile of résumés. Would that help with [case]?
+> **Staying:** the first 90 days is where most caregivers quit, so I check in with her on days 1, 3, 7, 14, 30 and 90. If she leaves in those 90 days, I replace her free. Would that help?
 
 ## 5 · The ask · then silence
 > Here's how I'd start, and it's simple: I recruit for that **[Tuesday overnight in Brandon]** this week. **The first caregiver who works it for you is free.** You only pay if you want me to keep going after you've seen it work. **Would you be against trying it on that one case?**
@@ -607,7 +701,7 @@ Subject: Bench Bulletin · [date] · [N] caregivers available
 
 ## 4 · Anchor, then the menu (A or B)
 > For context: recruiters charge 15 to 25% of first-year pay, $4,800 to $8,000 a hire, and a lost caregiver costs you about $2,600.
-> Most agencies your size go with **Priority Bench**: 2 caregivers who work every 4 weeks, first pick of every new caregiver in your towns 24 hours before anyone else, and I only take 2 agencies per area. **It is an investment: $2,500 every 4 weeks.** Or you pay **$1,500 per caregiver** as you go, no plan. **Which fits better?**
+> Most agencies your size go with **Priority Bench**: 2 caregivers who work every 4 weeks, first pick of every new caregiver in your towns 24 hours before anyone else, and I only take 2 agencies per area, so your cases are mine to fill, not shared with three other recruiters. **It is an investment: $2,500 every 4 weeks.** Or you pay **$1,500 per caregiver** as you go, no plan. **Which fits better?**
 - **Silence. 8 seconds or more.**
 - 6+ hires a month or 2+ locations (only after gate 4): Multi-site, $6,000 every 4 weeks, 6 caregivers, fully staffed in 90 days or no fee until reached.
 
@@ -684,12 +778,13 @@ Residents (not clients), community or building (not agency), shifts, the floor. 
 > Then every caregiver you hire permanently cuts that bill. How much agency staffing did you pay last month?` },
 /* ───────── SOPs ───────── */
 { id: 'sop-dial', cat: 'sops', title: 'Dial block', body: `1. **Open War Room → Dial session.** Nothing else opens first.
-2. **First dial inside 2 minutes.**
-3. Callbacks due first, then the queue top-down (Tampa Bay sorts to the top).
-4. Tap the outcome after every call. That logs the dial and the owner talk.
-5. **5-minute break every 50 dials** (water, stand up).
-6. Hit the number, or the block ends, whichever comes later. Never stop at 0.
-7. End session. Anything you couldn't answer: write it down, ask Claude.
+2. **The Launch (45 seconds, runs by itself):** stand up · 3 slow breaths out loud · say "my job is the dial, not the yes" · the first number is dialed when the timer ends (Robbins: state first · Braun: detach · Hormozi: reps kill nerves).
+3. **First dial inside 2 minutes.** The first 10 calls of a block are warm-up reps: ugly is fine.
+4. Callbacks due first, then the queue top-down (Tampa Bay sorts to the top).
+5. Tap the outcome after every call. That logs the dial and the owner talk.
+6. **5-minute break every 50 dials** (water, stand up).
+7. Hit the number, or the block ends, whichever comes later. Never stop at 0.
+8. End session. Anything you couldn't answer: write it down, ask Claude.
 
 ## Cadence per agency (Sales Teams: 7 attempts beat 14)
 | Day | Attempts |
@@ -960,7 +1055,7 @@ Cost to win an agency: ~$600 of ads (the free caregiver plus misses) + dial time
 | Type | What they do | Fit |
 | Home Health Agency (licensed) | Hands-on care, W-2 HHAs/CNAs | **Main buyer** |
 | Homemaker & Companion (registered) | Company, meals, housework, no hands-on care | Good buyer |
-| Nurse Registry | 1099 contractors | **Not for now** |
+| Nurse Registry | Refers 1099 contractors to families for a fee; AHCA-licensed, stricter rules from 1 Jul 2026 | **Not for now** (and a competitor for owners' attention) |
 | Assisted living / memory care | One building, fixed shifts | Backup segment (parked) |
 
 Florida (state list, 13 Nov): 2,716 home health agencies, 2,768 homemaker & companion, 1,257 nurse registries (parked). Ask early: "Are your caregivers W-2 employees?"
@@ -973,9 +1068,11 @@ Client (never ask about them) · case · open case · start of care · hourly vi
 | Caregiver turnover a year | **75.5%** |
 | Turnover at $15–17.99 vs $18+ | 84% vs 53% |
 | Turnover in the first 90 days | 57% |
-| Applicants who get hired | 12.8% (about 8 per hire) |
+| Applicants who get hired | about 8–13% (median agency: 800 applicants → 63 hires) |
+| Top-quartile agencies' turnover | under 40% (bottom quartile over 80%) |
+| Most-used source | Indeed (top-2 for 43% of agencies); referrals and in-person bring better hires |
 | Interview no-shows | **40%** |
-| Interviewed within 4 days | 2× as likely to be hired |
+| Interviewed within 4 days | 55%+ of hires (Augusta, Q1 2026); best results at 24–48 h |
 | Cost to replace one caregiver | **~$2,600** |
 | Indeed cost per hire | ~$561 |
 | Agencies that turned down cases for lack of caregivers | 85%+ |
@@ -1016,7 +1113,15 @@ On lesson days pack dinner and eat it between blocks. Never skip it.` },
 | Wed · club room · speed | Sprints 6×10–20 m · side bounds + broad jumps 3×5 · KB swings 3×10 · rotational throws 3×6 · back extensions 2×12 |
 | Fri · real gym · power + upper | Box jumps 4×3 · front squat 3×5 fast · cable woodchops 3×8/side · heavy rows 4×6–8 · incline DB press 3×8 · shrugs 3×10 + face pulls 2×15 |
 
+## Added 18 Nov (Kovacs, Attia, Galpin)
+| What | When | Dose |
+| **Shoulder armour** (serve health: train the muscles that slow the arm down) | Mon/Wed/Fri 05:30, after mobility | Band external rotation 2×15/side (slow 3-second return) · band 90/90 external rotation 2×10/side · prone Y-T-W 2×8 |
+| **Zone 2** (aerobic base: recover faster between points) | Sunday, before the fight hour or as a walk-jog | 30–40 min at a pace you can still talk in full sentences |
+| **Speed day in tennis patterns** | Wed club room | Make 2 of the 6 sprints split-step → first step and crossover, not straight lines |
+| **Creatine** | Every day | 5 g, any time (already in the meal plan) |
+
 ## Rules
+- Power work first in the session, fresh, full rest: quality over quantity (Galpin).
 - Legs stay low-volume and never to failure: TT is right after.
 - Add a little weight or one rep every week.
 - Fast reps: power over size. Both sides evenly.
