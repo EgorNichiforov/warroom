@@ -532,6 +532,58 @@ with sync_playwright() as p:
     ev("dvClose();0")
     check('Drive 13.23.1: no page errors', not errs, errs[:3]); b.close()
 
+    # Integrity 13.23.2: sync never loses the other device's fields; mastery needs its own evidence
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    r = ev("""(()=>{ const k='2026-03-02', J=(x)=>JSON.parse(JSON.stringify(x)); const base={_u:100,counters:{dials:0,bacmin:10},weight:'',top3:[{t:'a',d:0}]};
+      S.settings.sync.code='testcode-1234567890'; baseClear(); const out={};
+      S.days[k]=J(base); baseSet({days:{[k]:base}}); S.days[k].weight='74.2'; S.days[k]._u=300;
+      const phone=J(base); phone.counters.dials=20; phone._u=200;
+      out.ch=merge({days:{[k]:phone}}, true); let d=S.days[k]; out.both=d.counters.dials===20&&d.weight==='74.2'&&d.counters.bacmin===10; out.ahead=syncAhead; out.newer=d._u>300;
+      S.days[k]=J(base); S.days[k].weight='74.2'; S.days[k]._u=300; merge({days:{[k]:phone}}); out.importLww=S.days[k].counters.dials===0&&S.days[k].weight==='74.2';
+      S.days[k]=J(base); S.days[k].counters.dials=5; S.days[k]._u=300; const p2=J(base); p2.counters.dials=20; p2.weight='75'; p2._u=200; merge({days:{[k]:p2}},true); out.conflict=S.days[k].counters.dials===5&&S.days[k].weight==='75';
+      S.days[k]=J(base); const p3=J(base); delete p3.top3; p3._u=250; merge({days:{[k]:p3}},true); out.del=S.days[k].top3===undefined;
+      S.days[k]=J(base); S.days[k].weight='70'; S.days[k]._u=300; const p4=J(base); p4._u=100; merge({days:{[k]:p4}},true); out.localOnly=S.days[k].weight==='70'&&syncAhead===true;
+      baseClear(); S.days[k]=J(base); S.days[k].weight='74.2'; S.days[k]._u=300; merge({days:{[k]:phone}}, true); out.noBase=S.days[k].counters.dials===0&&S.days[k].weight==='74.2'&&syncAhead===true;
+      delete S.days[k]; S.tasks.zz={id:'zz',title:'x',_u:5}; const rem=J(S); delete rem.tasks.zz; const c2=merge(rem,true); out.conv=syncAhead===true&&c2===false; delete S.tasks.zz;
+      merge(J(S),true); out.quiet=syncAhead===false;
+      baseClear(); S.settings.sync.code=''; return out; })()""")
+    check('Sync 13.23.2: phone logs dials, stale laptop logs weight on the same day → both survive (was: dials lost)', r['both'] and r['ch'] and r['ahead'] and r['newer'], r)
+    check('Sync 13.23.2: both changed the same field → newest record wins that field only, the rest merges', r['conflict'], r)
+    check('Sync 13.23.2: a field removed on the other device is removed here; a local-only change is kept and pushed', r['del'] and r['localOnly'], r)
+    check('Sync 13.23.2: no base yet, or importing a backup file → the old whole-record rule, unchanged', r['noBase'] and r['importLww'], r)
+    check('Sync 13.23.2: a pull that finds this device ahead schedules a push (changes converge); identical copies stay quiet', r['conv'] and r['quiet'], r)
+    r = ev("""(async()=>{ S.settings.sync={url:'https://x.test',key:'k',code:'testcode-1234567890'}; const posted=[]; const remote={items:{r1:{id:'r1',name:'Remote Agency',status:'new',_u:now()+5,log:[{r:'owner talk'}]}}};
+      const of=window.fetch; window.fetch=async(u,o)=>{ if(o&&o.method==='POST'){ const j=JSON.parse(o.body); if(String(j.id).endsWith(':queue')) posted.push(j); return {ok:true,status:200,json:async()=>({})}; } return {ok:true,status:200,json:async()=>(String(u).includes('%3Aqueue')?[{data:remote}]:[])}; };
+      await qPush(); window.fetch=of; S.settings.sync.code=''; return {merged:!!Q.items.r1, sent:!!(posted[0]&&posted[0].data.items.r1), n:posted.length}; })()""")
+    check('Sync 13.23.2: a CRM push first folds in the other device\'s call logs (was: blind overwrite)', r['merged'] and r['sent'], r)
+    r = ev("""(async()=>{ const J=(x)=>JSON.parse(JSON.stringify(x)), k=dk(new Date()); let cloud=null; const of=window.fetch;
+      window.fetch=async(u,o)=>{ u=String(u); if(!u.includes('warroom_sync')) return of(u,o); if(o&&o.method==='POST'){ const j=JSON.parse(o.body); if(!String(j.id).includes(':')) cloud=J(j.data); return {ok:true,status:200,json:async()=>({})}; } return {ok:true,status:200,json:async()=>(u.includes('%3A')?[]:(cloud?[{data:cloud}]:[]))}; };
+      S.settings.sync={url:'https://x.test',key:'k',code:'testcode-1234567890'}; baseClear(); const o=day(new Date()); o.counters.dials=0; o.weight=''; touch(o);
+      await pushCloud(); const first=!!cloud&&!!baseGet().days[k];
+      cloud.days[k].counters.dials=20; cloud.days[k]._u=now()-1;            /* the phone logged 20 dials and pushed */
+      o.weight='74.2'; touch(o);                                           /* this stale device logs weight afterwards (newer timestamp) */
+      await pushCloud(); const c=cloud.days[k], l=S.days[k];
+      const out={first, cloudBoth:c.counters.dials===20&&c.weight==='74.2', localBoth:l.counters.dials===20&&l.weight==='74.2'};
+      cloud.days[k].counters.owners=1; cloud.days[k]._u=now()+50; await pullCloud(true); out.pull=S.days[k].counters.owners===1&&S.days[k].weight==='74.2'&&S.days[k].counters.dials===20;
+      window.fetch=of; baseClear(); S.settings.sync.code=''; return out; })()""")
+    check('Sync 13.23.2 end to end: through the real push/pull, a stale device can no longer erase the phone\'s dials', r['first'] and r['cloudBoth'] and r['localBoth'] and r['pull'], r)
+    check('Sync 13.23.2: Time Machine restore makes every record of the copy win, not only days/tasks/goals', 'MERGE_MAPS.includes(k)' in open(__file__.replace('tests/run.py','system.js')).read())
+    ev("bcS.tab='path';show('boot');0"); pg.wait_for_timeout(2500)
+    r = ev("""(()=>{ const ids=Object.keys(BC.cardMod), a=ids[0], b=ids[1], D=(n)=>dk(new Date(Date.now()-n*864e5)); S.cards=S.cards||{}; const out={};
+      bcW('l:'+a,{at:D(40),r:0}); S.cards[a]={step:4,st:30,last:new Date().toISOString(),due:'2099-01-01',_u:now()}; bcW('u:'+a,{n:1,log:[]});
+      out.notProven=bcRung(a)===4; bcW('rh:'+a,[D(30)]); out.early=bcRung(a)===4; bcW('rh:'+a,[D(30),D(10)]); out.proven=bcRung(a)===5;
+      bcW('l:'+b,{at:D(5),r:0}); S.cards[b]={step:1,st:10,last:new Date().toISOString(),due:'2099-01-01',_u:now()}; bcW('rh:'+b,[D(1)]);
+      out.recallNotUnderstand=cpDims(b).u===false&&cpDims(b).r===true; bcW('tb:'+b,{at:D(0),s:5}); out.teachNotIntegrate=cpDims(b).u===true&&cpDims(b).i===false; bcW('tr:'+b,{at:D(0),s:3}); out.transfer=cpDims(b).i===true;
+      return out; })()""")
+    check('Mastery 13.23.2: Proven needs a successful recall 21+ real days after learning (review-step count is not time)', r['notProven'] and r['early'] and r['proven'], r)
+    check('Mastery 13.23.2: recalling is not Understanding; teaching back is not Integrating; a transfer test is', r['recallNotUnderstand'] and r['teachNotIntegrate'] and r['transfer'], r)
+    ev("cpMissionStart(0);cpMSet('brief');0"); pg.wait_for_timeout(300)
+    r = ev("""(()=>{ const out={}; const m=cpMission(); out.noManual=!document.getElementById('view-boot').innerHTML.includes("cpMSet('ap')") && cpMDone(m).ap===false;
+      cpAar(m.id); document.getElementById('cp-a1').value='Used it on a call'; document.getElementById('cp-a4').value='Ask one more question'; cpAarSave(); const m2=cpMission(); out.ev=typeof m2.ap==='string'&&m2.ap.includes('real use')&&cpMDone(m2).ap===true; return out; })()""")
+    check('Mission 13.23.2: the Apply step cannot be ticked by hand; it closes on evidence and records what happened', r['noManual'] and r['ev'], r)
+    check('Context 13.23.2: the in-app AI follows the Playbook territory (Tampa Bay first), not the old Naples text', ev("ASK_SYSTEM.includes('Tampa Bay first') && !ASK_SYSTEM.includes('Naples') && !XC_SYS.includes('Naples')"))
+    check('Integrity 13.23.2: no page errors', not errs, errs[:3]); b.close()
+
     # Parity 13.8: the phone gets everything the laptop shows
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { const out={}; ['dial','money','train','me','week'].forEach(v=>{ show(v); render(); out[v]=!!document.querySelector('#view-'+v+' > .ph-rail .card'); });
