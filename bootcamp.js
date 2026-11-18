@@ -239,7 +239,7 @@ function bcLessonHtml() {
       ${[['In plain words', c.plain], ['Picture it', c.analogy], ['Worked example', c.ex], ['The trap', c.trap]].filter((x) => x[1]).map((x) => `<div class="xc-s"><div class="xc-l">${x[0]}</div><div class="xc-b">${pbInline(x[1])}</div></div>`).join('')}
       ${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}</div>${next()}`;
   if (s === 'watch') { const mo = bcMoment(c), n = (c.clip || []).length + (mo ? 1 : 0);
-    body = `<div class="card"><div class="aq-t">${n} video${n > 1 ? 's' : ''} <span>tap one · plays here · 1–4 min</span></div><div class="xc-clips">${mo ? xcClipBtn(mo.pid, mo.s, 0, mo.label) : ''}${(c.clip || []).map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div>${mo ? '<div class="aq-note">🎓 = the real acquisition.com course video, at the moment this idea is taught.</div>' : ''}</div>${next()}`; }
+    body = `<div class="card"><div class="aq-t">${n} video${n > 1 ? 's' : ''} <span>tap one · plays here · 1–4 min</span></div><div class="xc-clips">${mo ? xcClipBtn(mo.pid, mo.s, mo.e || 0, mo.label) : ''}${(c.clip || []).map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div>${mo ? '<div class="aq-note">🎓 = the real acquisition.com course video, at the moment this idea is taught.</div>' : ''}</div>${next()}`; }
   if (s === 'recall') body = `<div class="card"><div class="aq-line">What is “${esc(c.t)}”, and when would it help you${L ? ' today' : ' on a call'}?</div>
       <textarea class="aq-in bc-rc" id="bc-rc" placeholder="Write it, or say it out loud and type a few words">${esc(bcS.rc || '')}</textarea>
       ${bcS.show ? `<div class="bc-cmp"><span>Compare</span><div class="xc-hook">${pbInline(c.hook)}</div>${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}${(c.q || []).map((x) => `<div class="bc-qa"><b>${esc(x[0])}</b><span>${pbInline(x[1])}</span></div>`).join('')}</div>
@@ -484,5 +484,33 @@ function renderBoot() {
   .bcx-help-m h2{margin:0 0 12px}.bcx-how{display:grid;gap:12px;margin-bottom:12px}.bcx-how div{display:grid;grid-template-columns:30px 1fr;gap:2px 10px}.bcx-how u{grid-row:span 2;width:28px;height:28px;border-radius:50%;background:var(--acc);color:#111;font:700 13px/28px inherit;text-align:center;text-decoration:none}.bcx-how b{font-size:15px}.bcx-how span{font-size:13px;color:var(--muted);line-height:1.45}
   .bcx-why{font-size:13px;line-height:1.5;color:var(--muted);border-top:1px solid #1B1F24;padding:10px 0}.bcx-why b{color:var(--text)}
   @media (max-width:560px){.bc-chain>i{display:none}.bc-chain>div{padding:6px 4px}.bc-chain em{display:none}.bc-chain span{font-size:10.5px}.bc-hero{grid-template-columns:1fr 1fr}.bc-rank{grid-column:1/-1}.bc-row{grid-template-columns:1fr}.bc-cells button{width:20px;height:20px}}`;
+  document.head.appendChild(st);
+})();
+
+
+/* 13.20.8 · Learning limits switch (synced): ON = 1 Business + 1 Life lesson a day, more after 10 dials, modules in order.
+   OFF = every module and lesson open, no daily cap. Plus: the "Watch" step plays only the part of the course video where
+   this idea is taught (from its moment to the next one), not the whole lesson. */
+function bcFree() { return !!bcV('cfg:free', 0); }
+function bcSetFree(on) { bcW('cfg:free', on ? 1 : 0); toast(on ? 'Unlimited: every module and lesson is open' : 'Limits back on: 2 a day, more after 10 dials'); render(); }
+(function () {
+  const _o = bcOpen, _g = bcGate, _s = bcLessonState, _p = bcPath, _m = bcMoment;
+  bcOpen = function (m) { return bcFree() || _o(m); };
+  bcGate = function (tr) { const g = _g(tr); if (bcFree()) g.ok = true; return g; };
+  bcLessonState = function (m, id) { const st = _s(m, id); return st === 'lock' && bcFree() ? 'open' : st; };
+  bcPath = function () {
+    const f = bcFree();
+    return `<div class="bcx-free${f ? ' off' : ''}"><span><b>Learning limits · ${f ? 'OFF' : 'ON'}</b><em>${f ? 'Every module and lesson is open. No daily cap.' : '1 Business + 1 Life lesson a day, more after 10 dials. Modules open in order.'}</em></span><button class="btn sm${f ? '' : ' primary'}" onclick="bcSetFree(${f ? 0 : 1})">${f ? 'Turn limits on' : 'Go unlimited'}</button></div>` + _p.apply(this, arguments);
+  };
+  bcMoment = function (c) {
+    const mo = _m(c); if (!mo || mo.whole) return mo;
+    try {
+      const hit = CL.byUrl[String(c.lesson[0]).replace(/\/$/, '')], ts = (hit.e.m || []).map((x) => x[0]).filter((t) => t >= mo.s + 45).sort((a, b) => a - b);
+      mo.e = Math.min(ts.length ? ts[0] : mo.s + 240, mo.s + 420);
+    } catch (e) { }
+    return mo;
+  };
+  const st = document.createElement('style'); st.id = 'bc-free-css';
+  st.textContent = `.bcx-free{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 12px;margin:0 0 12px;border:1px solid var(--ln,#2a2a2e);border-radius:10px}.bcx-free span{display:flex;flex-direction:column;gap:2px;min-width:0}.bcx-free b{font-size:13px}.bcx-free em{font-style:normal;font-size:12px;color:var(--muted,#999)}.bcx-free.off{border-color:var(--acc,#C9A24A)}.bcx-free .btn{flex:none}`;
   document.head.appendChild(st);
 })();
