@@ -307,3 +307,7 @@ The Day hero always showed the block the clock called "now", so marking it Done 
 
 ## 13.13.2 — App lock on the phone (17 Nov 2026)
 - lock.js: the Settings card drew only after the face/fingerprint check answered; Android WebView can leave that promise hanging, so the card never appeared on the phone. Now cardHtml() draws immediately; checks race a 1.5 s timeout and the card refreshes when they answer.
+
+## 13.17.1 — Course tabs swipe (18 Nov 2026)
+- shell.js: the phone's swipe-between-pages ignored .chips rows but not Courses' .aq-tabs, so swiping the course tabs jumped to Playbook. Now any swipe that starts inside a sideways-scrolling element (shHScroll) is left to that element.
+- Work → Later: was a "door" that only opened the stage sheet as a modal from show(); the phone's tab bar/swipe goes through shRawShow, so it landed on a view that didn't exist (blank). Now a real page: #view-later + renderLater() draws sgSheetHtml() (the same content as the sheet).

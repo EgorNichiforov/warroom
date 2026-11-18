@@ -233,8 +233,9 @@ with sync_playwright() as p:
     # stages: the app is as big as the evidence
     b, pg, errs = fresh(p); ev = pg.evaluate
     check('Stage: with no owner conversation Work shows Dial, Courses, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,acq,book,later')
-    ev("show('later');0"); pg.wait_for_timeout(300)
-    check('Stage: "Later" opens the stage sheet, it is not a screen', ev("view") != 'later' and ev("document.getElementById('modal-bg').classList.contains('open')"))
+    ev("show('dial');0"); pg.wait_for_timeout(500); ev("shSeg(3);0"); pg.wait_for_timeout(900)
+    check('Stage: "Later" (tab or swipe) is a real page with the stage, never blank (13.13.3)', ev("view") == 'later' and 'Stage 1 of' in ev("document.getElementById('view-later').textContent") and not ev("document.getElementById('modal-bg').classList.contains('open')"))
+    ev("closeModal&&closeModal();show('dial');0")
     ev("closeModal();shRawGo('crm');0"); pg.wait_for_timeout(300); check('Stage: a waiting room can always be opened by hand', ev("view") == 'crm')
     e0 = ev("sgEvidence()")
     check('Evidence: starts at zero on every level', all(e0[k] == 0 for k in ('attempts', 'answered', 'dm', 'needs', 'requests', 'demand', 'working', 'paid')), e0)
@@ -281,8 +282,8 @@ with sync_playwright() as p:
     check('Stage: no page errors', not errs, errs[:3])
     b.close()
 
-    # Day: Done on the current block must move the screen on
-    b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    # Day: Done on the current block must move the screen on (classic screen: with Guided day on, the guided card replaces this hero, 13.13.1)
+    b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script("localStorage.setItem('wr-guide','off')"); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2400); ev = pg.evaluate
     cur = ev("(()=>{const d=new Date(),nm=nowMin(),L=arcBlocks(d);let b=L.find(x=>tmin(x.start)<=nm&&nm<tmin(x.end)&&!['dials','bac','agency','train','program'].includes(x.kind));if(!b){const o=day(d);o.sched=o.sched||{};const s=String(Math.floor(nm/60)).padStart(2,'0')+':'+String(nm%60).padStart(2,'0'),e2=Math.min(nm+30,1439),e=String(Math.floor(e2/60)).padStart(2,'0')+':'+String(e2%60).padStart(2,'0');return null}return {id:b.id,title:b.title}})()")
     if cur and pg.query_selector('#arc .arc-now'):
