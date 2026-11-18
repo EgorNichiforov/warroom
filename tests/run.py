@@ -232,7 +232,7 @@ with sync_playwright() as p:
 
     # stages: the app is as big as the evidence
     b, pg, errs = fresh(p); ev = pg.evaluate
-    check('Stage: with no owner conversation Work shows Dial, Bootcamp, Courses, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,boot,acq,book,later')
+    check('Stage: with no owner conversation Work shows Dial, Learn, Playbook, Later', ev("(sgApply(),SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(','))") == 'dial,boot,book,later')
     ev("show('dial');0"); pg.wait_for_timeout(500); ev("shSeg(SH_HUBS.find(h=>h.id==='work').segs.findIndex(s=>s[0]==='later'));0"); pg.wait_for_timeout(900)
     check('Stage: "Later" (tab or swipe) is a real page with the stage, never blank (13.13.3)', ev("view") == 'later' and 'Stage 1 of' in ev("document.getElementById('view-later').textContent") and not ev("document.getElementById('modal-bg').classList.contains('open')"))
     ev("closeModal&&closeModal();show('dial');0")
@@ -275,10 +275,10 @@ with sync_playwright() as p:
     check('Stage: the Caregivers workflow stays reachable at stage 1', ev("view") == 'dial' and 'bench' in pg.inner_text('#view-dial').lower())
     ev("benchMode='owners';lifeTab='score';show('life');0"); pg.wait_for_timeout(400)
     t = pg.inner_text('#view-life').lower(); check('You: school shows readiness and learning apart from time; body shows weight, strength, consistency; no score or level', 'school' in t and 'body' in t and 'readiness' in t and 'learning' in t and 'strength' in t and 'consistency' in t and 'level' not in t and 'xp' not in t.split())
-    check('Stage: Pipeline is open after a decision-maker conversation', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,boot,acq,book,later')
+    check('Stage: Pipeline is open after a decision-maker conversation', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,boot,book,later')
     ev("show('dial');0")
     check('Stage: one conversation moves the ladder to stage 2 (ten conversations)', ev("sgState().i") == 1 and ev("sgState().s.id") == 'learn')
-    ev("S.settings.stageAll=true;render();0"); check('Stage: "show everything" restores all rooms', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,intel,boot,acq,book')
+    ev("S.settings.stageAll=true;render();0"); check('Stage: "show everything" restores all rooms', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]).join(',')") == 'dial,crm,intel,boot,book')
     check('Stage: no page errors', not errs, errs[:3])
     b.close()
 
@@ -424,6 +424,30 @@ with sync_playwright() as p:
     check('Wealth: syncs (assets + statements merge per item)', ev("(()=>{ const rem=JSON.parse(JSON.stringify(S)); rem.wassets.x9={id:'x9',kind:'asset',name:'Laptop ETF',cls:'invest',value:5,cur:'MDL',_u:now()+9999}; return merge(rem) && !!S.wassets.x9; })()"))
     check('Wealth: no page errors', not errs, errs[:3]); b.close()
 
+    # Learn 13.20: Bootcamp + Courses in one place, presented like a learning app
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    pg.wait_for_function("typeof bcReady==='function'&&bcReady()", timeout=30000)
+    check('Learn: Work has ONE Learn tab (no separate Bootcamp / Courses)', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]+':'+s[1]).filter(x=>/^(boot|acq)/.test(x)).join(',')") == 'boot:Learn')
+    ev("bcS={scr:'home'};show('boot')"); pg.wait_for_timeout(800)
+    r = ev("({up:document.querySelectorAll('#view-boot .ln-up').length, shelf:document.querySelectorAll('#view-boot .ln-co').length, prac:document.querySelectorAll('#view-boot .ln-prac button').length, h:document.documentElement.scrollHeight, sw:document.documentElement.scrollWidth<=innerWidth+1})")
+    check('Learn: home = Up next + practice + 8 course tiles, fits the phone, no endless scroll', r['up'] >= 1 and r['shelf'] == 8 and r['prac'] == 4 and r['sw'] and r['h'] < 3200, r)
+    ev("lnCourse('mm')"); pg.wait_for_timeout(1500)
+    r = ev("({tab:(document.querySelector('.sh-seg button.on')||{}).textContent, rows:document.querySelectorAll('#view-acq .ln-body > .ln-list > .ln-row').length, tabs:[...document.querySelectorAll('#view-acq .ln-tabs button')].map(b=>b.textContent.split(' ')[0]).join(','), cta:!!document.querySelector('#view-acq .ln-cta')})")
+    check('Learn: a course page has Continue + Lessons / Key ideas / Tools, and the Learn tab stays lit', r['rows'] == 32 and r['tabs'] == 'Lessons,Key,Tools' and r['cta'] and r['tab'] == 'Learn', r)
+    ev("lnTab='ideas';render()"); pg.wait_for_timeout(300)
+    check('Learn: Key ideas lists the course deep cards', ev("document.querySelectorAll('#view-acq .ln-idea').length") >= 10)
+    ev("lnTab='tools';render()"); pg.wait_for_timeout(600)
+    check('Learn: Tools keeps the diagrams + calculators without duplicating lessons/cards', ev("!!document.querySelector('#ln-tools .aq-viz') && !document.querySelector('#ln-tools .aq-lib') && !document.querySelector('#ln-tools .xc-deck')"))
+    ev("acqOpen('mm',0)"); pg.wait_for_timeout(1500)
+    check('Learn: a lesson has a clean title, back to the course, and Done → next', ev("!/\\(\\d+ min/.test(document.querySelector('#view-acq .aq-page h2').textContent) && !!document.querySelector('#view-acq .ln-donebar') && /Money Models/.test(document.querySelector('#view-acq .aq-rd-top').textContent)"))
+    ev("document.querySelector('#view-acq .ln-donebar .ln-cta').click()"); pg.wait_for_timeout(1200)
+    check('Learn: Done marks the lesson (synced in S.acq) and opens the next one', ev("!!acqV('ln:mm:0',null) && acqRead && acqRead.i===1"))
+    ev("bcS={scr:'home'};show('boot');acqLibQ='guarantee';render()"); pg.wait_for_timeout(1500)
+    check('Learn: search finds lessons across every course', ev("document.querySelectorAll('#view-boot .aq-hit').length") >= 3)
+    ev("acqLibQ='';bcGo('path')"); pg.wait_for_timeout(500)
+    check('Learn: Your path keeps the full Bootcamp map and modules', ev("!!document.querySelector('#view-boot .bc-map') && document.querySelectorAll('#view-boot .bc-mod').length >= 12"))
+    check('Learn: no page errors', not errs, errs[:3]); b.close()
+
     # Videos 13.18: real course videos inside the app, exact moments, nothing opens YouTube
     b, pg, errs = fresh(p); ev = pg.evaluate
     ev("show('acq');acqOpen('leads',6);0"); pg.wait_for_timeout(3500)
@@ -449,9 +473,9 @@ with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.goto(URL); pg.wait_for_timeout(2200)
     check('Parity: laptop keeps its side rail, no doubled phone copies', pg.evaluate("show('money'),document.querySelectorAll('.ph-rail').length") == 0 and pg.evaluate("document.querySelectorAll('.ph-day').length") == 0); b.close()
 
-    # Courses 13.9: every course as a working module
-    b, pg, errs = fresh(p); ev = pg.evaluate
-    r = ev("""() => { const out={}; show('acq'); out.seg = SH_HUBS.find(h=>h.id==='work').segs.some(s=>s[0]==='acq');
+    # Courses 13.9: every course as a working module (old layout via LN_OFF: the internals still power Learn → Tools)
+    b, pg, errs = fresh(p); ev = pg.evaluate; ev("window.LN_OFF=1")
+    r = ev("""() => { const out={}; show('acq'); out.seg = SH_HUBS.find(h=>h.id==='work').segs.some(s=>s[0]==='boot');
       ['home','scale','offer','leads','mm','sales','mind'].forEach(t=>{ acqTab=t; render(); out[t]=document.querySelector('#view-acq .aq-hd') ? 1 : 0; });
       out.stage0 = acqStage(); acqW('sc:stage',3,true); out.stageMan = acqStage(); acqW('sc:stage',null,true);
       acqW('of:ve:me:d',8,true); acqW('of:ve:me:l',8,true); acqW('of:ve:me:t',2,true); acqW('of:ve:me:e',2,true); acqTab='offer'; render(); out.val = document.querySelector('#view-acq .aq-vv').textContent;
@@ -463,7 +487,7 @@ with sync_playwright() as p:
       S.settings.wealth = S.settings.wealth || {}; S.settings.wealth.minLive = 5000; out.minLive = wlNut().ess; out.tgt = document.querySelectorAll ? 0 : 0;
       mnTab='wealth'; wlOpen='O'; show('money'); out.targets = document.querySelectorAll('#view-money .wl-tgt button').length;
       return out; }""")
-    check('Courses: Work → Courses tab exists and every course module renders', r['seg'] and all(r[k] for k in ['home','scale','offer','leads','mm','sales','mind']), r)
+    check('Courses: Work → Learn tab exists and every course module renders', r['seg'] and all(r[k] for k in ['home','scale','offer','leads','mm','sales','mind']), r)
     check('Courses: scaling stage comes from the log (0 with no evidence), can be set by hand and back', r['stage0'] == 0 and r['stageMan'] == 3, r)
     check('Courses: Value Equation = (dream × likelihood) ÷ (time × effort)', r['val'] == '16.0', r)
     check('Courses: Rule of 100 counts dials + other outreach', r['out'] == 10, r)
@@ -475,7 +499,7 @@ with sync_playwright() as p:
     check('Courses: no page errors', not errs, errs[:3]); b.close()
 
     # Library 13.11: every course readable, diagrams, search, ask
-    b, pg, errs = fresh(p); ev = pg.evaluate
+    b, pg, errs = fresh(p); ev = pg.evaluate; ev("window.LN_OFF=1")
     ev("acqTab='offer';show('acq')"); pg.wait_for_timeout(1500); ev("render()"); pg.wait_for_timeout(300)
     r = ev("""() => ({ ls: document.querySelectorAll('#view-acq .aq-lib .aq-ls button').length, vz: document.querySelectorAll('#view-acq .vz').length })""")
     check('Library: Offers shows every lesson and its diagrams', r['ls'] >= 10 and r['vz'] >= 6, r)
@@ -489,7 +513,7 @@ with sync_playwright() as p:
     check('Library: no page errors', not errs, errs[:3]); b.close()
 
     # Deep cards 13.15: tap an idea → card, inline video segment, AI explain, spaced review
-    b, pg, errs = fresh(p); ev = pg.evaluate
+    b, pg, errs = fresh(p); ev = pg.evaluate; ev("window.LN_OFF=1")
     ev("show('acq')"); pg.wait_for_timeout(2500)
     decks = {}
     for t in ['mind','scale','offer','leads','mm','sales','wealth']:
@@ -533,7 +557,7 @@ with sync_playwright() as p:
     b, pg, errs = fresh(p); ev = pg.evaluate
     pg.wait_for_timeout(2000)
     r = ev("""() => { const s0 = sfScore(); const chip = !!document.querySelector('#arc .sf-chip');
-      acqTab='scale'; acqRead=null; show('acq'); const rows = document.querySelectorAll('#view-acq .sf-row').length;
+      acqTab='scale'; acqRead=null; lnTab='tools'; show('acq'); const rows = document.querySelectorAll('#view-acq .sf-row').length;
       ['s-offer'].forEach(sfTick); const ticked = !!acqV('sf:s-offer', null); sfTick('s-offer');
       return { biz: s0.biz, con: s0.con.k, chip, rows, ticked, stage: acqStage(), tests: SF_T.length, page: !!pb('stage-scorecard') }; }""")
     check('Scorecard: 8 functions, 39 exit tests, business stage = lowest, constraint = Sales on an empty start', r['rows'] == 8 and r['tests'] == 39 and r['biz'] == 0 and r['con'] == 'sales', r)
@@ -542,7 +566,7 @@ with sync_playwright() as p:
     check('Scorecard: no page errors', not errs, errs[:3]); b.close()
 
     # Mindset 2026 13.13: new pages, diagrams, tools
-    b, pg, errs = fresh(p); ev = pg.evaluate
+    b, pg, errs = fresh(p); ev = pg.evaluate; ev("window.LN_OFF=1")
     ev("acqRead=null;acqTab='mind';show('acq')"); pg.wait_for_timeout(1500); ev("render()"); pg.wait_for_timeout(300)
     r = ev("""() => { const n = document.querySelectorAll('#view-acq .vz').length, tool = !!document.querySelector('#view-acq .mt');
       mtArea('Friends','rank','2'); mtArea('Friends','eff','1'); const flag = (document.querySelector('#view-acq .mt-ar i.lo')||{}).textContent;
