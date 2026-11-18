@@ -15,7 +15,7 @@ The current audit and roadmap (18 Nov 2026) live in the Claude doc "War Room: Ma
   (`merge`, `merge3` in `core.js`, since 13.23.2). Every push reads and merges first.
 - **Backups:** Time Machine (`system.js`): one cloud copy per weekday + "before restore" + manual. Server-side table
   `warroom_backup` (no browser access) holds copies taken before risky changes. Export/import JSON in Settings.
-- **Modules:** 70 scripts loaded in order from `index.html`; later files wrap earlier functions (see the audit for the
+- **Modules:** 69 scripts loaded in order from `index.html`; later files wrap earlier functions (see the audit for the
   ownership map). Business: `dial crm pipeline stage intel autopilot playbook`. Money: `money* ledger keep wealth`.
   Body: `train trainlog food sleep body`. Learning: `bootcamp learn mastery capability drive explain clips vplay`.
 - **AI:** optional, user's own key (device-local or relayed by the `warroom-ai` function). The app lock (`lock.js`)
