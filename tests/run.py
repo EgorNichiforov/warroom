@@ -424,6 +424,18 @@ with sync_playwright() as p:
     check('Wealth: syncs (assets + statements merge per item)', ev("(()=>{ const rem=JSON.parse(JSON.stringify(S)); rem.wassets.x9={id:'x9',kind:'asset',name:'Laptop ETF',cls:'invest',value:5,cur:'MDL',_u:now()+9999}; return merge(rem) && !!S.wassets.x9; })()"))
     check('Wealth: no page errors', not errs, errs[:3]); b.close()
 
+    # Videos 13.18: real course videos inside the app, exact moments, nothing opens YouTube
+    b, pg, errs = fresh(p); ev = pg.evaluate
+    ev("show('acq');acqOpen('leads',6);0"); pg.wait_for_timeout(3500)
+    r = ev("({box:!!document.getElementById('cl-box'), m:document.querySelectorAll('.cl-ms button').length, sw:document.documentElement.scrollWidth<=innerWidth+1})")
+    check('Videos: a course lesson shows its acquisition.com video + key moments, page fits the phone', r['box'] and r['m'] >= 5 and r['sw'], r)
+    ev("document.querySelector('.cl-ms button').click()"); pg.wait_for_timeout(500)
+    check('Videos: tapping a moment plays the course video inside War Room from that second', 'player.mux.com' in (ev("(document.querySelector('#cl-pl iframe')||{}).src") or '') and 'start-time=' in ev("document.querySelector('#cl-pl iframe').src"))
+    ev("closeModal&&closeModal();const a=document.createElement('a');a.href='https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s';a.textContent='x';a.id='yt-t';document.body.appendChild(a);a.click();0"); pg.wait_for_timeout(400)
+    check('Videos: any YouTube link anywhere opens the in-app player at its second (never leaves the app)', 'youtube-nocookie.com/embed/dQw4w9WgXcQ' in (ev("(document.querySelector('#modal iframe, .modal iframe, #modal-bg iframe')||{}).src") or '') and 'start=42' in ev("(document.querySelector('#modal-bg iframe')||{}).src||''"))
+    check('Videos: exercise cards have no "open in YouTube" link', 'open in YouTube' not in open(__file__.replace('tests/run.py','exlib.js')).read())
+    check('Videos: no page errors', not errs, errs[:3]); b.close()
+
     # Parity 13.8: the phone gets everything the laptop shows
     b, pg, errs = fresh(p); ev = pg.evaluate
     r = ev("""() => { const out={}; ['dial','money','train','me','week'].forEach(v=>{ show(v); render(); out[v]=!!document.querySelector('#view-'+v+' > .ph-rail .card'); });

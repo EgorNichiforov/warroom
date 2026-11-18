@@ -20,13 +20,13 @@ function xcMatch(text, course) {
   XC.cards.forEach((c) => { let s = 0; c._re.forEach((r) => { if (r.test(t)) s += 2; }); if (!s) return; if (course && c.c === course) s += 1; if (s > bs) { bs = s; best = c; } });
   return best;
 }
-function xcYT(href) { const m = String(href || '').match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if (!m) return null; const t = String(href).match(/[?&#]t=(\d+)/); return { v: m[1], s: t ? +t[1] : 0 }; }
+function xcYT(href) { const mx = String(href || '').match(/(?:stream|player)\.mux\.com\/([A-Za-z0-9]{20,})/); if (mx) { const t = String(href).match(/[?&#](?:t|start-time)=(\d+)/), e = String(href).match(/[?&#]end=(\d+)/); return { v: mx[1], s: t ? +t[1] : 0, e: e ? +e[1] : 0 }; } const m = String(href || '').match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if (!m) return null; const t = String(href).match(/[?&#]t=(\d+)/), e = String(href).match(/[?&#]end=(\d+)/); return { v: m[1], s: t ? +t[1] : 0, e: e ? +e[1] : 0 }; }
 function xcClock(s) { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); }
 
 /* ── the inline player: plays only the segment, inside the app ── */
 function xcPlayerHtml(v, s, e, label) {
   const st = Math.max(0, (s || 0) - 3), en = e || (s ? s + 180 : 0);
-  return `<div class="xc-player" data-v="${esc(v)}"><div class="xc-pl-h"><b>▶ ${esc(label || 'The moment')}</b><span>${s ? xcClock(st) : 'from the start'}${en ? ' → ' + xcClock(en) : ''}</span></div><div class="exc-frame"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v)}?start=${st}${en ? '&end=' + en : ''}&autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Video segment"></iframe></div><div class="xs muted">Plays only this segment, here in War Room. Uses data only while it plays.</div></div>`;
+  return `<div class="xc-player" data-v="${esc(v)}"><div class="xc-pl-h"><b>▶ ${esc(label || 'The moment')}</b><span>${s ? xcClock(st) : 'from the start'}${en ? ' → ' + xcClock(en) : ''}</span></div><div class="exc-frame"><iframe src="${String(v).length > 11 ? `https://player.mux.com/${esc(v)}?autoplay=true&playsinline=true&start-time=${st}&accent-color=%23C9A24A` : `https://www.youtube-nocookie.com/embed/${esc(v)}?start=${st}${en ? '&end=' + en : ''}&autoplay=1&playsinline=1&rel=0&modestbranding=1`}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Video segment"></iframe></div><div class="xs muted">Plays only this segment, here in War Room. Uses data only while it plays.</div></div>`;
 }
 function xcClipBtn(v, s, e, label) { return `<button class="xc-clip" onclick="xcPlay(this,'${esc(v)}',${s || 0},${e || 0},${JSON.stringify(label || '').replace(/"/g, '&quot;')})"><i>▶</i><span><b>${esc(label || 'Watch the moment')}</b><em>${s ? xcClock(s) : 'start'}${e ? ' → ' + xcClock(e) : ''} · plays here</em></span></button>`; }
 function xcPlay(btn, v, s, e, label) { const d = document.createElement('div'); d.innerHTML = xcPlayerHtml(v, s, e, label); btn.replaceWith(d.firstChild); }
@@ -64,7 +64,7 @@ function xcCardHtml(c, opts) {
     ${sec('move', 'Your move · Caregiver Bench', c.move)}
     ${sec('trap', 'The trap', c.trap)}
     ${(c.clip || []).length ? `<div class="xc-s"><div class="xc-l">Watch him explain it</div><div class="xc-clips">${c.clip.map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div></div>` : ''}
-    ${c.lesson ? `<a class="xc-lesson" href="${esc(c.lesson[0])}" target="_blank" rel="noopener"><i>🎓</i><span><b>Full course lesson: ${esc(c.lesson[1])}</b><em>free on acquisition.com · opens their player</em></span></a>` : ''}
+    ${c.lesson ? `<a class="xc-lesson" data-t="${esc(c.t + ' ' + (c.hook || ''))}" href="${esc(c.lesson[0])}" target="_blank" rel="noopener"><i>🎓</i><span><b>Full course lesson: ${esc(c.lesson[1])}</b><em>the real course video · plays here when it can</em></span></a>` : ''}
     ${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}
     ${(c.q || []).length ? `<div class="xc-s"><div class="xc-l">Test yourself · answer out loud first, then tap</div>${c.q.map((x) => `<details class="xc-q"><summary>${esc(x[0])}</summary><div>${pbInline(x[1])}</div></details>`).join('')}</div>` : ''}
     <div class="xc-rate"><span>How well do you know it now?</span><button class="btn sm" onclick="xcRate('${esc(c.id)}',0)">Shaky · show me again tomorrow</button><button class="btn sm primary" onclick="xcRate('${esc(c.id)}',1)">Got it</button></div>
@@ -148,14 +148,14 @@ function xcPanel(li, yt) {
   const old = li.querySelector(':scope > .xp'); if (old && !yt) { old.remove(); li.classList.remove('xp-on'); return; } if (old) old.remove();
   const text = xcIdeaText(li), k = acqRead && acqRead.k, card = xcMatch(text, k), link = yt || [...li.querySelectorAll(':scope > a')].map((a) => xcYT(a.href)).find(Boolean), h = xpHash(text), cached = xpCache[h];
   const p = document.createElement('div'); p.className = 'xp'; li.classList.add('xp-on');
-  p.innerHTML = `${link ? (yt ? xcPlayerHtml(link.v, link.s, 0, 'Where he says it') : xcClipBtn(link.v, link.s, 0, 'Watch where he says it')) : ''}
+  p.innerHTML = `${link ? (yt ? xcPlayerHtml(link.v, link.s, link.e || 0, 'Where he says it') : xcClipBtn(link.v, link.s, link.e || 0, 'Watch where he says it')) : ''}
     ${card ? `<button class="xp-card" onclick="xcOpen('${card.id}')"><span>🧠 Deep card</span><b>${esc(card.t)}</b><em>${pbInline(card.hook)}</em><i>Open: picture, example, your move, video, self-test ›</i></button>` : ''}
     <div class="xp-ai" data-h="${h}">${cached ? xcAiHtml(cached) : `<button class="btn sm${card ? ' ghost' : ' primary'}" onclick="xcExplain(this)">${card ? 'Also explain this exact line' : 'Explain it deeper'}</button>${typeof aiOn === 'function' && !aiOn() ? '<span class="xs muted"> needs the AI key (More → Food photo AI)</span>' : ''}`}</div>`;
   li.appendChild(p);
 }
 document.addEventListener('click', (e) => {
   const page = e.target.closest('.aq-page'); if (!page) return;
-  const a = e.target.closest('a'); if (a) { const y = xcYT(a.href); if (y) { e.preventDefault(); const li = a.closest('li'); if (li) xcPanel(li, y); else { const d = document.createElement('div'); d.innerHTML = xcPlayerHtml(y.v, y.s, 0); a.after(d.firstChild); } } return; }
+  const a = e.target.closest('a'); if (a) { const y = xcYT(a.href); if (y) { e.preventDefault(); const li = a.closest('li'); if (li) xcPanel(li, y); else { const d = document.createElement('div'); d.innerHTML = xcPlayerHtml(y.v, y.s, y.e || 0); a.after(d.firstChild); } } return; }
   if (e.target.closest('button, .xp, summary, input, textarea')) return;
   const li = e.target.closest('li'); if (li) xcPanel(li);
 }, true);
