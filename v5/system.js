@@ -45,7 +45,7 @@ async function snapRestore(slot, btn) {
     if (slot !== 'undo') await snapWrite('undo', 'before restore');
     const keepSync = S.settings.sync; const stamp = now();
     S = d.S; S.settings.sync = keepSync; const bump = (o) => { if (o && typeof o === 'object') o._u = stamp; };
-    Object.keys(S).forEach((k) => { if (S[k] && typeof S[k] === 'object') { bump(S[k]); if (k === 'days' || k === 'tasks' || k === 'goals') Object.values(S[k]).forEach(bump); } });
+    Object.keys(S).forEach((k) => { if (S[k] && typeof S[k] === 'object') { bump(S[k]); if (MERGE_MAPS.includes(k)) Object.values(S[k]).forEach(bump);   /* 13.23.2: every record of the copy wins over the cloud's newer versions (was: only days, tasks, goals, so money and learning were not really restored) */ } });
     save(true); await pushCloud();
     if (d.Q && typeof Q !== 'undefined') { Q = d.Q; Object.values(Q.items || {}).forEach(bump); qSave(); if (typeof qPush === 'function') await qPush(); }
     if (d.B && typeof B !== 'undefined') { B = d.B; Object.values(B.items || {}).forEach(bump); bSave(); }

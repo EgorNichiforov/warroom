@@ -6,7 +6,7 @@
 'use strict';
 
 const RADAR_INTEREST = ['owner', 'booked', 'bulletin', 'trial'];
-function lastTouch(x) { const l = (x.log || [])[x.log ? x.log.length - 1 : -1]; return l ? l.at.slice(0, 10) : (x.last_dial_at || '').slice(0, 10); }
+function lastTouch(x) { const l = (x.log || [])[x.log ? x.log.length - 1 : -1]; return l ? String(l.at || '').slice(0, 10) : (x.last_dial_at || '').slice(0, 10); }
 function daysSince(k) { if (!k) return null; return Math.round((pd(dk(new Date())) - pd(k)) / 864e5); }
 /* every queue item that needs a decision from me, with the reason and the kind */
 function radarItems() {

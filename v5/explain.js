@@ -161,7 +161,7 @@ document.addEventListener('click', (e) => {
 }, true);
 
 /* ── AI deeper explanation (only for ideas without a hand-written card, or on request) ── */
-const XC_SYS = `You explain business and mindset ideas to Egor, 18, in Moldova. He is building Caregiver Bench (recruits screened caregivers for private-pay home care agencies in Naples, Florida, by cold calling; goal $20k MRR by 1 July 2027), coaches kids' tennis and studies for BAC exams. The idea comes from Alex Hormozi's material, paraphrased. Never invent quotes or claim he said exact words.
+const XC_SYS = `You explain business and mindset ideas to Egor, 18, in Moldova. He is building Caregiver Bench (recruits screened caregivers for private-pay home care agencies in Florida by cold calling, Tampa Bay first; goal $20k MRR by 1 July 2027), coaches kids' tennis and studies for BAC exams. The idea comes from Alex Hormozi's material, paraphrased. Never invent quotes or claim he said exact words.
 Return ONLY JSON: {"hook":"the idea in one sentence he can repeat","plain":"2-4 sentences, plain words","analogy":"one concrete analogy, tennis when it fits","example":"a worked example with real numbers","move":"what it means for Caregiver Bench this week, one concrete action","trap":"the most common mistake","memo":"a short memory hook (rhyme, acronym or image)","q":["a recall question","its answer"]}. Short sentences, no jargon, no fluff.`;
 function xcAiHtml(j) {
   const row = (lab, t) => t ? `<div class="xc-s"><div class="xc-l">${lab}</div><div class="xc-b">${pbInline(t)}</div></div>` : '';

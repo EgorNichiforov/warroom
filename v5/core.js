@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.23.1';
+const APP_VERSION = '13.23.2';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -479,7 +479,7 @@ function renderSession() {
     <button class="btn primary lg block" style="height:110px;font-size:28px" onclick="sessBump('dials',1)">+1 dial</button>
     <div class="g3" style="margin-top:8px"><button class="btn" onclick="sessBump('dials',5)">+5 dials</button><button class="btn" style="border-color:rgba(255,191,63,.5);color:var(--amber)" onclick="sessBump('owners',1)">+1 owner talk</button><button class="btn ghost" onclick="sessBump('dials',-1)">undo −1</button></div>
     <div class="g3" style="margin-top:14px"><div class="cd"><div class="n">${sd}</div><div class="l">dials this session</div></div><div class="cd"><div class="n">${so}</div><div class="l">owner talks</div></div><div class="cd"><div class="n">${sd ? Math.round((so / sd) * 100) : 0}<span class="small muted">%</span></div><div class="l">reach rate</div></div></div>
-    <div class="hint" style="margin-top:12px">Week: ${counterWeek('dials', dd)} / ${c ? c.weekly : 225}. A no costs nothing; it is the price of a yes. Log every owner conversation.<br><b>The ask:</b> “Would it be a terrible idea if I sent you a free snapshot of what's working for caregiver hiring in Naples right now?”</div>
+    <div class="hint" style="margin-top:12px">Week: ${counterWeek('dials', dd)} / ${c ? c.weekly : 350}. A no costs nothing; it is the price of a yes. Log every owner conversation.<br><b>The ask:</b> “Would it be a terrible idea if I sent you a free snapshot of what's working for caregiver hiring in Naples right now?”</div>
     <div class="actions"><button class="btn" onclick="closeModal()">Hide</button><button class="btn danger" onclick="endSession()">End session</button></div>`, true);
   clearInterval(sessTimer); sessTimer = setInterval(() => { const el = $('sess-el'); if (!el) { clearInterval(sessTimer); return; } el.textContent = fmtEl(Math.floor((now() - s.start) / 1000)); }, 1000);
 }
@@ -749,7 +749,7 @@ async function pullCloud(silent) {
   if (!syncReady()) return; const s = S.settings.sync;
   try { const r = await fetch(`${s.url}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(s.code)}&select=data,updated_at`, { headers: hdr() });
     if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 404 ? ' (table missing: run the SQL in supabase/warroom_sync.sql)' : ''));
-    const rows = await r.json(); if (rows.length && rows[0].data) { const changed = merge(rows[0].data); if (changed) { save(true); render(); } }
+    const rows = await r.json(); if (rows.length && rows[0].data) { const changed = merge(rows[0].data, true), ahead = syncAhead; baseSet(rows[0].data); if (changed) { clearTimeout(saveTimer); try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { } render(); } if (ahead) schedulePush(); }
     else await pushCloud();
     syncState.status = 'ok'; syncState.last = now(); syncState.msg = ''; if (!silent) toast('Synced'); renderTop();
   } catch (e) { syncState.status = 'err'; syncState.msg = String(e.message || e); renderTop(); if (!silent) toast('Sync failed: ' + syncState.msg); }
@@ -758,17 +758,69 @@ async function pushCloud() {
   if (!syncReady()) return; const s = S.settings.sync; clearTimeout(pushTimer);
   try {
     // read-merge-write: another device may have written since this one last pulled, so fold that in first
-    try { const g = await fetch(`${s.url}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(s.code)}&select=data`, { headers: hdr() }); if (g.ok) { const rows = await g.json(); if (rows.length && rows[0].data && merge(rows[0].data)) { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { } setTimeout(render, 0); } } } catch (e) { }
+    try { const g = await fetch(`${s.url}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(s.code)}&select=data`, { headers: hdr() }); if (g.ok) { const rows = await g.json(); if (rows.length && rows[0].data) { const ch = merge(rows[0].data, true); baseSet(rows[0].data); if (ch) { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { } setTimeout(render, 0); } } } } catch (e) { }
     if (typeof devStamp === 'function') devStamp();
     const r = await fetch(`${s.url}/rest/v1/warroom_sync`, { method: 'POST', headers: Object.assign(hdr(), { Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ id: s.code, data: S, updated_at: new Date().toISOString() }) });
-    if (!r.ok) throw new Error('HTTP ' + r.status); syncState.status = 'ok'; syncState.last = now(); syncState.msg = ''; }
+    if (!r.ok) throw new Error('HTTP ' + r.status); baseSet(S); syncState.status = 'ok'; syncState.last = now(); syncState.msg = ''; }
   catch (e) { syncState.status = 'err'; syncState.msg = String(e.message || e); }
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
-function merge(remote) {
-  let changed = false; const singles = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets', 'doctrine'], maps = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices', 'playbook', 'slab', 'wassets', 'wsnap', 'acq', 'inbox', 'meetings', 'campaigns', 'decisions', 'experiments', 'lifeTests', 'lifeErrors', 'protocols', 'boards', 'accounts', 'txns', 'mplan', 'focus', 'cards', 'boot'];
-  for (const k of singles) if (remote[k] && (remote[k]._u || 0) > ((S[k] && S[k]._u) || 0)) { const keepSync = k === 'settings' ? S.settings.sync : null; S[k] = remote[k]; if (keepSync) S.settings.sync = keepSync; changed = true; }
-  for (const k of maps) { if (!remote[k]) continue; if (!S[k]) S[k] = {}; for (const id in remote[k]) { const r = remote[k][id], l = S[k][id]; if (!l || (r._u || 0) > (l._u || 0)) { S[k][id] = r; changed = true; } } }
+/* 13.23.2 · SYNC INTEGRITY.
+   Before: a day (and each settings-type object) was one record, newest timestamp wins. Two devices touching the same
+   day (phone logs dials, laptop logs weight from a stale copy) → the older device's fields were silently lost.
+   Now: the cloud copy last seen by this device is kept as a BASE. For days and the single objects a 3-way merge runs
+   per field: only one side changed it → that change is kept; both changed it → the newer record wins that field only.
+   No base yet (first sync after this update) or a backup import → the old whole-record rule, unchanged.
+   merge() also notes whether this device holds anything the cloud lacks (syncAhead) so a pull can push it back:
+   a change can no longer sit on one device waiting for its next edit. */
+const MERGE_SINGLES = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets', 'doctrine'];
+const MERGE_MAPS = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices', 'playbook', 'slab', 'wassets', 'wsnap', 'acq', 'inbox', 'meetings', 'campaigns', 'decisions', 'experiments', 'lifeTests', 'lifeErrors', 'protocols', 'boards', 'accounts', 'txns', 'mplan', 'focus', 'cards', 'boot'];
+const BASE_KEY = 'warroom2-base';
+let syncBase = null, syncAhead = false;
+const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+function canon(x) { if (Array.isArray(x)) return '[' + x.map(canon).join(',') + ']'; if (isObj(x)) return '{' + Object.keys(x).filter((k) => k !== '_u' && x[k] !== undefined).sort().map((k) => JSON.stringify(k) + ':' + canon(x[k])).join(',') + '}'; return JSON.stringify(x === undefined ? null : x); }
+const jeq = (a, b) => a === b || canon(a) === canon(b);
+function baseGet() { if (!syncBase) { try { syncBase = JSON.parse(localStorage.getItem(BASE_KEY) || 'null'); } catch (e) { } } const c = S && S.settings && S.settings.sync ? S.settings.sync.code : ''; if (!syncBase || syncBase.c !== c) syncBase = { c, days: {} }; return syncBase; }
+function baseSet(doc) { if (!doc) return; const c = S.settings.sync.code, b = { c, days: doc.days || {} }; MERGE_SINGLES.forEach((k) => { if (doc[k]) b[k] = doc[k]; }); try { const j = JSON.stringify(b); syncBase = JSON.parse(j); localStorage.setItem(BASE_KEY, j); } catch (e) { syncBase = null; } }
+function baseClear() { syncBase = null; try { localStorage.removeItem(BASE_KEY); } catch (e) { } }
+/* field-level 3-way merge of two versions of one record; b = the common ancestor (or undefined inside a branch that has none) */
+function merge3(l, r, b, lNewer) {
+  const out = {}, hasB = isObj(b);
+  for (const k of new Set(Object.keys(l).concat(Object.keys(r)))) {
+    if (k === '_u') continue; const lv = l[k], rv = r[k], bv = hasB ? b[k] : undefined; let v;
+    if (jeq(lv, rv)) v = lv;
+    else if (hasB && jeq(lv, bv)) v = rv;                      /* only the cloud changed it (or removed it) */
+    else if (hasB && jeq(rv, bv)) v = lv;                      /* only this device changed it (or removed it) */
+    else if (isObj(lv) && isObj(rv)) v = merge3(lv, rv, isObj(bv) ? bv : undefined, lNewer);
+    else if (!hasB && (lv === undefined || rv === undefined)) v = lv === undefined ? rv : lv;   /* no ancestor: never drop data */
+    else v = lNewer ? lv : rv;                                 /* both changed the same field: newest record wins it */
+    if (v !== undefined) out[k] = v;
+  }
+  return out;
+}
+function mergeRec(l, r, b) {   /* → { v: record to keep, changed: differs from local, ahead: differs from the cloud } */
+  const lu = (l && l._u) || 0, ru = (r && r._u) || 0;
+  if (!l) return { v: r, changed: true, ahead: false };
+  if (lu === ru) return { v: l, changed: false, ahead: false };
+  if (!isObj(b) || !isObj(l) || !isObj(r)) return ru > lu ? { v: r, changed: true, ahead: false } : { v: l, changed: false, ahead: true };
+  const m = merge3(l, r, b, lu > ru), eqL = jeq(m, l), eqR = jeq(m, r);
+  if (eqR) return { v: r, changed: !eqL || ru > lu, ahead: false };          /* nothing local the cloud lacks */
+  if (eqL) return { v: l, changed: false, ahead: true };                      /* nothing in the cloud this device lacks */
+  m._u = Math.max(now(), lu + 1, ru + 1); return { v: m, changed: true, ahead: true };   /* a new version holding both sides */
+}
+function merge(remote, threeWay) {
+  let changed = false; syncAhead = false; const base = threeWay ? baseGet() : {};
+  for (const k of MERGE_SINGLES) {
+    if (!remote[k]) { if (S[k] && S[k]._u) syncAhead = true; continue; }
+    const keepSync = k === 'settings' ? S.settings.sync : null, res = mergeRec(S[k], remote[k], base[k]);
+    if (res.changed) { S[k] = res.v; changed = true; } if (res.ahead) syncAhead = true;
+    if (keepSync) S.settings.sync = keepSync;
+  }
+  for (const k of MERGE_MAPS) {
+    const R = remote[k]; if (!R) { if (S[k] && Object.values(S[k]).some((x) => x && x._u)) syncAhead = true; continue; } if (!S[k]) S[k] = {};
+    for (const id in R) { const res = mergeRec(S[k][id], R[id], k === 'days' && base.days ? base.days[id] : undefined); if (res.changed) { S[k][id] = res.v; changed = true; } if (res.ahead) syncAhead = true; }
+    if (!syncAhead) for (const id in S[k]) if (!R[id] && S[k][id] && S[k][id]._u) { syncAhead = true; break; }
+  }
   return changed;
 }
 function renderSync() {
@@ -783,11 +835,11 @@ function renderSync() {
     <div class="card"><button class="btn danger block" onclick="resetAll()">Reset everything on this device</button></div>`;
 }
 function genCode() { const a = new Uint8Array(18); crypto.getRandomValues(a); return Array.from(a, (b) => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join(''); }
-function connectSync() { const code = $('s-code').value.trim(); if (code.length < 16) { toast('Code must be 16+ characters'); return; } const u = $('s-url'), k = $('s-key'); S.settings.sync = { url: (u ? u.value.trim() : S.settings.sync.url).replace(/\/$/, ''), key: k ? k.value.trim() : S.settings.sync.key, code }; save(true); pullCloud(false); }
-function disconnectSync() { S.settings.sync.code = ''; syncState.status = 'off'; save(true); render(); }
+function connectSync() { const code = $('s-code').value.trim(); if (code.length < 16) { toast('Code must be 16+ characters'); return; } const u = $('s-url'), k = $('s-key'); S.settings.sync = { url: (u ? u.value.trim() : S.settings.sync.url).replace(/\/$/, ''), key: k ? k.value.trim() : S.settings.sync.key, code }; baseClear(); save(true); pullCloud(false); }
+function disconnectSync() { baseClear(); S.settings.sync.code = ''; syncState.status = 'off'; save(true); render(); }
 function exportData() { S.settings.lastExport = now(); S.settings._u = now(); save(); const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'warroom_' + dk(new Date()) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 function importData(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if (!d.days) throw 0; merge(d); save(true); render(); toast('Imported'); } catch { toast('Not a War Room backup'); } }; r.readAsText(f); e.target.value = ''; }
-function resetAll() { if (!confirm('Delete ALL local data and restore the defaults? Export first if unsure.')) return; localStorage.removeItem(STORE); S = seed(); save(true); moreTab = 'home'; show('today'); }
+function resetAll() { if (!confirm('Delete ALL local data and restore the defaults? Export first if unsure.')) return; localStorage.removeItem(STORE); baseClear(); S = seed(); save(true); moreTab = 'home'; show('today'); }
 
 /* ───────── modal ───────── */
 function openModal(html, noFocus) { $('modal').innerHTML = `<div style="display:flex;justify-content:flex-end"><button class="iconbtn" onclick="closeModal()" aria-label="Close">×</button></div>` + html; $('modal-bg').classList.add('open'); if (noFocus) return; const f = $('modal').querySelector('input:not([type=date]):not([type=time]),textarea'); if (f && !f.value) setTimeout(() => f.focus(), 50); }

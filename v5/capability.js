@@ -45,7 +45,7 @@ const CP_MOD_MODE = { m0: ['selfreg', 'judgment'], ex: ['selfreg'], m1: ['judgme
 /* 70/20/10: what moves first client + BAC + body now · what the next level needs · expansion */
 const CP_ALLOC = [['now', 'Current mission', 70, ['m0', 'ex', 'm1', 'mk', 'm4', 'm5', 'm6', 'm2', 'm3', 'l1', 'l2', 'l3', 'l4', 'l5']], ['next', 'Next stage', 20, ['m7', 'm8', 'm9', 'm10', 'l6']], ['wide', 'Expansion', 10, ['lg', 'm11', 'l7']]];
 const CP_ELSE = ['negotiating a price with a customer in your dad\'s shop', 'a parent of one of your tennis kids who wants to quit the group', 'studying for the BAC when you don\'t feel like it', 'recruiting a caregiver who is unsure about the job', 'agreeing a schedule change with Irina at the club', 'a friend asking you to skip a dial block to go out', 'a tennis match you are losing 2-5', 'pitching the AI agency to a Chisinau business owner'];
-const CP_DIM = [['u', 'Understand', 'explained it in your own words'], ['r', 'Retain', 'recalled it after a gap, still ≥70%'], ['a', 'Apply', 'chose it right under pressure or used it for real'], ['i', 'Integrate', 'used it somewhere new or taught it (4★+)']];
+const CP_DIM = [['u', 'Understand', 'explained it in your own words (not just recalled)'], ['r', 'Retain', 'recalled it after a gap, still ≥70%'], ['a', 'Apply', 'chose it right under pressure or used it for real'], ['i', 'Integrate', 'used it in an unfamiliar situation (transfer test 3+/5)']];
 const CP_ST = [['un', 'Unlearned'], ['lrn', 'Learning'], ['cmp', 'Competent'], ['mnt', 'Maintained']];
 
 const cpToday = () => dk(new Date());
@@ -60,10 +60,11 @@ function cpDims(id) {
   const tb = bcV('tb:' + id, null), rh = cpRh(id).filter((d) => d > l.at), j = bcV('j:' + id, 0), u = bcV('u:' + id, null), tr = bcV('tr:' + id, null), fy = bcV('fy:' + id, null), rk = bcV('rk:' + id, null);
   const R = typeof msR === 'function' ? msR(id) : 1;
   return {
-    u: !!((l.r >= 1 && (l.rc || '').length > 15) || (tb && tb.s >= 3) || fy || (rk && rk.n >= 3) || rh.length),
+    /* 13.23.2: each dimension has its own evidence. Remembering is not understanding; explaining is not transfer. */
+    u: !!((l.r >= 1 && (l.rc || '').length > 15) || (tb && tb.s >= 3) || fy || (rk && rk.n >= 3)),
     r: !!(rh.length && R >= 0.7),
     a: !!(j > 0 || u),
-    i: !!((tr && tr.s >= 3) || (tb && tb.s >= 4))
+    i: !!(tr && tr.s >= 3)
   };
 }
 function cpStatus(id) {
@@ -179,7 +180,7 @@ function cpSimPick(k) {
   else if (bcV('l:' + q.a, null)) { bcW('x:' + q.a, (bcV('x:' + q.a, 0) || 0) + 1); const c = (S.cards || {})[q.a], tm = dk(new Date(Date.now() + 864e5)); if (c && c.due > tm) { c.due = tm; c._u = now(); } }
   CPS._ok = ok; bcDay('q'); if (k < 0) { cpSimShow(); return; } cpSimShow();
 }
-function cpSimConf(c) { CPS.conf = c; const q = CPS.q[CPS.i]; cpCal(c, CPS._ok, 'sim', q.a); const t = cpToday(), m = bcV('cm:' + t, null); if (m && CPS.focus && CPS._ok) bcW('cm:' + t, Object.assign({}, m, { ap: 1 })); cpSimShow(); }
+function cpSimConf(c) { CPS.conf = c; const q = CPS.q[CPS.i]; cpCal(c, CPS._ok, 'sim', q.a); const t = cpToday(), m = bcV('cm:' + t, null); if (m && !m.ap && (CPS.focus || !m.id) && CPS._ok) bcW('cm:' + t, Object.assign({}, m, { ap: 'decision sim, right call' })); cpSimShow(); }
 
 /* ── transfer test: same principle, a completely different situation ── */
 let CPT = null;
@@ -207,7 +208,7 @@ async function cpTrCheck() {
     <div class="cp-chk">${['My answer uses the principle, not just common sense', 'It names a concrete thing to say or do', 'It fits this new situation (not copy-pasted from calls)'].map((t, k) => `<label><input type="checkbox" class="cp-trc"> ${t}</label>`).join('')}</div>
     <div class="actions"><button class="btn primary" onclick="cpTrSave(1+document.querySelectorAll('.cp-trc:checked').length+(document.querySelectorAll('.cp-trc:checked').length===3?1:0));closeModal();render();toast('Saved')">Save</button></div>`);
 }
-function cpTrSave(s) { bcW('tr:' + CPT.id, { at: cpToday(), s, ctx: CPT.ctx, said: (CPT.said || '').slice(0, 400) }); const t = cpToday(), m = bcV('cm:' + t, null); if (m && s >= 3) bcW('cm:' + t, Object.assign({}, m, { ap: 1 })); }
+function cpTrSave(s) { bcW('tr:' + CPT.id, { at: cpToday(), s, ctx: CPT.ctx, said: (CPT.said || '').slice(0, 400) }); const t = cpToday(), m = bcV('cm:' + t, null); if (m && !m.ap && s >= 3) bcW('cm:' + t, Object.assign({}, m, { ap: 'transfer test ' + s + '/5' })); }
 
 /* ── Feynman test: explain it to a smart 15-year-old ── */
 let CPF = null;
@@ -249,6 +250,7 @@ function cpAarSave() {
   if (!r.hap || !r.chg) { toast('Write what happened and what you will change'); return; }
   bcW('aar', (bcV('aar', []) || []).concat([r]).slice(-40));
   if (r.id) { const u = bcV('u:' + r.id, null) || { n: 0, log: [] }; u.n++; u.log = (u.log || []).concat([{ at: r.at, note: 'AAR: ' + r.hap.slice(0, 120) }]).slice(-5); bcW('u:' + r.id, u); }
+  const cm = cpMission(); if (cm && !cm.ap) bcW('cm:' + cpToday(), Object.assign({}, cm, { ap: 'real use, logged in an after-action review' }));
   closeModal(); toast('Saved. Next time, try the change and come back to say if it worked.'); render();
 }
 function cpAarEval(k, v) { const a = (bcV('aar', []) || []).slice(); if (!a[k]) return; a[k] = Object.assign({}, a[k], { ev: v, evAt: cpToday() }); bcW('aar', a); toast(v === 'keep' ? 'Kept: it is now part of how you work' : v === 'mod' ? 'Modify it: write a new AAR with the tweak' : 'Dropped. Good: you tested it instead of guessing.'); if (v === 'mod') cpAar(a[k].id); else render(); }
@@ -287,7 +289,7 @@ function cpMissionStart(long) {
 }
 function cpMDone(m) {
   const id = m.id, l = id && bcV('l:' + id, null);
-  return { brief: !!m.brief, rv: !!m.rv || !msQueue(8).length, new: !id || !!(l && l.at === cpToday()), rk: !!m.rk, ap: !!m.ap, db: !!m.db };
+  return { brief: !!m.brief, rv: !!m.rv || !msQueue(8).length, new: !id || !!(l && l.at === cpToday()), rk: !id || !!m.rk, ap: !!m.ap, db: !!m.db };
 }
 function cpMSet(k, v) { const t = cpToday(), m = Object.assign({}, cpMission() || {}); m[k] = v == null ? 1 : v; bcW('cm:' + t, m); render(); window.scrollTo(0, 0); }
 function cpMissionHtml() {
@@ -300,10 +302,10 @@ function cpMissionHtml() {
     if (on && k === 'new') body = `<button class="btn primary block" onclick="cpLessonFromMission('${id}')">Open the lesson · ${esc(c.t)}</button><div class="aq-note">Comes back here when you finish.</div>`;
     if (on && k === 'rk') body = `<div class="ms-p">Close everything. From memory, write or draw <b>all of it</b>: the idea, why it works, the example, the trap, when it does not apply, how you'll use it.</div><textarea class="aq-in ms-in" id="cp-rk" placeholder="Everything you remember about ${esc(c ? c.t : 'today\'s lesson')}…">${esc(bcS.rk || '')}</textarea>
       ${bcS.rkShow && c ? `<div class="ms-card"><div class="xc-hook">${pbInline(c.hook)}</div>${c.ex ? `<div class="xc-s"><div class="xc-l">Example</div><div class="xc-b">${pbInline(c.ex)}</div></div>` : ''}${c.trap ? `<div class="xc-s"><div class="xc-l">Trap</div><div class="xc-b">${pbInline(c.trap)}</div></div>` : ''}${c.move ? `<div class="xc-s"><div class="xc-l">Move</div><div class="xc-b">${pbInline(c.move)}</div></div>` : ''}</div><div class="ms-p">What did you have?</div><div class="cp-chk">${['The core idea', 'Why it works', 'An example', 'The trap', 'How I will use it'].map((t) => `<label><input type="checkbox" class="cp-rkc"> ${t}</label>`).join('')}</div><button class="btn primary block" onclick="cpRkSave('${id}')">Save · next</button>` : `<button class="btn primary block" onclick="bcS.rk=($('cp-rk')||{}).value||'';if(bcS.rk.trim().length<15){toast('Write what you remember first');return;}bcS.rkShow=1;render()">Compare with the card</button>`}`;
-    if (on && k === 'ap') body = `<div class="aq-note">${mo[1]} mode → ${mo[3].toLowerCase()}.</div><div class="cp-apb">${['performance'].includes(cpModeOf(id)) ? `<button class="btn primary" onclick="bcGo('sim')">🎙 Owner simulator</button>` : ''}<button class="btn primary" onclick="cpSim(['${id}'])">⚖ Decision sim</button><button class="btn" onclick="cpTransfer('${id}')">🔁 Transfer test</button></div>${m.long ? `<div class="aq-note">40-min version: do two of these. More practice, never more reading.</div>` : ''}<button class="btn ghost block" onclick="cpMSet('ap')">Done: I practised it (simulator or a real call)</button>`;
+    if (on && k === 'ap') body = `<div class="aq-note">${mo ? `${mo[1]} mode → ${mo[3].toLowerCase()}. ` : ''}This step closes only on evidence: a right call in a sim, a transfer test at 3+/5, a graded owner simulation, or a real use you log.</div><div class="cp-apb">${id && cpModeOf(id) === 'performance' ? `<button class="btn primary" onclick="bcGo('sim')">🎙 Owner simulator</button>` : ''}<button class="btn primary" onclick="cpSim(${id ? `['${id}']` : 'null'})">⚖ Decision sim</button><button class="btn" onclick="cpTransfer(${id ? `'${id}'` : ''})">🔁 Transfer test</button><button class="btn" onclick="cpAar(${id ? `'${id}'` : ''})">📞 I used it for real · log it</button></div>${m.long ? `<div class="aq-note">40-min version: do two of these. More practice, never more reading.</div>` : ''}`;
     if (on && k === 'db') body = `<textarea class="aq-in" id="cp-d1" placeholder="Evidence: what can I now DO that I couldn't this morning?"></textarea><textarea class="aq-in" id="cp-d2" placeholder="Gap: what is still unclear?"></textarea>${c && (S.cards || {})[id] ? `<div class="aq-note">Next review of “${esc(c.t)}”: ${esc(S.cards[id].due)}.</div>` : ''}<button class="btn primary block" onclick="cpDbSave()">Close the mission</button>`;
     if (!on && !ok && (k === 'rk' || k === 'ap') && !id) body = '';
-    return `<div class="cp-ms ${ok ? 'ok' : on ? 'on' : ''}"><div class="cp-msh"><u>${ok ? '✓' : i + 1}</u><b>${s[1]}</b><em>${s[2]}${k === 'ap' && m.long ? '+10' : ''} min</em>${ok && k !== 'db' && k !== 'brief' ? '' : ''}</div>${body ? `<div class="cp-msb">${body}</div>` : ''}</div>`; };
+    return `<div class="cp-ms ${ok ? 'ok' : on ? 'on' : ''}"><div class="cp-msh"><u>${ok ? '✓' : i + 1}</u><b>${s[1]}${k === 'ap' && typeof m.ap === 'string' ? ` · <span class="cp-how">${esc(m.ap)}</span>` : ''}</b><em>${s[2]}${k === 'ap' && m.long ? '+10' : ''} min</em>${ok && k !== 'db' && k !== 'brief' ? '' : ''}</div>${body ? `<div class="cp-msb">${body}</div>` : ''}</div>`; };
   const n = Object.values(done).filter(Boolean).length;
   return `${bcHead("Today's mission", `${plan} minutes · ${n}/6 done · ${mins} min in`, `bcGo('home',{tab:'path'})`)}<div class="bcx-bar cp-mbar"><i style="width:${n / 6 * 100}%"></i></div>
     ${CP_STEPS.map(step).join('')}${!cur ? `<div class="card cp-mdone"><b>Mission complete.</b><span>${mins} minutes. Capability built, not just content consumed. ${cpLate() ? 'Now sleep: tonight is when it gets stored.' : ''}</span><button class="btn primary block" onclick="bcGo('home',{tab:'path'})">Back to the Path</button></div>` : ''}`;
@@ -341,7 +343,7 @@ function cpDash() {
       <div class="aq-note">Competent = understood + retained + applied. Maintained = also used somewhere new, and still holding after 30+ days. Reading a lesson never makes anything Competent.</div></div>
     <div class="card cp-dash"><div class="bcx-sec" style="margin:0 0 8px">Do you know what you know? <span>${cal.log.length} answers</span></div>
       ${cal.log.length >= 3 ? `${calSvg}<div class="cp-cals"><div><b>${cal.brier != null ? cal.brier : '–'}</b><span>calibration /100</span></div><div class="${cal.blind ? 'bad' : ''}"><b>${cal.blind}</b><span>blind spots (sure + wrong)</span></div><div><b>${cal.under}</b><span>knew more than you thought</span></div></div><div class="aq-note">${cal.over > 10 ? `You are overconfident by about ${cal.over} points: you feel you know more than you do. Trust the tests, not the feeling.` : cal.over < -10 ? `You underrate yourself by about ${-cal.over} points. You know more than you think.` : 'Your confidence matches reality. That is rare and valuable.'} Dashed line = perfect calibration.</div>${cpBlindIds().length ? `<button class="btn sm" onclick="cpRecallSet(cpBlindIds())">Review ${cpBlindIds().length} blind spot${cpBlindIds().length > 1 ? 's' : ''} ›</button>` : ''}` : '<div class="aq-note">Every recall and decision now asks how sure you are before the answer. After a few, this shows whether your confidence matches reality.</div>'}</div>
-    <div class="card cp-dash"><div class="bcx-sec" style="margin:0 0 8px">70 / 20 / 10 <span>last 28 days of lessons</span></div>${alloc}<div class="aq-note">${alNote}</div></div>`;
+    <div class="card cp-dash"><div class="bcx-sec" style="margin:0 0 8px">Lesson mix vs 70 / 20 / 10 <span>counts lessons, not minutes · last 28 days</span></div>${alloc}<div class="aq-note">${alNote}</div></div>`;
 }
 function cpTraining() {
   const L = cpLearnedSet(), bs = cpBlindIds(), row = (on, ic, t, d, when, act) => `<button class="bcx-pr ${on ? '' : 'off'}" ${on ? `onclick="${act}"` : 'disabled'}><u>${ic}</u><span><b>${t}</b><em>${d}</em><s>${when}</s></span><i>${on ? '›' : ''}</i></button>`, ai = typeof aiOn === 'function' && aiOn();
@@ -370,6 +372,7 @@ function cpDoctrine() {
   bcPath = function () { return cpHero() + _path.apply(this, arguments); };
   bcPractice = function () { return cpTraining() + _prac.apply(this, arguments); };
   bcProgress = function () { return cpDash() + _prog.apply(this, arguments); };
+  if (typeof bcSimGrade === 'function') { const _sg = bcSimGrade; bcSimGrade = async function () { const r = await _sg.apply(this, arguments); try { const fb = bcS.run && bcS.run.fb, cm = cpMission(); if (fb && !fb.err && cm && !cm.ap) { bcW('cm:' + cpToday(), Object.assign({}, cm, { ap: 'owner simulator, graded ' + (fb.score != null ? fb.score : '') })); } } catch (e) { } return r; }; }
   bcMissions = function () { return `<div class="bcx-sec">Reality loop <span>observe → diagnose → experiment → evaluate</span></div><button class="btn primary block cp-aarb" onclick="cpAar()">＋ After-action review · 60 seconds</button>${cpAarList()}` + _mis.apply(this, arguments); };
   bcMap = function () { return _map.apply(this, arguments).replace(/(<button class="r\d"[^>]*?)onclick="xcOpen\(/g, '$1onclick="cpIdea('); };
   bcTop = function () { const s = cpStats(); return _top.apply(this, arguments).replace('<span title="rank">', `<span title="competent ideas (proven by evidence)">✅ ${s.st.cmp + s.st.mnt}</span><span title="rank">`).replace('onclick="bcHelp()"', 'onclick="cpDoctrine()"'); };
@@ -398,7 +401,7 @@ function cpDoctrine() {
   .cp-ms{border:1px solid var(--ln,#2a2a2e);border-radius:12px;margin:8px 0;padding:10px 12px}.cp-ms.on{border-color:var(--acc,#C9A24A)}.cp-ms.ok{opacity:.65}.cp-msh{display:flex;gap:10px;align-items:center}.cp-msh u{text-decoration:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--ln,#444);display:grid;place-items:center;font:600 12px/1 var(--mono,monospace);flex:none}.cp-ms.ok u{background:var(--good,#3fb950);border-color:var(--good,#3fb950);color:#000}.cp-ms.on u{border-color:var(--acc,#C9A24A);color:var(--acc,#C9A24A)}.cp-msh b{flex:1;font-size:14.5px}.cp-msh em{font-style:normal;font:12px var(--mono,monospace);color:var(--muted,#999)}.cp-msb{margin-top:10px;display:flex;flex-direction:column;gap:8px}.cp-mbar{margin:10px 0 4px}
   .cp-brf{display:grid;gap:8px}.cp-brf div,.cp-cap,.cp-prin,.cp-sit{font-size:13.5px;line-height:1.45}.cp-brf span,.cp-cap span,.cp-prin span,.cp-sit>span,.cp-lcap span{display:block;font:600 10.5px/1.4 var(--mono,monospace);text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#999)}.cp-brf b{font-size:16px}.cp-brf em{font-style:normal;color:var(--muted,#aaa)}
   .cp-lcap{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;margin:8px 0;padding:10px;border:1px dashed var(--ln,#333);border-radius:10px;font-size:12.5px;line-height:1.4}
-  .cp-apb{display:flex;flex-wrap:wrap;gap:6px}.cp-mdone{display:flex;flex-direction:column;gap:6px}.cp-mdone b{font-size:18px}.cp-mdone span{color:var(--muted,#bbb);font-size:13px}
+  .cp-apb{display:flex;flex-wrap:wrap;gap:6px}.cp-how{font-weight:400;font-size:12px;color:var(--muted,#999)}.cp-mdone{display:flex;flex-direction:column;gap:6px}.cp-mdone b{font-size:18px}.cp-mdone span{color:var(--muted,#bbb);font-size:13px}
   .cp-conf{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}.cp-conf button{min-height:58px;border:1px solid var(--ln,#2a2a2e);border-radius:10px;background:transparent;color:var(--ink,#eee);font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}.cp-conf b{font-size:15px}.cp-conf em{font-style:normal;font-size:10.5px;color:var(--muted,#999)}.cp-said-conf{font-size:12.5px;color:var(--muted,#bbb);margin:6px 0}
   .cp-tbar{height:4px;background:var(--ln,#2a2a2e);border-radius:2px;overflow:hidden;margin:-2px 0 10px}.cp-tbar i{display:block;height:100%;width:100%;background:var(--acc,#C9A24A);transition:width .25s linear}.cp-sit{border-left:3px solid var(--acc,#C9A24A);padding:6px 10px;margin:4px 0 8px;font-size:14.5px}
   .cp-opts{display:grid;gap:6px}.cp-opts button{text-align:left;min-height:48px;border:1px solid var(--ln,#2a2a2e);border-radius:10px;background:transparent;color:var(--ink,#eee);font:inherit;font-size:14px;padding:10px 12px;cursor:pointer}.cp-picked{font-size:13.5px;margin:4px 0}

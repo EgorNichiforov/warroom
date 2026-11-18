@@ -10,9 +10,11 @@ function qKey() { return S.settings.sync.code + ':queue'; }
 function qHdr() { const s = S.settings.sync; return { apikey: s.key, Authorization: 'Bearer ' + s.key, 'x-warroom-key': qKey(), 'Content-Type': 'application/json' }; }
 function qSave(push) { try { localStorage.setItem(QSTORE, JSON.stringify(Q)); } catch (e) { console.error(e); } if (push !== false) qSchedulePush(); }
 function qSchedulePush() { if (!syncReady()) return; clearTimeout(qPushTimer); qPushTimer = setTimeout(qPush, 2000); }
+let qAhead = false;
 function qMerge(remote) {
-  let changed = false; if (!remote || !remote.items) return false;
-  for (const id in remote.items) { const r = remote.items[id], l = Q.items[id]; if (!l || (r._u || 0) > (l._u || 0)) { Q.items[id] = r; changed = true; } }
+  let changed = false; qAhead = false; if (!remote || !remote.items) return false;
+  for (const id in remote.items) { const r = remote.items[id], l = Q.items[id]; if (!l || (r._u || 0) > (l._u || 0)) { Q.items[id] = r; changed = true; } else if ((l._u || 0) > (r._u || 0)) qAhead = true; }
+  if (!qAhead) for (const id in Q.items) if (!remote.items[id] && Q.items[id]._u) { qAhead = true; break; }
   return changed;
 }
 async function qPull(silent) {
@@ -21,7 +23,7 @@ async function qPull(silent) {
     const r = await fetch(`${s.url}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(qKey())}&select=data`, { headers: qHdr() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
-    if (rows.length && rows[0].data && rows[0].data.items) { if (qMerge(rows[0].data)) { qSave(false); if (view === 'dial') render(); } }
+    if (rows.length && rows[0].data && rows[0].data.items) { const ch = qMerge(rows[0].data), ahead = qAhead; if (ch) { qSave(false); if (view === 'dial') render(); } if (ahead) qSchedulePush(); }
     else await qPush();
     qState.status = 'ok'; qState.last = now(); qState.msg = '';
   } catch (e) { qState.status = 'err'; qState.msg = String(e.message || e); if (!silent) toast('Queue sync failed: ' + qState.msg); }
@@ -29,6 +31,8 @@ async function qPull(silent) {
 async function qPush() {
   if (!syncReady() || !Q) return; const s = S.settings.sync; clearTimeout(qPushTimer);
   try {
+    /* 13.23.2: fold in what another device wrote since this one last pulled, so a push can never erase its call logs */
+    try { const g = await fetch(`${s.url}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(qKey())}&select=data`, { headers: qHdr() }); if (g.ok) { const rows = await g.json(); if (rows.length && rows[0].data && rows[0].data.items && qMerge(rows[0].data)) { try { localStorage.setItem(QSTORE, JSON.stringify(Q)); } catch (e) { } if (view === 'dial') setTimeout(render, 0); } } } catch (e) { }
     const r = await fetch(`${s.url}/rest/v1/warroom_sync`, { method: 'POST', headers: Object.assign(qHdr(), { Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ id: qKey(), data: Q, updated_at: new Date().toISOString() }) });
     if (!r.ok) throw new Error('HTTP ' + r.status); qState.status = 'ok'; qState.last = now(); qState.msg = '';
   } catch (e) { qState.status = 'err'; qState.msg = String(e.message || e); }

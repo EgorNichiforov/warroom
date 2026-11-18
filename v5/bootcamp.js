@@ -23,7 +23,9 @@ function bcSrs(id, ok) { S.cards = S.cards || {}; const r = S.cards[id] || { ste
 const BC_RUNG = [['New', ''], ['Learned', 'did the lesson'], ['Recalled', 'said it from memory'], ['Judged', 'picked it right in a scenario'], ['Used', 'used it on a real call'], ['Proven', 'still there after 21+ days']];
 function bcRung(id) {
   const l = bcV('l:' + id, null); if (!l) return 0; const s = (S.cards || {})[id] || {}, j = bcV('j:' + id, 0), u = bcV('u:' + id, null);
-  if (u && (s.step || 0) >= 3) return 5; if (u) return 4; if (j > 0) return 3; if ((l.r || 0) >= 1 || (s.step || 0) >= 1) return 2; return 1;
+  /* 13.23.2: Proven = used for real AND recalled successfully 21+ real days after learning (was: 3 review steps, which could happen within days) */
+  const t0 = Date.parse(l.at), held = (bcV('rh:' + id, []) || []).some((d) => (Date.parse(d) - t0) / 864e5 >= 21);
+  if (u && held) return 5; if (u) return 4; if (j > 0) return 3; if ((l.r || 0) >= 1 || (s.step || 0) >= 1) return 2; return 1;
 }
 const bcLearned = (m) => m.cards.filter((c) => bcV('l:' + c, null)).length;
 const bcCleared = (m) => !!(bcV('b:' + m.id, {}) || {}).pass;
@@ -167,7 +169,7 @@ function bcPractice() {
     ${row(weak.length > 0, '🎯', `Weak spots${weak.length ? ' · ' + Math.min(8, weak.length) : ''}`, weak.length ? 'Your most-missed: ' + weak.slice(0, 3).map((id) => esc(XC.byId[id].t)).join(', ') : 'Ideas you get wrong collect here.', 'Sundays, or after a bad boss fight', "bcQuizStart('weak')")}
     ${row(true, '⚡', 'Short day · 10 min', '3 reviews + 1 hard scenario. Keeps the streak alive.', 'Busy or bad days. Never zero.', "bcQuizStart('mini')")}
     <div class="bcx-sec">Practise the calls</div>
-    ${row(true, '🎙', 'Owner simulator', `AI plays a Tampa agency owner (5 levels). You reply, then get graded against the cards.${sims.length ? ' Last score: ' + sims[sims.length - 1].score : ''}`, 'Sundays: 2 calls at level 3+', "bcGo('sim')")}
+    ${row(true, '🎙', 'Owner simulator', `AI plays a Tampa Bay agency owner (5 levels). You reply, then get graded against the cards.${sims.length ? ' Last score: ' + sims[sims.length - 1].score : ''}`, 'Sundays: 2 calls at level 3+', "bcGo('sim')")}
     <div class="bcx-sec">Exams</div>
     ${row(allClear, '🏁', 'Final exam · Business', '30 questions from everything. 85% to certify.', allClear ? 'Ready' : 'Opens when every Business module is cleared', "bcQuizStart('final')")}`;
 }
