@@ -30,7 +30,7 @@ function lnCount(k) { const n = (acqLib[k] && acqLib[k].lessons ? acqLib[k].less
 function lnNext(k) { const n = lnCount(k).n; for (let i = 0; i < n; i++) if (!lnDone(k, i)) return i; return 0; }
 function lnHrs(min) { if (!min) return ''; const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h${m ? ' ' + m + ' min' : ''}` : `${m} min`; }
 function lnMin(t) { const m = String(t).match(/\(~?(\d+(?:\.\d+)?) min/) || String(t).match(/(\d+(?:\.\d+)?) min/); return m ? Math.round(+m[1]) : 0; }
-function lnTitle(t) { return (typeof acqLessonT === 'function' ? acqLessonT(t) : t).replace(/^\d+\s*·\s*/, '').replace(/\s*\((?:~?\d+(?:\.\d+)?\s*min[^)]*|video-only[^)]*)\)\s*/g, ' ').replace(/\s+—\s+"[^"]*"\s*$/, '').trim(); }
+function lnTitle(t) { return (typeof acqLessonT === 'function' ? acqLessonT(t) : t).replace(/^\d+\s*·\s*/, '').replace(/\s*\([^)]*(?:\bmin|video-only)[^)]*\)\s*/g, ' ').replace(/\s+—\s+"[^"]*"\s*$/, '').trim(); }
 function lnCards(k) { return typeof XC !== 'undefined' && XC && XC.cards ? XC.cards.filter((c) => c.c === k) : []; }
 function lnRung(id) { try { return typeof bcRung === 'function' && typeof BC !== 'undefined' && BC && BC.cardMod && BC.cardMod[id] ? bcRung(id) : 0; } catch (e) { return 0; } }
 
@@ -130,6 +130,24 @@ function lnCourseHtml(k) {
   }
 })();
 
+
+/* Scaling Roadmap: a stage map on every stage lesson (where this stage sits, team, role, the fix per function) */
+const LN_STAGES = [['Improvise', '0–1'], ['Monetize', '0–1'], ['Advertise', '0–1'], ['Stabilize', '1–4'], ['Prioritize', '5–9'], ['Productize', '10–19'], ['Optimize', '20–49'], ['Categorize', '50–99'], ['Specialize', '100–249'], ['Capitalize', '250–500']];
+function lnStageMap(i) {
+  const L = acqLib.scale, l = L && L.lessons && L.lessons[i]; if (!l) return '';
+  const st = i - 2; if (st < 0 || st > 9) return '';
+  const role = (String(l.t).match(/role\s*=\s*([A-Za-z ]+)/i) || [])[1] || '';
+  const secs = []; let cur = null;
+  String(l.md).split('\n').forEach((x) => { const h = x.match(/^# (.*)/); if (h) { cur = { h: h[1].replace(/^\d+\.\s*/, ''), t: '' }; secs.push(cur); } else if (cur && !cur.t && x.trim() && !/^-\s*$/.test(x)) cur.t = x.replace(/^[->]\s*/, '').replace(/\*\*/g, ''); });
+  const bl = (String(l.md).match(/^> \*\*(?:Bottom line:?\s*)?([^*]+)\*\*/m) || [])[1] || '';
+  const stairs = LN_STAGES.map(([n, team], k) => `<div class="ln-st ${k === st ? 'on' : k < st ? 'past' : ''}" style="height:${18 + k * 7}px" title="${n} · ${team} people"><i>${k}</i></div>`).join('');
+  const short = (t) => { t = String(t || '').trim(); const m = t.match(/^.{20,110}?[.;:—](\s|$)/); return esc((m ? m[0] : t.slice(0, 110)).replace(/[;:—]\s*$/, '').trim()); };
+  return `<div class="ln-stage"><div class="ln-sth"><span>Stage ${st} of 9</span><b>${LN_STAGES[st][0]}</b><em>${LN_STAGES[st][1]} people${role ? ' · your role: ' + esc(role.trim()) : ''}</em></div>
+    <div class="ln-stairs">${stairs}</div><div class="ln-stl"><span>Improvise</span><span>Capitalize</span></div>
+    ${bl ? `<div class="ln-stbl"><span>The one job of this stage</span><b>${esc(bl.trim())}</b></div>` : ''}
+    ${secs.length ? `<div class="ln-stg">${secs.slice(0, 8).map((x) => `<div><b>${esc(x.h)}</b><span>${short(x.t)}</span></div>`).join('')}</div><div class="ln-stn">Every function, what changes at this stage. Details below.</div>` : ''}</div>`;
+}
+
 /* lesson page: back to the course, lesson n of N, Done → next */
 function lnDecorateReader() {
   const r = acqRead, el = document.querySelector('#view-acq .aq-rd'); if (!r || !el || r.v) return;
@@ -139,6 +157,7 @@ function lnDecorateReader() {
   const top = el.querySelector('.aq-rd-top');
   if (top) top.innerHTML = `<button class="ln-back" onclick="lnCourse('${k}')">‹ ${esc(C ? C[2] : 'Course')}</button><span>${k === 'mind' ? 'Section' : 'Lesson'} ${r.i + 1} of ${n}${d ? ' · ✓ done' : ''}</span>`;
   const page = el.querySelector('.aq-page'); if (page) { page.classList.add('ln-read'); const h2 = page.querySelector('h2'), L = acqLib[k], l = L && L.lessons && L.lessons[r.i]; if (h2 && l && !h2.dataset.ln) { h2.dataset.ln = 1; const mn = lnMin(l.t); h2.textContent = lnTitle(l.t); h2.insertAdjacentHTML('afterend', `<div class="ln-lmeta">${esc(C ? C[2] : '')}${mn ? ' · ' + mn + ' min' : ''}</div>`); } }
+  if (k === 'scale' && page && !page.querySelector('.ln-stage')) { const sm = lnStageMap(r.i); if (sm) { const box = page.querySelector('#cl-box'); if (box) box.insertAdjacentHTML('afterend', sm); else { const m = page.querySelector('.ln-lmeta'); if (m) m.insertAdjacentHTML('afterend', sm); } } }
   if (!el.querySelector('.ln-donebar')) el.insertAdjacentHTML('beforeend', `<div class="ln-donebar">${d
     ? `<button class="ln-cta ghost" onclick="lnMark('${k}',${r.i},false);render()">Mark as not done</button>${r.i + 1 < n ? `<button class="ln-cta" onclick="acqOpen('${k}',${r.i + 1})">Next lesson ›</button>` : ''}`
     : `<button class="ln-cta" onclick="lnDoneNext('${k}',${r.i})">✓ Done${r.i + 1 < n ? ' · next lesson' : ' · finish course'}</button>`}</div>`);
@@ -186,6 +205,16 @@ function lnDecorateReader() {
   .ln-extra summary{cursor:pointer;color:var(--muted);font-size:13.5px;padding:10px 2px}
   #view-acq .aq-rd-top{display:flex;justify-content:space-between;align-items:center}#view-acq .aq-rd-top span{font-size:12.5px;color:var(--muted)}
   .ln-read{font-family:var(--sans)!important;font-size:16px;line-height:1.7;color:var(--text);padding:18px!important}.ln-read *{font-family:var(--sans)}.ln-read h2{font-size:22px;line-height:1.3;text-transform:none;letter-spacing:-.01em;margin:0 0 12px}.ln-read p,.ln-read li{font-size:16px;line-height:1.7}.ln-read b,.ln-read strong{color:var(--text);font-weight:700}
+  .ln-stage{border:1px solid #2A2440;background:linear-gradient(180deg,rgba(155,127,209,.10),rgba(155,127,209,.02));border-radius:12px;padding:16px;margin:4px 0 18px}
+  .ln-sth span{display:block;font-size:12px;color:var(--muted)}.ln-sth b{display:block;font-size:22px;color:#C9B5F0;margin:2px 0}.ln-sth em{font-style:normal;font-size:13px;color:var(--muted)}
+  .ln-stairs{display:flex;align-items:flex-end;gap:4px;margin-top:14px;height:84px}.ln-st{flex:1;border-radius:4px 4px 0 0;background:#1E1B29;position:relative}.ln-st.past{background:#3A3352}.ln-st.on{background:#9B7FD1}
+  .ln-st i{position:absolute;top:-16px;left:0;right:0;text-align:center;font-style:normal;font-size:10px;color:var(--muted)}.ln-st.on i{color:#C9B5F0;font-weight:700}
+  .ln-stl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:4px}
+  .ln-stbl{margin-top:14px;border-left:3px solid #9B7FD1;padding:6px 0 6px 12px}.ln-stbl span{display:block;font-size:12px;color:var(--muted)}.ln-stbl b{display:block;font-size:15.5px;line-height:1.4;margin-top:2px}
+  .ln-stg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.ln-stg>div{background:#13111A;border:1px solid #241F33;border-radius:8px;padding:10px}.ln-stg b{display:block;font-size:13px;color:#C9B5F0}.ln-stg span{display:block;font-size:12.5px;line-height:1.4;color:var(--text);margin-top:4px}
+  .ln-stn{font-size:12px;color:var(--muted);margin-top:10px}
+  .ln-read .pbh{font-size:19px;font-weight:700;margin:22px 0 8px;padding-top:14px;border-top:1px solid #1E232A;color:var(--text)}.ln-read .say{border-left:3px solid var(--acc);background:rgb(var(--acc-rgb) / .07);padding:12px 14px;border-radius:0 8px 8px 0;margin:6px 0 14px;font-size:16.5px;line-height:1.5}
+  .ln-read p{margin:0 0 10px}.ln-read ul,.ln-read ol{margin:4px 0 14px;padding-left:20px}.ln-read li{margin:6px 0}
   .ln-donebar{display:flex;gap:8px;margin:6px 0 16px}.ln-donebar .ln-cta{flex:1}
   #view-boot .aq-t,#view-acq .aq-t{font-family:inherit!important;text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:700!important;color:var(--text)!important}
   #view-boot .aq-t span,#view-acq .aq-t span{font-weight:400;color:var(--muted);font-size:12.5px}
