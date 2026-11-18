@@ -162,7 +162,7 @@ function bcPractice() {
   const due = bcDueCards().length, weak = bcWeak(), allClear = bcTrack('biz').every(bcCleared), sims = bcV('sim', []) || [];
   const row = (on, ic, t, d, when, act) => `<button class="bcx-pr ${on ? '' : 'off'}" ${on ? `onclick="${act}"` : 'disabled'}><u>${ic}</u><span><b>${t}</b><em>${d}</em><s>${when}</s></span><i>${on ? '›' : ''}</i></button>`;
   return `<div class="bcx-sec">Keep what you learned</div>
-    ${row(due > 0, '🔁', `Warm-up${due ? ' · ' + Math.min(due, 6) + ' due' : ''}`, 'Quick questions on ideas due for review (1, 3, 7, 21, 60 days).', due ? 'Do it first, every day' : 'Nothing due right now', 'bcReviewStart()')}
+    ${row(due > 0, '🔁', `Recall review${due ? ' · ' + due + ' due' : ''}`, 'Recall from memory, then grade yourself. Spacing adapts: forget it and it comes back tomorrow, know it and it waits weeks.', due ? 'Do it first, every day' : 'Nothing due right now', 'bcReviewStart()')}
     ${row(true, '🔀', 'Mixed drill · 10 questions', 'Everything you have opened, shuffled. Trains picking the right idea.', 'Any time you have 5 minutes', "bcQuizStart('drill')")}
     ${row(weak.length > 0, '🎯', `Weak spots${weak.length ? ' · ' + Math.min(8, weak.length) : ''}`, weak.length ? 'Your most-missed: ' + weak.slice(0, 3).map((id) => esc(XC.byId[id].t)).join(', ') : 'Ideas you get wrong collect here.', 'Sundays, or after a bad boss fight', "bcQuizStart('weak')")}
     ${row(true, '⚡', 'Short day · 10 min', '3 reviews + 1 hard scenario. Keeps the streak alive.', 'Busy or bad days. Never zero.', "bcQuizStart('mini')")}
