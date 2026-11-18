@@ -39,3 +39,16 @@ document.addEventListener('click', (ev) => {
   st.textContent = `.vp-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:8px}.vp-h b{font-size:14px}.vp-h span{font:600 11px/1 var(--mono,monospace);color:var(--muted)}`;
   document.head.appendChild(st);
 })();
+
+/* 13.20.6 · Android app older than 1.7 can hand YouTube videos to the YouTube app: say so once a day, with the update link. */
+(function () {
+  try {
+    const C = window.Capacitor; if (!C || !C.isNativePlatform || !C.isNativePlatform() || !C.nativePromise) return;
+    const k = 'wr-apk-nag', today = new Date().toISOString().slice(0, 10);
+    C.nativePromise('WrNative', 'info', {}).then((o) => {
+      const v = parseFloat((o && o.version) || '0'); if (v >= 1.7) return;
+      try { if (localStorage.getItem(k) === today) return; localStorage.setItem(k, today); } catch (e) { }
+      setTimeout(() => { if (typeof openModal === 'function') openModal(`<div class="vp"><div class="vp-h"><b>Update the War Room app</b><span>app ${esc(String((o && o.version) || 'old'))} → 1.7</span></div><div class="small" style="margin-bottom:12px">This version can send course videos out to YouTube. 1.7 keeps every video playing here. Takes 30 seconds, nothing is lost.</div></div><div class="actions"><button class="btn" onclick="closeModal()">Later</button><a class="btn primary" href="https://egornichiforov.github.io/warroom/download/WarRoom.apk">Download 1.7</a></div>`); }, 2500);
+    }).catch(() => { });
+  } catch (e) { }
+})();
