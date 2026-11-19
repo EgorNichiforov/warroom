@@ -1,5 +1,11 @@
 # Implementation log
 
+## 19 Nov 2026 · 13.25.0 · A1 one recommendation
+- `mission.js`: `mcBuild` returns `facts` (owner + text) from `stage.js sgState` and `engine.js enBottleneck`; shown in Why this. Fold renamed Supporting facts.
+- `brief.js bfAttention`: first item is the mission's top; the engine bottleneck is a 14-day trend line.
+- `stage.js` chain and `one.js oneAction`: dial count from `mcDialEvidence` (call log).
+- Owners: recommend = mission.js only. stage.js = business stage facts. engine.js = 14-day gaps, protocols, replan. brief.js = attention list. one.js = full-screen view of the current calendar block. cockpit.js = the Dial screen (next call). No data change.
+
 ## 19 Nov 2026 · 13.24.0 · branch `overnight-13.24` · NOT deployed
 Baseline: `v5` at `5088e8f` (13.23.2 live), working tree clean, 288 checks passing.
 

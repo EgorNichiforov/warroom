@@ -23,8 +23,8 @@ const MC_TIER = ['Fixed commitment', 'Season priority', 'Protected commitment', 
 let mcLast = null, mcOpenCard = false;
 function mcToggle() { mcOpenCard = !mcOpenCard; mcRefresh(); }
 /* 13.24.1: everything on the Day screen that is not the mission or the step you are on sits behind one More fold */
-function mcMoreBtn() { const on = (document.getElementById('arc') || { classList: { contains: () => false } }).classList.contains('more'); return `<button class="arc-more" onclick="arcMoreToggle(this)">${on ? 'Less ▴' : 'More: stage, week, numbers ▾'}</button>`; }
-function arcMoreToggle(btn) { const a = document.getElementById('arc'); if (!a) return; const on = a.classList.toggle('more'); if (btn) btn.textContent = on ? 'Less ▴' : 'More: stage, week, numbers ▾'; }
+function mcMoreBtn() { const on = (document.getElementById('arc') || { classList: { contains: () => false } }).classList.contains('more'); return `<button class="arc-more" onclick="arcMoreToggle(this)">${on ? 'Less ▴' : 'Supporting facts ▾'}</button>`; }
+function arcMoreToggle(btn) { const a = document.getElementById('arc'); if (!a) return; const on = a.classList.toggle('more'); if (btn) btn.textContent = on ? 'Less ▴' : 'Supporting facts ▾'; }
 /* 13.24.1: forgot to tap "going to sleep"? type last night's times in ten seconds */
 function mcSleepOpen() { const o = S.days[dk(new Date())] || {}; openModal(`<h2>Last night's sleep</h2><div class="hint">Type the two times. Saved as typed, exactly like a tapped night.</div><label class="xs muted">In bed, asleep around</label><input class="aq-in" type="time" id="sl-b" value="${esc(o.bedAt || S.settings.bed || '21:00')}"><label class="xs muted">Woke up</label><input class="aq-in" type="time" id="sl-w" value="${esc(o.wokeAt || S.settings.wake || '05:00')}"><div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="mcSleepSave()">Save</button></div>`, true); }
 function mcSleepSave() { const b = ($('sl-b') || {}).value, w = ($('sl-w') || {}).value; if (!b || !w) { toast('Enter both times'); return; } const o = day(new Date()); o.bedAt = b; o.wokeAt = w; o.sleepSrc = 'typed'; touch(o); closeModal(); toast('Sleep saved'); mcRefresh(); }
@@ -109,8 +109,12 @@ function mcBuild() {
   if (typeof syncState !== 'undefined' && Math.abs(syncState.skew || 0) > 120) risks.push({ t: `This device's clock is off by about ${Math.round(Math.abs(syncState.skew) / 60)} minutes. Sync decides "newest" by the clock: fix the time setting.` });
   if (!night && !o.bedAt) risks.push({ t: "Last night's sleep is not logged.", btn: 'Enter times', act: 'mcSleepOpen()' });
   if (ssn && ssn.review && ssn.review <= k) risks.push({ t: 'Season review date reached.', btn: 'Review', act: 'mcSeasonOpen()' });
+  /* 13.25.0: the other advisers supply facts, each with its owner. They no longer recommend on the Day screen. */
+  const facts = [];
+  try { if (typeof sgState === 'function') { const st = sgState(); facts.push({ owner: 'stage.js', t: `Business stage ${st.i + 1} of ${st.n}: ${st.s.name} (${st.cur} of ${st.s.need}, from the call log)` }); } } catch (e) { }
+  try { if (typeof enBottleneck === 'function') { const b = enBottleneck()[0]; if (b) facts.push({ owner: 'engine.js', t: `Widest 14-day gap: ${b.area}, ${b.name} (${b.line})` }); } } catch (e) { }
   const pick = o.mcPick && C.find((x) => x.k === o.mcPick), top = pick || C[0] || null;
-  return (mcLast = { C, top, picked: !!pick && pick !== C[0], rec: C[0] || null, unk, risks, mode, ssn, fl, E, free, k, skips: gone.length });
+  return (mcLast = { C, top, picked: !!pick && pick !== C[0], rec: C[0] || null, unk, risks, mode, ssn, fl, E, free, k, skips: gone.length, facts });
 }
 function mcOpen(w) { try { if (typeof arcHide === 'function') arcHide(true); } catch (e) { } if (w === 'bac') { if (typeof bacOpen === 'function') bacOpen(); return; } try { show(w); } catch (e) { } }
 function mcGo(k) { const M = mcLast || mcBuild(), c = M.C.find((x) => x.k === k); if (!c) return; const o = day(new Date()); if (!o.mc || o.mc.k !== k) { o.mc = { k, t: c.out, at: now() }; touch(o); } if (c.go) c.go(); }
@@ -150,6 +154,7 @@ function mcWhy() {
   const M = mcLast || mcBuild(), t = M.top; if (!t) { openModal(`<h2>Why nothing?</h2><div class="hint">No candidate has an open gap today.</div>${M.unk.map((u) => `<div class="mc-risk">${esc(u)}</div>`).join('')}`, true); return; }
   openModal(`<h2>Why this?</h2><div class="mc-out" style="font-size:17px">${esc(t.out)}</div>
     <div class="mc-wl"><span>Measured facts</span>${t.ev.map((e) => `<div>${esc(e)}</div>`).join('')}</div>
+    ${M.facts.length ? `<div class="mc-wl"><span>Supporting facts</span>${M.facts.map((f) => `<div>${esc(f.t)} <em>${f.owner}</em></div>`).join('')}</div>` : ''}
     <div class="mc-wl"><span>If it is delayed</span><div>${esc(t.late)}</div></div>
     <div class="mc-wl"><span>Confidence</span><div>${esc(t.conf)}${M.unk.length ? '. Unknown: ' + M.unk.map(esc).join(' ') : ''}</div></div>
     <div class="mc-wl"><span>How it was ranked</span>${M.C.map((x, i) => `<div class="${x === t ? 'on' : ''}">${i + 1}. ${esc(x.out)} <em>${MC_TIER[x.tier]}${x.tier === 1 && M.ssn ? ' (' + esc(MC_DOMS[M.ssn.dom] || '') + ' comes first this season)' : ''} · gap ${Math.round(x.urg * 100)}%</em></div>`).join('')}<div class="xs muted" style="margin-top:6px">A fixed commitment always outranks the season priority, which outranks protected floors, which outrank maintenance. Inside a tier the bigger open gap goes first. Computed on this device from your own records. Nothing was sent anywhere.</div></div>

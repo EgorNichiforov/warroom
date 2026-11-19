@@ -21,7 +21,7 @@ function oneChain() {
 function oneAction(b, R) {
   const c = R.o.counters || {}, left = b ? Math.max(5, tmin(b.end) - R.nm) : 50, t = (s) => esc(String(s).replace(EMO_RE, '').trim());
   if (!b) return null;
-  if (b.kind === 'dials') { const tg = dialTargetFor(R.d), dn = Number(c.dials) || 0, x = typeof currentCall === 'function' && Q ? currentCall() : null;
+  if (b.kind === 'dials') { const tg = dialTargetFor(R.d), dn = typeof mcDialEvidence === 'function' ? mcDialEvidence(dk(R.d)).logged : Number(c.dials) || 0, x = typeof currentCall === 'function' && Q ? currentCall() : null;
     return { big: dn >= tg && tg ? 'Target hit. Keep going.' : `Dial #${dn + 1}`, sub: `${dn} of ${tg || '?'} today${x ? ` · first up: ${esc(x.agency)}` : ''}`, btn: 'Start dialing', go: 'oneGo("dial")' }; }
   if (b.kind === 'bac') return { big: t(b.title).replace(/^BAC:\s*/i, '') || 'Study', sub: `BAC · ${Number(c.bac) || 0} min today · phone in another room`, btn: `Start ${Math.min(50, left)} min`, go: `oneGo("timer","bac",${Math.min(50, left)})` };
   if (b.kind === 'agency') return { big: t(b.title), sub: `Company deep work · ${Number(c.deep) || 0} min today · one thing only`, btn: `Start ${Math.min(50, left)} min`, go: `oneGo("timer","deep",${Math.min(50, left)})` };

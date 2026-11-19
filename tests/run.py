@@ -653,6 +653,12 @@ with sync_playwright() as p:
       mcSkip('dial',2); M=mcBuild(); out.dial=!M.C.some(x=>x.k==='dial')&&o.mc.k==='dial'&&mcMet(o,mcDialEvidence(k))===false&&mcDialEvidence(k).logged===0&&mcWeek(new Date()).hand===2;
       mcSkipUndo(); M=mcBuild(); out.undo=M.top.k==='fixed'&&!o.mcDone; return out; })()""")
     check('Mission 13.24.3: Done marks something finished early; a hand "done" never invents dials (the call log still decides)', r['btn'] and r['fixed'] and r['dial'] and r['undo'], r)
+    r = ev("""(()=>{ const out={}, o=day(new Date()); closeModal(); mcSetMode('full'); window.__blocks=[{id:'b1',start:'18:00',end:'19:30',title:'Dials',kind:'dials'}]; S.settings.season={kind:'build',dom:'biz',primary:'x'}; o.mcSkip=[]; o.mcPick=null; S.lifeErrors={};
+      Object.values(Q.items).forEach(x=>{x.log=[];}); Object.values(Q.items)[0].log=[{at:new Date().toISOString(),r:'no answer',d:{dials:1}}]; o.counters.dials=5;
+      const M=mcBuild(); out.top=M.top.k==='dial'; out.facts=M.facts.length>=1&&M.facts.every(f=>f.owner&&f.t)&&M.facts.some(f=>f.owner==='stage.js'); mcWhy(); out.why=/Supporting facts/.test(document.getElementById('modal').textContent); closeModal();
+      out.brief=bfAttention()[0].t===M.top.out; const a=oneAction({kind:'dials',start:'18:00',end:'19:30',title:'Dials',id:'b1'},oneNow()); out.one=/^1 of 40/.test(a.sub)&&a.big==='Dial #2';
+      out.chain=arcPhase()==='night'||/<b>1\/40<\/b> dials today/.test(arcHtml()); return out; })()""")
+    check('Unify 13.25.0: stage and engine feed the mission as named facts; the attention list leads with the mission; ONE and the stage chain count dials from the call log', r['top'] and r['facts'] and r['why'] and r['brief'] and r['one'] and r['chain'], r)
     check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows
