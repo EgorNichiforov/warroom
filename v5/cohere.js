@@ -137,10 +137,10 @@ if (typeof arcLogSave === 'function' && !arcLogSave._co) { const f = arcLogSave;
 function coAutoRows() {
   const R = [], cfg = (() => { try { return ccCfg(); } catch (e) { return {}; } })(), notes = Object.values(S.inbox || {}).filter((n) => n && !n._del), last = (re) => { const L = notes.filter((n) => re.test(n.title || '')).sort((a, b) => (b.at || 0) - (a.at || 0))[0]; return L ? new Date(L.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : null; };
   const sc = last(/Discovery scan/), cr = last(/Curriculum review/);
-  R.push(['Weekly content scan', cfg.freq === 'off' ? 'blocked' : 'alone', cfg.freq === 'off' ? 'Switched off in Content settings.' : 'Mondays 07:37. Last note in this app: ' + (sc || 'none yet') + '. No note yet means this app has no proof it ran.']);
+  R.push(['Daily content scan', cfg.freq === 'off' ? 'blocked' : 'alone', cfg.freq === 'off' ? 'Switched off in Content settings.' : 'Every day at 07:37 since 19 Nov (it was Mondays only before). Last note in this app: ' + (sc || 'none yet') + '. No note yet means this app has no proof it ran.']);
   R.push(['Adding scan results to the library', cfg.auto === false ? 'tap' : 'alone', cfg.auto === false ? 'You add them from the note.' : 'Happens when this app opens after a scan.']);
   R.push(['Monthly curriculum review', 'alone', 'The 1st of each month. Last note in this app: ' + (cr || 'none yet') + '.']);
-  R.push(['Daily research', 'blocked', 'You approved it on 19 Nov, but the scheduler refused the change twice. Nothing runs daily. You can switch the weekly scan to daily yourself in that scheduled task\'s settings.']);
+  R.push(['Daily research for your open requests', 'tap', 'The daily content scan above is the only research that runs by itself today. A second one, on the server, searches your open learning requests: see “Server jobs” below.']);
   R.push(['Attendance report to the club managers', 'alone', 'Mon–Sat after your last group: reads the attendance you ticked here, fills the sheet, sends on Viber. Needs your laptop on. It runs outside this app, which cannot see whether it fired.']);
   R.push(['Cloud backups', 'alone', 'This app keeps rolling snapshots in the cloud while it is open. Copies made before a cleanup are kept in a separate backup table.']);
   R.push(['Research now', 'tap', 'Opens a prepared request. Nothing happens until you send it and paste the answer.']);

@@ -34,3 +34,15 @@ The complete architecture in the brief is **not** fully delivered. What is deliv
 ## The uncomfortable line the brief asked for
 
 On 19 Nov 2026 28 versions of War Room were released and the call log shows no dial for the day. The brief says to name it when War Room becomes a distraction from the business. By its own measure it was today.
+
+
+## Addendum · 13.43.0 · night of 19–20 Nov
+
+| Thing | State | Proven how |
+|---|---|---|
+| Server screen, device-key header, approve/dismiss of server suggestions | live in the app | `tests/test_1343.py` 49 checks, browser with a fake server |
+| Job queue, timers, device keys, lock, audit (SQL) | written, **not applied** | `supabase/tests/run.sh` 68 checks on a local copy |
+| Worker: brief, check, research, role, backup | written, **not deployed** | `supabase/tests/worker_test.mjs` 41 checks, real code, network replaced |
+| Content scan runs daily | live since 19 Nov 22:35 | scheduler accepted the change; first daily run not yet observed |
+
+Not applied because Supabase asked Egor to confirm and he was asleep. One confirmation switches it on.

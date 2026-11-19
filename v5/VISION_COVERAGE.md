@@ -30,3 +30,9 @@ Status words: **Built** = code exists and a test in `tests/` exercises it. **Exi
 | XXV Testing and acceptance | Partial | `tests/` | No physical-device, offline-install or performance testing; AI evaluation uses a stand-in |
 | XXVI Success metrics | Built as views | `scOpen`, `evoOpen`, `pfOpen`, `beOpen`, `ecOpen` | The numbers are empty until real calls and weeks of use exist |
 | XXVII Anti-goals | Respected where I built | | The app as a whole is large; `evoOpen` now reports what is never opened so it can shrink |
+
+
+## Update · 13.43.0
+
+- "Agents that run while the app is closed", "job queue", "per-device accounts", "audit": **built and proven locally; switch-on waits for one confirmation in Supabase.** See `WAR_ROOM_EXECUTION_STATE.md` → Switching the server on.
+- Daily research: the content scan is daily (live). Server research for open learning requests: part of the worker (not live).

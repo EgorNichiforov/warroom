@@ -41,3 +41,18 @@ What exists: TLS in transit; a sync code that is the only key to the cloud row, 
 ## ADR-008 · Visual identity → add the brief's graphite palette as a look, keep the default
 
 The app already has three looks (dark, light, classic) held as CSS variables. The brief's suggested tokens are added as a fourth look, "Graphite · teal". The default is not switched from a test browser: colour and contrast need to be judged on the real screen.
+
+
+## ADR-009 · Server worker (extends ADR-005) · 19 Nov 2026
+
+**Decision.** Background work moves to a job queue in Postgres, a timer (`pg_cron`, every 10 minutes) and one edge function. Claude's scheduled tasks stay for what needs a connector (Gmail, Viber on the laptop).
+**Why.** A queue with idempotency keys, retries and an audit row is observable and cheap; a scheduled Claude task is neither observable from the app nor cancellable from it.
+**Limits kept.** The worker's only write to user data is one inbox note. AI calls are capped per room per day on the server. Records are sent to the model marked as data; its output is validated and anything outside the role's allowed kinds is dropped.
+**Status.** Proven locally (109 checks). Not applied: needs Egor's confirmation in Supabase.
+
+## ADR-010 · A key per device, and an optional lock (extends ADR-007) · 19 Nov 2026
+
+**Decision.** Keep the shared sync code working. Add device keys as a second way in (extra permissive policies). Add one restrictive policy that only bites for a room that chose to lock key-only access. Locking is a tap from an enrolled device and is undone the same way.
+**Why not replace the code outright.** Replacing it is the change that can lock every device out at once. Adding a second way in cannot.
+**Not done.** The AI helper function still authenticates by sync code. Cut-over is never automatic.
+**Encryption.** Nothing here encrypts the data. The app lock is not encryption.

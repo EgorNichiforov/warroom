@@ -1,4 +1,4 @@
-# War Room · master architecture (13.42.0, 19 Nov 2026)
+# War Room · master architecture (13.43.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -156,6 +156,25 @@ Mission documents: `WAR_ROOM_EXECUTION_STATE.md` (resume here), `ARCHITECTURE_DE
 
 Look: `graphite` allowed in `unify.js` (`lookGet`, `setAppearance`, appearance card); variables in `monolith.css`.
 
+## 8s. The server (13.43.0; written and proven locally, waiting for one confirmation)
+
+```
+ phone / laptop (app closed or open)            Supabase project
+ ┌─────────────────────────┐     RPC      ┌──────────────────────────────────────────┐
+ │ server.js  Server screen├─────────────▶│ warroom_enqueue / _jobs / _devices / …   │
+ │ hdr(): key (+device key)│              │   warroom_job  (queue)   warroom_schedule │
+ └───────────▲─────────────┘              │        ▲ claim/finish        │ every 10 min│
+             │ sync: inbox note           │ warroom-worker (edge fn) ◀───┘ pg_cron→tick│
+             └────────────────────────────┤   brief · quality · research · role · backup│
+                                          │   writes ONE note → warroom_sync.data.inbox │
+                                          └──────────────────────────────────────────┘
+```
+
+- Files: `supabase/warroom_server_v1.sql`, `supabase/warroom_server_v1_policies_cron.sql`, `supabase/functions/warroom-worker/index.ts`, proofs in `supabase/tests/`.
+- Authority: the worker can read a room's synced document, leave a note, take a backup. It cannot create, change or delete a record. Suggestions travel as `WR-PROPOSE` and go through `agApprove` after a tap.
+- Access: the sync code keeps working exactly as before. A device key (`x-warroom-device`, stored hashed) is a second way in. `warroom_lock(true)`, callable only by an enrolled device, makes the code alone useless; `warroom_lock(false)` undoes it.
+- `mcBuild()` is untouched: nothing on the server ranks or recommends inside the app.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -163,6 +182,6 @@ Look: `graphite` allowed in `unify.js` (`lookGet`, `setAppearance`, appearance c
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.42. No role has been run against a real AI model by the build: the tests use a stand-in, so they prove the limits and the plumbing, not the quality of advice. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
+- No real-phone test of 13.31 to 13.43. No role has been run against a real AI model by the build: the tests use a stand-in, so they prove the limits and the plumbing, not the quality of advice. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

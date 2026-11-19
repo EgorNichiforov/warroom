@@ -111,7 +111,7 @@ with sync_playwright() as p:
     # ── 8 · one door, truthful automation
     check('one door: the Content tab under You points to Learn → Library', ev("(()=>{lifeTab='content';show('life');return /The Library lives in Learn/.test(document.getElementById('view-life').textContent)&&!document.querySelector('#view-life .cc-min')})()"))
     R = ev("coAutoRows().map(r=>r[0]+'|'+r[1])")
-    check('automation status says what is blocked and what needs a tap', 'Daily research|blocked' in R and 'Research now|tap' in R and 'Real-phone test|tap' in R and any(x.startswith('Weekly content scan|') for x in R), R)
+    check('automation status says what is blocked and what needs a tap', 'Research now|tap' in R and 'Real-phone test|tap' in R and any(x.startswith('Daily content scan|') for x in R) and (not any(x.startswith('Server jobs') for x in R) or 'Server jobs: brief, check, research, backup|blocked' in R), R)
     ev("coAuto(); 0"); pg.wait_for_timeout(200)
     check('automation screen renders without overflow', ev("document.querySelectorAll('#modal .st-o').length>=10&&document.getElementById('modal').scrollWidth<=390"))
     ev("closeModal(); 0")

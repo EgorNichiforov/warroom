@@ -277,3 +277,20 @@ Next: 13.42 = objective chain and backward plan, what judge.js lacks, scenario e
 Honest limits: scenarios model one funnel with no churn and no capacity; roles were tested with a stand-in for the AI; the evolution view needs weeks of real use before it says anything; the graphite look was checked for contrast by calculation, not by eye.
 
 Next: nothing further is buildable without Egor: see "Blocked" in `WAR_ROOM_EXECUTION_STATE.md` and "What only you can do" in `ACCEPTANCE_REPORT.md`.
+
+
+## 13.43.0 · 19–20 Nov 2026 (overnight) · the server
+
+**Asked for (19 Nov 22:32):** backend, job queue, agents that run while the app is closed, per-device accounts.
+
+**Built and proven locally, NOT applied to the live project:**
+- `supabase/warroom_server_v1.sql`: six private tables (config, room, device, job, schedule, audit), browser RPCs (enrol, devices, revoke, lock, enqueue, jobs, cancel, schedules, audit, status), worker-only functions (claim with SKIP LOCKED, finish with retry and backoff, note, backup, AI use, tick, wake). Additive: no existing table, policy or function is changed.
+- `supabase/warroom_server_v1_policies_cron.sql`: three extra permissive policies (a device key is a second way in), one restrictive gate that is open unless a room locked itself, an audit trigger that can never block a write, the 10-minute timer.
+- `supabase/functions/warroom-worker/index.ts`: jobs `brief`, `quality`, `research`, `role`, `backup`; bounded AI (same contract and validation as the in-app roles, daily cap per room, key never echoed); research opens every page before keeping it and marks everything unverified.
+- `supabase/tests/run.sh` (68 checks) and `worker_test.mjs` (41 checks): a stand-in for the live database in a local Postgres 16; every way in (key, device key, another room's key, revoked key, the lock), the queue, schedules, audit, and the real worker code with the network replaced.
+
+**Why it is not live:** `apply_migration` made Supabase ask Egor to confirm, he was asleep, the request timed out. Running the same SQL another way would be going around his confirmation, so it was not done. Nothing was deployed.
+
+**Live in the app (13.43.0):** `server.js`: Server screen, device key header (sent only when this device has a key for this sync code), `WR-PROPOSE` approve/dismiss through `agApprove`, truthful automation rows. `tests/test_1343.py` (49). `cohere.js` rows corrected: the content scan is daily since 19 Nov.
+
+**Known limits:** the lock does not cover the AI helper function (it still accepts the sync code; it exposes no data). `pg_cron` and the HTTP wake are replaced by stand-ins in the local proof. No job has run against the live project or a real AI model.
