@@ -678,6 +678,13 @@ with sync_playwright() as p:
       mcSetMode('rec'); R=enReplan(); out.rec=R.decisions.drop.some(x=>x.id==='b2')&&R.decisions.keep.some(x=>x.id==='t1'); mcSetMode('full'); closeModal(); nowMin=()=>17*60+30; return out; })()""")
     check('Replan 13.25.2: a calm day keeps everything; a missed call block moves inside Florida hours; outside them it is dropped with the reason; fixed blocks never move', r['calm'] and r['move'] and r['drop'] and r['rec'], r)
     check('Replan 13.25.2: nothing changes until confirmed; declining leaves the plan intact; applying is recorded and can be undone', r['modal'] and r['declined'] and r['applied'] and r['undo'], r)
+    r = ev("""(()=>{ const out={}; closeModal(); show('boot'); const a=BC.mod.mk.cards[0], pf=BC.mod.m4.cards[0], fresh=cpAll().find(id=>!bcV('l:'+id,null)); const bm=bcMoment;
+      out.dem=cpLessonState(a).st==='dem'&&cpLessonState(pf).st==='dem'; out.new=cpLessonState(fresh).st==='new';
+      bcMoment=()=>({pid:'vidX'}); localStorage.setItem('wr-vpos',JSON.stringify({'vidX|0':{t:400,at:1,label:'x'}})); const w=cpLessonState(fresh); out.watched=w.st==='wat'&&w.rg===0&&/watching is not learning/.test(w.miss); bcMoment=bm; localStorage.removeItem('wr-vpos');
+      bcW('l:'+fresh,{at:dk(new Date()),r:0}); const e=cpLessonState(fresh); out.exposed=e.st==='wat'&&/own words/.test(e.miss); bcW('l:'+fresh,null);
+      const C=cpCourseStats(); out.sum=C.reduce((s,o)=>s+o.n,0)===cpAll().length&&C.every(o=>o.lrn<=o.n&&o.dem<=o.lrn+o.n);
+      cpCourseView(); out.list=document.querySelectorAll('#modal .cp-co').length===C.length; cpCourseView(C[0].k); out.detail=document.querySelectorAll('#modal .cp-cl').length===C[0].n&&/missing:/.test(document.getElementById('modal').textContent); closeModal(); return out; })()""")
+    check('Courses 13.25.3: watched, learned and demonstrated are separate states on the one ladder; a watched video is never learned; each lesson shows what evidence is missing and the next action', r['dem'] and r['new'] and r['watched'] and r['exposed'] and r['sum'] and r['list'] and r['detail'], r)
     check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows
