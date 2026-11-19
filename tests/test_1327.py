@@ -26,7 +26,7 @@ with sync_playwright() as p:
     ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); bacLoad(); clLoad&&clLoad();")
     pg.wait_for_timeout(1800); pg.clock.run_for(2000)
     check('libraries loaded (cards, bootcamp, sources, mentors, BAC)', ev("!!(XC&&XC.byId&&BC&&KPL&&CCM&&BACD)"))
-    check('version is 13.29.0', ev("APP_VERSION==='13.29.0'"), ev("APP_VERSION"))
+    check('version is 13.30.0', ev("APP_VERSION==='13.30.0'"), ev("APP_VERSION"))
 
     # ── data integrity
     check('31 new sourced cards, every one with a source, a kind and two test questions', ev("XC.cards.filter(c=>c.added==='13.27').length===31 && XC.cards.filter(c=>c.added==='13.27').every(c=>c.src&&c.kind&&c.q.length>=2&&c.move&&c.trap)"))
@@ -131,7 +131,7 @@ with sync_playwright() as p:
     check('spacing: costly-to-forget lessons get a higher memory floor', ev("msFloor('sf-112')===0.85 && msImp('sf-112')===3 && msFloor('lf-4laws')<0.85 && /costly to forget/.test(msWhyDue('sf-112'))"))
 
     # ── 13.28 · a video on every lesson; strategy layer
-    check('233 of 234 lessons have a video; the one without says so', ev("XC.cards.filter(c=>(c.clip||[]).length).length===233 && /No verified video/.test(xcCardHtml(XC.byId['nc-florida']))"), ev("XC.cards.filter(c=>!(c.clip||[]).length).map(c=>c.id)"))
+    check('every lesson has a video; the Florida one is official and says what it does not cover', ev("XC.cards.filter(c=>(c.clip||[]).length).length===234 && /Florida AHCA/.test(xcCardHtml(XC.byId['nc-florida'])) && /No official video explains the licence types/.test(xcCardHtml(XC.byId['nc-florida'])) && ccForCard('nc-florida').match(/Florida AHCA/g).length>=3"), ev("XC.cards.filter(c=>!(c.clip||[]).length).map(c=>c.id)"))
     check('the video comes first on the card, names who and how long, and says when it is not the original teacher', ev("(()=>{const h=xcCardHtml(XC.byId['as-desc']); return h.indexOf('Watch first')<h.indexOf('xc-s plain') && /TEDx Talks/.test(h) && /different, credible teacher/.test(h) && /Leila Hormozi · \\d+ min/.test(xcCardHtml(XC.byId['lh-emotion']))})()"))
     ev("delete S.settings.m1328; delete S.assets; delete S.opps; delete S.obs; delete S.settings.strategy; stSeed(); stSeed()")
     check('strategy seed: real assets at honest stages, opportunities in all doors, no scores invented', ev("stAssets().length===7 && stAssets().every(a=>a.proof) && stLive(S.opps).length===5 && ['4','5'].every(c=>stLive(S.opps).some(o=>o.cls===c&&o.st==='parked')) && stCoverage().known===0 && !stCfg().lean && !!stCfg().next"))
@@ -191,6 +191,27 @@ with sync_playwright() as p:
     ev("['v-voss','v-treasure','v-headlee'].forEach(id=>ccW(id,{st:'done',ins:'an idea I have not used yet',doneAt:now()}))")
     check('three unused ideas: the planner says apply first instead of feeding more', ev("(()=>{const P=ccPlan(20,'any','any'); return P.apply===1 && P.steps.every(s=>s.k==='capture') && ccPlan(20,'calm','any').apply!==1})()"))
     ev("['v-voss','v-treasure','v-headlee'].forEach(id=>{delete S.content[id]})")
+    # ── 13.30 · research states, video verification, market intelligence
+    ev("mktLoad()"); pg.wait_for_timeout(600)
+    r = ev("(()=>{const c=XC.cards.filter(c=>(c.clip||[]).length); return {content:c.filter(x=>x.clipV==='content').length, title:c.filter(x=>x.clipV==='title').length, link:c.filter(x=>x.clipV==='link').length, qual:c.filter(x=>rsVid(x).qual).length}})()")
+    check('video checks are four separate claims; nothing is "reviewed" before you watch it', r['content'] + r['title'] + r['link'] == 234 and r['qual'] == 0 and r['link'] > 50, r)
+    check('a link-only video says its fit is not confirmed; a course clip says how it was matched', ev("/fit to this lesson is NOT confirmed/.test(xcCardHtml(XC.cards.find(c=>c.clipV==='link')))") and ev("/matched to its transcript/.test(xcCardHtml(XC.cards.find(c=>c.clipV==='content')))"))
+    vid = ev("XC.cards.find(c=>c.clipV==='link').id")
+    ev(f"rsVidRate('{vid}',0)")
+    check('"watched: does not fit" queues an urgent replacement job for that lesson', ev(f"rsVid(XC.byId['{vid}']).bad && Object.values(S.research).some(r=>r.key==='badvid:{vid}'&&r.urgent&&r.card==='{vid}')"))
+    ev(f"bcW('vq:{vid}',null); rsVidRate('{vid}',1)")
+    check('"watched: it fits" is the only way a video becomes quality-reviewed', ev(f"rsVid(XC.byId['{vid}']).qual"))
+    ev("closeModal(); S.research.rT={id:'rT',_u:now(),at:now(),q:'How to answer we already use Indeed',why:'heard twice',st:'open'}")
+    check('job states are honest: queued means not run', ev("rsJobState(S.research.rT)[0]==='queued' && /Not run/.test(rsJobState(S.research.rT)[1])"))
+    ev("window.open=()=>null; rsNow('rT')")
+    check('Research now marks the job sent with a time; the prompt carries the job id and no secret', ev("rsJobState(S.research.rT)[0]==='sent' && /rT/.test(rsPrompt(S.research.rT)) && /WR-IMPORT/.test(rsPrompt(S.research.rT)) && !rsPrompt(S.research.rT).includes(S.settings.sync.code||'none-set')"))
+    ev("""document.getElementById('rs-paste').value='Here is what I found. WR-IMPORT: '+JSON.stringify([{t:'Handling the Indeed objection',by:'Someone',url:'https://example.com/indeed',fmt:'read',min:6,job:'rT',stat:'public',tier:'core',claim:'practitioner',apply:'Use on the next 10 dials'}]); rsPaste()""")
+    check('a pasted result is imported and the job becomes answered', ev("rsJobState(S.research.rT)[0]==='answered' && kpAll().some(x=>x.url==='https://example.com/indeed'&&x.job==='rT')"))
+    ev("rsPasteOpen(); document.getElementById('rs-paste').value='not a list'; rsPaste()")
+    check('a bad paste changes nothing', ev("!!document.getElementById('rs-paste')")); ev("closeModal()")
+    check('market intelligence: every statement has a class, a source and a link; unknowns and the plan are explicit', ev("MKT.entries.length>=14 && MKT.entries.every(e=>MK_CLS[e.cls]&&MK_TOPIC[e.topic]&&e.src&&/^https:/.test(e.url)&&e.text.length>30) && MKT.unknown.length>=5 && MKT.plan.length===7 && MKT.plan.some(p=>p[1]==='open')"))
+    check('market research did not touch the A/B/C matrix', ev("(()=>{const before=JSON.stringify(stCfg().models); mktOpen(); return JSON.stringify(stCfg().models)===before && /None of this has been written into the A.B.C matrix/.test(document.getElementById('modal').textContent)})()")); ev("closeModal()")
+    check('blocked sources say what is needed instead of pretending', ev("/your own copy/.test(kpGet('hz-gls').note) && /No official transcript/.test(kpGet('hz-lost').note)"))
     # ── BAC
     check('BAC: verified dates, deadlines and the open questions are all present', ev("BACD.exams.find(e=>e.k==='ro').d==='2027-06-08' && BACD.exams.find(e=>e.k==='ist').d==='2027-06-15' && BACD.deadlines.length===2 && BACD.verify.length>=3 && BACD.start==='09:00'"))
     r = ev("(()=>{const a=bacSeq('ro'), b=bacSeq('ist'); return {ro:a.T.length, ist:b.T.length, d:a.days, pw:a.perWeek, nx:a.next.length, mf:a.mocksFrom}})()")
@@ -213,7 +234,7 @@ with sync_playwright() as p:
     check('13.27 seed is idempotent and never overwrites your own exam date', ev("S.settings.bacDate==='2027-06-01' && Object.keys(S.risks).filter(k=>/^r1327/.test(k)).length===2 && Object.keys(S.reality).filter(k=>/^rf1327/.test(k)).length===2"))
 
     # ── every new screen at phone width
-    screens = ["ccOpen('rec')", "ccOpen('men')", "ccOpen('aud')", "ccOpen('res')", "ccOpen('impl')", "ccOpen('new')", "ccView('lc-12')", "ccView('em-20261112-57455')", "ccMentor('hormozi')", "ccPlanOpen(15)", "ccPlanRun(25,'any','any')", "ccStats()", "ccRoadmap()", "ccSettings()", "ccResearchNew()", "ccCapture()", "ccAudio('lc-02')", "ccDone('lc-02')", "cxList()", "cxOpen('cT')", "cxFields('cT')", "enCheck()", "cmTrain('c-speak')", "cmTrain('r-focus')", "cmMoneyDrill('f-bank')", "jlBrList()", "jlBrOpen('br-stall')", "kpAuditOpen()", "bacMapOpen('ro')", "bacDiagOpen('ro')", "bacDiagMiss('ro')", "bacFactsOpen()", "bacProfileSet()", "stOpen()", "stObsOpen()", "stObsNew()", "stOppOpen()", "stOppEdit('')", "stAssetOpen()", "stAssetEdit('')", "stModelsOpen()", "stCellEdit('A','wtp')", "stReviewOpen()", "osOpen()", "osEngine('sales')", "osEngine('team')", "osView('s-open')", "osView('r-match')", "osSet('s-diag')", "rsOpen()", "xcOpen('lh-emotion')", "xcOpen('hz-askagain')", "xcOpen('sf-scam4')", "cmCapOpen('j-scam')"]
+    screens = ["ccOpen('rec')", "ccOpen('men')", "ccOpen('aud')", "ccOpen('res')", "ccOpen('impl')", "ccOpen('new')", "ccView('lc-12')", "ccView('em-20261112-57455')", "ccMentor('hormozi')", "ccPlanOpen(15)", "ccPlanRun(25,'any','any')", "ccStats()", "ccRoadmap()", "ccSettings()", "ccResearchNew()", "ccCapture()", "ccAudio('lc-02')", "ccDone('lc-02')", "cxList()", "cxOpen('cT')", "cxFields('cT')", "enCheck()", "cmTrain('c-speak')", "cmTrain('r-focus')", "cmMoneyDrill('f-bank')", "jlBrList()", "jlBrOpen('br-stall')", "kpAuditOpen()", "bacMapOpen('ro')", "bacDiagOpen('ro')", "bacDiagMiss('ro')", "bacFactsOpen()", "bacProfileSet()", "stOpen()", "stObsOpen()", "stObsNew()", "stOppOpen()", "stOppEdit('')", "stAssetOpen()", "stAssetEdit('')", "stModelsOpen()", "stCellEdit('A','wtp')", "stReviewOpen()", "osOpen()", "osEngine('sales')", "osEngine('team')", "osView('s-open')", "osView('r-match')", "osSet('s-diag')", "rsOpen()", "rsNowNew()", "rsPasteOpen()", "rsVidAudit()", "mktOpen()", "xcOpen('nc-florida')", "xcOpen('lh-emotion')", "xcOpen('hz-askagain')", "xcOpen('sf-scam4')", "cmCapOpen('j-scam')"]
     bad = []
     for sc in screens:
         try:
@@ -240,12 +261,12 @@ with sync_playwright() as p:
     p2.goto(URL); p2.wait_for_timeout(1500)
     try:
         p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); p2.wait_for_timeout(6000)
-        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.29\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
+        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.30\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
         need = ['content.js', 'expand.js', 'lib/bac.json', 'lib/mentors.json', 'lib/sources.json', 'lib/cards.json']
         check('offline cache holds the new files', all(n in cached for n in need), [n for n in need if n not in cached])
         c2.set_offline(True); p2.reload(); p2.wait_for_timeout(3000)
         r = p2.evaluate("(async()=>{ccLoad(); bacLoad(); xcLoad&&xcLoad(); await new Promise(r=>setTimeout(r,1500)); return {v:APP_VERSION, lib:!!(KPL&&KPL.sources.length>150), bac:!!BACD, men:!!CCM, plan:(KPL?ccPlan(15,'any','any').steps.length:0)}})()")
-        check('app starts offline and the content planner works from cache', r['v'] == '13.29.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
+        check('app starts offline and the content planner works from cache', r['v'] == '13.30.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
         check('offline: no page errors', not e2, e2[:3])
     except Exception as e:
         check('offline test ran', False, str(e)[:200])

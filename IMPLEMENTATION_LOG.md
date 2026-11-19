@@ -1,5 +1,18 @@
 # Implementation log
 
+## 19 Nov 2026 · 13.30.0 · research and content quality (and 13.29.0 operating system)
+
+| Item | Status |
+|---|---|
+| Research job states (queued / sent / answered), Research Now via a Claude chat with paste-back import | implemented + tested |
+| Daily scheduled research | BLOCKED: the schedule change was denied by the permission system. The scan runs Mondays 07:37 only |
+| Video verification in four separate levels; user rating; bad video → replacement job | implemented + tested. Transcripts of the 19 Nov videos were NOT inspected: YouTube refused automated page requests from the build environment |
+| Florida licensing lesson | three official AHCA pages + statutes linked; official video covers background screening only |
+| Email backlog (one-off cloud task, 14:25–14:34) | ran: 116 emails in 10 notes: 41 listed ones processed (11 were promotions), 75 older ones added. Verified in the database. Content of the lessons was written by that task, not reviewed here |
+| Lost Chapters, Gym Launch Secrets | BLOCKED: no legitimate text or official captioned video found. Needs his own copy |
+| Market intelligence: 14 sourced statements, unknowns, 7-question plan | implemented + tested. Five web searches on 19 Nov; benchmark figures come through secondary citations; A/B/C matrix untouched |
+| 13.29: operating system (31 steps, 10 v0 procedures), now/next/later, automatic research jobs, direction snapshot | implemented + tested; procedures untested on a real case |
+
 ## 19 Nov 2026 · 13.28.0 · Strategy layer, a video on every lesson, self-updating library (13.27.1)
 
 Audit before building (what already existed and was reused): call log and funnel (`mcDialLog`, `sgState`, `enBottleneck`), experiments and decisions (`intel.js`, `judge.js`), Field Manual, campaigns with projects, capability map, content index. Missing: a place for market evidence, opportunities tied to evidence, an asset register, a way to compare business models without deciding early, and signals that connect them.

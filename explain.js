@@ -57,7 +57,7 @@ function xcCardHtml(c, opts) {
     <div class="xc-top"><span>${esc(c.who || XC_COURSES[c.c] || '')} · deep card</span>${r ? `<em class="${due ? 'due' : ''}">${due ? 'review due' : 'next review ' + fmtDate(new Date(r.due + 'T12:00'))}</em>` : ''}</div>
     <h2 class="xc-t">${esc(c.t)}</h2>
     <div class="xc-hook">${pbInline(c.hook)}</div>
-    ${(c.clip || []).length ? `<div class="xc-s xc-vid"><div class="xc-l">▶ Watch first${c.clipBy ? ' · ' + esc(c.clipBy) : ''}${c.clipMin ? ' · ' + c.clipMin + ' min' : ''}</div><div class="xc-clips">${c.clip.map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div>${c.clipNote ? `<div class="xs muted">${esc(c.clipNote)}</div>` : ''}</div>` : `<div class="xc-s"><div class="xs muted">No verified video exists for this lesson yet.</div></div>`}
+    ${(c.clip || []).length ? `<div class="xc-s xc-vid"><div class="xc-l">▶ Watch first${c.clipBy ? ' · ' + esc(c.clipBy) : ''}${c.clipMin ? ' · ' + c.clipMin + ' min' : ''}</div><div class="xc-clips">${c.clip.map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div>${c.clipNote ? `<div class="xs muted">${esc(c.clipNote)}</div>` : ''}${typeof rsVidHtml === 'function' ? rsVidHtml(c) : ''}</div>` : `<div class="xc-s"><div class="xs muted">No verified video exists for this lesson yet.</div></div>`}
     ${xcVis(c.vis)}
     ${sec('plain', 'In plain words', c.plain)}
     ${sec('ana', 'Picture it', c.analogy)}
