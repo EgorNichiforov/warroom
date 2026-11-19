@@ -30,16 +30,16 @@
 | 0 Discovery and preservation | Done: inventory by script (`tools/inventory.py` → `INVENTORY.md`), rollback point, backup restore proven | this file, `INVENTORY.md` |
 | 1 Architecture and foundation | Decision made and recorded; foundations = entity read model, event log, health | `ARCHITECTURE_DECISIONS.md`, `entity.js` |
 | 2 Canonical data and reality engine | Built as a read model over existing stores (13.41) | `entity.js` |
-| 3 Strategy and execution | Existed (mission.js, strategy.js, fn.js, engine.js) + objective chain and backward plan (13.42) | `future.js` |
-| 4 Decision intelligence | Existed (judge.js) + what was missing (13.42) | `future.js` |
+| 3 Strategy and execution | Existed (mission.js, strategy.js, fn.js, engine.js) + goal chain and backward plan built in 13.42 | `future.js` |
+| 4 Decision intelligence | Existed (judge.js: decisions, predictions, calibration, red team, pre-mortem); option comparison added in 13.42 | `judge.js`, `future.js` |
 | 5 Capability and learning | Existed + proof layer 13.38 | `proof.js` |
 | 6 Knowledge and content | Existed (content.js, sources) + record graph 13.41 | `entity.js` |
 | 7 Business intelligence | Existed + 13.39 | `domain.js` |
-| 8 Simulation | 13.42 | `future.js` |
-| 9 Agent orchestration | 13.43 | `agents.js` |
+| 8 Simulation | Built for the business funnel (13.42) | `future.js` |
+| 9 Agent orchestration | Built, bounded (13.42); never run against a live model by the build | `agents.js` |
 | 10 Personal domains | Existed + 13.34 to 13.39 | `depth.js`, `domain.js` |
-| 11 Evolution | 13.43 | `agents.js` |
-| 12 Final integration and release | Each release is tested and deployed; acceptance report at the end | `ACCEPTANCE_REPORT.md` |
+| 11 Evolution | Built (13.42); needs weeks of real use to say anything | `agents.js` |
+| 12 Final integration and release | 13.42.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
@@ -52,4 +52,12 @@ A stage listed for a later release than the current `APP_VERSION` is NOT built y
 
 ## Next action
 
-See the last "Next" line in `IMPLEMENTATION_LOG.md`.
+Nothing further is buildable without Egor. In order of value:
+
+1. Egor presses the phone checklist and reports what breaks.
+2. After two weeks of use, open "Is War Room working?" and fold away what was never opened.
+3. If roles prove useful with a real AI key: design the server-side worker (ADR-005) and bring Egor the plan.
+4. Security migration plan (ADR-007) for Egor's approval.
+5. More scenario models (pricing, time allocation) only when a real decision needs one.
+
+Do not start another building session before dials are being logged: the Build Gate in `BUILD_GATE.md` is the rule, and the brief itself says to name it when War Room becomes the distraction.
