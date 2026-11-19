@@ -26,7 +26,7 @@ with sync_playwright() as p:
     ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); bacLoad(); clLoad&&clLoad();")
     pg.wait_for_timeout(1800); pg.clock.run_for(2000)
     check('libraries loaded (cards, bootcamp, sources, mentors, BAC)', ev("!!(XC&&XC.byId&&BC&&KPL&&CCM&&BACD)"))
-    check('version is 13.27.0', ev("APP_VERSION==='13.27.0'"), ev("APP_VERSION"))
+    check('version is 13.27.1', ev("APP_VERSION==='13.27.1'"), ev("APP_VERSION"))
 
     # ── data integrity
     check('31 new sourced cards, every one with a source, a kind and two test questions', ev("XC.cards.filter(c=>c.added==='13.27').length===31 && XC.cards.filter(c=>c.added==='13.27').every(c=>c.src&&c.kind&&c.q.length>=2&&c.move&&c.trap)"))
@@ -80,6 +80,7 @@ with sync_playwright() as p:
     ev("ccResearchNew('sf-112'); document.getElementById('cc-rq').value='Official Moldovan guidance on what to say to 112'; ccResearchSave('sf-112')")
     check('research request is queued in synced data, honestly labelled', ev("Object.values(S.research).some(r=>r.st==='open'&&r.card==='sf-112') && MERGE_MAPS.includes('research')"))
     ev("""S.inbox=S.inbox||{}; S.inbox['d1']={id:'d1',from:'Claude',title:'Discovery scan · 26 Nov',body:'Two items.\\nWR-IMPORT: '+JSON.stringify([{t:'New Hormozi video',by:'Alex Hormozi',url:'https://www.youtube.com/watch?v=AAAAAAAAAAA',min:14,why:'objections',mentor:'hormozi',caps:['b-objection'],claim:'practitioner',tier:'core',stat:'official'},{t:'Duplicate of Cialdini',url:'https://www.youtube.com/watch?v=cFdCzN7RYbw'},{t:'Unticked'}])}""")
+    ev("S.settings.discovery=Object.assign({},S.settings.discovery,{auto:false})")
     n0 = ev("kpAll().length")
     check('a scan note is detected; nothing is added before a tap', ev("ccInbox().length===1 && ccInbox()[0].items.length===3") and ev("kpAll().length") == n0)
     ev("ccInboxImport('d1'); document.querySelectorAll('.cc-ii')[2].checked=false; ccInboxAdd('d1')"); pg.wait_for_timeout(150)
@@ -88,6 +89,14 @@ with sync_playwright() as p:
     check('adding a link that already exists opens the existing one', ev("kpAll().length") == n0 + 1); ev("closeModal()")
     ev("ccCapture(); document.getElementById('cc-cu').value='https://example.org/essay'; document.getElementById('cc-ct').value='An essay'; ccCaptureSave()")
     check('a new link enters as unverified exploration, saved', ev("kpAll().some(x=>x.url==='https://example.org/essay'&&x.stat==='unverified'&&x.tier==='explore') "))
+    ev("""S.settings.discovery=Object.assign({},S.settings.discovery,{auto:true}); S.inbox['d2']={id:'d2',from:'Claude',title:'Discovery scan · 30 Nov',body:'x\\nWR-IMPORT: '+JSON.stringify([{t:'Auto video',by:'Leila Hormozi',url:'https://www.youtube.com/watch?v=BBBBBBBBBBB',min:9,mentor:'leila',claim:'practitioner',tier:'core',stat:'official'},{t:'Random blog',url:'https://example.org/blog',tier:'core'},{id:'em-20261119-07459',ins:'A short lesson written by the scan about focus.',cards:['sc-constraint','nope']},{id:'em-20261112-57455',ins:'must not overwrite an insight that already exists'}])}""")
+    n1 = ev("kpAll().length"); k = ev("ccAutoImport()"); k2 = ev("ccAutoImport()")
+    check('autonomous mode: scan notes are imported without a tap, once', k == 3 and k2 == 0 and ev("kpAll().length") == n1 + 2, (k, k2))
+    check('autonomous mode: unverified finds are forced to exploration; verified keep their tier', ev("kpAll().find(x=>x.url==='https://example.org/blog').tier==='explore' && kpAll().find(x=>x.yt==='BBBBBBBBBBB').tier==='core'"))
+    check('autonomous mode: a listed email gets its lesson; existing insights are never overwritten; bad card ids dropped', ev("kpGet('em-20261119-07459').ins.startsWith('A short lesson') && kpGet('em-20261119-07459').cards.join()==='sc-constraint' && !/must not/.test(kpGet('em-20261112-57455').ins)"))
+    check('autonomous mode: it only writes to the library and the inbox flag', ev("S.settings.discovery.lastAuto.add===2 && S.settings.discovery.lastAuto.upd===1"))
+    ev("ccAutoUndo()")
+    check('autonomous mode: one tap removes the automatic additions', ev("!kpAll().some(x=>x.yt==='BBBBBBBBBBB') && !kpAll().some(x=>x.url==='https://example.org/blog')"))
     check('mentor profiles state their limits', ev("CCM.mentors.length>=40 && CCM.mentors.every(m=>m.lim&&m.why&&m.teaches.length&&CC_CLAIM[m.claim])"))
 
     # ── expansion pieces
@@ -170,12 +179,12 @@ with sync_playwright() as p:
     p2.goto(URL); p2.wait_for_timeout(1500)
     try:
         p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); p2.wait_for_timeout(6000)
-        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.27\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
+        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.27\\.1/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
         need = ['content.js', 'expand.js', 'lib/bac.json', 'lib/mentors.json', 'lib/sources.json', 'lib/cards.json']
         check('offline cache holds the new files', all(n in cached for n in need), [n for n in need if n not in cached])
         c2.set_offline(True); p2.reload(); p2.wait_for_timeout(3000)
         r = p2.evaluate("(async()=>{ccLoad(); bacLoad(); xcLoad&&xcLoad(); await new Promise(r=>setTimeout(r,1500)); return {v:APP_VERSION, lib:!!(KPL&&KPL.sources.length>150), bac:!!BACD, men:!!CCM, plan:(KPL?ccPlan(15,'any','any').steps.length:0)}})()")
-        check('app starts offline and the content planner works from cache', r['v'] == '13.27.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
+        check('app starts offline and the content planner works from cache', r['v'] == '13.27.1' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
         check('offline: no page errors', not e2, e2[:3])
     except Exception as e:
         check('offline test ran', False, str(e)[:200])
