@@ -1,0 +1,52 @@
+/* War Room 13.24 · bac.js — the BAC feedback loop (Republic of Moldova, June 2027).
+   Not a minutes counter. Errors and timed mocks decide what to study next:
+     error made → error card (life.js, spaced 1/3/7/14/30 days) → due errors come first in the mission →
+     timed mock every 2 weeks per subject → trend vs target → the weakest subject and its most-missed topic get the block.
+   Data is the existing study log: S.lifeTests {subj, score, date}, S.lifeErrors {subj, topic, what, fix, lvl, due}.
+   Subjects and targets come from LF_SUBJ in life.js (the owner's own setup). They are NOT verified here against the
+   Ministry of Education's 2027 regulations: the board says so. "On track" is only stated when the evidence allows it. */
+'use strict';
+function bacSubj() { return typeof LF_SUBJ !== 'undefined' ? LF_SUBJ.map(([id, name, max, target]) => ({ id, name, max, target })) : []; }
+function bacStats() {
+  const today = dk(new Date()), errs = typeof lfErrs === 'function' ? lfErrs() : [];
+  return bacSubj().map((s) => {
+    const T = typeof lfTests === 'function' ? lfTests(s.id) : [], last3 = T.slice(-3), last = T[T.length - 1] || null, avg = last3.length ? last3.reduce((a, x) => a + Number(x.score), 0) / last3.length : null;
+    const E = errs.filter((e) => e.subj === s.id), due = E.filter((e) => e.due && e.due <= today), topics = {}; E.forEach((e) => { const t = (e.topic || '').trim(); if (t) topics[t] = (topics[t] || 0) + 1 + (e.lvl === 0 ? 1 : 0); });
+    const top = Object.keys(topics).sort((a, b) => topics[b] - topics[a])[0] || '';
+    return Object.assign({}, s, { n: T.length, last, avg, trend: last3.length >= 2 ? Number(last3[last3.length - 1].score) - Number(last3[0].score) : null, age: last ? Math.round((Date.parse(today) - Date.parse(last.date)) / 864e5) : null, errs: E.length, due: due.length, top, gap: avg == null ? null : (s.target - avg) / s.max });
+  });
+}
+/* can "on track" be judged, and if so what does the evidence say? */
+function bacTrack() {
+  const St = bacStats(), tgt = Number((S.settings.bac || {}).target) || 8, exam = St.filter((s) => s.max === 10), none = St.filter((s) => !s.n), thin = St.filter((s) => s.n === 1);
+  if (!St.length) return { known: false, line: 'No BAC subjects are set up.' };
+  if (none.length) return { known: false, line: `${none.length} of ${St.length} subjects have no mock score yet (${none.map((s) => s.name).join(', ')}). On track cannot be judged.` };
+  const avg = exam.length ? exam.reduce((a, s) => a + s.avg, 0) / exam.length : null, behind = St.filter((s) => s.avg < s.target);
+  return { known: true, est: avg, ok: avg == null ? !behind.length : avg >= tgt, line: `${avg != null ? `Exam subjects average ${avg.toFixed(2)} against your target of ${tgt}. ` : ''}${behind.length ? 'Below its own target: ' + behind.map((s) => s.name).join(', ') + '.' : 'Every subject is at or above its target.'}${thin.length ? ' Estimate from very few mocks: treat it as a first reading.' : ''}` };
+}
+/* the next BAC action, from the feedback loop */
+function bacNext() {
+  const St = bacStats(); if (!St.length) return null; const due = St.reduce((a, s) => a + s.due, 0), none = St.filter((s) => !s.n), tr = bacTrack(), unknown = tr.known ? '' : tr.line;
+  if (due) { const s = St.slice().sort((a, b) => b.due - a.due)[0]; return { kind: 'errors', out: `Redo ${due} due BAC error${due > 1 ? 's' : ''}`, why: 'Mistakes you already made are the fastest points to win back, and they are due today.', next: 'Open the error review', dod: 'Each one answered from memory and graded', ev: [`${due} error cards due (source: your error log)`, s.top ? `Most-missed topic in ${s.name}: ${s.top}` : ''].filter(Boolean), conf: 'measured', urgent: true, unknown }; }
+  if (none.length) return { kind: 'baseline', subj: none[0].id, out: `Timed baseline mock: ${none[0].name}`, why: 'There is no score for this subject yet, so nobody can say whether it is on track.', next: 'Sit the mock, then log the score', dod: 'One timed paper finished, score and every error logged', ev: [`${none.length} of ${St.length} subjects without a mock score`], conf: 'unknown until a first mock', urgent: false, unknown };
+  const stale = St.filter((s) => s.age != null && s.age >= 14).sort((a, b) => b.age - a.age)[0];
+  if (stale) return { kind: 'mock', subj: stale.id, out: `Timed mock: ${stale.name}`, why: `The last one was ${stale.age} days ago. A fresh score shows whether the studying is working.`, next: 'Sit the mock, then log the score', dod: 'One timed paper finished, score and every error logged', ev: [`Last ${stale.name} mock: ${stale.last.score} on ${stale.last.date}`], conf: 'measured', urgent: false, unknown };
+  const weak = St.filter((s) => s.gap != null).sort((a, b) => b.gap - a.gap)[0]; if (!weak) return null;
+  return { kind: 'study', subj: weak.id, out: `Study block: ${weak.name}${weak.top ? ', topic: ' + weak.top : ''}`, why: weak.gap > 0 ? `Furthest below its target (last-3 average ${weak.avg.toFixed(1)} of ${weak.target}).` : 'Every subject is at target. This one has the smallest margin.', next: 'Closed book: rebuild the topic from memory, then check', dod: 'The topic rebuilt from memory and one exam-style question done under time', ev: [`${weak.name}: last-3 average ${weak.avg.toFixed(1)}, target ${weak.target}`, weak.top ? `Most-missed topic: ${weak.top} (from ${weak.errs} logged errors)` : 'No errors logged for this subject yet'], conf: weak.n >= 3 ? 'measured' : 'estimate from few mocks', urgent: false, unknown };
+}
+function bacOpen() {
+  const St = bacStats(), tr = bacTrack(), nx = bacNext(), bd = S.settings.bacDate ? daysUntil(S.settings.bacDate) : null, f = (v) => (v == null ? '–' : (Math.round(v * 10) / 10).toString());
+  openModal(`<h2>BAC board</h2><div class="hint">${bd != null ? `${bd} days to the exam date in Settings. ` : 'Exam date not set in Settings. '}Target average ${Number((S.settings.bac || {}).target) || 8}+.</div>
+    <div class="bac-t"><div class="bac-r hd"><span>Subject</span><span>Last</span><span>Avg 3</span><span>Trend</span><span>Target</span><span>Errors</span></div>${St.map((s) => `<div class="bac-r ${s.avg != null && s.avg < s.target ? 'low' : ''}"><span>${esc(s.name)}</span><span>${s.last ? f(Number(s.last.score)) : 'no mock'}</span><span>${f(s.avg)}</span><span>${s.trend == null ? '–' : s.trend > 0 ? '▲ ' + f(s.trend) : s.trend < 0 ? '▼ ' + f(-s.trend) : '='}</span><span>${s.target}</span><span>${s.errs}${s.due ? ` · <b>${s.due} due</b>` : ''}</span></div>`).join('')}</div>
+    <div class="bac-line ${tr.known ? (tr.ok ? 'ok' : 'low') : ''}"><span>${tr.known ? (tr.ok ? 'On track, on current evidence' : 'Not on track yet') : 'Cannot tell yet'}</span>${esc(tr.line)}</div>
+    ${St.some((s) => s.top) ? `<div class="mc-wl"><span>Errors that keep coming back</span>${St.filter((s) => s.top).map((s) => `<div>${esc(s.name)}: ${esc(s.top)}</div>`).join('')}</div>` : ''}
+    ${nx ? `<div class="mc-wl"><span>Study next</span><div><b>${esc(nx.out)}</b></div><div>${esc(nx.why)}</div><div class="xs muted">Done when: ${esc(nx.dod)}</div></div>` : ''}
+    <div class="actions" style="flex-wrap:wrap">${St.reduce((a, s) => a + s.due, 0) && typeof lfReview === 'function' ? `<button class="btn primary" onclick="lfReview()">Review due errors</button>` : ''}${typeof lfTestModal === 'function' ? `<button class="btn" onclick="lfTestModal()">Log a mock</button>` : ''}${typeof lfErrModal === 'function' ? `<button class="btn" onclick="lfErrModal()">Add an error</button>` : ''}</div>
+    <div class="xs muted" style="margin-top:10px">Subjects and targets are the ones in your study setup (Română and Istorie by exam, English and IT by certificate). They have not been checked against the ministry's 2027 examination rules. Study minutes are a floor, not proof: only mocks and the error log move this board.</div>`, true);
+}
+(function () {
+  const st = document.createElement('style'); st.id = 'bac-css';
+  st.textContent = `.bac-t{display:grid;gap:2px;margin:8px 0;font-size:12.5px}.bac-r{display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr .7fr 1.1fr;gap:6px;padding:6px 0;border-bottom:1px solid var(--ln,#222);align-items:center}.bac-r.hd{font:600 10px/1.3 var(--mono,monospace);text-transform:uppercase;color:var(--muted,#999)}.bac-r span:not(:first-child){font-family:var(--mono,monospace)}.bac-r.low span:nth-child(3){color:var(--warn,#e5a50a)}.bac-r b{color:var(--acc,#C9A24A)}
+  .bac-line{border-left:3px solid var(--ln,#444);padding:6px 10px;margin:10px 0;font-size:13px;line-height:1.45}.bac-line span{display:block;font:600 11px/1.4 var(--mono,monospace);text-transform:uppercase}.bac-line.ok{border-color:var(--good,#3fb950)}.bac-line.ok span{color:var(--good,#3fb950)}.bac-line.low{border-color:var(--warn,#e5a50a)}.bac-line.low span{color:var(--warn,#e5a50a)}`;
+  document.head.appendChild(st);
+})();

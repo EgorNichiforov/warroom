@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.23.2';
+const APP_VERSION = '13.24.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -444,7 +444,7 @@ function minimumMet(d) { const o = S.days[dk(d)], w = dow(d), st = S.settings; c
 function gradeFor(d) { const sc = dayScore(d); let g = sc >= 85 ? 'A' : sc >= 70 ? 'B' : sc >= 50 ? 'C' : sc >= 30 ? 'D' : 'F'; if (dk(d) < dk(new Date()) && S.days[dk(d)] && !minimumMet(d).met && 'ABC'.includes(g)) g = 'D'; return g; }
 function streak(pred) { let d = new Date(); d.setHours(0, 0, 0, 0); if (!pred(d)) d = addDays(d, -1); let n = 0; while (n < 3650 && pred(d)) { n++; d = addDays(d, -1); } return n; }
 function streakWeigh() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.weight != null && o.weight !== ''); }); }
-function streakMinimum() { return streak((d) => !!S.days[dk(d)] && minimumMet(d).met && (Number(S.days[dk(d)].counters.dials) || Number(S.days[dk(d)].counters.bac))); }
+function streakMinimum() { return streak((d) => !!S.days[dk(d)] && (S.days[dk(d)].mode === 'rec' || (minimumMet(d).met && (Number(S.days[dk(d)].counters.dials) || Number(S.days[dk(d)].counters.bac))))); }   /* 13.24: a chosen Recovery day never breaks the streak */
 function streakMorning() { return streak((d) => { const o = S.days[dk(d)]; return !!o && routineFor(S.routines.morning, d).every((r) => rState(o, r.id) === 'done'); }); }
 function streakBed() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.routine && o.routine.bed); }); }
 function evaluateStakes() {
@@ -749,6 +749,7 @@ async function pullCloud(silent) {
   if (!syncReady()) return; const s = S.settings.sync;
   try { const r = await fetch(`${s.url}/rest/v1/warroom_sync?id=eq.${encodeURIComponent(s.code)}&select=data,updated_at`, { headers: hdr() });
     if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 404 ? ' (table missing: run the SQL in supabase/warroom_sync.sql)' : ''));
+    try { const sd = r.headers && r.headers.get && r.headers.get('date'); if (sd) syncState.skew = Math.round((Date.now() - Date.parse(sd)) / 1000); } catch (e) { }   /* 13.24: device clock vs server clock, shown as a risk when far apart */
     const rows = await r.json(); if (rows.length && rows[0].data) { const changed = merge(rows[0].data, true), ahead = syncAhead; baseSet(rows[0].data); if (changed) { clearTimeout(saveTimer); try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { } render(); } if (ahead) schedulePush(); }
     else await pushCloud();
     syncState.status = 'ok'; syncState.last = now(); syncState.msg = ''; if (!silent) toast('Synced'); renderTop();
@@ -765,7 +766,7 @@ async function pushCloud() {
   catch (e) { syncState.status = 'err'; syncState.msg = String(e.message || e); }
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
-/* 13.23.2 · SYNC INTEGRITY.
+/* 13.24.0 · SYNC INTEGRITY.
    Before: a day (and each settings-type object) was one record, newest timestamp wins. Two devices touching the same
    day (phone logs dials, laptop logs weight from a stale copy) → the older device's fields were silently lost.
    Now: the cloud copy last seen by this device is kept as a BASE. For days and the single objects a 3-way merge runs
@@ -837,7 +838,7 @@ function renderSync() {
 function genCode() { const a = new Uint8Array(18); crypto.getRandomValues(a); return Array.from(a, (b) => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join(''); }
 function connectSync() { const code = $('s-code').value.trim(); if (code.length < 16) { toast('Code must be 16+ characters'); return; } const u = $('s-url'), k = $('s-key'); S.settings.sync = { url: (u ? u.value.trim() : S.settings.sync.url).replace(/\/$/, ''), key: k ? k.value.trim() : S.settings.sync.key, code }; baseClear(); save(true); pullCloud(false); }
 function disconnectSync() { baseClear(); S.settings.sync.code = ''; syncState.status = 'off'; save(true); render(); }
-function exportData() { S.settings.lastExport = now(); S.settings._u = now(); save(); const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'warroom_' + dk(new Date()) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+function exportData() { S.settings.lastExport = now(); S.settings._u = now(); save(); /* 13.24: a backup file never carries the sync code or the share code (they are passwords) */ const out = JSON.parse(JSON.stringify(S)); if (out.settings) { out.settings.sync = { url: (out.settings.sync || {}).url || '', key: '', code: '' }; if (out.settings.share) out.settings.share = { on: false, code: '' }; } const blob = new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'warroom_' + dk(new Date()) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 function importData(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if (!d.days) throw 0; merge(d); save(true); render(); toast('Imported'); } catch { toast('Not a War Room backup'); } }; r.readAsText(f); e.target.value = ''; }
 function resetAll() { if (!confirm('Delete ALL local data and restore the defaults? Export first if unsure.')) return; localStorage.removeItem(STORE); baseClear(); S = seed(); save(true); moreTab = 'home'; show('today'); }
 

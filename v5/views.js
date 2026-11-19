@@ -170,7 +170,7 @@ function renderNow() {
   parts.week = weekCard(d);
   parts.plate = typeof missionPlate === 'function' ? missionPlate(d) : '';
   parts.ready = today && typeof readinessCard === 'function' && nowMin() < 16 * 60 ? readinessCard(d) : '';
-  parts.briefing = today && (ph === 'morning' || ph === 'day') && typeof briefingCard === 'function' ? briefingCard(d) : '';
+  parts.briefing = today && typeof mcCard === 'function' ? mcCard() : today && (ph === 'morning' || ph === 'day') && typeof briefingCard === 'function' ? briefingCard(d) : '';   /* 13.24: one mission (mission.js) replaces the command.js briefing */
   parts.loops = today && typeof openLoopsCard === 'function' ? openLoopsCard() : '';
   parts.warn = today && typeof warningsBanner === 'function' ? warningsBanner() : '';
   parts.lock = today && typeof lockBanner === 'function' ? lockBanner() + recoveryCard() : '';

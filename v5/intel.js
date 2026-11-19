@@ -156,6 +156,8 @@ function salesIntel() {
 }
 let salesAi = null;
 async function salesExtract() {
+  /* 13.24: say what leaves the device before it leaves */
+  if (!salesExtract._ok) { const pv = (typeof aiCfg === 'function' ? aiCfg().provider : '') === 'anthropic' ? 'Anthropic' : 'Google Gemini'; openModal(`<h2>This sends data to ${pv}</h2><div class="hint">To find patterns, War Room will send the <b>status and your written notes</b> for up to 80 agencies to ${pv}, through your own AI key. Anything you typed into those notes goes too, including names. Agency names, phone numbers and the rest of your War Room are not sent. Nothing is changed.</div><div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="salesExtract._ok=1;closeModal();salesExtract()">Send and analyse</button></div>`, true); return; }
   const notes = (Q ? qItems() : []).filter((x) => x.notes || (x.log || []).some((l) => l.note)).map((x) => `- ${x.status}: ${[x.notes].concat((x.log || []).map((l) => l.note)).filter(Boolean).join(' | ').slice(0, 300)}`);
   if (notes.length < 5) { toast(`Needs notes on at least 5 agencies (you have ${notes.length})`); return; } if (!aiOn()) { toast('The AI is off'); return; }
   salesAi = { busy: true }; render();

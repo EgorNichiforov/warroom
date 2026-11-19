@@ -20,12 +20,17 @@ function bcDay(kind) { const k = 'd:' + dk(new Date()), o = Object.assign({ l: 0
 function bcSrs(id, ok) { S.cards = S.cards || {}; const r = S.cards[id] || { step: -1 }, step = ok ? Math.min(XC_STEPS.length - 1, r.step + 1) : 0, d = new Date(); d.setDate(d.getDate() + XC_STEPS[step]); S.cards[id] = { step, due: dk(d), seen: (r.seen || 0) + 1, _u: now() }; }
 
 /* ── mastery ── */
-const BC_RUNG = [['New', ''], ['Learned', 'did the lesson'], ['Recalled', 'said it from memory'], ['Judged', 'picked it right in a scenario'], ['Used', 'used it on a real call'], ['Proven', 'still there after 21+ days']];
+/* 13.24 · ONE MASTERY LADDER, used everywhere. Each stage needs its own evidence (rules: BOOTCAMP_SYSTEM_SPEC.md).
+   1 Exposed lesson finished · 2 Understood explained in own words (Feynman, teach-back, reconstruction) ·
+   3 Retained blank-page recall after a gap and estimated memory ≥70% · 4 Applied right decision under time, or real use;
+   performance skills (sales, speaking) need REAL use, a simulation is practice · 5 Integrated transfer test 3+/5 ·
+   6 Maintained a successful recall 30+ real days after learning. A stage is reached only when every stage before it is. */
+const BC_RUNG = [['Not started', ''], ['Exposed', 'lesson finished'], ['Understood', 'explained in your own words'], ['Retained', 'recalled after a gap'], ['Applied', 'used correctly; sales skills on a real call'], ['Integrated', 'used in an unfamiliar situation'], ['Maintained', 'still demonstrated 30+ days later']];
 function bcRung(id) {
-  const l = bcV('l:' + id, null); if (!l) return 0; const s = (S.cards || {})[id] || {}, j = bcV('j:' + id, 0), u = bcV('u:' + id, null);
-  /* 13.23.2: Proven = used for real AND recalled successfully 21+ real days after learning (was: 3 review steps, which could happen within days) */
-  const t0 = Date.parse(l.at), held = (bcV('rh:' + id, []) || []).some((d) => (Date.parse(d) - t0) / 864e5 >= 21);
-  if (u && held) return 5; if (u) return 4; if (j > 0) return 3; if ((l.r || 0) >= 1 || (s.step || 0) >= 1) return 2; return 1;
+  const l = bcV('l:' + id, null); if (!l) return 0; if (typeof cpDims !== 'function') return 1;
+  const d = cpDims(id), u = bcV('u:' + id, null), perf = typeof cpModeOf === 'function' && cpModeOf(id) === 'performance';
+  if (!d.u) return 1; if (!d.r) return 2; if (!(perf ? !!u : d.a)) return 3; if (!d.i) return 4;
+  const t0 = Date.parse(l.at); return (bcV('rh:' + id, []) || []).some((x) => (Date.parse(x) - t0) / 864e5 >= 30) ? 6 : 5;
 }
 const bcLearned = (m) => m.cards.filter((c) => bcV('l:' + c, null)).length;
 const bcCleared = (m) => !!(bcV('b:' + m.id, {}) || {}).pass;
@@ -188,7 +193,7 @@ function bcProgress() {
   const rk = bcRank(), days = Array.from({ length: 28 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 27 + i); return `<i class="${bcV('d:' + dk(d), null) ? 'on' : ''}" title="${dk(d)}"></i>`; }).join('');
   return `<div class="card bcx-rk"><div class="bcx-sec" style="margin:0 0 8px">Rank</div><div class="bcx-ranks">${BC.ranks.map((r) => `<div class="${rk.name === r[1] ? 'on' : rk.n >= r[0] ? 'done' : ''}"><b>${r[1]}</b><span>${r[0]} modules</span></div>`).join('')}</div><div class="aq-note">${rk.n}/${BC.modules.length} modules cleared${rk.next ? `. Next rank: ${rk.next[1]} at ${rk.next[0]}.` : '.'}</div></div>
     <div class="card"><div class="bcx-sec" style="margin:0 0 8px">Last 4 weeks</div><div class="bcx-days">${days}</div></div>
-    <div class="card"><div class="bcx-sec" style="margin:0 0 8px">How an idea becomes yours</div>${bcChain()}<div class="aq-note">Learned = you did the lesson. Recalled = you said it from memory. Judged = you picked it right in a scenario. Used = you did it on a real call or in your day. Proven = still there 21+ days later.</div></div>
+    <div class="card"><div class="bcx-sec" style="margin:0 0 8px">How an idea becomes yours</div>${bcChain()}<div class="aq-note">One ladder everywhere. Exposed = lesson finished. Understood = explained in your own words. Retained = recalled after a gap. Applied = used correctly (sales skills: on a real call, a simulation is practice). Integrated = used in an unfamiliar situation. Maintained = still demonstrated 30+ days later.</div></div>
     ${bcMap()}`;
 }
 function bcMap() {
@@ -197,7 +202,7 @@ function bcMap() {
     <div class="bc-leg">${BC_RUNG.slice(1).map((r, i) => `<span><i class="r${i + 1}"></i>${r[0]}</span>`).join('')}</div></div>`;
 }
 function bcChain() {
-  const ids = Object.keys(BC.cardMod), n = [1, 2, 3, 4, 5].map((k) => ids.filter((id) => bcRung(id) >= k).length);
+  const ids = Object.keys(BC.cardMod), n = [1, 2, 3, 4, 5, 6].map((k) => ids.filter((id) => bcRung(id) >= k).length);
   return `<div class="bc-chain">${BC_RUNG.slice(1).map((r, i) => `<div><b>${n[i]}</b><span>${r[0]}</span><em>${r[1]}</em></div>`).join('<i>›</i>')}</div>`;
 }
 function bcHome() {
@@ -412,12 +417,12 @@ function renderBoot() {
   .bc-big{display:block;width:100%;text-align:left;background:#12161B;border:1px solid var(--acc);border-radius:6px;padding:12px 14px;margin-top:8px;cursor:pointer;font-family:inherit;color:var(--text)}.bc-big b{display:block;font-size:15px;line-height:1.35}.bc-big span{display:block;font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
   .bc-big.alt{border-color:#3a6f8f}.bc-big.ghost{border-color:#262B32;background:transparent}.bc-big.boss{border-color:#c9774a;background:#1a1410}
   .bc-ok{font-size:13px;color:var(--green,#8fae8b);padding:6px 0}
-  .bc-chain{display:flex;align-items:stretch;gap:4px}.bc-chain>div{flex:1;min-width:0;border:1px solid #1B1F24;border-radius:4px;padding:8px}.bc-chain>i{align-self:center;color:var(--dim,#5B626B);font-style:normal}
+  .bc-chain{display:flex;align-items:stretch;gap:4px;flex-wrap:wrap}.bc-chain>div{min-width:84px}.bc-chain>div{flex:1;min-width:0;border:1px solid #1B1F24;border-radius:4px;padding:8px}.bc-chain>i{align-self:center;color:var(--dim,#5B626B);font-style:normal}
   .bc-chain b{display:block;font:700 20px/1 var(--mono,monospace);color:var(--text)}.bc-chain span{display:block;font-size:12px;font-weight:600;color:var(--acc);margin-top:4px}.bc-chain em{display:block;font-style:normal;font-size:11px;color:var(--muted);line-height:1.3;margin-top:2px}
   .bc-row{display:grid;grid-template-columns:150px 1fr;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid #12151A}.bc-row.lock{opacity:.5}
   .bc-rl{background:none;border:0;color:var(--text);font:500 12.5px/1.25 inherit;text-align:left;cursor:pointer;padding:0;display:flex;gap:6px}.bc-rl u{text-decoration:none;font-family:var(--mono,monospace);color:var(--muted);min-width:16px}.bc-rl i{color:var(--green,#8fae8b);font-style:normal}
   .bc-cells{display:flex;flex-wrap:wrap;gap:3px}.bc-cells button{width:18px;height:18px;border-radius:3px;border:1px solid #2C333C;cursor:pointer;padding:0}
-  .r0{background:#1E232A}.r1{background:#2b3b4a!important}.r2{background:#2f6b8a!important}.r3{background:#3d9a8c!important}.r4{background:#a8c46a!important}.r5{background:#e8c25a!important}
+  .r0{background:#1E232A}.r1{background:#2b3b4a!important}.r2{background:#2f6b8a!important}.r3{background:#3d9a8c!important}.r4{background:#a8c46a!important}.r5{background:#e8c25a!important}.r6{background:#f4f1e6!important}
   .bc-leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11.5px;color:var(--muted)}.bc-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
   .bc-mods{display:grid;gap:6px}.bc-mod{position:relative;display:flex;gap:10px;align-items:center;background:transparent;border:1px solid #1B1F24;border-radius:5px;padding:10px;text-align:left;cursor:pointer;color:var(--text);font-family:inherit;overflow:hidden}
   .bc-mod u{text-decoration:none;font:700 15px/1 var(--mono,monospace);color:var(--acc);min-width:22px}.bc-mod b{display:block;font-size:14px}.bc-mod em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}.bc-mod>i{position:absolute;left:0;bottom:0;height:2px;width:var(--p);background:var(--acc)}

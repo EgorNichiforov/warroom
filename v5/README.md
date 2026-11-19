@@ -15,14 +15,14 @@ The current audit and roadmap (18 Nov 2026) live in the Claude doc "War Room: Ma
   (`merge`, `merge3` in `core.js`, since 13.23.2). Every push reads and merges first.
 - **Backups:** Time Machine (`system.js`): one cloud copy per weekday + "before restore" + manual. Server-side table
   `warroom_backup` (no browser access) holds copies taken before risky changes. Export/import JSON in Settings.
-- **Modules:** 69 scripts loaded in order from `index.html`; later files wrap earlier functions (see the audit for the
+- **Modules:** 71 scripts loaded in order from `index.html`; later files wrap earlier functions (see the audit for the
   ownership map). Business: `dial crm pipeline stage intel autopilot playbook`. Money: `money* ledger keep wealth`.
   Body: `train trainlog food sleep body`. Learning: `bootcamp learn mastery capability drive explain clips vplay`.
 - **AI:** optional, user's own key (device-local or relayed by the `warroom-ai` function). The app lock (`lock.js`)
   is a device lock, not encryption.
 
 ## Working on it
-- Tests: `python3 -m http.server 8765 &` then `TZ=Etc/GMT+6 python3 tests/run.py` (Playwright; 288 checks).
+- Tests: `python3 -m http.server 8765 &` then `TZ=Etc/GMT+6 python3 tests/run.py` (Playwright; 303 checks).
 - Release: bump the version in `core.js` (`APP_VERSION`), `sw.js` (`CACHE`, `SHELL`), `index.html` (`?v=`); run the tests;
   add a changelog row in `playbook.js`; push `v5`; copy changed files to `main:/v5/`.
 - Never print the sync code. Never count a dial that was not dialled.
