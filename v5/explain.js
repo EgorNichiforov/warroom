@@ -65,6 +65,8 @@ function xcCardHtml(c, opts) {
     ${sec('trap', 'The trap', c.trap)}
     ${(c.clip || []).length ? `<div class="xc-s"><div class="xc-l">Watch him explain it</div><div class="xc-clips">${c.clip.map((x) => xcClipBtn(x[0], x[1], x[2], x[3])).join('')}</div></div>` : ''}
     ${c.lesson ? `<a class="xc-lesson" data-t="${esc(c.t + ' ' + (c.hook || ''))}" href="${esc(c.lesson[0])}" target="_blank" rel="noopener"><i>🎓</i><span><b>Full course lesson: ${esc(c.lesson[1])}</b><em>the real course video · plays here when it can</em></span></a>` : ''}
+    ${typeof ccForCard === 'function' && !opts.noRes ? ccForCard(c.id) : ''}
+    ${c.src ? `<div class="xc-src">Source: ${esc(c.src)}${c.kind ? ' · ' + esc(c.kind) : ''}</div>` : ''}
     ${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}
     ${(c.q || []).length ? `<div class="xc-s"><div class="xc-l">Test yourself · answer out loud first, then tap</div>${c.q.map((x) => `<details class="xc-q"><summary>${esc(x[0])}</summary><div>${pbInline(x[1])}</div></details>`).join('')}</div>` : ''}
     <div class="xc-rate"><span>How well do you know it now?</span><button class="btn sm" onclick="xcRate('${esc(c.id)}',0)">Shaky · show me again tomorrow</button><button class="btn sm primary" onclick="xcRate('${esc(c.id)}',1)">Got it</button></div>

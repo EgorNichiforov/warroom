@@ -1,6 +1,8 @@
 # Next phase roadmap (status at 13.26.0, 19 Nov 2026)
 
 ## Done since 13.24.0
+
+**13.27.0 (19 Nov):** Content Command Center, 31 lessons, BAC topic map and verified dates, campaign projects, energy, Money lens, training flows, branching scenarios, source audit, offline and simulated-sync tests. Next, in order: (1) real-phone pass by Egor, (2) process the remaining 41 emails a few per week through the scheduled scan, (3) summarise the Lost Chapters only after listening, (4) lessons for the five remaining capability gaps from verified sources (Moldovan tax service, a certified first-aid course, de-escalation training).
 | Item | Version | Commit |
 |---|---|---|
 | 1 Deploy 13.24 | 13.24.0 to 13.24.3 live | 7c05245 … 84241a2 |

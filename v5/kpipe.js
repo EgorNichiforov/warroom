@@ -51,7 +51,7 @@ function kpOpen(f) {
     <div class="kp-fun">${KP_ST.map(([k, l]) => `<button class="${KPF === k ? 'on' : ''}" onclick="kpOpen('${KPF === k ? '' : k}')"><span>${l}</span><i style="width:${(cnt[k] / mx) * 100}%"></i><b>${cnt[k]}</b></button>`).join('')}<button class="${KPF === 'done' ? 'on' : ''}" onclick="kpOpen('${KPF === 'done' ? '' : 'done'}')"><span>Complete</span><i style="width:${(done / mx) * 100}%"></i><b>${done}</b></button></div>
     ${gaps.length ? `<div class="mc-risk">${gaps.length} source(s) marked as a content gap: no Bootcamp lesson covers them yet.</div>` : ''}
     ${V.slice(0, 60).map((x) => { const n = kpNext(x); return `<button class="rl-f" onclick="kpView('${x.id}')"><b>${esc(x.t)}</b><span>${esc(KP_TYPE[x.type] || x.type || '')}${x.by ? ' · ' + esc(x.by) : ''} · <i class="${x.stat === 'official' ? 'ok' : x.stat === 'public' ? 'acc' : 'warn'}">${esc(KP_STAT[x.stat] || 'Unverified reference')}</i> · next: ${n ? esc((KP_ST.find((s) => s[0] === n) || ['', n])[1]) : 'complete'}</span></button>`; }).join('') || '<div class="empty">Nothing at this stage.</div>'}
-    <div class="actions" style="flex-wrap:wrap"><button class="btn" onclick="kpImport()">Import discoveries</button><button class="btn primary" onclick="kpEdit('')">＋ Add a source</button></div>`, true);
+    <div class="actions" style="flex-wrap:wrap"><button class="btn" onclick="kpAuditOpen()">Audit</button><button class="btn" onclick="kpImport()">Import discoveries</button><button class="btn primary" onclick="kpEdit('')">＋ Add a source</button></div>`, true);
 }
 function kpView(id) {
   const x = kpGet(id); if (!x) return; const s = kpStages(x), n = kpNext(x), I = s.info;

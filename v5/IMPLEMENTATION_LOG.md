@@ -1,5 +1,24 @@
 # Implementation log
 
+## 19 Nov 2026 · 13.27.0 · Content Command Center and the declared gaps of 13.26
+
+Build gate: 0 dials this week. Overridden by Egor in writing ("I'll do the calls today at 16:00"). Logged in the changelog.
+
+| Stage | Built | Where | Status |
+|---|---|---|---|
+| 1 Architecture | Index over `lib/sources.json` + card clips; per-user state `S.content`, `S.research`, `S.settings.discovery`, `day.content` | `content.js` | implemented + tested |
+| 2 Curriculum mapping | every resource carries `cards` and `caps`; "Best resources for this lesson" on every deep card, with the gap stated | `content.js` `ccForCard`, `explain.js` | implemented + tested |
+| 3 Initial library | 109 library entries + 14 Hormozi items + 58 emails; `lib/mentors.json` (44 profiles) | `lib/` | implemented; link and video-id checks done 19 Nov; durations of videos are estimates and flagged |
+| 4 Ongoing discovery | weekly scan + monthly curriculum review as Claude scheduled tasks; notes carry a `WR-IMPORT:` list the app imports on tap | scheduled tasks, `ccInbox*` | implemented; first real run not yet observed |
+| 5 Recommendations | `ccPlan`, `ccToday`, `ccGate`, `ccScore` (explained) | `content.js` | implemented + tested |
+| 6 Experience | Life → Content tab, quick action, Operator tile, in-app audio with resume | `content.js` | implemented; tested at 390 px in Chrome only |
+| 7 Testing | `tests/test_1327.py` (74), `tests/test_1326.py` (55), `tests/run.py` (old suite, 3 checks updated to the 13.26 evidence rule) | `tests/` | see results in the release note |
+| 8 Loop | capture → journal lesson → task / experiment / manual; analytics; exploration budget | `content.js` | implemented + tested |
+
+Also built: 31 cards, 4 modules (`lib/cards.json`, `lib/boot.json`), `lib/bac.json`, `expand.js` (campaign projects, energy, Money lens via `lxCandidates`, `cmTrain`, `JL_BR`, `kpAudit`, BAC map/diagnostic/sequence), `mastery.js` consequence-of-forgetting floor.
+
+Not done, stated plainly: no real-phone, installed-PWA or real two-phone test; 41 of 58 emails catalogued only; emails before 28 Aug not catalogued; no linked email video or PDF opened; Lost Chapters content not summarised; Voss/30MPC/Braun material beyond the linked pages not processed; contradictions are only the declared ones; BAC topic lists are an automatic extraction; five capabilities still have no lesson (caregiver matching, humour, de-escalation, taxes, independent living).
+
 ## 19 Nov 2026 · 13.26.0 · capability map, evidence loop, operator layer, knowledge pipeline · NOT deployed
 Built under an explicit gate override from Egor (chat, 19 Nov). Dials logged this week at the time: 0 (floor 80).
 

@@ -51,11 +51,13 @@ function msSchedule(id, g) {
    Review threshold (estimated memory): importance 3 comes back under 80%, 2 under 70%, 1 under 60%.
    Gap after a pass: importance 3 ×0.85, 1 ×1.25; each past blind spot (sure and wrong) −15%, at most −40%.
    Queue order: (1 − estimated memory) × importance, plus 0.1 per past blind spot (max 0.3), plus 0.3 while a blind spot is open. */
-function msImp(id) { const c = (typeof XC !== 'undefined' && XC.byId[id]) || {}; if (c.imp) return Math.max(1, Math.min(3, Number(c.imp))); const m = BC.mod[BC.cardMod[id]], b = m && typeof cpBucket === 'function' ? cpBucket(m.id) : 'wide'; return b === 'now' ? 3 : b === 'next' ? 2 : 1; }
+function msImp(id) { const c = (typeof XC !== 'undefined' && XC.byId[id]) || {}; if (c.imp || c.cf) return Math.max(1, Math.min(3, Math.max(Number(c.imp) || 0, Number(c.cf) || 0))); const m = BC.mod[BC.cardMod[id]], b = m && typeof cpBucket === 'function' ? cpBucket(m.id) : 'wide'; return b === 'now' ? 3 : b === 'next' ? 2 : 1; }
 function msBlind(id) { return Number(bcV('bsn:' + id, 0)) || 0; }
-function msFloor(id) { const i = msImp(id); return i >= 3 ? 0.8 : i === 2 ? 0.7 : 0.6; }
+/* 13.27: cf = consequence of forgetting (3 = safety, law or money: it must be there when needed, so it is reviewed earlier) */
+function msCf(id) { const c = (typeof XC !== 'undefined' && XC.byId[id]) || {}; return Number(c.cf) || 0; }
+function msFloor(id) { const i = msImp(id); return msCf(id) >= 3 ? 0.85 : i >= 3 ? 0.8 : i === 2 ? 0.7 : 0.6; }
 function msPrio(id) { return (1 - msR(id)) * msImp(id) + Math.min(0.3, 0.1 * msBlind(id)) + (bcV('bs:' + id, null) ? 0.3 : 0); }
-function msWhyDue(id) { return `estimated memory ${Math.round(msR(id) * 100)}% · importance ${msImp(id)}/3${msBlind(id) ? ` · ${msBlind(id)} past blind spot${msBlind(id) > 1 ? 's' : ''}` : ''}`; }
+function msWhyDue(id) { return `estimated memory ${Math.round(msR(id) * 100)}% · importance ${msImp(id)}/3${msCf(id) >= 3 ? ' · costly to forget' : ''}${msBlind(id) ? ` · ${msBlind(id)} past blind spot${msBlind(id) > 1 ? 's' : ''}` : ''}`; }
 function msQueue(max) {
   const t = dk(new Date()), L = msLearned();
   const due = L.filter((id) => { const c = msCard(id); return c && c.due && c.due <= t; }), fade = L.filter((id) => !due.includes(id) && msR(id) < msFloor(id));

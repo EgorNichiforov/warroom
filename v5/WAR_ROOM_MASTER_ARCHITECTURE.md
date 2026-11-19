@@ -78,3 +78,17 @@ Entry points: You → Engine → **Operator** (one screen of tiles), the global 
 
 ### Continuous discovery (approved design, scheduled task not yet created)
 Weekly, Monday 07:37 Chisinau: Gmail read-only search for Acquisition.com / Hormozi mail of the last 8 days → process each educational email in own words (no long quotes), mark linked videos "not accessed" unless a transcript is reachable → de-duplicate against `lib/sources.json` and `lib/cards.json` → one "📥 Knowledge discovery" note in the in-app inbox (same SQL pattern as the nightly review) with a one-line JSON list → Egor pastes it into Knowledge pipeline → Import. Nothing is imported, operationalized or changed without him. The full prompt is in the session report of 19 Nov 2026.
+
+
+## 13.27 · Content and the rest of the map
+
+| Need | Owner | Data | Feeds |
+|---|---|---|---|
+| What to learn now | `content.js` (`ccPlan`, `ccToday`) | `lib/sources.json`, `lib/mentors.json`, `S.content` | reads `mcBuild` (gate), `cmNext` (focus); writes journal, tasks, experiments, manual |
+| Discovery | Claude scheduled tasks (weekly scan, monthly review) | `S.research`, `S.settings.discovery`, inbox notes | proposes only; `ccInboxImport` adds on tap |
+| Campaign execution | `expand.js` (`cx*`) | `S.campaigns[].projects`, `S.tasks[].camp` | `lxCandidates` → `mcBuild` |
+| Extra candidates | `expand.js` `lxCandidates` | money log, campaign actions | the single ranking in `mcBuild` |
+| Practice | `expand.js` `cmTrain`, `JL_BR` | `S.boot['cx:*']`, `S.boot['jb:*']` | capability log as `src:'sim'` (never evidence) |
+| BAC plan | `expand.js` (`bac*`) + `bac.js` | `lib/bac.json`, `S.boot['bt:*']`, `S.lifeErrors` | `bacNext` → `mcBuild` |
+
+Rule kept: one recommender. Content, campaigns and money add candidates or facts; none of them shows a second "do this now".

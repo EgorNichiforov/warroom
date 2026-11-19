@@ -22,7 +22,7 @@ const MC_SEASONS = { school: 'Final school year', bacprep: 'BAC preparation', bi
 const MC_LENS = { biz: ['Business', 'Sales, pipeline, recruiting first'], bac: ['Study', 'BAC subjects, weak topics, mocks first'], body: ['Training', 'Training and recovery first'], life: ['Life', 'Practical responsibilities, decisions, readiness first'] };
 function mcLens(d) { const o = S.days[dk(d || new Date())]; return o && MC_LENS[o.lens] ? o.lens : ''; }
 function mcSetLens(l) { const o = day(new Date()); o.lens = MC_LENS[l] ? l : ''; touch(o); closeModal(); toast(l && MC_LENS[l] ? MC_LENS[l][0] + ' lens today. Fixed commitments still come first.' : 'Lens off: the season decides.'); mcRefresh(); }
-const MC_DOMS = { biz: 'Business', bac: 'BAC', body: 'Body', life: 'Life' };
+const MC_DOMS = { biz: 'Business', bac: 'BAC', body: 'Body', life: 'Life', money: 'Money' };
 const MC_TIER = ['Fixed commitment', 'Season priority', 'Protected commitment', 'Maintenance'];
 let mcLast = null, mcOpenCard = false;
 function mcToggle() { mcOpenCard = !mcOpenCard; mcRefresh(); }
@@ -111,6 +111,8 @@ function mcBuild() {
   /* 13.24.2: anything you skipped or marked missed today leaves the mission; the next one moves up */
   const gone = (o.mcSkip || []).map((x) => x.s); for (let i = C.length - 1; i >= 0; i--) { C[i].sid = C[i].sid || C[i].k; if (gone.includes(C[i].sid)) C.splice(i, 1); }
   C.forEach((x) => { if (['biz', 'bac', 'body', 'life'].includes(x.dom)) { try { x.camp = mcCampFor(x.dom); } catch (e) { x.camp = null; } } });
+  /* 13.27: money lens and campaign next actions arrive as ordinary candidates; this function still ranks alone */
+  try { if (typeof lxCandidates === 'function') lxCandidates({ dom, mode, night, nm, free, k, o }).forEach((x) => { if (!gone.includes(x.sid || x.k)) C.push(x); }); } catch (e) { }
   C.sort((a, b) => a.tier - b.tier || b.urg - a.urg);
   /* risks: conflicts found before they break the day */
   const planned = L.filter((b) => tmin(b.start) > nm && ['dials', 'bac', 'train', 'program', 'agency', 'learn'].includes(b.kind)).reduce((s, b) => s + tmin(b.end) - tmin(b.start), 0), avail = Math.max(0, bedM - nm);
@@ -128,6 +130,7 @@ function mcBuild() {
   const M = { C, top, picked: !!pick && pick !== C[0], rec: C[0] || null, unk, risks, mode, ssn, lens, fl, E, free, k, skips: gone.length, facts, pickWhy: o.mcPickWhy || '' };
   /* 13.26: the life layer (reality.js) adds conflicts, stagnation, due reviews and readiness as facts and risks. It never adds a second recommendation. */
   try { if (typeof lxAugment === 'function') lxAugment(M, { d, o, L, nm, bedM, night }); } catch (e) { }
+  try { if (typeof exAugment === 'function') exAugment(M, { nm }); } catch (e) { }
   return (mcLast = M);
 }
 function mcOpen(w) { try { if (typeof arcHide === 'function') arcHide(true); } catch (e) { } if (w === 'bac') { if (typeof bacOpen === 'function') bacOpen(); return; } try { show(w); } catch (e) { } }

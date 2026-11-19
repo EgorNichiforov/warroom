@@ -47,3 +47,11 @@ Two separate levels per capability:
 - **Knowledge** = how many of its mapped ideas are Understood / Retained / Applied on the ladder.
 - **Performance** = judged real events in `cx:<id>`: 0 none · 1 attempted · 2 partly · 3 demonstrated (skill to standard with evidence) · 4 reliable (3+ on 3+ days) · 5 transferred (2+ contexts). Simulations, scenarios and call-log activity never raise it.
 `cmNext()` picks one capability to develop with its reasons: season domain, active campaign, 2+ shortfalls in 45 days (→ targeted practice), avoidance, theory known but no performance.
+
+
+## 13.27 additions
+
+- Cards may carry `src` (source), `kind` (claim class), `cf` (consequence of forgetting, 3 = safety/law/money → memory floor 0.85), `added`.
+- Modules l8 Think clearly, l9 Safety & readiness, l10 Money & adult life, l11 People II. Safety cards contain no physical technique: first aid is a course.
+- Training flows: `cmTrain(capId)` by domain; money drills generate numbers and check the arithmetic; branching scenarios `JL_BR` store runs in `jb:<id>`.
+- Every deep card ends with "Best resources for this lesson" from the content index, or states that none is verified and offers a research request.

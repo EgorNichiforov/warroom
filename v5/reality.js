@@ -202,7 +202,7 @@ function lxWeekFacts(d) {
 }
 function lxWeekRows(d) {
   const F = lxWeekFacts(d), W = typeof cmWeak === 'function' ? cmWeak().slice(0, 2) : [], ss = typeof mcSeason === 'function' ? mcSeason() : null, row = (l, v, n) => `<div class="mc-wr"><span>${l}</span><b>${v}</b>${n ? `<em>${n}</em>` : ''}</div>`;
-  return `<div class="mc-wl"><span>Board meeting: the rest of life</span></div>${row('Decisions made · reviewed', `${F.decMade} · ${F.decRev}`)}${row('Skills shown to standard · fell short', `${F.demo} · ${F.fell}`, W.length ? 'recurring weakness: ' + W.map((x) => esc(x.c.n)).join(', ') : '')}${row('BAC errors logged', F.errs)}${row('Triggers logged · interrupted', `${F.triggers} · ${F.interrupted}`)}${row('Lessons and events', F.lessons)}${row('Open risks', F.risksOpen)}${row('Days next week over capacity', F.over, F.over ? '<a onclick="closeModal();rlReplanWeek()">fix it</a>' : '')}${ss ? row('Season', esc(MC_SEASONS[ss.kind] || ss.kind), ss.review ? 'review on ' + esc(ss.review) + ' · still right?' : 'no review date') : row('Season', 'not set')}`;
+  return `<div class="mc-wl"><span>Board meeting: the rest of life</span></div>${row('Decisions made · reviewed', `${F.decMade} · ${F.decRev}`)}${row('Skills shown to standard · fell short', `${F.demo} · ${F.fell}`, W.length ? 'recurring weakness: ' + W.map((x) => esc(x.c.n)).join(', ') : '')}${row('BAC errors logged', F.errs)}${row('Triggers logged · interrupted', `${F.triggers} · ${F.interrupted}`)}${row('Lessons and events', F.lessons)}${row('Open risks', F.risksOpen)}${row('Days next week over capacity', F.over, F.over ? '<a onclick="closeModal();rlReplanWeek()">fix it</a>' : '')}${ss ? row('Season', esc(MC_SEASONS[ss.kind] || ss.kind), ss.review ? 'review on ' + esc(ss.review) + ' · still right?' : 'no review date') : row('Season', 'not set')}${typeof exWeekRows === 'function' ? exWeekRows(row) : ''}`;
 }
 
 /* ── development indicators: a few interpretable numbers, no grand score ── */
@@ -246,6 +246,11 @@ function lfOpTab() {
       ${tile('Knowledge pipeline', `${typeof kpAll === 'function' ? kpAll().length : 0} sources`, 'kpOpen()')}
       ${tile('Capacity & resources', over ? `${over} day${over > 1 ? 's' : ''} over capacity` : 'next 7 days fit', 'rlCapOpen()', over)}
       ${tile('Indicators', 'a few honest numbers', 'lxMetricsOpen()')}
+      ${tile('Content', 'today\'s queue · I have X minutes · library', 'ccOpen()')}
+      ${tile('Campaigns', `${typeof campActive === 'function' ? campActive().length : 0} active · projects · next actions`, 'cxList()')}
+      ${tile('Branching scenarios', `${typeof JL_BR !== 'undefined' ? JL_BR.length : 0} multi-step situations`, 'jlBrList()')}
+      ${tile('Source audit', 'duplicates · unverified · unused', 'kpAuditOpen()')}
+      ${tile('Energy', (() => { const e = typeof enToday === 'function' ? enToday() : null; return e ? 'last check-in ' + e.v + '/5' : 'no check-in today'; })(), 'enCheck()')}
       ${tile('Search everything', 'cards · manual · journal · sources', 'jnSearchOpen()')}
     </div>
     <div class="xs muted" style="margin-top:10px">War Room is a tool, not the work. The Day screen holds the one recommendation; this screen holds the records that make it better.</div></div>`;
