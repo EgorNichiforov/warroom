@@ -685,6 +685,14 @@ with sync_playwright() as p:
       const C=cpCourseStats(); out.sum=C.reduce((s,o)=>s+o.n,0)===cpAll().length&&C.every(o=>o.lrn<=o.n&&o.dem<=o.lrn+o.n);
       cpCourseView(); out.list=document.querySelectorAll('#modal .cp-co').length===C.length; cpCourseView(C[0].k); out.detail=document.querySelectorAll('#modal .cp-cl').length===C[0].n&&/missing:/.test(document.getElementById('modal').textContent); closeModal(); return out; })()""")
     check('Courses 13.25.3: watched, learned and demonstrated are separate states on the one ladder; a watched video is never learned; each lesson shows what evidence is missing and the next action', r['dem'] and r['new'] and r['watched'] and r['exposed'] and r['sum'] and r['list'] and r['detail'], r)
+    r = ev("""(()=>{ const out={}, J=(x)=>JSON.parse(JSON.stringify(x)), D=(n)=>new Date(Date.now()-n*864e5).toISOString(); const hi=BC.mod.m4.cards[1], lo=BC.mod.m11.cards[0];
+      [hi,lo].forEach(id=>{ bcW('l:'+id,{at:dk(new Date(Date.now()-20*864e5)),r:1,rc:'explained it in my own words'}); bcW('bsn:'+id,0); bcW('bs:'+id,null); S.cards[id]={step:1,st:10,last:D(3),due:'2099-01-01',_u:now()}; });
+      out.imp=msImp(hi)===3&&msImp(lo)===1&&Math.abs(msR(hi)-msR(lo))<0.01; const q=msQueue(60); out.queue=q.includes(hi)&&!q.includes(lo);
+      const sA=J(S.cards[hi]), sB=J(S.cards[lo]); msSchedule(hi,2); msSchedule(lo,2); out.gap=S.cards[hi].st<S.cards[lo].st; const plain=S.cards[hi].st;
+      S.cards[hi]=J(sA); bcW('bsn:'+hi,2); msSchedule(hi,2); out.blind=S.cards[hi].st<plain; S.cards[hi]=J(sA); S.cards[lo]=J(sB); bcW('bsn:'+hi,0);
+      cpCal(95,false,'sim',hi); out.count=msBlind(hi)===1&&msPrio(hi)>msPrio(lo)&&/importance 3\/3 · 1 past blind spot/.test(msWhyDue(hi)); bcW('bs:'+hi,null); bcW('bsn:'+hi,0);
+      S.cards[hi]=J(sA); msSchedule(hi,0); out.again=S.cards[hi].due===dk(new Date(Date.now()+864e5)); return out; })()""")
+    check('Spacing 13.25.4: at equal memory an important idea is reviewed sooner than an expansion idea and gets a shorter gap; past blind spots shorten the gap and raise priority; Again still returns tomorrow', r['imp'] and r['queue'] and r['gap'] and r['blind'] and r['count'] and r['again'], r)
     check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows

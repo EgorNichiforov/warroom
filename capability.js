@@ -95,7 +95,7 @@ function cpStats() {
 /* ── 2. calibration log ── */
 function cpCal(c, ok, kind, id) {
   const log = (bcV('cal', []) || []).concat([{ c, ok: ok ? 1 : 0, k: kind, id, at: cpToday() }]).slice(-300); bcW('cal', log);
-  if (c >= 75 && !ok && id) { bcW('bs:' + id, { at: cpToday(), c }); if (typeof toast === 'function') toast(`⚠ Blind spot: you were ${c}% sure and missed it. It comes back sooner.`); }
+  if (c >= 75 && !ok && id) { bcW('bs:' + id, { at: cpToday(), c }); bcW('bsn:' + id, (Number(bcV('bsn:' + id, 0)) || 0) + 1); if (typeof toast === 'function') toast(`⚠ Blind spot: you were ${c}% sure and missed it. It comes back sooner.`); }
   else if (ok && id && bcV('bs:' + id, null)) bcW('bs:' + id, null);
 }
 function cpCalStats() {
@@ -288,7 +288,7 @@ function cpIdea(id) {
     <div class="cp-cap"><span>Capability</span>${esc(bcFirst(c.move || c.hook))}</div>
     <div class="cp-src"><span>Source</span>${esc(c.who || XC_COURSES[c.c] || 'not recorded')} · claim type: ${c.kind ? esc(c.kind) : 'practitioner advice'}${c.kind ? '' : ' (default label: paraphrased from the source, not independently verified)'}</div>
     <div class="cp-dims">${CP_DIM.map(([k, n, w]) => `<div class="${d[k] ? 'on' : ''}"><i>${d[k] ? '✓' : ''}</i><b>${n}</b><em>${w}</em></div>`).join('')}</div>
-    ${R != null ? `<div class="aq-note">Memory now ${R}%${tr ? ` · transfer ${tr.s}/5` : ''}${bcV('bs:' + id, null) ? ' · <b class="red">⚠ blind spot</b>' : ''}</div>` : ''}
+    ${R != null ? `<div class="aq-note">Estimated memory ${R}% · importance ${typeof msImp === 'function' ? msImp(id) : 1}/3${typeof msBlind === 'function' && msBlind(id) ? ' · past blind spots: ' + msBlind(id) : ''}${tr ? ` · transfer ${tr.s}/5` : ''}${bcV('bs:' + id, null) ? ' · <b class="red">⚠ blind spot</b>' : ''}</div>` : ''}
     <div class="cp-chain">${chain.map(([n, ok]) => `<span class="${ok ? 'on' : ''}">${n}</span>`).join('<i>›</i>')}</div>
     ${l ? `<button class="cp-next" onclick="closeModal();${na[2]}"><span>Next proof</span><b>${na[0]}</b><em>${na[1]}</em></button>` : `<button class="cp-next" onclick="closeModal();bcLesson('${id}')"><span>Not learned yet</span><b>Start the lesson</b></button>`}
     <div class="actions"><button class="btn" onclick="xcOpen('${id}')">Open the card</button>${l ? `<button class="btn" onclick="cpAar('${id}')">Log a real use</button>` : ''}</div></div>`, true);

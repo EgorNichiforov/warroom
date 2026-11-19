@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.25.3';
+const APP_VERSION = '13.25.4';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -766,7 +766,7 @@ async function pushCloud() {
   catch (e) { syncState.status = 'err'; syncState.msg = String(e.message || e); }
   renderTop(); if (view === 'more' && moreTab === 'sync') render();
 }
-/* 13.25.3 · SYNC INTEGRITY.
+/* 13.25.4 · SYNC INTEGRITY.
    Before: a day (and each settings-type object) was one record, newest timestamp wins. Two devices touching the same
    day (phone logs dials, laptop logs weight from a stale copy) → the older device's fields were silently lost.
    Now: the cloud copy last seen by this device is kept as a BASE. For days and the single objects a 3-way merge runs

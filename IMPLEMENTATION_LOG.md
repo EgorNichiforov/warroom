@@ -1,5 +1,10 @@
 # Implementation log
 
+## 19 Nov 2026 · 13.25.4 · B2 importance and blind spots in spacing
+- `mastery.js`: `msImp`, `msBlind`, `msFloor`, `msPrio`, `msWhyDue`; `msQueue` uses the importance threshold and priority order; `msSchedule` scales the gap after Good/Easy.
+- `capability.js`: `cpCal` counts blind spots per idea (`bsn:<id>`); the dossier shows estimated memory, importance and past blind spots.
+- Data: new counter `bsn:<id>` in `S.boot`. Existing review history untouched.
+
 ## 19 Nov 2026 · 13.25.3 · B1 course states
 - `capability.js`: `cpLessonState`, `cpCourseStats`, `cpCourseView`; entry button in Progress. Uses `bcRung` and the saved video positions (`vdAll`, device-local, last 80 videos). No data change.
 
