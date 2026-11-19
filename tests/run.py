@@ -645,9 +645,14 @@ with sync_playwright() as p:
     check('BAC 13.24.1: exam subjects default to a target of 8 and every target can be changed from the board', r['def8'] and r['tgt'], r)
     check('Drive 13.24.1: the natural AI voice goes first when available; "phone" or no key falls back to the phone voice', r['ai'] and r['phone'] and r['noKey'], r)
     r = ev("""(()=>{ const out={}, o=day(new Date()); closeModal(); o.mcSkip=[]; o.mcPick=null; mcOpenCard=false; mcSetMode('full'); window.__blocks=[{id:'s1',start:'17:00',end:'18:00',title:'School',kind:'school'}]; mcFlorida=()=>({h:10,t:'10:30',wd:'Wed',open:true,known:true,closeIn:390,opensIn:null});
-      let M=mcBuild(); out.before=M.top.k==='fixed'&&/Skip<.button>/.test(mcCard())&&/Missed<.button>/.test(mcCard()); const second=M.C[1].k; mcSkip('fixed',1); M=mcBuild(); out.moved=M.top.k===second&&!M.C.some(x=>x.k==='fixed')&&o.mcSkip[0].miss===1&&o.mcSkip[0].s==='fixed:s1'&&/1 skipped or missed today/.test(mcCard());
+      let M=mcBuild(); out.before=M.top.k==='fixed'&&/Skip<.button>/.test(mcCard())&&/Missed<.button>/.test(mcCard()); const second=M.C[1].k; mcSkip('fixed',1); M=mcBuild(); out.moved=M.top.k===second&&!M.C.some(x=>x.k==='fixed')&&o.mcSkip[0].miss===1&&o.mcSkip[0].s==='fixed:s1'&&/1 done, skipped or missed today/.test(mcCard());
       mcSkip(second); M=mcBuild(); out.skip=!M.C.some(x=>x.k===second)&&mcWeek(new Date()).missed===1&&mcWeek(new Date()).skipped===1; mcSkipUndo(); M=mcBuild(); out.undo=M.top.k==='fixed'; return out; })()""")
     check('Mission 13.24.2: the mission can be skipped or marked missed; the next one moves up; it is counted in the weekly review and can be undone', r['before'] and r['moved'] and r['skip'] and r['undo'], r)
+    r = ev("""(()=>{ const out={}, o=day(new Date()), k=dk(new Date()); o.mcSkip=[]; o.mc=null; o.mcDone=null; Object.values(Q.items).forEach(x=>{x.log=[];}); o.counters.dials=0; let M=mcBuild(); out.btn=/Done<.button>/.test(mcCard());
+      mcSkip('fixed',2); M=mcBuild(); out.fixed=!M.C.some(x=>x.k==='fixed')&&o.mcDone.k==='fixed'&&mcMet(o,mcDialEvidence(k))===true;
+      mcSkip('dial',2); M=mcBuild(); out.dial=!M.C.some(x=>x.k==='dial')&&o.mc.k==='dial'&&mcMet(o,mcDialEvidence(k))===false&&mcDialEvidence(k).logged===0&&mcWeek(new Date()).hand===2;
+      mcSkipUndo(); M=mcBuild(); out.undo=M.top.k==='fixed'&&!o.mcDone; return out; })()""")
+    check('Mission 13.24.3: Done marks something finished early; a hand "done" never invents dials (the call log still decides)', r['btn'] and r['fixed'] and r['dial'] and r['undo'], r)
     check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows
