@@ -167,3 +167,19 @@ Build Gate: 0 dials in the records for the week; overridden by Egor in writing f
 - **Stage 7.** Investigation only; no data written.
 
 Tests: `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` 315 (the count varies by one or two with the clock: some checks are conditional). Desktop browser at phone width; no real phone.
+
+## 13.33.0 · 19 Nov 2026 · wayfinding (usability, part 4 of the unified brief)
+
+**New:** `wayfind.js`, `tests/test_1333.py`. **Changed:** `index.html`, `sw.js`, `core.js`, `playbook.js`, `blueprint.js` (version text), test version strings, documents.
+
+- `WF`: 34 destinations, one per everyday activity: plain label, search words, place, purpose and record, action. `wfOpen()` (the map, with a filter), `wfFind(q)`, `wfGo(id)`. Entry points: a link on the Day mission card, a link in the ⌘ palette, and the palette's own search (`bfSearch`) now lists "Where" matches first. It ranks nothing; `mcBuild` is untouched.
+- `WF_SCREEN`: purpose · use this when · do this · records · next for 17 screens. `wfStrip()` puts one line at the top of a screen after `render()`/`show()`; dismissal is per screen and per device (`localStorage` `wr-wf-h:<view>`). `wfHelp(view)` opens the full card.
+- Operator (`lfOpTab` wrapped): tiles regrouped by `WF_OP` into four headed groups and two folded ones; unknown tiles fall into "Other" so none can disappear.
+- `openCapture()` (top-right +) now opens `shCapture()`; "Record a talk" was the one action only the old sheet had and is added to the quick grid. The old sheet's code remains in `ask.js`, unreachable from the interface.
+- `WF_OFF` disables all of it for tests that need the bare screens.
+
+Tests: `test_1333.py` 29 (the twelve usability journeys, each: found by its plain name → lands in its one home → two taps from Day; two of them also check the record), `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` 315/315 at a daytime clock (after bedtime one legacy check fails because the classic Day screen shows no mission card at night; the same happens on 13.32.0). No real-phone test.
+
+Regression caught and fixed before release: the purpose line was first inserted inside each screen, which made the stable renderer rebuild whole screens on every refresh (8 legacy checks failed). It now sits before the screen element; a test compares the rebuild count with and without it.
+
+Not done in this release (from the unified brief): per-domain operating systems beyond what exists (business economics, money management depth, body, focus), goal structure (definition, baseline, milestones), scorecards with definitions and trends, review cadence per domain, renaming of tabs, back-navigation audit. The coverage matrices that say what exists and what is missing are in the Claude doc "War Room 13.31.1 · whole-system coherence audit".

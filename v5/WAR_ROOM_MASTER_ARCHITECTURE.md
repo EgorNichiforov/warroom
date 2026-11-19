@@ -1,4 +1,4 @@
-# War Room · master architecture (13.32.0, 19 Nov 2026)
+# War Room · master architecture (13.33.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -6,7 +6,7 @@ Written from a read of the code and the live synced data on 19 Nov 2026 (audit: 
 
 ## 1. Shape
 
-- Plain JavaScript, no build step, offline-first PWA. 87 scripts loaded in order by `index.html`; `sw.js` caches the shell.
+- Plain JavaScript, no build step, offline-first PWA. 88 scripts loaded in order by `index.html`; `sw.js` caches the shell.
 - State: one object `S` (`core.js`) in `localStorage`, synced to one Supabase row per sync code (`warroom_sync`), merged per record.
   The call queue and the caregiver bench are separate documents and separate rows (`<code>:queue`, `<code>:bench`).
 - Authoritative source: branch `main`, folder `v5/`. GitHub Pages deploys from `main`. Branch `v5` is a mirror with old extra files; nothing deploys from it.
@@ -91,9 +91,15 @@ real-phone checklist. Blocked: daily research (schedule change not approved).
 ## 8. Tests and release
 
 Suites (Playwright, system Chrome, throwaway profile, cloud blocked): `tests/run.py` (legacy), `test_1326.py`, `test_1327.py`,
-`test_1331.py` (Learn scenarios A–G), `test_1332.py` (whole-system journeys A–H). None is a real-phone test.
+`test_1331.py` (Learn scenarios A–G), `test_1332.py` (whole-system journeys A–H), `test_1333.py` (twelve usability journeys). None is a real-phone test.
 Release: bump `APP_VERSION` (`core.js`), cache name and shell list (`sw.js`), `?v=` (`index.html`); changelog row in
 `playbook.js` with the dial count at the time; log entry; all suites; commit to `main`; verify the live cache name.
+
+## 8b. Finding your way (13.33)
+
+`wayfind.js` holds the one list of everyday activities and their homes (`WF`) and what each screen is for (`WF_SCREEN`).
+It is a navigation aid: it never ranks. Entry points: Day mission card, the ⌘ palette, the ? at the top of each screen.
+The top-right + and the bottom + open the same capture sheet. Operator tiles are grouped by purpose.
 
 ## 9. Known gaps
 

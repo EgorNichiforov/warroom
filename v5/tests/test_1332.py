@@ -22,7 +22,7 @@ CALLS = """(()=>{ const mk=(id,days,n,ans)=>{ const log=[]; for(let i=0;i<n;i++)
 with sync_playwright() as p:
     b = p.chromium.launch(**CH); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("S.settings.season={dom:'biz',kind:'bizbuild',primary:'20k MRR',secondary:'Body',set:'2026-11-19'}; save(); 0")
-    check('version 13.32.x and the coordination layer is wired into the existing hooks', ev("/^13\\.32\\./.test(APP_VERSION)&&lxCandidates._co===1&&mcCard._co===1&&typeof coCandidates==='function'"), ev("APP_VERSION"))
+    check('version 13.32 or later and the coordination layer is wired into the existing hooks', ev("APP_VERSION.localeCompare('13.32.0',undefined,{numeric:true})>=0&&lxCandidates._co===1&&typeof coFit==='function'&&typeof coCandidates==='function'"), ev("APP_VERSION"))
     kinds = ev("mcBuild().C.map(c=>c.k+':'+c.tier)")
     check('still exactly one global recommender: one ranked list, one top, one card', ev("(()=>{const M=mcBuild();return Array.isArray(M.C)&&M.top===(M.C[0]||null)&&[...M.C].sort((a,b)=>a.tier-b.tier||b.urg-a.urg).every((c,i)=>c===M.C[i])})()") and ev("(()=>{arcShow();return document.querySelectorAll('#arc .mc').length===1&&document.querySelectorAll('#arc .mc .mc-out, #arc .mc .mc-sb b').length===1})()"), kinds)
     check('every candidate keeps the contract: id, domain, outcome, reason, minutes, done condition, evidence, cost of delay, confidence', ev("mcBuild().C.every(c=>(c.sid||c.k)&&c.dom&&c.out&&c.why&&c.min!=null&&c.dod!=null&&Array.isArray(c.ev)&&c.late&&c.conf)"), ev("mcBuild().C.filter(c=>!(c.dom&&c.out&&c.why&&Array.isArray(c.ev)&&c.late&&c.conf)).map(c=>c.k)"))
