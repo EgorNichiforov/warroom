@@ -1,4 +1,4 @@
-# War Room · master architecture (13.37.0, 19 Nov 2026)
+# War Room · master architecture (13.38.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -125,6 +125,12 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - The legacy test suite no longer reaches `warroom_sync` (it used to leave a real test row behind, which could be picked up by scheduled-task lookups that order by `updated_at`).
 - Scheduled tasks: the Acvila attendance task finds the row inside its query (largest main row); no literal id in its text. The discovery scan is still weekly: the write to make it daily was refused by the permission system.
 
+## 8e. Learning proof (13.38, `proof.js`)
+
+Wraps the recall engine; plans nothing. `msGrade` → `rlog` (`[day, card, grade, level]`, last 400) and `mis:<card>` (last 3 wrong answers). `msShow` → level 2 prompt when `bcRung(id) >= 3`; after the confidence step the card shows trap/move (level 2), the last miss, and "Connect it". `pfWeak()`/`pfOpen()` = missed, fading (`msBand`), finished-never-tested, weakest module; `cpRecallSet(pfWeakIds())` starts the recall. `ln:<card>` holds two-way links. `dxReviewIds` also pulls two never-tested lessons into the Learn recall step. `dxWhySet(…,'skill')` → `S.research` record with `src:'skip'`. `scRows` gains recall accuracy and recalls waiting. `pfLadders()` explains the four ladders: lesson idea (`BC_RUNG`), competence (`BP_ST`), stage capability (`CM_PERF`), company process (`OS_ST`). `CP_ST` is only a colour bucket inside capability.js; its labels are not shown anywhere.
+
+Stage 8 cleanup: 33 top-level functions with no reference in any script, the HTML shell or the lesson data were removed by parser range (three passes). `nova.js` stays loaded: six of its functions are still referenced from eight files. Modules that only hook in through wrappers were not touched.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -132,6 +138,6 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.37.
+- No real-phone test of 13.31 to 13.38.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

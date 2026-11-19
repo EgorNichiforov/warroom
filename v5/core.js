@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.37.0';
+const APP_VERSION = '13.38.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -371,7 +371,6 @@ function weighCard(o, k, d) {
 }
 function stepWeight(s) { const i = $('w-inp'); i.value = (Number(i.value || 0) + s).toFixed(1); }
 function saveWeight() { const v = num($('w-inp').value); if (v == null || v < 30 || v > 200) { toast('Enter a weight between 30 and 200 kg'); return; } const o = day(curDate); o.weight = Math.round(v * 10) / 10; delete o.weighEdit; delete o.weightSkipped; S.routines.morning.filter((r) => r.link === 'weight').forEach((r) => (o.routine[r.id] = 1)); touch(o); toast('Saved · ' + fmt(v, 1) + ' kg. Next: train.'); render(); }
-function editWeight() { const o = day(curDate); o.weighEdit = true; render(); }
 function cancelWeight() { const o = day(curDate); delete o.weighEdit; render(); }
 function skipWeight() { const o = day(curDate); o.weightSkipped = true; touch(o); render(); }
 function focusMorning(o, d) {
@@ -393,19 +392,6 @@ function routineCard(key, d, o, open) {
   const items = routineFor(S.routines[key], d); if (!items.length) return ''; const done = items.filter((r) => rState(o, r.id) === 'done').length, skipped = items.filter((r) => rState(o, r.id) === 'skip').length; const curIdx = items.findIndex((r) => !rState(o, r.id));
   return sec(key, `${key} routine`, `<b>${done}</b>/${items.length - skipped}${skipped ? ` <span class="dim">· ${skipped} skipped</span>` : ''} ${done === items.length - skipped ? '✓' : ''}`, items.map((r, i) => { const st = rState(o, r.id); return `<div class="ck ${st === 'done' ? 'on' : ''} ${st === 'skip' ? 'done' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}" onclick="routineDo('${r.id}')"><div class="box ${st === 'skip' ? 'round' : ''}">${st === 'done' ? '✓' : st === 'skip' ? '–' : ''}</div><div class="lbl">${esc(r.title)}${!st && stepHint(r) ? `<span class="sub">${stepHint(r)}</span>` : ''}${st === 'skip' ? `<span class="sub">skipped${rSkipReason(o, r.id) ? ' · ' + esc(rSkipReason(o, r.id)) : ''}</span>` : ''}</div>${st ? '' : `<button class="edit" title="Skip" onclick="event.stopPropagation();skipRoutine('${r.id}')">↷</button>`}</div>`; }).join(''), open);
 }
-function scoreboardCard(o, d) {
-  const w = dow(d); const cs = S.counters.items.filter((c) => !['dials', 'owners'].includes(c.id)).filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners'); if (!cs.length) return '';
-  return `<div class="card"><div class="card-h"><div class="card-t">📚 Study &amp; counters</div><div class="card-r">week of ${fmtShort(monday(d))}</div></div>${cs.map((c) => { const v = Number(o.counters[c.id]) || 0, tg = c.targets[w] || 0, wk = counterWeek(c.id, d), tot = counterTotal(c.id); const timed = c.unit === 'min';
-    return `<div class="counter"><div class="top"><div class="name">${esc(c.title)}</div><div class="num">${v}${tg ? `<small> / ${tg}${c.unit ? ' ' + c.unit : ''}</small>` : (c.unit ? `<small> ${c.unit}</small>` : '')}</div></div>
-      ${tg ? `<div class="bar"><i class="${c.color || ''}" style="width:${clamp((v / tg) * 100, 0, 100)}%"></i></div>` : ''}
-      <div class="btns">${timed ? `<button class="btn" onclick="startTimer('${c.id}',25)">▶ 25</button><button class="btn" onclick="startTimer('${c.id}',50)">▶ 50</button>` : ''}${c.steps.slice(0, timed ? 2 : 3).map((s) => `<button class="btn" onclick="bump('${c.id}',${s})">+${s}</button>`).join('')}<button class="btn" onclick="bump('${c.id}',-${c.steps[0]})">−${c.steps[0]}</button><button class="btn" onclick="setCounter('${c.id}')">=</button></div>
-      <div class="wk">${c.weekly ? `<span>week <b>${wk}</b> / ${c.weekly}${c.unit ? ' ' + c.unit : ''} ${wk >= c.weekly ? '✓' : `· ${c.weekly - wk} left`}</span>` : `<span>week <b>${wk}</b></span>`}<span>all time <b>${tot}</b></span></div></div>`; }).join('')}</div>`;
-}
-function top3Card(o, k, d) {
-  const due = tasksList().filter((t) => !t.done && t.due && t.due <= k).sort((a, b) => a.due.localeCompare(b.due));
-  return `<div class="card top3"><div class="card-h"><div class="card-t">Top 3 for the day</div><div class="card-r">${o.top3.filter((x) => x.d).length}/${o.top3.filter((x) => x.t).length || 3}</div></div>${o.top3.map((x, i) => `<div class="item ${x.d ? 'on' : ''}"><div class="n">${i + 1}</div><input value="${esc(x.t)}" placeholder="${['Most important thing…', 'Second…', 'Third…'][i]}" oninput="setTop3(${i},this.value)"><div class="box" onclick="toggleTop3(${i})">${x.d ? '✓' : ''}</div></div>`).join('')}
-    ${due.length ? `<div class="sec-h">Tasks due</div>${due.map((t) => taskRow(t, k)).join('')}` : ''}<div class="row" style="margin-top:8px"><input id="quick-task" placeholder="+ task for ${isToday(d) ? 'today' : fmtShort(d)}" onkeydown="if(event.key==='Enter')quickTask('${k}')"></div></div>`;
-}
 function standardsCard(o) { const short = (t) => t.replace(/\s*\(.*?\)\s*/g, '').replace(/ Protocol| Check/g, ''); return `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits compact">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')" title="${esc(h.title)}"><div class="b">${o.habits[h.id] ? '✓' : ''}</div><span>${esc(short(h.title))}</span></div>`).join('')}</div></div>`; }
 function moneyCard(o, d) {
   const cur = S.settings.currency, today = isToday(d), k = dk(d);
@@ -418,15 +404,7 @@ function incomeModal(k) {
     <div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="${MONEY_IN.concat(MONEY_OUT).map(([id]) => `setMoney('${k}','${id}',document.getElementById('inc-${id}').value);`).join('')}closeModal();render()">Save</button></div>`);
 }
 function debriefBody(o) { return `<div class="field"><label>Win</label><input value="${esc(o.win || '')}" placeholder="What worked today?" oninput="setDayField('win',this.value)"></div><div class="field"><label>Loss</label><input value="${esc(o.loss || '')}" placeholder="Where did I break my word?" oninput="setDayField('loss',this.value)"></div><div class="field" style="margin:0"><label>Fix for tomorrow</label><input value="${esc(o.fix || '')}" placeholder="One change" oninput="setDayField('fix',this.value)"></div>`; }
-function gradeCard(d) {
-  const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
-  const st = [['⚖️', streakWeigh(), 'weigh-ins'], ['📞', streakMinimum(), 'minimum days'], ['🌅', streakMorning(), 'full mornings'], ['😴', streakBed(), `bed ${S.settings.bed}`]];
-  const col = g === 'A' ? 'var(--acc)' : g === 'B' ? 'var(--ok)' : g === 'C' ? 'var(--acc)' : 'var(--bad)';
-  return `<div class="card flat"><div class="row sb" onclick="toggleSec('streaks')" style="cursor:pointer"><div class="row"><span style="font-size:26px;font-weight:800;color:${col};width:34px">${g}</span><div><div style="font-weight:700">Day grade · ${sc}%</div><div class="xs muted">${m.met ? 'Minimum met' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}</div></div></div><span class="dim">${secOpen.streaks ? '▾' : '▸'}</span></div>
-    <div id="sec-streaks" class="${secOpen.streaks ? '' : 'hidden'}"><div class="chips" style="margin-top:12px">${st.map(([ic, n, l]) => `<span class="chip ${n > 0 ? 'on' : ''}">${ic} ${n}d <span class="dim">${l}</span></span>`).join('')}</div></div></div>`;
-}
 function sleepDur(a, b) { let m = tmin(b) - tmin(a); if (m < 0) m += 1440; return Math.floor(m / 60) + 'h ' + pad(m % 60) + 'm'; }
-function toggleRoutine(id) { const o = day(curDate); o.routine[id] = rState(o, id) ? 0 : 1; touch(o); render(); }
 function skipRoutine(id) {
   const all = S.routines.morning.concat(S.routines.evening), r = all.find((x) => x.id === id); if (!r) return;
   openModal(`<h2>Skip · ${esc(r.title)}</h2><div class="small muted" style="margin-bottom:10px">Skipped steps don't count against your day. Tap it again later to mark it done.</div><div class="chips">${['Not today', 'No time', 'Sick', 'Travelling', 'Already done elsewhere', 'Overslept'].map((x) => `<span class="chip" onclick="setRoutineSkip('${id}','${x}')">${x}</span>`).join('')}</div><div class="field" style="margin-top:12px"><label>Or your reason</label><div class="inline"><input id="m-skipwhy" placeholder="optional"><button class="btn" onclick="setRoutineSkip('${id}',document.getElementById('m-skipwhy').value)">Skip</button></div></div>`);
@@ -436,8 +414,6 @@ function skipRestOfMorning() { const o = day(curDate); routineFor(S.routines.mor
 function toggleHabit(id) { const o = day(curDate); o.habits[id] = o.habits[id] ? 0 : 1; touch(o); render(); }
 function bump(id, n) { const o = day(curDate); o.counters[id] = Math.max(0, (Number(o.counters[id]) || 0) + n); touch(o); render(); }
 function setCounter(id) { const o = day(curDate); const c = S.counters.items.find((x) => x.id === id); const v = prompt('Set ' + c.title + ' for ' + fmtShort(curDate), o.counters[id] || 0); if (v == null) return; o.counters[id] = Math.max(0, num(v) || 0); touch(o); render(); }
-function setTop3(i, v) { const o = day(curDate); o.top3[i].t = v; touch(o); }
-function toggleTop3(i) { const o = day(curDate); if (!o.top3[i].t) return; o.top3[i].d = o.top3[i].d ? 0 : 1; touch(o); render(); }
 function setDayField(f, v) { const o = day(curDate); o[f] = v; touch(o); }
 /* ───────── GRADE · MINIMUM · STREAKS · STAKES ───────── */
 function minimumMet(d) { const o = S.days[dk(d)], w = dow(d), st = S.settings; const dials = o ? Number((o.counters || {}).dials) || 0 : 0, bac = o ? Number((o.counters || {}).bac) || 0 : 0; const dcT = dialTargetFor(d); const needDials = WK.includes(w) ? Math.min(st.minDials || 0, dcT || st.minDials || 0) : 0, needBac = st.minBac || 0; return { met: dials >= needDials && bac >= needBac, dials, bac, needDials, needBac }; }
@@ -445,8 +421,6 @@ function gradeFor(d) { const sc = dayScore(d); let g = sc >= 85 ? 'A' : sc >= 70
 function streak(pred) { let d = new Date(); d.setHours(0, 0, 0, 0); if (!pred(d)) d = addDays(d, -1); let n = 0; while (n < 3650 && pred(d)) { n++; d = addDays(d, -1); } return n; }
 function streakWeigh() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.weight != null && o.weight !== ''); }); }
 function streakMinimum() { return streak((d) => !!S.days[dk(d)] && (S.days[dk(d)].mode === 'rec' || (minimumMet(d).met && (Number(S.days[dk(d)].counters.dials) || Number(S.days[dk(d)].counters.bac))))); }   /* 13.24: a chosen Recovery day never breaks the streak */
-function streakMorning() { return streak((d) => { const o = S.days[dk(d)]; return !!o && routineFor(S.routines.morning, d).every((r) => rState(o, r.id) === 'done'); }); }
-function streakBed() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.routine && o.routine.bed); }); }
 function evaluateStakes() {
   const st = S.settings; if (!st.commitStart || !st.stake) return; if (!S.stakes) S.stakes = {};
   let d = pd(st.commitStart); const floor = addDays(new Date(), -60); if (d < floor) d = floor; const y = addDays(new Date(), -1); y.setHours(0, 0, 0, 0); let changed = false;
@@ -521,8 +495,6 @@ function renderTasks() {
     ${!open.length ? '<div class="empty">No open tasks.</div>' : ''}
     ${sec('Overdue', overdue, 'bad')}${sec('Today', todayT)}${sec('Tomorrow', tmrw)}${sec('Upcoming', later)}${sec('No date', nodate)}${sec('Done recently', done)}`;
 }
-function addTask(due) { const i = $('task-inp'); const v = i.value.trim(); if (!v) { i.focus(); return; } const t = { id: uid(), _u: now(), title: v, due: due || '', done: false, note: '' }; S.tasks[t.id] = t; save(); i.value = ''; taskHook('create', t); render(); }
-function quickTask(k) { const i = $('quick-task'); const v = i.value.trim(); if (!v) return; const t = { id: uid(), _u: now(), title: v, due: k, done: false, note: '' }; S.tasks[t.id] = t; save(); taskHook('create', t); render(); }
 function toggleTask(id) { const t = S.tasks[id]; t.done = !t.done; t.doneAt = t.done ? now() : null; t._u = now(); save(); taskHook(t.done ? 'close' : 'reopen', t); render(); }
 function editTask(id) {
   const t = S.tasks[id];
@@ -590,7 +562,6 @@ function programsCard() { let html = '';
   html += `<div class="card"><div class="card-h"><div class="card-t">Programs</div><button class="btn sm" onclick="editProgram('')">+ New</button></div>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<div class="setting-row" onclick="editProgram('${id}')"><div><div class="t">${esc(S.programs[id].name)}</div><div class="d">${S.programs[id].ex.length} exercises · ${ALL.filter((d) => S.programByDay.map[d] === id).map((d) => DAY_SHORT[d]).join(', ') || 'unscheduled'}</div></div><div class="arr">›</div></div>`).join('')}</div>`;
   html += `<div class="card"><div class="card-t" style="margin-bottom:8px">Weekly split</div>${ALL.map((d) => `<div class="kv"><span>${DAY_LONG[d]}</span><select style="width:60%" onchange="S.programByDay.map[${d}]=this.value;S.programByDay._u=Date.now();save();render()"><option value="">Rest</option>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<option value="${id}" ${S.programByDay.map[d] === id ? 'selected' : ''}>${esc(S.programs[id].name)}</option>`).join('')}</select></div>`).join('')}</div>`;
   return html; }
-function prevWorkout(pid, beforeKey) { const ks = Object.keys(S.days).filter((k) => k < beforeKey && S.days[k].workout && S.days[k].workout.program === pid && Object.keys(S.days[k].workout.sets || {}).length).sort(); if (!ks.length) return null; const k = ks[ks.length - 1]; return { k, sets: S.days[k].workout.sets }; }
 function sessionEx(wo) { if (!wo) return []; if (wo.ex) return wo.ex; const p = S.programs[wo.program]; return p ? p.ex : []; }
 function exKey(n) { return String(n || '').toLowerCase().replace(/^[a-d]\d?\s+/, '').replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 /* every past session that had this exercise (matched by name, across programs and per-day edits), newest first */
@@ -739,7 +710,6 @@ function renderCountersEditor() {
 
 /* ───────── SYNC (Supabase, optional) ───────── */
 const syncState = { status: 'off', msg: '', last: 0 };
-function syncIcon() { return { off: '⚙', ok: '⚙', pending: '⚙', err: '⚙' }[syncState.status]; }
 function syncLabel() { return { off: 'off', ok: 'synced', pending: 'syncing…', err: 'error' }[syncState.status]; }
 function hdr() { const s = S.settings.sync; return { apikey: s.key, Authorization: 'Bearer ' + s.key, 'x-warroom-key': s.code, 'Content-Type': 'application/json' }; }
 function syncReady() { const s = S.settings.sync; return s && s.url && s.key && s.code && s.code.length >= 16; }

@@ -197,7 +197,7 @@ function scriptHtml(x) {
   if (P) { const tok = { name: x ? firstName(x.contact) || '[name]' : '[name]', hook: x ? hookFor(x) : '[hook]', town: x ? x.city.split(/[\/(;]/)[0].trim() : '[town]' }; return `<div class="script">${pbRender(P.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'), tok)}${ob ? `<div class="lab">Loops and objections</div>${pbRender(ob.body.split('\n').filter((l) => !/^Shown in the dialer/.test(l)).join('\n'))}` : ''}<div class="xs muted" style="margin-top:10px">Edit these in Playbook → Scripts. <a href="#" onclick="pbOpen='script-owner';pbLab=false;show('book');return false">Open</a> · <a href="#" onclick="pbOpen='script-owner';pbLab=true;show('book');return false">Script Lab</a></div></div>`; }
   return `<div class="script"><div class="empty">The script lives in Playbook → Scripts → Call 1. It didn't load: open the Playbook once, then come back.</div></div>`;
 }
-function scriptHtmlOld(x) { return scriptHtml(x); } /* kept for older callers; the only script is the Playbook one */
+ /* kept for older callers; the only script is the Playbook one */
 
 /* ───────── the Dial view ───────── */
 function florida(nm) { const f = (nm - 7 * 60 + 1440) % 1440; return pad(Math.floor(f / 60)) + ':' + pad(f % 60); }

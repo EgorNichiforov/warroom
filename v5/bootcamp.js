@@ -209,7 +209,6 @@ function bcHome() {
   const tab = bcS.tab || 'path';
   return bcTop() + ({ path: bcPath, practice: bcPractice, missions: bcMissions, progress: bcProgress }[tab] || bcPath)();
 }
-function bcModBtn(m) { return bcPathMod(m); }
 function bcMod(mid) {
   const m = BC.mod[mid]; if (!m) return bcHome(); const o = bcOpen(m), p = bcV('p:' + m.id, null), b = bcV('b:' + m.id, null);
   return `${bcHead(`Module ${bcNo(m)} · ${esc(m.n)}`, `${m.tr === 'life' ? 'Life' : 'Business'} path · ${bcLearned(m)}/${m.cards.length} lessons${b ? ' · boss best ' + b.best + '%' : ''}`, `bcGo('home',{tab:'path',trk:'${m.tr}'})`)}

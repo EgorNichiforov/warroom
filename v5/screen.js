@@ -60,4 +60,3 @@ function statsScreen() {
     <div class="xs muted" style="margin-top:8px">Work, learning and messages are shown apart and never count as distraction. Times are from Android; War Room itself is left out.</div></div>`;
 }
 /* one line for the weekly report */
-function screenWeekLine(m) { const w = scrWeek(m), pw = scrWeek(addDays(m, -7)); if (w.avg == null) return ''; return `Screen ${hm(w.avg)}/day${pw.avg != null ? ` (${w.avg >= pw.avg ? '+' : '−'}${hm(Math.abs(w.avg - pw.avg))} vs last week)` : ''} · distracting ${hm(w.dist)}/day`; }

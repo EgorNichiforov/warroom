@@ -323,12 +323,6 @@ function lockEnd() {
 }
 function lockClose() { const x = lockActive(); if (!x) return; x.active = false; x.end = now(); x.result = Number($('lk-res').value) || 0; x.note = $('lk-note').value.trim(); x._u = now(); save(); if (x.mode === 'dial' && S.session && S.session.active) endSession(); closeModal(); render(); toast('Session saved'); if (typeof WRN !== 'undefined' && WRN && WRN.keepAwake) WRN.keepAwake({ on: false }).catch(() => { }); }
 function lockBanner() { const x = lockActive(); if (!x) return ''; const el = Math.round((now() - x.start) / 60000), left = x.min - el; return `<div class="card ac" style="padding:12px 16px"><div class="row sb"><div><b>${MODES[x.mode][0]} LOCKDOWN</b> · ${esc(x.mission)}<div class="small muted">${left > 0 ? left + ' min left' : 'time is up'} · ${x.interrupts.length} interruptions</div></div><div class="row" style="gap:6px"><button class="btn sm" onclick="lockInterrupt()">+ interruption</button><button class="btn sm primary" onclick="lockEnd()">End</button></div></div></div>`; }
-function devTax(weekStart) {
-  const m = weekStart || monday(new Date()), end = addDays(m, 7), sess = live(S.focus).filter((x) => !x.active && x.start >= m.getTime() && x.start < end.getTime());
-  const mins = (f) => sess.filter(f).reduce((a, x) => a + Math.round(((x.end || x.start) - x.start) / 60000), 0);
-  const build = mins((x) => x.mode === 'build'), work = mins((x) => x.mode !== 'build'); const dialMin = live(S.days).length ? Object.keys(S.days).filter((k) => k >= dk(m) && k < dk(end)).reduce((a, k) => a + ((S.days[k].sessions || []).reduce((s, x) => s + Math.round((x.end - x.start) / 60000), 0)), 0) : 0;
-  const total = build + work + dialMin, limit = S.settings.devTaxPct || 10; return { build, work: work + dialMin, share: total ? Math.round((build / total) * 100) : 0, limit, over: total > 0 && build / total * 100 > limit };
-}
 
 /* ═════════ 11 · Day replay (with provenance) ═════════ */
 function replayEvents(k) {
@@ -481,14 +475,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { intelTab = 'home'; render(); } else if (e.key === 'ArrowRight' && i >= 0) { intelTab = order[(i + 1) % order.length]; render(); } else if (e.key === 'ArrowLeft' && i >= 0) { intelTab = order[(i - 1 + order.length) % order.length]; render(); }
 });
 const card = (t, body, r) => `<div class="card"><div class="card-h"><div class="card-t">${t}</div>${r ? `<div class="card-r">${r}</div>` : ''}</div>${body}</div>`;
-function intelHome() {
-  const w = earlyWarnings(), f = funnelCounts(), bn = bottleneck(f), dt = devTax();
-  return `<div class="row" style="gap:8px;margin-bottom:12px"><button class="btn primary grow" onclick="cmdOpen()">⌘ Command</button><button class="btn grow" onclick="show('ask')">Ask</button><button class="btn grow" onclick="redTeamPlan()">Red team</button></div>`
-    + card('⚠️ Early warnings', w.length ? w.map((x) => `<div class="kv" style="cursor:pointer" onclick="${x.act}"><span class="small">${x.level === 'high' ? '<b class="bad">●</b>' : x.level === 'med' ? '<b class="acc">●</b>' : '<span class="muted">●</span>'} ${esc(x.title)}</span><span class="xs muted">open ›</span></div>`).join('') : '<div class="small muted">Nothing needs attention.</div>', w.length + ' active')
-    + card('🔎 Bottleneck', `<div class="small"><b>${esc(bn.stage)}</b>. ${esc(bn.why)}</div><div class="xs muted" style="margin-top:6px">From ${f.dials} dials · ${f.owners} owner talks · ${f.interested} interested · ${f.cases} cases. <a href="#" onclick="intelTab='funnel';render();return false">Full funnel ›</a></div>`)
-    + card('🛠 Development tax', `<div class="small">${dt.build} min building War Room vs ${dt.work} min on the work this week (${dt.share}% · limit ${dt.limit}%).${dt.over ? ' <b class="bad">Over the limit: back to dialing.</b>' : ''}</div><div class="xs muted" style="margin-top:6px">Measured from Lockdown sessions (mode "Build War Room") and dial sessions. Reliability fixes count too: they are allowed, just visible.</div>`)
-    + futureEgor().slice(0, 2).map((x) => card('🔮 ' + esc(x.t), `<div class="small"><b>${esc(x.v)}</b></div><div class="xs muted">${esc(x.note)}</div>`)).join('');
-}
 function intelNba() {
   const L = nbaList(nbaMinutes);
   return card('Next best action', `<div class="chips" style="margin-bottom:10px">${[10, 20, 30, 45, 60, 90].map((m) => `<span class="chip ${nbaMinutes === m ? 'on' : ''}" onclick="nbaMinutes=${m};render()">${m} min</span>`).join('')}</div>

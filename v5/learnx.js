@@ -49,7 +49,7 @@ function lxDomain() {
   if (pn) return { dom: 'life', why: `"${pn.n}" is marked NOW in your Blueprint and has an unopened lesson.` };
   return { dom: 'biz', why: 'Nothing is blocking right now, so the next lesson on the business path.' };
 }
-function lxTurn() { return lxDomain().dom; } /* kept for old callers */
+ /* kept for old callers */
 function lxPersSet() { const cur = lxPersMin(), md = lxPersMode(); openModal(`<h2>Personal development: how it is protected</h2><div class="hint">Body, mind, people, practical life. Choose how Learn keeps it from disappearing behind the business. Now: <b>${md === 'min' ? cur + ' minutes a week' : md === 'need' ? 'as much as needed' : 'no guarantee'}</b>.</div>
   <div class="st-o"><b>As much as needed</b><div class="xs">No fixed number. Learn picks personal lessons when they are what you need, and keeps at least one personal session in any week where something personal is waiting. You can always pick a personal session yourself.</div><button class="btn xs" id="lx-pn" onclick="lxPersSave('need')">${md === 'need' ? 'Chosen' : 'Choose this'}</button></div>
   <div class="st-o"><b>A weekly minimum in minutes</b><div class="xs">While a week is under it, the next session is personal.</div><input class="aq-in" id="lx-pm" type="number" inputmode="numeric" min="0" max="600" value="${cur || ''}" placeholder="minutes per week"><button class="btn xs" onclick="lxPersSave('min')">Save minutes</button></div>

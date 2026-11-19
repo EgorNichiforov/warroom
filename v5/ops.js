@@ -54,33 +54,6 @@ function weekOp(d) {
 }
 
 /* ───────── the campaign: the ladder from the first dial to $20k MRR ───────── */
-function campaignSteps() {
-  const owners = counterTotal('owners'), dials = counterTotal('dials'); let m = 0, cl = 0, tr = 0; try { m = mrr(); cl = members().length; tr = trials().length + cl; } catch (e) { }
-  const og = Object.values(S.goals).find((g) => !g._del && g.source === 'counter:owners'), oT = og ? og.target : 100, g3 = S.goals['g-first3'];
-  const st = [
-    { t: 'Log the first dial', v: Math.min(dials, 1), of: 1 }, { t: 'First owner conversation', v: Math.min(owners, 1), of: 1 },
-    { t: `${oT} owner conversations`, v: owners, of: oT, dl: og && og.deadline }, { t: 'First agency on trial', v: Math.min(tr, 1), of: 1 },
-    { t: 'First paying agency', v: Math.min(cl, 1), of: 1 }, { t: '3 paying agencies', v: cl, of: 3, dl: g3 && !g3._del ? g3.deadline : '' },
-    { t: '$5,000 MRR', v: m, of: 5000, money: 1 }, { t: '$20,000 MRR', v: m, of: 20000, money: 1, dl: S.settings.bigDate },
-  ];
-  st.forEach((x) => (x.done = x.v >= x.of)); return st;
-}
-function campaignCard() {
-  const st = campaignSteps(), i = st.findIndex((x) => !x.done), cur = i < 0 ? st[st.length - 1] : st[i], left = daysUntil(S.settings.bigDate), wT = S.settings.weightTarget;
-  const we = weightEntries(), a7 = avgWeight(7), wNow = a7 || (we.length ? we[we.length - 1].w : null), w0 = we.length ? we[0].w : null, wp = wNow != null && w0 != null && wT !== w0 ? clamp(((wNow - w0) / (wT - w0)) * 100, 0, 100) : 0;
-  const val = (x) => (x.money ? '$' + fmt(x.v) : x.v) + `<small> / ${x.money ? '$' + fmt(x.of) : x.of}</small>`;
-  return `<div class="card" onclick="openCampaign()" style="cursor:pointer"><div class="dday"><div class="n">${left}<small>DAYS</small></div><div class="t">to ${fmtShort(pd(S.settings.bigDate))} ${pd(S.settings.bigDate).getFullYear()}<br><b style="color:var(--sub)">$20k MRR · BAC · ${wT} kg</b></div></div>
-    <div class="lab" style="color:var(--acc)">Campaign · objective ${i < 0 ? st.length : i + 1} of ${st.length}</div>
-    <div class="camp-t">${i < 0 ? 'Mission complete' : cur.t}</div>
-    <div class="prog" style="margin-top:8px"><div class="h"><span class="l">${cur.dl ? 'by ' + fmtShort(pd(cur.dl)) + (daysUntil(cur.dl) >= 0 ? ` · ${daysUntil(cur.dl)} days` : ' · overdue') : 'next objective'}</span><span class="v">${val(cur)}</span></div><div class="bar"><i style="width:${clamp((cur.v / cur.of) * 100, 0, 100)}%"></i></div></div>
-    <div class="camp-dots">${st.map((x, j) => `<i class="${x.done ? 'done' : j === i ? 'cur' : ''}"></i>`).join('')}</div>
-    <div class="prog"><div class="h"><span class="l">Weight</span><span class="v">${wNow != null ? fmt(wNow, 1) : '—'}<small> → ${wT} kg</small></span></div><div class="bar"><i class="body" style="width:${wp}%"></i></div></div></div>`;
-}
-function openCampaign() {
-  const st = campaignSteps(), i = st.findIndex((x) => !x.done);
-  openModal(`<h2>Campaign</h2><div class="hint" style="margin-bottom:12px">One objective at a time. Each one is unlocked by the one before it, and every one of them starts with a dial.</div>
-    <div class="camp-list">${st.map((x, j) => `<div class="cs ${x.done ? 'done' : j === i ? 'cur' : ''}"><div class="cn">${x.done ? ic('check', 16) : j + 1}</div><div class="cb"><div class="ct">${x.t}</div><div class="cd2">${x.done ? 'done' : (x.money ? '$' + fmt(x.v) + ' / $' + fmt(x.of) : x.v + ' / ' + x.of) + (x.dl ? ' · by ' + fmtShort(pd(x.dl)) + ' ' + pd(x.dl).getFullYear() : '')}</div>${j === i ? `<div class="bar" style="margin-top:6px"><i style="width:${clamp((x.v / x.of) * 100, 0, 100)}%"></i></div>` : ''}</div></div>`).join('')}</div>`, true);
-}
 
 /* ───────── records ───────── */
 function records() {

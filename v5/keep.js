@@ -24,7 +24,6 @@ function kpIsWant(t) {
   return KP_WANTS.includes(t.cat) || (t.cat === 'food' && KP_EAT.test(n)) || (t.cat === 'transport' && KP_TAXI.test(n));
 }
 function kpAmt(t) { return t.type === 'count' ? -mnB(t.diff, mnAccCur(t.acc)) : mnB(t.amt, mnAccCur(t.acc)); }
-function kpStart() { if (!S.settings.mnKeepStart) { S.settings.mnKeepStart = dk(new Date()); S.settings._u = now(); try { save(); } catch (e) { } } return S.settings.mnKeepStart; }
 function kpMonth(ym) {
   const T = mnTx().filter((t) => t.date.slice(0, 7) === ym), b = (t) => mnB(t.amt, mnAccCur(t.acc));
   const wants = T.filter(kpIsWant), needs = T.filter((t) => t.type === 'out' && !kpIsWant(t)), earned = T.filter((t) => t.type === 'in').reduce((a, t) => a + b(t), 0);
@@ -33,18 +32,6 @@ function kpMonth(ym) {
 }
 /* honest streak: counts only from the day keep mode started (before that the app can't know), and breaks on any want,
    including money a count finds missing. Today only counts once the day is over. */
-function kpStreak() { const st = kpStart(), W = new Set(mnTx().filter(kpIsWant).map((t) => t.date)); let n = 0, d = addDays(new Date(), -1); while (dk(d) >= st && !W.has(dk(d)) && n < 400) { n++; d = addDays(d, -1); } return W.has(dk(new Date())) ? 0 : n; }
-function kpWait() { const w = (S.settings && S.settings.mnWait) || []; return Array.isArray(w) ? w : []; }
-function kpSaveWait(w) { S.settings.mnWait = w; S.settings._u = now(); save(); render(); }
-function kpWaitAdd() {
-  openModal(`<h2>Wait list</h2><div class="xs muted" style="margin-bottom:10px">Write it down instead of buying it. In 7 days, at the Sunday review, you decide. Most wants are gone by then.</div>
-    <div class="field"><label>What</label><input id="kpw-n" placeholder="e.g. new headphones, eating out with friends"></div>
-    <div class="field"><label>Price (MDL)</label><input id="kpw-a" type="number" inputmode="decimal"></div>
-    <div class="field"><label>Does it make $20k MRR, BAC or 85 kg more likely?</label><select id="kpw-g"><option value="no">No</option><option value="yes">Yes, and I can say how</option></select></div>
-    <button class="btn primary block" onclick="kpWaitSave()">Put it on the wait list</button>`);
-}
-function kpWaitSave() { const n = $('kpw-n').value.trim(), a = Number($('kpw-a').value) || 0; if (!n) { toast('Write what it is'); return; } const w = kpWait().concat([{ id: uid(), n, a, g: $('kpw-g').value, d: dk(new Date()) }]); closeModal(); kpSaveWait(w); toast(`On the wait list. Decide on ${fmtShort(addDays(new Date(), 7))}.`); }
-function kpWaitDone(id, how) { const w = kpWait().map((x) => (x.id === id ? Object.assign({}, x, { done: how, at: dk(new Date()) }) : x)); kpSaveWait(w); if (how === 'drop') toast('Dropped. That money stays yours.'); }
 /* 13.3.4: the card works like a budgeting app (YNAB / Monarch style): savings rate first, a monthly budget for needs,
    wants budget 0. No streaks, no games. */
 function kpNeedCats() { return MN_OUT.map((c) => c[0]).filter((c) => !KP_WANTS.includes(c)); }

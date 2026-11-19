@@ -12,7 +12,6 @@ const DV = { on: false, q: [], i: 0, part: 0, parts: [], paused: false, rate: 1.
 const DV_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.nativePromise);
 function dvNat(m, a) { return window.Capacitor.nativePromise('WrNative', m, a || {}); }
 function dvPlain(t) { return String(t || '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`#>|]/g, '').replace(/\s*→\s*/g, ', then ').replace(/\s*×\s*/g, ' times ').replace(/\s*=\s*/g, ' equals ').replace(/\$(\d)/g, '$1 dollars ').replace(/\s+/g, ' ').trim(); }
-function dvCanSpeak() { return DV_NATIVE || !!window.speechSynthesis; }
 
 /* the playlist: due reviews first, then next lessons, alternating tracks */
 function dvBuild() {

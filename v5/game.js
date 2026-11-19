@@ -140,13 +140,6 @@ function openRank() {
 /* ───────── HQ cards ───────── */
 function goStudy() { secOpen.study = true; if (view !== 'now') { view = 'now'; } render(); const e = document.getElementById('sec-study'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 function gradeInfo() { openModal(`<h2>Day grade</h2><div class="hint" style="margin-bottom:12px">The score is the share of the day's checklist that got done: the morning and evening routines, the 7 standards, the day's targets (dials, BAC, deep work) and your top 3.</div><div class="kv"><span>A</span><span class="v">85% and up</span></div><div class="kv"><span>B</span><span class="v">70%+</span></div><div class="kv"><span>C</span><span class="v">50%+</span></div><div class="kv"><span>D</span><span class="v">30%+</span></div><div class="kv"><span>F</span><span class="v">under 30%</span></div><div class="xs muted" style="margin-top:10px">A day that misses the minimum (${S.settings.minDials} dials on a dial day and ${S.settings.minBac} min of BAC) cannot grade above D, whatever else was done.</div>`, true); }
-function gradeStreaksCard(d) {
-  const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
-  const col = g === 'A' ? 'var(--body)' : g === 'B' ? 'var(--co2)' : g === 'C' ? 'var(--acc)' : 'var(--bad)';
-  const st = [[streakMinimum(), 'minimum days', "metricDetail('dials')"], [streakWeigh(), 'weigh-ins', "metricDetail('weight')"], [streakMorning(), 'full mornings', "metricDetail('score')"], [streakBed(), 'bed on time', "metricDetail('sleep')"]];
-  return `<div class="card"><div class="grade-row" onclick="gradeInfo()" style="cursor:pointer"><div class="g" style="color:${col}">${g}</div><div class="grow"><div class="lab">Day grade · ${sc}% · <span style="text-transform:none;letter-spacing:0">how?</span></div><div class="small muted" style="margin-top:3px">${m.met ? 'Minimum met. The streak is alive.' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}</div></div></div>
-    <div class="streaks">${st.map(([n, l, go]) => `<div class="s ${n > 0 ? 'on' : ''} go" onclick="${go}"><div class="n">${ic('flame')}${n}</div><div class="l">${l}</div></div>`).join('')}</div></div>`;
-}
 function weekCard(d) {
   const m = monday(d), dc = counterDef('dials'), wkT = dc ? dc.weekly : 150, wk = counterWeek('dials', d), tk = dk(new Date());
   const cols = ALL.map((i) => { const dd = addDays(m, i - 1), k = dk(dd), tg = dialTargetFor(dd), v = Number(((S.days[k] || {}).counters || {}).dials) || 0, past = k < tk;
@@ -186,10 +179,6 @@ function blockMove(id, k) {
 function upNextCard() {
   const d = new Date(), nm = nowMin(), bl = blocksFor(d).filter((b) => tmin(b.end) > nm && b.kind !== 'sleep').slice(0, 5); if (!bl.length) return '';
   return `<div class="card"><div class="card-h"><div class="card-t">Up next</div><div class="card-r">tap to open · <a href="#" onclick="show('plan');return false">full plan</a></div></div><div class="tl">${bl.map((b) => `<div class="blk tap ${tmin(b.start) <= nm ? 'now' : ''}" onclick="tapBlock('${b.id}','${dk(d)}')"><div class="t">${b.start}–${b.end === '24:00' ? '…' : b.end}</div><div class="b"><div class="n"><span class="tag ${b.kind}"></span>${esc(b.title)}</div></div></div>`).join('')}</div></div>`;
-}
-function nextMedalsCard() {
-  const md = medalsList(), got = md.filter((x) => x[2]).length, next = md.filter((x) => !x[2]).slice(0, 3); if (!next.length) return '';
-  return `<div class="card" onclick="openRank()" style="cursor:pointer"><div class="card-h"><div class="card-t">Next medals</div><div class="card-r"><b>${got}</b> / ${md.length} earned</div></div><div class="medals" style="grid-template-columns:repeat(3,1fr)">${next.map(([t, dsc, on, icn]) => `<div class="medal" style="opacity:.75"><div class="i">${ic(icn, 22)}</div><div class="t">${t}</div><div class="d">${dsc}</div></div>`).join('')}</div></div>`;
 }
 
 /* ───────── chart helpers ───────── */

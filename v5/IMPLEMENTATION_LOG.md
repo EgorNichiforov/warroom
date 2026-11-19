@@ -229,3 +229,13 @@ Tests: `test_1334.py` 50, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 7
 **Scheduled tasks:** Acvila attendance prompt rewritten without the row id (accepted). Discovery scan → daily: refused by the permission system; unchanged.
 
 Tests: see commit. Not a real phone.
+
+## 13.38.0 · 19 Nov 2026 · learning proof, and the Stage 8 cleanup
+
+**New:** `proof.js`, `tests/test_1338.py` (25). **Changed:** `cohere.js` (automation rows), 13 files lost unused functions (`core.js`, `game.js`, `intel.js`, `keep.js`, `ops.js`, `dial.js`, `drive.js`, `screen.js`, `playbook.js`, `bootcamp.js`, `learnx.js`), `index.html`, `sw.js`, version strings, documents.
+
+Part 2 requirement by requirement, as verified in code: spaced repetition by recall performance (mastery.js, already there), active recall and teach-back prompt (already there), confidence calibration (capability.js, already there), interleaving (13.34), harder questions with progress (new), practical assignments (Learn mission/apply steps, already there), closed-book testing (already there), mastery by evidence (`BC_RUNG`, already there), misconceptions/weak areas/decay (new), connections across subjects (new).
+
+Not built: questions generated for a new situation (needs the AI key and would be unverifiable offline), automatic difficulty inside the quiz mode.
+
+Tests: see commit. Not a real phone.
