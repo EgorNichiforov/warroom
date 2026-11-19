@@ -5,14 +5,16 @@ Each test loads the app fresh (empty local storage, no sync code), so nothing to
 import json, sys
 from playwright.sync_api import sync_playwright
 
-URL = 'http://localhost:8765/index.html'
+import os
+URL = os.environ.get('WR_URL', 'http://localhost:8765/index.html')
+_CH = {'executable_path': '/usr/bin/google-chrome', 'args': ['--no-sandbox']} if os.path.exists('/usr/bin/google-chrome') and not os.path.isdir(os.path.expanduser('~/.cache/ms-playwright')) else {}
 results = []
 
 def check(name, cond, info=''):
     results.append((name, bool(cond), info))
 
 def fresh(p):
-    b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2200)
     return b, pg, errs
@@ -221,7 +223,7 @@ with sync_playwright() as p:
     b.close()
 
     # launch: the first painted screen is the real one
-    b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); seen = []
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); seen = []
     pg.add_init_script("window.__seen=[];new MutationObserver(()=>{const h=document.documentElement;if(document.body&&!h.classList.contains('wr-boot')){const t=(document.querySelector('#nav')||{}).textContent||'';if(t&&window.__seen.indexOf(t)<0)window.__seen.push(t)}}).observe(document,{childList:true,subtree:true,attributes:true});")
     pg.goto(URL); pg.wait_for_timeout(3200)
     seen = pg.evaluate("__seen")
@@ -283,7 +285,7 @@ with sync_playwright() as p:
     b.close()
 
     # Day: Done on the current block must move the screen on (classic screen: with Guided day on, the guided card replaces this hero, 13.13.1)
-    b = p.chromium.launch(); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script("localStorage.setItem('wr-guide','off')"); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script("localStorage.setItem('wr-guide','off')"); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2400); ev = pg.evaluate
     cur = ev("(()=>{const d=new Date(),nm=nowMin(),L=arcBlocks(d);let b=L.find(x=>tmin(x.start)<=nm&&nm<tmin(x.end)&&!['dials','bac','agency','train','program'].includes(x.kind));if(!b){const o=day(d);o.sched=o.sched||{};const s=String(Math.floor(nm/60)).padStart(2,'0')+':'+String(nm%60).padStart(2,'0'),e2=Math.min(nm+30,1439),e=String(Math.floor(e2/60)).padStart(2,'0')+':'+String(e2%60).padStart(2,'0');return null}return {id:b.id,title:b.title}})()")
     if cur and pg.query_selector('#arc .arc-now'):
@@ -496,7 +498,9 @@ with sync_playwright() as p:
     ev("CPS=null;closeModal();cpTransfer(window.__b);0"); pg.wait_for_timeout(150)
     check('Capability 13.23: transfer test puts the principle in a different part of life', ev("!!document.getElementById('cp-tr') && !!document.querySelector('#modal .cp-prin')"))
     ev("closeModal();cpAar(window.__b);document.getElementById('cp-a1').value='Owner said send info';document.getElementById('cp-a4').value='Ask what they would want to see first';cpAarSave();0"); pg.wait_for_timeout(150)
-    check('Capability 13.23: after-action review saves an experiment and counts as real use', ev("(bcV('aar',[])||[]).length===1 && !!bcV('u:'+window.__b,null)"))
+    check('Capability 13.26: an after-action review alone saves the experiment but is NOT real use', ev("(bcV('aar',[])||[]).length===1 && !bcV('u:'+window.__b,null)"))
+    ev("closeModal();cpAar(window.__b);document.getElementById('cp-a1').value='Owner said send info';document.getElementById('cp-a4').value='same';document.querySelector('input[name=cm-eff][value=did]').checked=true;document.querySelector('input[name=cm-comp][value=yes]').checked=true;document.getElementById('cm-ev').value='owner booked a call';cpAarSave();0"); pg.wait_for_timeout(150)
+    check('Capability 13.26: skill to standard with evidence counts as real use', ev("(bcV('aar',[])||[]).length===2 && !!bcV('u:'+window.__b,null)"))
     ev("bcS.tab='missions';render();0"); pg.wait_for_timeout(200)
     ev("cpAarEval(0,'keep');0")
     check('Capability 13.23: the experiment is evaluated next time (kept / modified / dropped)', ev("(bcV('aar',[])[0]||{}).ev==='keep'"))
@@ -578,7 +582,7 @@ with sync_playwright() as p:
     check('Mastery 13.23.2: recalling is not Understanding; teaching back is not Integrating; a transfer test is', r['recallNotUnderstand'] and r['teachNotIntegrate'] and r['transfer'], r)
     ev("cpMissionStart(0);cpMSet('brief');0"); pg.wait_for_timeout(300)
     r = ev("""(()=>{ const out={}; const m=cpMission(); out.noManual=!document.getElementById('view-boot').innerHTML.includes("cpMSet('ap')") && cpMDone(m).ap===false;
-      cpAar(m.id); document.getElementById('cp-a1').value='Used it on a call'; document.getElementById('cp-a4').value='Ask one more question'; cpAarSave(); const m2=cpMission(); out.ev=typeof m2.ap==='string'&&m2.ap.includes('real use')&&cpMDone(m2).ap===true; return out; })()""")
+      cpAar(m.id); document.getElementById('cp-a1').value='Used it on a call'; document.getElementById('cp-a4').value='Ask one more question'; document.querySelector('input[name=cm-eff][value=did]').checked=true; document.querySelector('input[name=cm-comp][value=yes]').checked=true; document.getElementById('cm-ev').value='owner answered the question'; cpAarSave(); const m2=cpMission(); out.ev=typeof m2.ap==='string'&&m2.ap.includes('real use')&&cpMDone(m2).ap===true; return out; })()""")
     check('Mission 13.23.2: the Apply step cannot be ticked by hand; it closes on evidence and records what happened', r['noManual'] and r['ev'], r)
     check('Context 13.23.2: the in-app AI follows the Playbook territory (Tampa Bay first), not the old Naples text', ev("ASK_SYSTEM.includes('Tampa Bay first') && !ASK_SYSTEM.includes('Naples') && !XC_SYS.includes('Naples')"))
     check('Integrity 13.23.2: no page errors', not errs, errs[:3]); b.close()
@@ -628,7 +632,7 @@ with sync_playwright() as p:
       [['ro',7,9],['ro',7.5,2],['ist',9,9],['ist',9,2],['en',170,9],['en',172,2],['it',800,9],['it',820,2]].forEach(([s,v,ago],i)=>{S.lifeTests['t'+i]={id:'t'+i,subj:s,score:v,date:D(ago),_u:now()};});
       t=bacTrack(); out.track=t.known&&t.ok&&/Română/.test(t.line); n=bacNext(); out.study=n.kind==='study'&&n.subj==='ro';
       S.lifeErrors.e1={id:'e1',subj:'ro',topic:'Comentariu liric',what:'x',fix:'y',lvl:0,due:T,at:D(1),_u:now()}; n=bacNext(); out.err=n.kind==='errors'&&n.urgent; S.settings.season={kind:'exam',dom:'bac',primary:'BAC'}; day(new Date()).counters.bac=0; const M=mcBuild(); out.mission=M.top.k==='bac'&&/Redo 1 due/.test(M.top.out);
-      bacOpen(); out.board=document.querySelectorAll('#modal .bac-r').length===5&&/not been checked against the ministry/.test(document.getElementById('modal').textContent); closeModal(); return out; })()""")
+      bacOpen(); out.board=document.querySelectorAll('#modal .bac-r').length===5&&/official|Official/.test(document.getElementById('modal').textContent); closeModal(); return out; })()""")
     check('BAC 13.24: with no mocks it says on-track cannot be judged and asks for a baseline; with mocks it judges against the target', r['unknown'] and r['track'] and r['study'], r)
     check('BAC 13.24: a due error becomes the next study mission; the board shows subjects, trend and its own limits', r['err'] and r['mission'] and r['board'], r)
     r = ev("""(()=>{ S.settings.sync={url:'https://x.test',key:'pubkey',code:'testcode-1234567890'}; S.settings.share={on:true,code:'sharecode123'}; const OB=window.Blob; let txt=''; window.Blob=function(parts,o){ txt=String(parts[0]); return new OB(parts,o); }; const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){}; exportData(); window.Blob=OB; HTMLAnchorElement.prototype.click=oc;
@@ -705,7 +709,7 @@ with sync_playwright() as p:
     check('Parity: Settings has Jump to (App lock one tap away) and the App lock card on the phone', r['jump'] >= 6 and r['lockCard'], r)
     check('Parity: the Day side column shows on the phone', r['day'], r)
     check('Parity: no page errors', not errs, errs[:3]); b.close()
-    b = p.chromium.launch(); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.goto(URL); pg.wait_for_timeout(2200)
+    b = p.chromium.launch(**_CH); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.goto(URL); pg.wait_for_timeout(2200)
     check('Parity: laptop keeps its side rail, no doubled phone copies', pg.evaluate("show('money'),document.querySelectorAll('.ph-rail').length") == 0 and pg.evaluate("document.querySelectorAll('.ph-day').length") == 0); b.close()
 
     # Courses 13.9: every course as a working module (old layout via LN_OFF: the internals still power Learn → Tools)
@@ -838,10 +842,10 @@ with sync_playwright() as p:
     # Bootcamp 13.18–13.20 (bootcamp.js: Path, Practice, Missions, Progress): modules, lesson loop, boss fights, red lines, call mission, simulator
     b, pg, errs = fresh(p); ev = pg.evaluate
     ev("show('boot')"); pg.wait_for_timeout(1800)
-    check('Bootcamp: 22 modules (15 Business + 7 Life) cover all 203 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===22&&bcTrack('biz').length===15&&bcTrack('life').length===7&&f.length===203&&new Set(f).size===203&&f.every(id=>XC.byId[id])&&XC.cards.length===203})()"))
+    check('Bootcamp: 26 modules (15 Business + 11 Life) cover all 234 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===26&&bcTrack('biz').length===15&&bcTrack('life').length===11&&f.length===234&&new Set(f).size===234&&f.every(id=>XC.byId[id])&&XC.cards.length===234})()"))
     check('Bootcamp: Path shows today, the next Business and Life lesson, and the 15 Business modules', ev("!!document.querySelector('#view-boot .bcx-today')&&document.querySelectorAll('#view-boot .bcx-cont').length===2&&!!document.querySelector('#view-boot .bcx-cont.life')&&document.querySelectorAll('#view-boot .bcx-path .bcx-mod').length===15"))
     ev("bcS.trk='life';render()"); pg.wait_for_timeout(200)
-    check('Bootcamp: Life path switch shows the 7 Life modules', ev("document.querySelectorAll('#view-boot .bcx-path.life .bcx-mod').length===7"))
+    check('Bootcamp: Life path switch shows the 11 Life modules', ev("document.querySelectorAll('#view-boot .bcx-path.life .bcx-mod').length===11"))
     ev("bcGo('home',{tab:'progress'})"); pg.wait_for_timeout(200)
     check('Bootcamp: Progress tab has the rank ladder and the map', ev("!!document.querySelector('#view-boot .bcx-ranks')&&!!document.querySelector('#view-boot .bc-map')"))
     ev("bcGo('home',{tab:'practice'})"); pg.wait_for_timeout(200)

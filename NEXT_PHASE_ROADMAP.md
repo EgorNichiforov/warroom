@@ -1,6 +1,8 @@
-# Next phase roadmap (status at 13.25.4, 19 Nov 2026)
+# Next phase roadmap (status at 13.26.0, 19 Nov 2026)
 
 ## Done since 13.24.0
+
+**13.27.0 (19 Nov):** Content Command Center, 31 lessons, BAC topic map and verified dates, campaign projects, energy, Money lens, training flows, branching scenarios, source audit, offline and simulated-sync tests. Next, in order: (1) real-phone pass by Egor, (2) process the remaining 41 emails a few per week through the scheduled scan, (3) summarise the Lost Chapters only after listening, (4) lessons for the five remaining capability gaps from verified sources (Moldovan tax service, a certified first-aid course, de-escalation training).
 | Item | Version | Commit |
 |---|---|---|
 | 1 Deploy 13.24 | 13.24.0 to 13.24.3 live | 7c05245 … 84241a2 |
@@ -9,17 +11,21 @@
 | 6 Replanning with KEEP / MOVE / DROP, confirm, undo (A3) | 13.25.2 | 12bf3c4 |
 | 7 Course states: watched / learned / demonstrated (B1) | 13.25.3 | b54fdad |
 | 8 Spacing uses importance and blind-spot history (B2) | 13.25.4 | d27b193 |
-
-## Still open, in order
+|## Still open, in order
 | # | Item | Why it is open | Needs |
 |---|---|---|---|
-| B3 | Capability map: nine domains, each capability with meaning, observable behaviour, evidence, assessment, mapped to existing lessons, gaps listed | Not started | A content pass over 203 cards and 22 modules; no new engine |
-| B4 | After-action review linked to a capability; repeated errors recommend practice | `cpAar` links to an idea only | B3 |
-| BAC | Subjects, rules and dates verified against ANCE and the Ministry; topic lists with sources | Board runs on the user's own setup, labelled unverified | Reading the official 2027 documents |
-| Journal | One entry flow over decisions, experiments, after-action reviews | Four stores remain | none |
+| D | Deploy 13.26.0 | On branch `v13.26-operator`, not merged | Your approval; then merge to main (GitHub Pages serves main/v5) and check on the phone |
+| BAC-2 | Topic hierarchy per subject from the 2027 exam programmes | The programmes PDF (Order 2046) must be read; the timetable PDF (Order 2051) is a scan | Open both PDFs on ance.gov.md; confirm your profile's subjects; then enter topics with the source |
+| K-1 | Weekly discovery scheduled task (Gmail → processed list → in-app note → Import) | Creating the scheduled task was refused in this session | Your OK to create it (prompt saved in WAR_ROOM_MASTER_ARCHITECTURE.md) |
+| K-2 | Process the remaining ~54 cataloged Acquisition.com emails and their linked videos/PDFs | Only 4 were processed; links are tracked redirects | Time; opening links in the browser |
+| K-3 | Lessons for capability gaps (listed in the map as missing content) | No verified source yet | A source per gap, added through the pipeline |
 | 3 | Per-device tokens and revoke | Changes the live database | Approval of the migration in SECURITY_AND_RECOVERY.md |
 | 4 | Restore that rewinds + guided drill | Not started | none |
 | 9 | Call coach | Blocked | Quo invoice, recording notice, webhook |
+| 12 | Remove NOVA and classic paths, bundle per hub | Not started; now 77 scripts | none |
+| T | Restore the 303-check suite (tests/run.py) into the repo | It is not in the repository | The file from wherever it lives |
+
+ng notice, webhook |
 | 12 | Remove NOVA and classic paths, bundle per hub | Not started | none |
 | New (expansion directive, 19 Nov) | Personal reality model, life direction, Judgment Lab scenarios and predictions, Red Team risk register, attention defense protocols, Field Manual, knowledge links and search, resource planner, contingency center, contextual modes, life-competence curriculum, board-meeting review, development metrics | Not started. Existing pieces to extend: season, campaigns, decisions, experiments, protocols, Red Team prompt, weekly review, day modes | A build plan per system; several depend on B3 |
 

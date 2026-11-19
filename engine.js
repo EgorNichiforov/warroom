@@ -44,7 +44,7 @@ const EN_DEF = [
 function enProtocols() {
   if (!S.protocols || !Object.keys(S.protocols).length) { S.protocols = {}; EN_DEF.forEach(([t, txt, act, btn], i) => { const id = 'p' + i; S.protocols[id] = { id, _u: 1, t, txt, act, btn, on: true }; }); }
   Object.values(S.protocols).forEach((p) => { if (p && p.t === 'miss_train' && /deep/.test(p.act || '')) { p.act = 'oneGo("train")'; p.btn = 'Open training'; } });
-  return Object.values(S.protocols).filter((p) => p && !p._del);
+  return Object.values(S.protocols).filter((p) => p && !p._del && p.t !== 'attn');   /* 13.26: attention protocols (defense.js) are listed there */
 }
 function enFiring() {
   const d = new Date(), o = S.days[dk(d)] || { counters: {} }, L = blocksFor(d), R = { d, o, L };

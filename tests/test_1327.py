@@ -1,0 +1,214 @@
+"""War Room 13.27 checks: Content Command Center, new lessons, BAC topic map, campaigns/projects, energy, Money lens,
+training flows, branching scenarios, source audit, plus offline start, a simulated two-device sync and a backup restore.
+Run: python3 -m http.server 8765 (repo root) then python3 v5/tests/test_1327.py
+The sync test uses a fake in-memory cloud row (route interception) and a throwaway code. It never contacts Supabase.
+Not covered, and not claimed: a real phone, a real installed PWA, real two-phone sync."""
+import sys, json
+from playwright.sync_api import sync_playwright
+
+URL = sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:8765/v5/'
+RES = []
+def check(name, ok, info=''):
+    RES.append((name, bool(ok), info)); print(('PASS ' if ok else 'FAIL ') + name + (('  · ' + str(info)) if info and not ok else ''))
+CH = dict(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
+
+with sync_playwright() as p:
+    b = p.chromium.launch(**CH)
+    ctx = b.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Chisinau', service_workers='block')
+    pg = ctx.new_page(); errs = []
+    pg.on('pageerror', lambda e: errs.append(str(e)))
+    pg.on('dialog', lambda d: d.accept('Call ten agencies'))
+    pg.route('**/rest/v1/**', lambda r: r.abort())
+    pg.route('**/*.mp3', lambda r: r.abort())
+    pg.clock.install(time='2026-11-19T17:00:00+02:00')
+    pg.goto(URL); pg.wait_for_timeout(2500); pg.clock.run_for(4000)
+    ev = lambda js: pg.evaluate(js)
+    ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); bacLoad(); clLoad&&clLoad();")
+    pg.wait_for_timeout(1800); pg.clock.run_for(2000)
+    check('libraries loaded (cards, bootcamp, sources, mentors, BAC)', ev("!!(XC&&XC.byId&&BC&&KPL&&CCM&&BACD)"))
+    check('version is 13.27.0', ev("APP_VERSION==='13.27.0'"), ev("APP_VERSION"))
+
+    # ── data integrity
+    check('31 new sourced cards, every one with a source, a kind and two test questions', ev("XC.cards.filter(c=>c.added==='13.27').length===31 && XC.cards.filter(c=>c.added==='13.27').every(c=>c.src&&c.kind&&c.q.length>=2&&c.move&&c.trap)"))
+    check('every card belongs to a module', ev("XC.cards.every(c=>!!BC.cardMod[c.id])"), ev("XC.cards.filter(c=>!BC.cardMod[c.id]).map(c=>c.id)"))
+    check('four new life modules with scenarios', ev("['l8','l9','l10','l11'].every(m=>BC.mod[m]&&BC.mod[m].cards.every(c=>XC.byId[c])&&(BC.sc[m]||[]).length>=2)"))
+    check('every scenario points at real cards', ev("Object.values(BC.sc).flat().every(s=>XC.byId[s.a]&&s.o.every(o=>XC.byId[o]))"))
+    check('every resource: real cards, real capabilities, a known mentor', ev("kpAll().every(x=>(x.cards||[]).every(c=>XC.byId[c])&&(x.caps||[]).every(c=>cmCap(c))&&(!x.mentor||CCM.mentors.some(m=>m.id===x.mentor)))"), ev("kpAll().filter(x=>!((x.cards||[]).every(c=>XC.byId[c])&&(x.caps||[]).every(c=>cmCap(c)))).map(x=>x.id).slice(0,5)"))
+    check('library resources carry format, minutes, claim class, tier and a reason', ev("kpAll().filter(x=>x.origin==='library').length>=100 && kpAll().filter(x=>x.origin==='library').every(x=>CC_FMT[x.fmt]&&x.min>0&&CC_CLAIM[x.claim]&&CC_TIER[x.tier]&&x.why)"))
+    check('estimated lengths are flagged; podcast chapters have exact ones', ev("kpAll().filter(x=>x.yt&&x.origin==='library').every(x=>x.est) && kpAll().filter(x=>/^lc-/.test(x.id)).length===26 && kpAll().filter(x=>/^lc-/.test(x.id)).every(x=>!x.est&&x.mp3&&/not accessed/.test(x.note))"))
+    check('capability gaps shrank and the rest are still declared', ev("cmGaps().length>0 && cmGaps().length<=6"), ev("cmGaps().map(c=>c.id)"))
+    check('unprocessed emails are never recommended', ev("ccAll().filter(ccOpenable).every(x=>!(x.id.startsWith('em-')&&!x.ins))"))
+
+    # ── gate, today, planner
+    ev("S.settings.season={kind:'build',dom:'biz',primary:'Agency'}; delete day(new Date()).content; save(true)")
+    g = ev("(()=>{const g=ccGate(); return g?g.k:null})()")
+    check("dial window open → 'Don't consume, go execute'", g == 'dial', g)
+    ev("lifeTab='content'; show('life'); render()"); pg.wait_for_timeout(300)
+    check('gated screen shows the mission and no library', ev("!!document.querySelector('.cc-gate') && !document.querySelector('.cc-tabs')"))
+    check('audio is still offered for busy hands', ev("ccPlan(15,'bottleneck','hands').steps.filter(s=>s.k==='consume').every(s=>{const x=ccGet(s.id);return x.fmt==='listen'||x.screen===false})"))
+    j0 = ev("Object.keys(S.journal||{}).length")
+    ev("ccGateOver()"); pg.wait_for_timeout(300)
+    check('override is possible and logged in the journal', ev("!ccGate() && !!document.querySelector('.cc-tabs')") and ev("Object.keys(S.journal||{}).length") == j0 + 1)
+    t1 = ev("ccToday().ids"); t2 = ev("ccToday().ids")
+    check("today's queue: 1 to 3 items, inside the budget, stable when reopened", 1 <= len(t1) <= 3 and t1 == t2 and ev("ccToday().ids.every(id=>ccGet(id).min<=25)"), t1)
+    check('the queue does not refill after finishing', ev("(()=>{const ids=ccToday().ids.slice(); ids.forEach(id=>ccW(id,{st:'done',doneAt:now()})); render(); const ok=ccToday().ids.join()===ids.join() && /does not refill/.test(document.querySelector('.cc-today').textContent); ids.forEach(id=>{delete S.content[id]}); return ok})()"))
+    for m, it, md in [(5, 'any', 'any'), (15, 'bottleneck', 'watch'), (25, 'skill', 'any'), (45, 'bac', 'any'), (90, 'curious', 'listen'), (10, 'calm', 'read')]:
+        r = ev(f"(()=>{{const P=ccPlan({m},'{it}','{md}'); return {{n:P.steps.length, tot:P.steps.reduce((a,s)=>a+s.min,0), why:P.steps.every(s=>s.why&&s.why.length>5), note:P.note}}}})()")
+        check(f'planner {m} min · {it} · {md}: finite, explained, within the time', (r['n'] >= 1 and r['tot'] <= m and r['why']) or (r['n'] == 0 and r['note']), r)
+    check('planner prefers what trains the next capability', ev("(()=>{const F=ccFocus(); if(!F.caps.length) return true; const P=ccPlan(20,'skill','any'), x=ccGet(P.steps[0].id); return (x.caps||[]).some(c=>F.caps.includes(c))||x.u.st==='doing'})()"), ev("[ccFocus().caps, ccPlan(20,'skill','any').steps[0]]"))
+    ev("S.settings.discovery={freq:'weekly',push:true,dayMin:30,explore:0}")
+    check('exploration budget is enforced', ev("ccPlan(30,'curious','any').steps.length===0 && /budget/.test(ccPlan(30,'curious','any').note) && ccPlan(30,'any','any').steps.filter(s=>s.k==='consume').every(s=>ccGet(s.id).tier!=='explore')"))
+    ev("S.settings.discovery={freq:'weekly',push:true,dayMin:30,explore:60}")
+
+    # ── consume → capture → implement
+    ev("ccDone('v-cialdini')"); pg.wait_for_timeout(150)
+    ev("document.getElementById('cc-ins').value='x'; ccDoneSave('v-cialdini')")
+    check('finishing needs a written idea', ev("!(S.content||{})['v-cialdini'] || (S.content['v-cialdini'].st!=='done')"))
+    nt = ev("Object.keys(S.tasks).length"); nj = ev("Object.keys(S.journal).length")
+    ev("document.getElementById('cc-ins').value='Give the Bench Bulletin first, then ask'; document.getElementById('cc-use').value='First email to owners tomorrow'; document.getElementById('cc-mins').value='12'; document.querySelector('input[name=cc-to][value=task]').checked=true; ccDoneSave('v-cialdini')"); pg.wait_for_timeout(200)
+    check('capture stores the idea, minutes, a journal lesson and a dated task', ev("S.content['v-cialdini'].st==='done' && S.content['v-cialdini'].log[0].min===12 && /^task:/.test(S.content['v-cialdini'].impl)") and ev("Object.keys(S.tasks).length") == nt + 1 and ev("Object.keys(S.journal).length") == nj + 1)
+    check('a recall test is offered right after', ev("/Test it now/.test(document.getElementById('modal').textContent)")); ev("closeModal()")
+    check('13-stage chain reflects the record', ev("(()=>{const c=ccChain(ccGet('v-cialdini')); return CC_CHAIN.length===13 && c.consume && c.implement && c.connect && !c.measure})()"))
+    st = ev("ccStatsData(28)")
+    check('analytics count only confirmed minutes and real use', st['min'] == 12 and st['done'] == 1 and st['ins'] == 1 and st['impl'] == 1, st)
+    ev("ccDone('v-urban'); document.getElementById('cc-ins').value=''; document.querySelector('input[name=cc-to][value=none]').checked=true; ccDoneSave('v-urban')")
+    check('"nothing useful" archives it and removes it from recommendations', ev("S.content['v-urban'].st==='arch' && !ccAll().filter(ccOpenable).some(x=>x.id==='v-urban')"))
+
+    # ── lesson ↔ resources, research, discovery, capture
+    check('a lesson shows its best resources', ev("/Best resources for this lesson/.test(xcCardHtml(XC.byId['hz-askagain'])) && /The answer that works on everything/.test(xcCardHtml(XC.byId['hz-askagain']))"))
+    check('a lesson without one says so and offers research', ev("(()=>{const c=XC.cards.find(c=>!ccAll().some(x=>!x.clip&&(x.cards||[]).includes(c.id))); const h=xcCardHtml(c); return /No verified outside resource/.test(h)&&/ccResearchNew/.test(h)})()"))
+    ev("ccResearchNew('sf-112'); document.getElementById('cc-rq').value='Official Moldovan guidance on what to say to 112'; ccResearchSave('sf-112')")
+    check('research request is queued in synced data, honestly labelled', ev("Object.values(S.research).some(r=>r.st==='open'&&r.card==='sf-112') && MERGE_MAPS.includes('research')"))
+    ev("""S.inbox=S.inbox||{}; S.inbox['d1']={id:'d1',from:'Claude',title:'Discovery scan · 26 Nov',body:'Two items.\\nWR-IMPORT: '+JSON.stringify([{t:'New Hormozi video',by:'Alex Hormozi',url:'https://www.youtube.com/watch?v=AAAAAAAAAAA',min:14,why:'objections',mentor:'hormozi',caps:['b-objection'],claim:'practitioner',tier:'core',stat:'official'},{t:'Duplicate of Cialdini',url:'https://www.youtube.com/watch?v=cFdCzN7RYbw'},{t:'Unticked'}])}""")
+    n0 = ev("kpAll().length")
+    check('a scan note is detected; nothing is added before a tap', ev("ccInbox().length===1 && ccInbox()[0].items.length===3") and ev("kpAll().length") == n0)
+    ev("ccInboxImport('d1'); document.querySelectorAll('.cc-ii')[2].checked=false; ccInboxAdd('d1')"); pg.wait_for_timeout(150)
+    check('import adds only ticked, skips duplicates, marks them new', ev("kpAll().length") == n0 + 1 and ev("kpAll().some(x=>x.isNew&&x.yt==='AAAAAAAAAAA'&&x.origin==='disc') && ccInbox().length===0"))
+    ev("ccCapture(); document.getElementById('cc-cu').value='https://www.youtube.com/watch?v=cFdCzN7RYbw'; ccCaptureSave()")
+    check('adding a link that already exists opens the existing one', ev("kpAll().length") == n0 + 1); ev("closeModal()")
+    ev("ccCapture(); document.getElementById('cc-cu').value='https://example.org/essay'; document.getElementById('cc-ct').value='An essay'; ccCaptureSave()")
+    check('a new link enters as unverified exploration, saved', ev("kpAll().some(x=>x.url==='https://example.org/essay'&&x.stat==='unverified'&&x.tier==='explore') "))
+    check('mentor profiles state their limits', ev("CCM.mentors.length>=40 && CCM.mentors.every(m=>m.lim&&m.why&&m.teaches.length&&CC_CLAIM[m.claim])"))
+
+    # ── expansion pieces
+    ev("S.campaigns=S.campaigns||{}; S.campaigns.cT={id:'cT',_u:now(),title:'First 20 owner conversations',objective:'Proof the offer lands',criteria:'20 logged owner conversations',deadline:'2026-12-08',start:'2026-11-10',dom:'biz',milestones:[{t:'Script fixed'},{t:'Five owner talks'}]}; save(true)")
+    check('campaign with no next action is flagged', ev("cxIntel(S.campaigns.cT).out.some(o=>/No next action/.test(o.t))"))
+    ev("cxProj('cT',0)"); ev("cxAct('cT',S.campaigns.cT.projects[0].id); document.getElementById('cx-t').value='Record the opener twice'; document.getElementById('cx-d').value='2026-11-19'; cxActSave('cT',S.campaigns.cT.projects[0].id)")
+    tid = ev("Object.values(S.tasks).find(t=>t.camp==='cT').id")
+    check('milestone → project → next action is stored on the task', ev("(()=>{const t=Object.values(S.tasks).find(t=>t.camp==='cT'); return t.proj===S.campaigns.cT.projects[0].id && S.campaigns.cT.projects[0].ms===0 && !cxIntel(S.campaigns.cT).out.some(o=>/No next action/.test(o.t))})()"))
+    ev(f"cxSlot('{tid}','cT'); document.getElementById('cx-sd').value='2026-11-20'; document.getElementById('cx-ss').value='18:00'; cxSlotSave('{tid}','cT')")
+    check('calendar link adds a one-off block on that day only', ev(f"(()=>{{const a=(day(pd('2026-11-20')).sched||{{}}).add||[]; return a.some(x=>x.task==='{tid}'&&x.start==='18:00'&&x.end==='18:25') && !S.schedule.blocks.some(b=>b.task==='{tid}')}})()"))
+    check('a due campaign action reaches the single recommender as a candidate', ev(f"(()=>{{S.tasks['{tid}'].due='2026-11-19'; const M=mcBuild(); return M.C.some(x=>x.k==='camp') && M.C.filter(x=>x.k==='camp').length===1}})()"))
+    ev("closeModal(); mcSetLens('money')")
+    check('Money lens puts a money action in tier 1; a fixed commitment would still win', ev("(()=>{const M=mcBuild(); const m=M.C.find(x=>x.k==='money'); return m&&m.tier===1&&M.lens==='money'&&M.C.filter(x=>x.tier===0).every(x=>M.C.indexOf(x)<M.C.indexOf(m))})()"))
+    ev("mcSetLens('')")
+    ev("enSave(2)"); r = ev("(()=>{const M=mcBuild(); return {e:enToday().v, n:M.nudge||''}})()")
+    check('low energy is logged and turns the mission into its minimum version, not a skip', r['e'] == 2 and 'minimum' in r['n'], r)
+    ev("closeModal(); cmTrain('f-save')")
+    r = ev("(()=>{const out=[]; for(let i=0;i<4;i++){const q=CMD.q; document.getElementById('cmd-a').value=String(i===0?q.a+9999:q.a); cmMoneyCheck(); out.push(/Correct/.test(document.getElementById('cmd-fb').textContent)); cmMoneyCheck();} return {out, log:cmLog('f-save').slice(-1)[0]}})()")
+    check('money drill is checked by arithmetic and logged as simulation only', r['out'] == [False, True, True, True] and r['log']['src'] == 'sim' and '3 of 4' in r['log']['note'], r)
+    check('practice never counts as demonstrated competence', ev("cmPerf('f-save').lv<3"), ev("cmPerf('f-save')"))
+    ev("closeModal(); cmTrain('b-cold')")
+    check('business capability opens a role-play flow tied to its lesson', ev("/Role-play/.test(document.getElementById('modal').textContent) && document.querySelectorAll('.cmt-s').length===4")); ev("closeModal()")
+    check('branching scenarios are well-formed (every path ends)', ev("JL_BR.length>=5 && JL_BR.every(b=>cmCap(b.cap)&&Object.values(b.nodes).every(n=>n.end?['good','mid','bad'].includes(n.v):n.o.length>=2&&n.o.every(o=>b.nodes[o[1]]&&o[3])))"))
+    ev("jlBrOpen('br-bank'); jlBrPick(1)"); a = ev("JLB.at"); ev("jlBrPick(0)")
+    check('choices change the path; the good ending needs the right sequence', a == 'hang' and ev("bcV('jb:br-bank',null).v==='good' && bcV('jb:br-bank',null).runs===1 && cmLog('j-scam').slice(-1)[0].src==='sim'"))
+    ev("jlBrOpen('br-bank'); jlBrPick(0); jlBrPick(0)")
+    check('the bad path ends badly and says what to do next', ev("bcV('jb:br-bank',null).v==='bad' && /block the card/.test(document.getElementById('modal').textContent)"))
+    ev("jlBrOpen('br-follow'); jlBrPick(2)")
+    check('safety scenario penalises confrontation', ev("JLB.pts<0")); ev("closeModal()")
+    r = ev("(()=>{const A=kpAudit(); return {c:A.contra.length, u:A.unproc.length, g:A.gap.length, v:A.unver.length}})()")
+    check('source audit finds the declared contradiction, unprocessed emails, gaps and unverified links', r['c'] == 1 and r['u'] > 20 and r['g'] >= 1 and r['v'] >= 1, r)
+    check('spacing: costly-to-forget lessons get a higher memory floor', ev("msFloor('sf-112')===0.85 && msImp('sf-112')===3 && msFloor('lf-4laws')<0.85 && /costly to forget/.test(msWhyDue('sf-112'))"))
+
+    # ── BAC
+    check('BAC: verified dates, deadlines and the open questions are all present', ev("BACD.exams.find(e=>e.k==='ro').d==='2027-06-08' && BACD.exams.find(e=>e.k==='ist').d==='2027-06-15' && BACD.deadlines.length===2 && BACD.verify.length>=3 && BACD.start==='09:00'"))
+    r = ev("(()=>{const a=bacSeq('ro'), b=bacSeq('ist'); return {ro:a.T.length, ist:b.T.length, d:a.days, pw:a.perWeek, nx:a.next.length, mf:a.mocksFrom}})()")
+    check('BAC: topic map loaded and a weekly quota computed to the exam date', r['ro'] > 100 and r['ist'] > 80 and r['d'] == 201 and r['pw'] >= 1 and r['nx'] >= 3 and r['mf'] == '2027-05-18', r)
+    ev("S.settings.bac=Object.assign({},S.settings.bac||{},{profile:'real'})"); n_real = ev("bacTopics('ist').length"); ev("S.settings.bac.profile='umanist'")
+    check('BAC: humanist-only topics drop out for the real profile', n_real < r['ist'], (n_real, r['ist']))
+    ev("bacMapOpen('ist')"); pg.wait_for_timeout(200)
+    first = ev("bacTopics('ist')[0].id")
+    ev(f"bacTopicCycle('{first}','ist'); bacTopicCycle('{first}','ist')")
+    check('BAC: topic status advances and counts', ev(f"bacTopics('ist')[0].st===2 && bacSeq('ist').done===1 && MERGE_MAPS.includes('boot')"))
+    ne = ev("Object.keys(S.lifeErrors||{}).length")
+    ev("bacDiagMiss('ist'); document.querySelectorAll('.bd-m')[3].checked=true; document.querySelectorAll('.bd-m')[5].checked=true; bacDiagMissSave('ist')")
+    check('BAC: diagnostic misses become weak topics, error cards and the front of the sequence', ev("Object.keys(S.lifeErrors).length") == ne + 2 and ev("bacSeq('ist').weak===2 && bacSeq('ist').next[0].weak"))
+    check('BAC: unconfirmed profile is shown as an assumption', ev("!bacProfile().ok && /To confirm/.test(document.getElementById('modal').textContent)"))
+    ev("closeModal(); bacFactsOpen()")
+    check('BAC: dates screen lists the deadlines and what is not verified', ev("/10 Apr/.test(document.getElementById('modal').textContent) && /Still to verify/.test(document.getElementById('modal').textContent)"))
+    ev("closeModal(); bacOpen()")
+    check('BAC board no longer says the timetable is unread', ev("!/could not be machine-read/.test(document.getElementById('modal').textContent) && /Topic map/.test(document.getElementById('modal').textContent)")); ev("closeModal()")
+    ev("delete S.settings.m1327; S.settings.bacDate='2027-06-01'; exSeed(); exSeed()")
+    check('13.27 seed is idempotent and never overwrites your own exam date', ev("S.settings.bacDate==='2027-06-01' && Object.keys(S.risks).filter(k=>/^r1327/.test(k)).length===2 && Object.keys(S.reality).filter(k=>/^rf1327/.test(k)).length===2"))
+
+    # ── every new screen at phone width
+    screens = ["ccOpen('rec')", "ccOpen('men')", "ccOpen('aud')", "ccOpen('res')", "ccOpen('impl')", "ccOpen('new')", "ccView('lc-12')", "ccView('em-20261112-57455')", "ccMentor('hormozi')", "ccPlanOpen(15)", "ccPlanRun(25,'any','any')", "ccStats()", "ccRoadmap()", "ccSettings()", "ccResearchNew()", "ccCapture()", "ccAudio('lc-02')", "ccDone('lc-02')", "cxList()", "cxOpen('cT')", "cxFields('cT')", "enCheck()", "cmTrain('c-speak')", "cmTrain('r-focus')", "cmMoneyDrill('f-bank')", "jlBrList()", "jlBrOpen('br-stall')", "kpAuditOpen()", "bacMapOpen('ro')", "bacDiagOpen('ro')", "bacDiagMiss('ro')", "bacFactsOpen()", "bacProfileSet()", "xcOpen('hz-askagain')", "xcOpen('sf-scam4')", "cmCapOpen('j-scam')"]
+    bad = []
+    for sc in screens:
+        try:
+            ev("closeModal()"); ev(sc); pg.wait_for_timeout(120)
+            if ev("document.documentElement.scrollWidth>window.innerWidth+1 || (()=>{const m=document.getElementById('modal'); return m && m.scrollWidth>m.clientWidth+1})()"): bad.append(sc + ' overflow')
+            if ev("(()=>{const m=document.getElementById('modal'); const t=(m&&m.offsetParent?m:document.getElementById('view-life')).textContent; return /undefined|NaN|\\[object/.test(t)})()"): bad.append(sc + ' shows undefined/NaN')
+        except Exception as e: bad.append(sc + ' ' + str(e)[:80])
+    check(f'{len(screens)} new screens: no overflow, no "undefined", at 390 px', not bad, bad)
+    ev("closeModal(); ccOpen('rec')"); pg.wait_for_timeout(200); pg.screenshot(path='/home/claude/wrtest/content.png')
+    ev("bacMapOpen('ist')"); pg.wait_for_timeout(200); pg.screenshot(path='/home/claude/wrtest/bacmap.png')
+    ev("closeModal(); jlBrOpen('br-stall')"); pg.wait_for_timeout(200); pg.screenshot(path='/home/claude/wrtest/branch.png'); ev("closeModal()")
+    check('touch targets: content rows and chips are at least 40 px tall', ev("Array.from(document.querySelectorAll('.cc-r,.cc-chips:not(.sm) button')).every(e=>e.getBoundingClientRect().height>=40)"))
+
+    # ── backup restore: an export from before 13.27 merges without losing the new records
+    r = ev("(()=>{const old=JSON.parse(JSON.stringify(S)); delete old.content; delete old.research; old.days=old.days||{}; const before=Object.keys(S.content).length; merge(old); return {kept:Object.keys(S.content).length===before && before>0, tasks:Object.keys(S.tasks).length>0}})()")
+    check('restore of an older backup keeps the 13.27 records', r['kept'] and r['tasks'], r)
+    check('no page errors', not errs, errs[:5])
+    ctx.close()
+
+    # ── offline: the service worker serves the app and the new data files with the network off
+    c2 = b.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Chisinau')
+    p2 = c2.new_page(); e2 = []; p2.on('pageerror', lambda e: e2.append(str(e)))
+    p2.route('**/rest/v1/**', lambda r: r.abort())
+    p2.goto(URL); p2.wait_for_timeout(1500)
+    try:
+        p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); p2.wait_for_timeout(6000)
+        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.27\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
+        need = ['content.js', 'expand.js', 'lib/bac.json', 'lib/mentors.json', 'lib/sources.json', 'lib/cards.json']
+        check('offline cache holds the new files', all(n in cached for n in need), [n for n in need if n not in cached])
+        c2.set_offline(True); p2.reload(); p2.wait_for_timeout(3000)
+        r = p2.evaluate("(async()=>{ccLoad(); bacLoad(); xcLoad&&xcLoad(); await new Promise(r=>setTimeout(r,1500)); return {v:APP_VERSION, lib:!!(KPL&&KPL.sources.length>150), bac:!!BACD, men:!!CCM, plan:(KPL?ccPlan(15,'any','any').steps.length:0)}})()")
+        check('app starts offline and the content planner works from cache', r['v'] == '13.27.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
+        check('offline: no page errors', not e2, e2[:3])
+    except Exception as e:
+        check('offline test ran', False, str(e)[:200])
+    c2.close()
+
+    # ── simulated two-device sync against a fake cloud row (never Supabase)
+    cloud = {'row': None, 'posts': 0}
+    def fake(route):
+        rq = route.request
+        if rq.method == 'GET': route.fulfill(status=200, content_type='application/json', body=json.dumps([{'data': cloud['row'], 'updated_at': '2026-11-19T15:00:00Z'}] if cloud['row'] else []))
+        else: cloud['row'] = json.loads(rq.post_data)['data']; cloud['posts'] += 1; route.fulfill(status=201, body='')
+    def device():
+        c = b.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Chisinau', service_workers='block'); pgx = c.new_page()
+        pgx.route('**/rest/v1/**', fake); pgx.goto(URL); pgx.wait_for_timeout(1800)
+        pgx.evaluate("S.settings.sync=Object.assign({},S.settings.sync,{code:'TEST-ONLY-NOT-A-REAL-CODE-0001'}); 0"); return c, pgx
+    try:
+        cA, A = device()
+        A.evaluate("(async()=>{ccW('v-voss',{st:'done',ins:'Label the fear before the price',doneAt:now()}); S.research={rq1:{id:'rq1',_u:now(),q:'test request',st:'open',at:now()}}; bcW('bt:i1-1',{st:2,weak:false,at:'2026-11-19'}); save(true); await pushCloud(); return 1})()")
+        check('device A pushes the new maps to the cloud row', cloud['row'] and 'v-voss' in cloud['row'].get('content', {}) and 'rq1' in cloud['row'].get('research', {}))
+        cB, B = device()
+        r = B.evaluate("(async()=>{await pullCloud(true); return {c:!!(S.content||{})['v-voss'], ins:((S.content||{})['v-voss']||{}).ins, r:!!(S.research||{}).rq1, bt:((S.boot||{})['bt:i1-1']||{v:{}}).v.st}})()")
+        check('device B receives content progress, research requests and BAC topic status', r['c'] and r['ins'] == 'Label the fear before the price' and r['r'] and r['bt'] == 2, r)
+        B.evaluate("(async()=>{await new Promise(r=>setTimeout(r,30)); ccW('v-voss',{use:'On the next price talk'}); ccW('v-ury',{st:'saved'}); save(true); await pushCloud(); return 1})()")
+        r = A.evaluate("(async()=>{await new Promise(r=>setTimeout(r,30)); ccW('v-treasure',{st:'doing',pos:120}); save(true); await pullCloud(true); await pushCloud(); return {use:S.content['v-voss'].use, ury:!!S.content['v-ury'], tr:!!S.content['v-treasure']}})()")
+        check('edits on both devices to different records both survive', r['use'] == 'On the next price talk' and r['ury'] and r['tr'] and 'v-treasure' in cloud['row']['content'], r)
+        # an old-version device overwrites the cloud row without the new maps
+        old = json.loads(json.dumps(cloud['row'])); old.pop('content', None); old.pop('research', None); cloud['row'] = old
+        r = A.evaluate("(async()=>{await pullCloud(true); await pushCloud(); return Object.keys(S.content).length})()")
+        check('after an old-version device drops the new maps, an updated device keeps its copy and restores the cloud', r >= 3 and len(cloud['row'].get('content', {})) >= 3, (r, len(cloud['row'].get('content', {}))))
+        cA.close(); cB.close()
+    except Exception as e:
+        check('sync simulation ran', False, str(e)[:300])
+    b.close()
+
+ok = sum(1 for r in RES if r[1]); print(f'\n{ok}/{len(RES)} passed')
+sys.exit(0 if ok == len(RES) else 1)
