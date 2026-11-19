@@ -1,4 +1,4 @@
-# War Room · master architecture (13.40.0, 19 Nov 2026)
+# War Room · master architecture (13.41.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -142,6 +142,12 @@ Stage 8 cleanup: 33 top-level functions with no reference in any script, the HTM
 - `lxPersMigrate()` (learnx.js, runs at load): on a device with a sync code and no recorded choice, sets `settings.learn.persMode = 'need'` once (`S.migrations.m20261119learn`). "No guarantee" is now stored as `persMode: 'none'` so it is a recorded choice. Lesson learned: a cloud-side edit of a `settings` field did not survive a device sync within the hour; settings must be changed on a device, where the merge base is correct.
 - `cgOutcome(id,'no')` wrapped → `cgWhyAsk` (`CG_WHY`, `item.dropWhy`); `cgWhyStats()` shown in `ecOpen()`.
 
+## 8h. One model of reality (13.41, `entity.js`)
+
+Read model over existing stores (ADR-002). `EN_SRC` has one adapter per type (goal, task, project, decision, risk, experiment, opp, fact, journal, agency, candidate, lesson, cap, comp, source, research, process, asset, review, protocol) → `{ref, type, title, status, at, upd, origin, conf, rel[], home}`. `enAll()` caches 4 s and makes relations two-way. `enFind`, `enOpen`, `enSearch`. Event log `evLog/evAll/evFor` in `S.boot.evlog` (last 300), fed by wrappers on `gcSave`, `mrSave`, `qrSave`, `dxSave`, `slWhySet`, `lxPersSave`, `logCall`. `rcRun()` = reconciliation (read-only). `rbData()/rbOpen()` = reality brief. `hxNote/hxErrs/hxStore/hxData/hxOpen` = health; errors live in `localStorage['wr-errlog']`. Usage counts in `localStorage['wr-use']` (`uxUse`, `uxUnused`). `yrOpen/yrSave` yearly review in `S.boot['yr:YYYY']`. `uxTourAuto()` opens the tour once on a device with a sync code.
+
+Mission documents: `WAR_ROOM_EXECUTION_STATE.md` (resume here), `ARCHITECTURE_DECISIONS.md`, `VISION_COVERAGE.md`, `INVENTORY.md` (generated).
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -149,6 +155,6 @@ Stage 8 cleanup: 33 top-level functions with no reference in any script, the HTM
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.40. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
+- No real-phone test of 13.31 to 13.41. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

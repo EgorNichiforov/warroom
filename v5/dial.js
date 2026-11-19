@@ -72,7 +72,7 @@ function telHref(p) { const m = String(p || '').match(/\(?\d{3}\)?[\s.-]?\d{3}[\
 function phonePretty(p) { const m = String(p || '').match(/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/); if (!m) return p || '—'; const d = m[0].replace(/\D/g, ''); return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`; }
 function phoneNote(p) { const s = String(p || ''); const i = s.indexOf('('); const j = s.indexOf(')'); const rest = s.replace(/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/, '').replace(/^[\s/·-]+|[\s/·-]+$/g, ''); return rest; }
 function firstName(c) { const s = String(c || '').trim(); if (!s || /^ask/i.test(s)) return ''; return s.split(/[\s(\/,]+/)[0]; }
-function hookFor(x) { if (x.opener) return x.opener; return `You're one of the agencies in ${x.city.split(/[\/(;]/)[0].trim()}`; }
+function hookFor(x) { if (x.opener) return x.opener; return `You're one of the agencies in ${String(x.city || 'your area').split(/[\/(;]/)[0].trim()}`; }
 
 /* ───────── outcomes ───────── */
 let dialFilter = 'all', dialPick = null, dialSearch = '', scriptOpen = false, queueOpen = false;

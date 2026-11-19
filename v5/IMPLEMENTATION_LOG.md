@@ -259,3 +259,13 @@ Tests: see commit. Not a real phone.
 Found while checking the work: the cloud-side write of `settings.learn` made at 20:43 was gone by 21:22 after a laptop sync (goal changes made the same way survived, because goals merge per record by newest timestamp). Fixed by applying the decision in the app on each synced device.
 
 Tests: see commit. Not a real phone.
+
+## 13.41.0 · 19 Nov 2026 · vision stages 0 to 2: discovery, architecture decision, one model of reality
+
+**New:** `entity.js`, `tests/test_1341.py` (29), `WAR_ROOM_EXECUTION_STATE.md`, `ARCHITECTURE_DECISIONS.md`, `INVENTORY.md` + `tools/inventory.py`. **Changed:** `domain.js` (goal `dep`, `risk`), `dial.js` (an agency without a city crashed the opener line), `index.html`, `sw.js`, version strings, documents.
+
+Leftovers from the previous brief closed here: the tour opens once by itself (synced devices only), goal dependencies and risks, yearly review, usage counting as the evidence for folding screens later. Decided, not done: `nova.js` stays (its instruments are still reachable from Intel); screens are not restructured blind.
+
+Still blocked: daily research schedule (scheduler refused the change twice); scheduled tasks beyond the first page of the list were not read (each page costs more than it is worth mid-build).
+
+Next: 13.42 = objective chain and backward plan, what judge.js lacks, scenario engine with sensitivity (`future.js`).
