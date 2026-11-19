@@ -635,6 +635,15 @@ with sync_playwright() as p:
       const j=JSON.parse(txt), out={clean:j.settings.sync.code===''&&j.settings.sync.key===''&&j.settings.share.code===''&&!txt.includes('testcode-1234567890')&&!txt.includes('sharecode123'), kept:S.settings.sync.code==='testcode-1234567890', data:!!j.days}; S.settings.sync.code=''; return out; })()""")
     check('Security 13.24: a backup file carries your data but never the sync code or the share code', r['clean'] and r['kept'] and r['data'], r)
     check('Privacy 13.24: the sales-notes AI analysis states what it sends before sending', 'This sends data to' in open(__file__.replace('tests/run.py','intel.js')).read())
+    r = ev("""(()=>{ const out={}, o=day(new Date()); closeModal(); mcOpenCard=false; delete o.bedAt; delete o.wokeAt; let h=mcCard(); out.compact=/mc-s/.test(h)&&!/Why this/.test(h)&&/sleep is not logged/.test(h); mcToggle(); h=mcCard(); out.full=/Why this/.test(h)&&/Hide/.test(h); mcToggle();
+      mcSleepOpen(); document.getElementById('sl-b').value='22:15'; document.getElementById('sl-w').value='06:05'; mcSleepSave(); out.sleep=o.bedAt==='22:15'&&o.wokeAt==='06:05'&&o.sleepSrc==='typed'&&!/sleep is not logged/.test(mcCard());
+      delete S.settings.bac; out.def8=bacStats().find(s=>s.id==='ro').target===8&&LF_SUBJ[0][3]===8; bacTargetsOpen(); document.querySelector('.bt-s[data-id="ist"]').value='7,5'; document.getElementById('bt-avg').value='8'; bacTargetsSave(); out.tgt=bacStats().find(s=>s.id==='ist').target===7.5&&S.settings.bac.target===8&&LF_SUBJ[1][3]===7.5&&/Change targets/.test(document.getElementById('modal').innerHTML); closeModal();
+      const ac=aiCfg; aiCfg=()=>({key:'k',provider:'gemini'}); localStorage.removeItem('wr-dv-voice'); DV.bad={}; out.ai=dvOrder()[0]==='cloud'&&dvVoiceName()==='Orus'; localStorage.setItem('wr-dv-voice','phone'); out.phone=dvOrder()[0]!=='cloud'; localStorage.removeItem('wr-dv-voice'); aiCfg=ac; out.noKey=dvOrder()[0]!=='cloud';
+      show('now'); if(typeof arcShow==='function') arcShow(); const a=document.getElementById('arc'); out.fold=!a||(!!a.querySelector('.arc-more')&&!a.classList.contains('more')); return out; })()""")
+    check('Day 13.24.1: the mission is one compact strip until tapped; the rest of the Day panels sit behind one More fold', r['compact'] and r['full'] and r['fold'], r)
+    check('Sleep 13.24.1: a forgotten night can be typed in from the mission card, and the reminder goes away', r['sleep'], r)
+    check('BAC 13.24.1: exam subjects default to a target of 8 and every target can be changed from the board', r['def8'] and r['tgt'], r)
+    check('Drive 13.24.1: the natural AI voice goes first when available; "phone" or no key falls back to the phone voice', r['ai'] and r['phone'] and r['noKey'], r)
     check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows

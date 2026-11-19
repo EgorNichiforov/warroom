@@ -22,7 +22,7 @@ The current audit and roadmap (18 Nov 2026) live in the Claude doc "War Room: Ma
   is a device lock, not encryption.
 
 ## Working on it
-- Tests: `python3 -m http.server 8765 &` then `TZ=Etc/GMT+6 python3 tests/run.py` (Playwright; 303 checks).
+- Tests: `python3 -m http.server 8765 &` then `python3 tests/run.py` with `TZ` set so the local time is daytime (the night screen hides parts of Day; e.g. `TZ=Etc/GMT-5` in the European morning, `TZ=Etc/GMT+6` in the evening) (Playwright; 303 checks).
 - Release: bump the version in `core.js` (`APP_VERSION`), `sw.js` (`CACHE`, `SHELL`), `index.html` (`?v=`); run the tests;
   add a changelog row in `playbook.js`; push `v5`; copy changed files to `main:/v5/`.
 - Never print the sync code. Never count a dial that was not dialled.

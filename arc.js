@@ -100,7 +100,7 @@ function arcHtml() {
   }
   const Ln = arcLine(d);
   return `<div class="arc-in">${top}
-    ${typeof mcCard === 'function' ? mcCard() : ''}
+    ${typeof mcCard === 'function' ? mcCard() + mcMoreBtn() : ''}
     ${wk && wk.out && wk.out.some(Boolean) ? `<div class="arc-wk" onclick="enBoard()"><span>This week's contract</span>${wk.out.filter(Boolean).map((o) => `<b>${esc(o)}</b>`).join('')}${wk.change ? `<em>Rule: ${esc(wk.change)}</em>` : ''}</div>` : dow(d) === 7 || !wk ? `<div class="arc-wk empty" onclick="enBoard()"><span>No contract for this week yet</span><b>Run the 12-minute board meeting →</b></div>` : ''}
     <div class="arc-ms">${bar('Dials', Number(c.dials) || 0, tg)}${bar('Owner talks', Number(c.owners) || 0, 0)}${bar('BAC min', Number(c.bac) || 0, bT)}</div>
     <div class="arc-line"><div class="arc-rail"><u style="height:${Ln.pct}%"></u></div>
