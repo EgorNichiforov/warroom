@@ -114,7 +114,7 @@ function arcRender() { const el = document.getElementById('arc'); if (!el || !el
 function arcShow() {
   if (!arcOn()) return; if (typeof sleepLive === 'function' && sleepLive()) return; if (typeof capPending !== 'undefined' && capPending) return;
   let el = document.getElementById('arc'); if (!el) { el = document.createElement('div'); el.id = 'arc'; document.body.appendChild(el); }
-  el.className = 'on arc-' + arcPhase(); document.body.classList.add('arc-open'); el.innerHTML = arcHtml(); if (typeof oneHide === 'function') oneHide();
+  el.className = 'on arc-' + arcPhase(); document.body.classList.add('arc-open'); window._arcShown = 1; el.innerHTML = arcHtml(); if (typeof oneHide === 'function') oneHide();
   const p = document.getElementById('arc-pill'); if (p) p.classList.remove('on');
   clearInterval(window._arcT); window._arcT = setInterval(arcRender, 30000);
 }
@@ -125,7 +125,7 @@ if (typeof oneShow === 'function' && !oneShow._arc) { const _o = oneShow; oneSho
 if (typeof render === 'function' && !render._arc) { const _r = render; render = function () { const x = _r.apply(this, arguments); arcRender(); return x; }; render._arc = 1; }
 document.addEventListener('visibilitychange', () => { if (document.hidden) { window._arcAway = Date.now(); return; } if (arcOn() && window._arcAway && Date.now() - window._arcAway > 20 * 60e3 && !(typeof capPending !== 'undefined' && capPending)) setTimeout(arcShow, 700); else arcRender(); });
 try { if (arcOn()) localStorage.setItem('nv-intro', '1'); } catch (e) { }
-setTimeout(() => { try { const a = document.getElementById('arc'); if (!(a && a.classList.contains('on'))) arcShow(); } catch (e) { console.warn('ARC', e); } }, 1600); /* 13.11.1: don't redraw the Day screen if it's already up (that was the second jump) */
+setTimeout(() => { try { /* 13.31: only a fallback for a boot that never showed the Day screen. If it was shown and you already tapped away, do not pull you back (was a race on slow starts). */ if (window._arcShown) return; const a = document.getElementById('arc'); if (!(a && a.classList.contains('on'))) arcShow(); } catch (e) { console.warn('ARC', e); } }, 1600); /* 13.11.1: don't redraw the Day screen if it's already up (that was the second jump) */
 if (typeof appearanceCard === 'function' && !appearanceCard._arc) {
   const _a = appearanceCard;
   appearanceCard = function () { const on = arcOn(); return `<div class="card"><div class="card-h"><div class="card-t">Main surface</div><div class="card-r">this device</div></div><div class="small muted" style="margin-bottom:10px">ARC: the app opens as your day on one line, and changes with the sun. Off: the classic screens and NOVA.</div><div class="row" style="gap:8px"><button class="btn grow ${on ? 'primary' : ''}" onclick="arcSet(true)">ARC</button><button class="btn grow ${on ? '' : 'primary'}" onclick="arcSet(false)">Classic / NOVA</button></div></div>` + _a(); };

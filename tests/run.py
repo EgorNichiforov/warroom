@@ -431,7 +431,7 @@ with sync_playwright() as p:
     pg.wait_for_function("typeof bcReady==='function'&&bcReady()", timeout=30000)
     check('Learn: Work has ONE Learn tab (no separate Bootcamp / Courses)', ev("SH_HUBS.find(h=>h.id==='work').segs.map(s=>s[0]+':'+s[1]).filter(x=>/^(boot|acq)/.test(x)).join(',')") == 'boot:Learn')
     ev("bcS={scr:'home'};show('boot')"); pg.wait_for_timeout(800)
-    check('Learn: one header "Learn" with Path · Courses · Practice · Missions · Progress', ev("[...document.querySelectorAll('#view-boot .bcx-tabs button')].map(b=>b.textContent.replace(/\\d+$/,'')).join(',')") == 'Path,Courses,Practice,Missions,Progress' and 'Learn' in ev("(document.querySelector('#view-boot .bcx-ttl')||{}).textContent||''"))
+    check('Learn: one header "Learn" with Now · Path · Courses · Practice · Missions · Progress · Library (13.31)', ev("[...document.querySelectorAll('#view-boot .bcx-tabs button')].map(b=>b.textContent.replace(/\\d+$/,'')).join(',')") == 'Now,Path,Courses,Practice,Missions,Progress,Library' and 'Learn' in ev("(document.querySelector('#view-boot .bcx-ttl')||{}).textContent||''"))
     ev("bcGo('home',{tab:'courses'})"); pg.wait_for_timeout(600)
     r = ev("({shelf:document.querySelectorAll('#view-boot .ln-co').length, h:document.documentElement.scrollHeight, sw:document.documentElement.scrollWidth<=innerWidth+1})")
     check('Learn: Courses tab = 8 course tiles with progress, fits the phone', r['shelf'] == 8 and r['sw'] and r['h'] < 2600, r)
@@ -841,8 +841,8 @@ with sync_playwright() as p:
     import os
     # Bootcamp 13.18–13.20 (bootcamp.js: Path, Practice, Missions, Progress): modules, lesson loop, boss fights, red lines, call mission, simulator
     b, pg, errs = fresh(p); ev = pg.evaluate
-    ev("show('boot')"); pg.wait_for_timeout(1800)
-    check('Bootcamp: 26 modules (15 Business + 11 Life) cover all 234 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===26&&bcTrack('biz').length===15&&bcTrack('life').length===11&&f.length===234&&new Set(f).size===234&&f.every(id=>XC.byId[id])&&XC.cards.length===234})()"))
+    ev("bcS={scr:'home',tab:'path'};show('boot')"); pg.wait_for_timeout(1800)  # 13.31: Learn opens on "Now"; the Path is its second tab
+    check('Bootcamp: 26 modules (15 Business + 11 Life) cover all 250 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===26&&bcTrack('biz').length===15&&bcTrack('life').length===11&&f.length===250&&new Set(f).size===250&&f.every(id=>XC.byId[id])&&XC.cards.length===250})()"))
     check('Bootcamp: Path shows today, the next Business and Life lesson, and the 15 Business modules', ev("!!document.querySelector('#view-boot .bcx-today')&&document.querySelectorAll('#view-boot .bcx-cont').length===2&&!!document.querySelector('#view-boot .bcx-cont.life')&&document.querySelectorAll('#view-boot .bcx-path .bcx-mod').length===15"))
     ev("bcS.trk='life';render()"); pg.wait_for_timeout(200)
     check('Bootcamp: Life path switch shows the 11 Life modules', ev("document.querySelectorAll('#view-boot .bcx-path.life .bcx-mod').length===11"))

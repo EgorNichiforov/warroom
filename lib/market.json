@@ -1,1 +1,513 @@
-{"v":"13.30","checked":"2026-11-19","entries":[{"id":"mk-reg1","cls":"official","topic":"regulation","text":"Florida regulates three kinds of in-home provider under Chapter 400, Part III: licensed home health agencies, licensed nurse registries, and registered homemaker/companion service providers.","src":"Florida AHCA; Florida Statutes ch. 400 Part III","url":"https://ahca.myflorida.com/health-quality-assurance/bureau-of-health-facility-regulation/laboratory-and-in-home-services.html","date":"checked 19 Nov 2026","tag":"","note":""},{"id":"mk-reg2","cls":"official","topic":"regulation","text":"A nurse registry arranges contracts for nurses, aides, homemakers and companions who work as independent contractors, and needs its own AHCA licence (s. 400.506).","src":"Florida AHCA, Nurse Registries; s. 400.506 F.S.","url":"https://ahca.myflorida.com/health-quality-assurance/bureau-of-health-facility-regulation/laboratory-and-in-home-services/nurse-registries.html","date":"checked 19 Nov 2026","tag":"","note":"Caregiver Bench recruits W-2 employees for licensed agencies and places nobody as a contractor. Whether that activity needs any licence is a legal question: get the lawyer's written answer. This is not legal advice."},{"id":"mk-reg3","cls":"official","topic":"regulation","text":"Anyone providing homemaker or companion services must register with AHCA; the registration costs $50.75 for two years and every employee needs background screening. An agency that already holds a home health or nurse registry licence does not need the separate registration.","src":"Florida AHCA, Homemaker and Companion Services FAQ; s. 400.509 F.S.","url":"https://ahca.myflorida.com/health-quality-assurance/bureau-of-health-facility-regulation/long-term-care-services-unit/homemaker-companion-services-provider/general-information.html","date":"checked 19 Nov 2026","tag":"","note":""},{"id":"mk-reg4","cls":"reported","topic":"regulation","text":"Senate Bill 1068 (2026) would add client disclosures and naming and licence-display rules for nurse registries, with 1 July 2026 as its effective date. The Senate page read here showed it at committee stage; a secondary site describes it as in force.","src":"Florida Senate, SB 1068 (2026)","url":"https://www.flsenate.gov/Session/Bill/2026/1068","date":"checked 19 Nov 2026","tag":"","note":"Whether it became law was not confirmed on the official site."},{"id":"mk-str1","cls":"reported","topic":"structure","text":"Florida has about 6,056 in-home care providers, including 2,305 home health agencies (1,154 licensed-only, 1,151 Medicare/Medicaid-certified) and 1,197 nurse registries.","src":"Home Care Association of Florida, membership overview","url":"https://homecareassociationoffloridainc.growthzoneapp.com/ap/CloudFile/Download/pjM2N8gr","date":"date not shown","tag":"","note":"A trade association's count; the AHCA facility search is the authority. \"Licensed-only\" agencies are the closest public proxy for private pay."},{"id":"mk-wf1","cls":"official","topic":"workforce","text":"Home health and personal care aides held about 4.3 million US jobs in 2024; employment is projected to grow 17% from 2024 to 2034, with about 765,800 openings a year. Median pay was $16.78 an hour in May 2024.","src":"U.S. Bureau of Labor Statistics, Occupational Outlook Handbook","url":"https://www.bls.gov/ooh/healthcare/home-health-aides-and-personal-care-aides.htm","date":"2024–34 projections","tag":"","note":""},{"id":"mk-pr1","cls":"reported","topic":"problem","text":"Median caregiver turnover was 75.5% in 2025, after a peak of 79.2% in 2023.","src":"2026 Activated Insights Benchmarking Report, as cited by HHAeXchange","url":"https://hhaexchange.com/blog/recruiting-and-retaining-caregivers","date":"2026","tag":"turnover","note":"Read through a secondary article. The report itself was not opened."},{"id":"mk-pr2","cls":"reported","topic":"problem","text":"Indeed is a top-two caregiver source for 43.3% of agencies, employee referrals for 15.9%. Agencies whose best source is their own website report the lowest turnover (65.8%).","src":"2026 Activated Insights Benchmarking Report, as cited by HHAeXchange","url":"https://hhaexchange.com/blog/recruiting-and-retaining-caregivers","date":"2026","tag":"applicants","note":"Secondary citation."},{"id":"mk-pr3","cls":"reported","topic":"problem","text":"Agencies paying $15–17.99 an hour report median turnover of 84.4%; at $18–19.99 it is 53.0%.","src":"2026 Activated Insights Benchmarking Report, as cited by HHAeXchange","url":"https://hhaexchange.com/blog/recruiting-and-retaining-caregivers","date":"2026","tag":"turnover","note":"Secondary citation. Pay is set by the agency, not by a recruiter: a limit on what recruiting alone can fix."},{"id":"mk-pr4","cls":"reported","topic":"problem","text":"Roughly four in five caregivers who leave do so within their first 100 days.","src":"Activated Insights, as cited by several vendor blogs","url":"https://www.teambridge.com/blog/ai-caregiver-matching-software-2026","date":"2024–26","tag":"turnover","note":"Vendor blog citing the report; wording varies between sources."},{"id":"mk-co1","cls":"vendor","topic":"competitor","text":"CareerPlug: applicant-tracking software for home care, the official ATS partner of the Home Care Association of America, used by large franchise brands; integrates with myCNAjobs.","src":"CareerPlug (own site)","url":"https://www.careerplug.com/clients/home-health-care-hiring-software/","date":"checked 19 Nov 2026","tag":"software","note":"Software the agency runs itself. Pricing not found."},{"id":"mk-co2","cls":"vendor","topic":"competitor","text":"myCNAjobs: a job network built for caregivers, CNAs and HHAs; says it reaches 5.2 million caregivers.","src":"CareerPlug page describing its partner","url":"https://www.careerplug.com/clients/home-health-care-hiring-software/","date":"checked 19 Nov 2026","tag":"applicants","note":"The reach figure is a vendor claim."},{"id":"mk-co3","cls":"vendor","topic":"competitor","text":"Augusta: caregiver-recruiting software for home care that matches applicants to agencies and publishes a national recruiting benchmark (120,000+ applicants in Q1 2026); says it has helped hundreds of agencies.","src":"Augusta (own site); HCAOA newsletter","url":"https://augusta.care/solutions/","date":"checked 19 Nov 2026","tag":"software","note":"Closest to \"more applicants reach an interview\". Still software, not a done-for-you service with a guarantee. Pricing not found."},{"id":"mk-co4","cls":"vendor","topic":"competitor","text":"Hellohire: a recruiting assistant for home care that engages and screens candidates and schedules interviews. Apploi and Hireology: recruiting/ATS platforms used in long-term care and multi-location providers.","src":"CB Insights profile; HigherMe overview","url":"https://www.cbinsights.com/compare/augusta-care-vs-hellohire","date":"checked 19 Nov 2026","tag":"software","note":"Third-party descriptions; none of these sites was tested."}],"plan":[["How many private-pay agencies are there in Tampa Bay, and how big are they?","partly","Statewide counts found (reported). The local, private-pay number is unknown: your own list (875) is the best figure and is not verified against AHCA."],["What do owners say their biggest staffing problem is?","open","Published reports say turnover and early exits. Your own calls: 0 owner conversations. Only your calls can answer this for your market."],["Who already sells caregiver recruiting to agencies, and how?","partly","Software and job networks found (CareerPlug, myCNAjobs, Augusta, Hellohire, Apploi, Hireology). No done-for-you recruiter with a show-up guarantee was found in this pass; that is not proof none exists."],["What do agencies pay today for hiring help, and what would they pay?","open","No pricing was found for any competitor. Ask owners; note every answer as a \"willingness to pay\" market note."],["How large is the private-pay home care market?","open","Market-size reports are behind a paywall (IBISWorld). Unknown."],["Which rules limit what Caregiver Bench may do in Florida?","partly","Provider types and the nurse-registry definition read on official pages. The answer for a recruiting-only company needs the lawyer."],["Is the caregiver shortage getting better or worse?","answered","BLS projects 17% growth and about 765,800 openings a year to 2034."]],"unknown":["Size in dollars of private-pay home care (US, Florida, Tampa Bay)","What agencies currently spend per caregiver hire","Competitor pricing","Whether local done-for-you caregiver recruiters operate in Tampa Bay","How many \"licensed-only\" agencies are truly private pay","Whether SB 1068 is in force"]}
+{
+ "v": "13.31",
+ "checked": "2026-11-19",
+ "entries": [
+  {
+   "id": "mk-reg1",
+   "cls": "official",
+   "topic": "regulation",
+   "text": "Florida regulates three kinds of in-home provider under Chapter 400, Part III: licensed home health agencies, licensed nurse registries, and registered homemaker/companion service providers.",
+   "src": "Florida AHCA; Florida Statutes ch. 400 Part III",
+   "url": "https://ahca.myflorida.com/health-quality-assurance/bureau-of-health-facility-regulation/laboratory-and-in-home-services.html",
+   "date": "checked 19 Nov 2026",
+   "tag": "",
+   "note": ""
+  },
+  {
+   "id": "mk-reg2",
+   "cls": "official",
+   "topic": "regulation",
+   "text": "A nurse registry arranges contracts for nurses, aides, homemakers and companions who work as independent contractors, and needs its own AHCA licence (s. 400.506).",
+   "src": "Florida AHCA, Nurse Registries; s. 400.506 F.S.",
+   "url": "https://ahca.myflorida.com/health-quality-assurance/bureau-of-health-facility-regulation/laboratory-and-in-home-services/nurse-registries.html",
+   "date": "checked 19 Nov 2026",
+   "tag": "",
+   "note": "Caregiver Bench recruits W-2 employees for licensed agencies and places nobody as a contractor. Whether that activity needs any licence is a legal question: get the lawyer's written answer. This is not legal advice."
+  },
+  {
+   "id": "mk-reg3",
+   "cls": "official",
+   "topic": "regulation",
+   "text": "Anyone providing homemaker or companion services must register with AHCA; the registration costs $50.75 for two years and every employee needs background screening. An agency that already holds a home health or nurse registry licence does not need the separate registration.",
+   "src": "Florida AHCA, Homemaker and Companion Services FAQ; s. 400.509 F.S.",
+   "url": "https://ahca.myflorida.com/health-quality-assurance/bureau-of-health-facility-regulation/long-term-care-services-unit/homemaker-companion-services-provider/general-information.html",
+   "date": "checked 19 Nov 2026",
+   "tag": "",
+   "note": ""
+  },
+  {
+   "id": "mk-reg4",
+   "cls": "reported",
+   "topic": "regulation",
+   "text": "Senate Bill 1068 (2026) would add client disclosures and naming and licence-display rules for nurse registries, with 1 July 2026 as its effective date. The Senate page read here showed it at committee stage; a secondary site describes it as in force.",
+   "src": "Florida Senate, SB 1068 (2026)",
+   "url": "https://www.flsenate.gov/Session/Bill/2026/1068",
+   "date": "checked 19 Nov 2026",
+   "tag": "",
+   "note": "Whether it became law was not confirmed on the official site."
+  },
+  {
+   "id": "mk-str1",
+   "cls": "reported",
+   "topic": "structure",
+   "text": "Florida counts from the Home Care Association of Florida: 6,056 in-home providers in total = 1,154 licensed-only home health agencies + 1,151 Medicare/Medicaid-certified home health agencies + 1,197 nurse registries + 2,554 homemaker and companion service providers.",
+   "src": "Home Care Association of Florida, \"2024 Year in Review\"",
+   "url": "https://homecareassociationoffloridainc.growthzoneapp.com/ap/CloudFile/Download/pjM2N8gr",
+   "date": "document covers 2024; publication date not shown (probably early 2025)",
+   "tag": "",
+   "note": "What the count includes: every licence or registration type under Florida Statutes ch. 400 Part III. What it does not tell you: how many are active, how many are private pay, how many are in Tampa Bay, or how many caregivers each employs. Nurse registries refer independent contractors and are not W-2 employers, so they are not Caregiver Bench customers. The association cites no external source; the AHCA facility search is the authority and has not been counted here."
+  },
+  {
+   "id": "mk-wf1",
+   "cls": "official",
+   "topic": "workforce",
+   "text": "Home health and personal care aides held about 4,677,100 US jobs in 2025. Employment is projected to grow 18% from 2025 to 2035 (about +847,300 jobs), with about 760,500 openings a year. Median pay was $17.21 an hour ($35,800 a year) in May 2025.",
+   "src": "U.S. Bureau of Labor Statistics, Occupational Outlook Handbook",
+   "url": "https://www.bls.gov/ooh/healthcare/home-health-aides-and-personal-care-aides.htm",
+   "date": "page last modified 27 Aug 2026 · forecast period 2025–2035 · pay as of May 2025",
+   "tag": "",
+   "note": "Definition: SOC 31-1120, home health aides and personal care aides together, all employers and payers (Medicaid, Medicare, private pay), whole United States. It is not a Florida or private-pay number. \"Openings\" include replacing people who leave the occupation, not only new jobs.",
+   "cur": 1
+  },
+  {
+   "id": "mk-wf1h",
+   "cls": "official",
+   "topic": "workforce",
+   "hist": 1,
+   "text": "Previous edition, kept for comparison only: about 4,347,700 jobs in 2024; projected growth 17% from 2024 to 2034 (about +739,800 jobs); about 765,800 openings a year; median pay $16.78 an hour in May 2024.",
+   "src": "U.S. Bureau of Labor Statistics, Occupational Outlook Handbook (2024–34 edition)",
+   "url": "https://www.bls.gov/ooh/healthcare/home-health-aides-and-personal-care-aides.htm",
+   "date": "forecast period 2024–2034 · pay as of May 2024 · superseded",
+   "tag": "",
+   "note": "Superseded by the 2025–35 edition. Do not quote it as current. Same definition (SOC 31-1120)."
+  },
+  {
+   "id": "mk-pr1",
+   "cls": "reported",
+   "topic": "problem",
+   "text": "Median caregiver turnover was 75.5% in 2025, after a peak of 79.2% in 2023.",
+   "src": "2026 Activated Insights Benchmarking Report, as cited by HHAeXchange",
+   "url": "https://hhaexchange.com/blog/recruiting-and-retaining-caregivers",
+   "date": "2026",
+   "tag": "turnover",
+   "note": "Read through a secondary article. The report itself was not opened."
+  },
+  {
+   "id": "mk-pr2",
+   "cls": "reported",
+   "topic": "problem",
+   "text": "Indeed is a top-two caregiver source for 43.3% of agencies, employee referrals for 15.9%. Agencies whose best source is their own website report the lowest turnover (65.8%).",
+   "src": "2026 Activated Insights Benchmarking Report, as cited by HHAeXchange",
+   "url": "https://hhaexchange.com/blog/recruiting-and-retaining-caregivers",
+   "date": "2026",
+   "tag": "applicants",
+   "note": "Secondary citation."
+  },
+  {
+   "id": "mk-pr3",
+   "cls": "reported",
+   "topic": "problem",
+   "text": "Agencies paying $15–17.99 an hour report median turnover of 84.4%; at $18–19.99 it is 53.0%.",
+   "src": "2026 Activated Insights Benchmarking Report, as cited by HHAeXchange",
+   "url": "https://hhaexchange.com/blog/recruiting-and-retaining-caregivers",
+   "date": "2026",
+   "tag": "turnover",
+   "note": "Secondary citation. Pay is set by the agency, not by a recruiter: a limit on what recruiting alone can fix."
+  },
+  {
+   "id": "mk-pr4",
+   "cls": "reported",
+   "topic": "problem",
+   "text": "Roughly four in five caregivers who leave do so within their first 100 days.",
+   "src": "Activated Insights, as cited by several vendor blogs",
+   "url": "https://www.teambridge.com/blog/ai-caregiver-matching-software-2026",
+   "date": "2024–26",
+   "tag": "turnover",
+   "note": "Vendor blog citing the report; wording varies between sources."
+  },
+  {
+   "id": "mk-co1",
+   "cls": "vendor",
+   "topic": "competitor",
+   "text": "CareerPlug: applicant-tracking software for home care, the official ATS partner of the Home Care Association of America, used by large franchise brands; integrates with myCNAjobs.",
+   "src": "CareerPlug (own site)",
+   "url": "https://www.careerplug.com/clients/home-health-care-hiring-software/",
+   "date": "checked 19 Nov 2026",
+   "tag": "software",
+   "note": "Software the agency runs itself. Pricing not found."
+  },
+  {
+   "id": "mk-co2",
+   "cls": "vendor",
+   "topic": "competitor",
+   "text": "myCNAjobs: a job network built for caregivers, CNAs and HHAs; says it reaches 5.2 million caregivers.",
+   "src": "CareerPlug page describing its partner",
+   "url": "https://www.careerplug.com/clients/home-health-care-hiring-software/",
+   "date": "checked 19 Nov 2026",
+   "tag": "applicants",
+   "note": "The reach figure is a vendor claim."
+  },
+  {
+   "id": "mk-co3",
+   "cls": "vendor",
+   "topic": "competitor",
+   "text": "Augusta: caregiver-recruiting software for home care that matches applicants to agencies and publishes a national recruiting benchmark (120,000+ applicants in Q1 2026); says it has helped hundreds of agencies.",
+   "src": "Augusta (own site); HCAOA newsletter",
+   "url": "https://augusta.care/solutions/",
+   "date": "checked 19 Nov 2026",
+   "tag": "software",
+   "note": "Closest to \"more applicants reach an interview\". Still software, not a done-for-you service with a guarantee. Pricing not found."
+  },
+  {
+   "id": "mk-co4",
+   "cls": "vendor",
+   "topic": "competitor",
+   "text": "Hellohire: a recruiting assistant for home care that engages and screens candidates and schedules interviews. Apploi and Hireology: recruiting/ATS platforms used in long-term care and multi-location providers.",
+   "src": "CB Insights profile; HigherMe overview",
+   "url": "https://www.cbinsights.com/compare/augusta-care-vs-hellohire",
+   "date": "checked 19 Nov 2026",
+   "tag": "software",
+   "note": "Third-party descriptions; none of these sites was tested."
+  },
+  {
+   "id": "mk-ma1",
+   "cls": "reported",
+   "topic": "consolidation",
+   "text": "Home care deal-making rose in 2025: 104 announced or completed transactions, up about 40% on 2024; private equity did 43 of them (11 new platforms, 32 add-ons). Personal home care attracted the largest pool of investors.",
+   "src": "Capstone Partners, Home Care Sector Update",
+   "url": "https://www.capstonepartners.com/insights/article-home-care-sector-update/",
+   "date": "published 2 Feb 2026 · covers 2025",
+   "tag": "",
+   "note": "An investment bank that sells M&A advice: the counts are its own tally."
+  },
+  {
+   "id": "mk-ma2",
+   "cls": "reported",
+   "topic": "consolidation",
+   "text": "Q2 2026: eight non-medical home care deals closed, including General Atlantic's $3 billion purchase of TEAM Services Group. Q1 2026: 22 home-based care transactions closed across all segments.",
+   "src": "Home Health Care News and Axial, both citing Mertz Taggart quarterly reports",
+   "url": "https://homehealthcarenews.com/2026/07/fewer-deals-but-big-checks-scaling-platforms-lead-q2-home-based-care-ma/",
+   "date": "published July 2026",
+   "tag": "",
+   "note": "National figures. No Florida or Tampa Bay deal data was found."
+  },
+  {
+   "id": "mk-ma3",
+   "cls": "reported",
+   "topic": "consolidation",
+   "text": "Examples of buyers rolling up personal care agencies: Avid Health at Home (backed by Havencrest) announced its eighth acquisition in 2026; Care Advantage is listed with 16 acquisitions.",
+   "src": "Home Health Care News; Owler company listing",
+   "url": "https://homehealthcarenews.com/2026/07/6-home-care-companies-to-watch-in-2026/",
+   "date": "2026",
+   "tag": "",
+   "note": "Why it matters to you: buyers pay for agencies that can staff their hours. It does not show that any buyer wants a recruiting company."
+  }
+ ],
+ "plan": [
+  [
+   "How many private-pay agencies are there in Tampa Bay, and how big are they?",
+   "partly",
+   "Statewide counts found (reported). The local, private-pay number is unknown: your own list (875) is the best figure and is not verified against AHCA."
+  ],
+  [
+   "What do owners say their biggest staffing problem is?",
+   "open",
+   "Published reports say turnover and early exits. Your own calls: 0 owner conversations. Only your calls can answer this for your market."
+  ],
+  [
+   "Who already sells caregiver recruiting to agencies, and how?",
+   "partly",
+   "One national done-for-you recruiter found (Carework), several software tools, job boards and marketing agencies. Prices are mostly not public. No Tampa Bay-local recruiter was searched for."
+  ],
+  [
+   "What do agencies pay today for hiring help, and what would they pay?",
+   "open",
+   "No pricing was found for any competitor. Ask owners; note every answer as a \"willingness to pay\" market note."
+  ],
+  [
+   "How large is the private-pay home care market?",
+   "open",
+   "Market-size reports are behind a paywall (IBISWorld). Unknown."
+  ],
+  [
+   "Which rules limit what Caregiver Bench may do in Florida?",
+   "partly",
+   "Provider types and the nurse-registry definition read on official pages. The answer for a recruiting-only company needs the lawyer."
+  ],
+  [
+   "Is the caregiver shortage getting better or worse?",
+   "answered",
+   "BLS 2025–35 edition: +18% jobs and about 760,500 openings a year nationally. Still getting tighter."
+  ]
+ ],
+ "unknown": [
+  "Size in dollars of private-pay home care (US, Florida, Tampa Bay)",
+  "What agencies currently spend per caregiver hire",
+  "Prices of Carework, CareerPlug, Augusta and myCNAjobs (not public)",
+  "Whether local done-for-you caregiver recruiters operate in Tampa Bay (not searched)",
+  "How many \"licensed-only\" agencies are truly private pay",
+  "How many of the 6,056 Florida providers are active, and how many are in Tampa Bay",
+  "Whether SB 1068 is in force",
+  "Whether any acquirer values a recruiting engine (no evidence either way)"
+ ],
+ "comp": {
+  "checked": "19 Nov 2026",
+  "note": "Built from six web searches on one day. Not finding a competitor here is not proof that none exists: Florida-local recruiters, staffing firms, Facebook groups and LinkedIn were not searched. Everything in \"what they say\" is the company's own claim unless marked.",
+  "cats": [
+   [
+    "direct",
+    "Direct competitors: someone else does the caregiver recruiting for the agency"
+   ],
+   [
+    "software",
+    "Software the agency runs itself"
+   ],
+   [
+    "boards",
+    "Job boards and caregiver marketplaces"
+   ],
+   [
+    "recruit",
+    "Other recruitment and staffing providers"
+   ],
+   [
+    "marketing",
+    "Marketing agencies for home care"
+   ],
+   [
+    "partners",
+    "Possible partners and routes to owners"
+   ]
+  ],
+  "items": [
+   {
+    "cat": "direct",
+    "name": "Carework",
+    "what": "Done-for-you caregiver recruiting: posts the job ads, calls, texts, screens and schedules applicants; says its team works 7 days a week so every applicant gets a same-day reply. Also sells a hiring course (HireEd) and runs a podcast.",
+    "who": "Home care agencies across the US",
+    "pos": "\"Home care's hiring experts\"",
+    "price": "Not public",
+    "diff": "Works the agency's own applicants from job ads. You promise caregivers who actually work, with a show-up and 90-day guarantee, and you take no money per placement of a client.",
+    "evid": "Recommended by Stephen Tweed; resource partner of the Home Care CEO Forum. No published results found.",
+    "url": "https://homecareceo.com/?p=1832",
+    "cls": "vendor"
+   },
+   {
+    "cat": "direct",
+    "name": "Well Beyond Care",
+    "what": "Launched a caregiver recruitment and management service for organisations in 2021, sold monthly.",
+    "who": "Assisted living, senior housing, private duty agencies",
+    "pos": "Access to its caregiver network",
+    "price": "Not public",
+    "diff": "Unknown whether the service still runs.",
+    "evid": "2021 press release only.",
+    "url": "https://markets.financialcontent.com/concordmonitor/article/einpresswire-2021-6-30-well-beyond-care-offers-caregiver-recruitment-service-to-organizations",
+    "cls": "vendor"
+   },
+   {
+    "cat": "direct",
+    "name": "A remote recruiter hired directly by the agency",
+    "what": "Agencies advertise for offshore recruiters with home care experience to do 15–20 candidate screenings a week.",
+    "who": "Agencies that want an in-house assistant",
+    "pos": "Cheap labour the owner manages himself",
+    "price": "Not public",
+    "diff": "The owner must train and manage the person. You sell the result, not the hours.",
+    "evid": "One job advert seen; how common this is, is unknown.",
+    "url": "https://www.onlinejobs.ph/jobseekers/job/1601736",
+    "cls": "reported"
+   },
+   {
+    "cat": "software",
+    "name": "CareerPlug",
+    "what": "Applicant-tracking software; official ATS of the Home Care Association of America; integrates with myCNAjobs.",
+    "who": "Franchise brands and agencies",
+    "pos": "Hire the right people faster",
+    "price": "Not public on its site",
+    "diff": "Software the agency must operate.",
+    "evid": "Customer quotes on its own site.",
+    "url": "https://www.careerplug.com/clients/home-health-care-hiring-software/",
+    "cls": "vendor"
+   },
+   {
+    "cat": "software",
+    "name": "100Hires",
+    "what": "Recruiting software for home care: sorts applicants and books interviews.",
+    "who": "Small agencies",
+    "pos": "A recruiting tool priced for an agency",
+    "price": "From $49 a month (its site)",
+    "diff": "Same: a tool, the agency does the work.",
+    "evid": "Its own percentage claims; no source given.",
+    "url": "https://100hires.com/home-care-recruiting-software.html",
+    "cls": "vendor"
+   },
+   {
+    "cat": "software",
+    "name": "Augusta",
+    "what": "Caregiver recruiting software built for home care; automates outreach; integrates with scheduling systems.",
+    "who": "Home care agencies",
+    "pos": "Automate the grunt work of recruiting",
+    "price": "Not public",
+    "diff": "A tool, with a support team from the industry.",
+    "evid": "Its own quarterly data reports.",
+    "url": "https://augusta.care/solutions/",
+    "cls": "vendor"
+   },
+   {
+    "cat": "software",
+    "name": "Agency management systems (AxisCare, WellSky, AlayaCare, CareSmartz360, ShiftCare)",
+    "what": "Scheduling, billing and visit verification; some add hiring features.",
+    "who": "Every agency already has one",
+    "pos": "Run the whole agency in one system",
+    "price": "ShiftCare lists from $9 per staff a month; a third-party page says AxisCare starts around $200 a month (not confirmed by AxisCare)",
+    "diff": "Not competitors for recruiting. They are where the owner's data lives and a possible integration later.",
+    "evid": "Review-site listings.",
+    "url": "https://www.g2.com/products/fieldworker/pricing",
+    "cls": "reported"
+   },
+   {
+    "cat": "boards",
+    "name": "myCNAjobs",
+    "what": "Caregiver job board and network; sold as a subscription, monthly or yearly.",
+    "who": "Agencies",
+    "pos": "Calls itself the nation's largest network of care workers",
+    "price": "Not public",
+    "diff": "A source of applicants. Somebody still has to answer them fast.",
+    "evid": "Its own claim.",
+    "url": "https://www.careerplug.com/careerplug-mycnajobs-announce-partnership/",
+    "cls": "vendor"
+   },
+   {
+    "cat": "boards",
+    "name": "Indeed",
+    "what": "General job board; the top source of applicants for many agencies.",
+    "who": "Everyone",
+    "pos": "Reach",
+    "price": "Pay per posting or per application",
+    "diff": "A source. Your library data: Indeed is a top-two source for about 43% of agencies.",
+    "evid": "Activated Insights data already in your library.",
+    "url": "https://www.indeed.com/hire/how-to-hire/caregiver",
+    "cls": "reported"
+   },
+   {
+    "cat": "boards",
+    "name": "Care.com",
+    "what": "Marketplace where families hire caregivers directly, without an agency.",
+    "who": "Families",
+    "pos": "Hire privately",
+    "price": "Family membership about $39.99 a month (a review site's figure)",
+    "diff": "Competes with your customers for caregivers, not with you.",
+    "evid": "Review article.",
+    "url": "https://www.seniorliving.org/companies/care-com/",
+    "cls": "reported"
+   },
+   {
+    "cat": "recruit",
+    "name": "Nurse registries (Florida)",
+    "what": "Licensed referrers of independent-contractor caregivers.",
+    "who": "Families and agencies",
+    "pos": "Flexible staff",
+    "price": "Not researched",
+    "diff": "Different legal model (contractors). You stay W-2 recruiting for licensed agencies.",
+    "evid": "See the Rules section.",
+    "url": "https://ahca.myflorida.com/",
+    "cls": "official"
+   },
+   {
+    "cat": "recruit",
+    "name": "General staffing firms",
+    "what": "Not researched yet.",
+    "who": "",
+    "pos": "",
+    "price": "",
+    "diff": "",
+    "evid": "No search done: this is a gap, not a finding.",
+    "url": "",
+    "cls": "vendor"
+   },
+   {
+    "cat": "marketing",
+    "name": "Approved Senior Network (ASN)",
+    "what": "Marketing agency for home care since 2008: SEO, ads, social, CRM, referral marketing, sales training; also advises on recruiting.",
+    "who": "Home care and senior care businesses, US and Canada",
+    "pos": "All-in-one marketing and sales system",
+    "price": "Not public",
+    "diff": "Sells client leads first; recruiting is a side service.",
+    "evid": "Its own podcast and site.",
+    "url": "https://www.uforocks.com/blog/15-top-home-care-marketing-agencies-that-drive-results/",
+    "cls": "reported"
+   },
+   {
+    "cat": "marketing",
+    "name": "Home Care Marketing Pros",
+    "what": "Family-owned agency in Bradenton, Florida (founded 2016): websites, SEO, ads; says it helps hire caregivers too.",
+    "who": "Home care and home health providers",
+    "pos": "Marketing only for home care",
+    "price": "Not public",
+    "diff": "A Florida firm already talking to your owners. Possible partner or competitor.",
+    "evid": "Listed in the HCAOA vendor directory.",
+    "url": "https://web.hcaoa.org/atb/Home-Care-Marketing-",
+    "cls": "reported"
+   },
+   {
+    "cat": "marketing",
+    "name": "Sagapixel",
+    "what": "SEO and Google Ads for home care.",
+    "who": "Home care providers",
+    "pos": "More leads, attract caregivers",
+    "price": "Says its Google Ads campaigns cost $90–150 per client lead",
+    "diff": " Client leads, not caregivers who work.",
+    "evid": "Its own case-study claims.",
+    "url": "https://sagapixel.com/?p=11993",
+    "cls": "vendor"
+   },
+   {
+    "cat": "marketing",
+    "name": "ChoiceLocal",
+    "what": "Marketing for private-pay home care.",
+    "who": "Private-pay agencies",
+    "pos": "Says more than 1,000 private-pay agencies use it",
+    "price": "Not public",
+    "diff": "Shows that private-pay owners do buy outside services at scale.",
+    "evid": "Its own claim in the HCAOA directory.",
+    "url": "https://web.hcaoa.org/atb/Home-Care-Marketing-",
+    "cls": "vendor"
+   },
+   {
+    "cat": "partners",
+    "name": "Home Care CEO Forum (Stephen Tweed)",
+    "what": "Peer groups of agency owners; names \"Resource Partners\" it recommends to members.",
+    "who": "Owners of larger agencies",
+    "pos": "Trusted introductions",
+    "price": "Not researched",
+    "diff": "A route to owners that Carework already uses.",
+    "evid": "Its own announcement.",
+    "url": "https://homecareceo.com/?p=1832",
+    "cls": "reported"
+   },
+   {
+    "cat": "partners",
+    "name": "HCAOA and HCAF",
+    "what": "National and Florida trade associations with vendor directories and partner programmes.",
+    "who": "Member agencies",
+    "pos": "Credibility by association",
+    "price": "Not researched",
+    "diff": "A listing puts you next to competitors in front of owners.",
+    "evid": "Directory pages.",
+    "url": "https://web.hcaoa.org/atb/Home-Care-Marketing-",
+    "cls": "reported"
+   },
+   {
+    "cat": "partners",
+    "name": "Software marketplaces (CareerPlug, JazzHR)",
+    "what": "Marketplaces where recruiting add-ons and agencies are listed.",
+    "who": "Their customers",
+    "pos": "Distribution inside a tool the owner already pays for",
+    "price": "Not researched",
+    "diff": "Later-stage route; needs a product that plugs in.",
+    "evid": "Marketplace pages.",
+    "url": "https://www.jazzhr.com/marketplace/providers/home-care-marketing-pros",
+    "cls": "reported"
+   }
+  ]
+ }
+}

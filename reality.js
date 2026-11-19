@@ -246,6 +246,14 @@ function lfOpTab() {
       ${tile('Knowledge pipeline', `${typeof kpAll === 'function' ? kpAll().length : 0} sources`, 'kpOpen()')}
       ${tile('Capacity & resources', over ? `${over} day${over > 1 ? 's' : ''} over capacity` : 'next 7 days fit', 'rlCapOpen()', over)}
       ${tile('Indicators', 'a few honest numbers', 'lxMetricsOpen()')}
+      ${tile('Learn now', 'time you have → one session', 'lxGo()')}
+      ${tile('Blueprint', (() => { try { const u = bpAudit(); return u.lessons + '/' + u.total + ' with own lesson'; } catch (e) { return 'ten areas'; } })(), 'bpOpen()')}
+      ${tile('Owner discovery', (() => { try { return odAnswers().length + ' owner answers'; } catch (e) { return '9 questions'; } })(), 'odOpen()')}
+      ${tile('Knowledge → execution', 'books → Caregiver Bench', 'kxOpen()')}
+      ${tile('Competitors', 'by type, with sources', 'mkCompOpen()')}
+      ${tile('Email lessons', (() => { try { return emLessons().length + ' lessons'; } catch (e) { return 'from your inbox'; } })(), 'emOpen()')}
+      ${tile('Phone test', 'real-device checklist', 'ptOpen()')}
+      ${tile('Test records', 'kept out of signals', 'dgOpen()')}
       ${tile('Operating system', (() => { try { const n = osNextStep(); return n ? 'next: ' + esc(n.n) : 'three engines'; } catch (e) { return 'three engines'; } })(), 'osOpen()')}
       ${tile('Right knowledge, right time', 'now · next · later · research jobs', 'rsOpen()')}
       ${tile('Strategy', 'evidence · opportunities · assets · A/B/C', 'stOpen()', typeof stSignals === 'function' && stSignals().some((s) => s.w >= 3))}

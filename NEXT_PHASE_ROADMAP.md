@@ -53,3 +53,15 @@ Knowledge graph · scenario simulator · personal history · new life modules (1
 
 ## Blockers that need you
 Quo invoice + recording notice + webhook · approval for the device-token migration · a decision on deploy.
+
+## After 13.31.0 (19 Nov 2026)
+
+Open, in order of value:
+1. Real-phone test of 13.31 (Operator → Phone test). Not done by anyone yet.
+2. Lessons for the 23 Blueprint competencies with none (cooking, home, documents, travel, health system, first aid course, writing, speaking, relationships, world, reading, culture, languages…). Research requests are raised one at a time by Learn.
+3. Watch-and-rate the 36 lesson videos that are only "title checked" (16 of them new).
+4. Read the unread book parts: Lost Chapters sections A and C; Gym Launch ch. 1–3, 5–12, 14–15, 20–26. An official copy is preferable.
+5. Owner discovery needs owner conversations: 0 answers today.
+6. Competitor prices (not public), Tampa Bay-local recruiters, staffing firms: not researched.
+7. Accountant: seller form and tax regime before the first invoice; status of the 2027 Moldovan rate proposal.
+8. Daily research schedule: still waiting for approval; weekly scan runs.
