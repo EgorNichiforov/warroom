@@ -12,7 +12,7 @@
 |## Still open, in order
 | # | Item | Why it is open | Needs |
 |---|---|---|---|
-| D | Deploy 13.26.0 | This session could not push | Push access to EgorNichiforov/warroom, then copy v5 files to main as usual |
+| D | Deploy 13.26.0 | On branch `v13.26-operator`, not merged | Your approval; then merge to main (GitHub Pages serves main/v5) and check on the phone |
 | BAC-2 | Topic hierarchy per subject from the 2027 exam programmes | The programmes PDF (Order 2046) must be read; the timetable PDF (Order 2051) is a scan | Open both PDFs on ance.gov.md; confirm your profile's subjects; then enter topics with the source |
 | K-1 | Weekly discovery scheduled task (Gmail → processed list → in-app note → Import) | Creating the scheduled task was refused in this session | Your OK to create it (prompt saved in WAR_ROOM_MASTER_ARCHITECTURE.md) |
 | K-2 | Process the remaining ~54 cataloged Acquisition.com emails and their linked videos/PDFs | Only 4 were processed; links are tracked redirects | Time; opening links in the browser |

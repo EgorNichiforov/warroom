@@ -21,7 +21,7 @@ Tests: `python3 v5/tests/test_1326.py` → 55/55 passed (new file; Playwright + 
 Phone-size checks: 32 new screens opened at 390 px with no horizontal overflow; Operator tab and Day screenshotted.
 Not verified: real Android device, offline use, two devices syncing the new maps, restore with the new maps, AI paths.
 Known risk: a device still on 13.25.x that pushes before updating drops the five new maps from the cloud row; the updated device pushes them back on its next sync (detected as "ahead"). Update all devices.
-Not deployed: this session had no push access to the repository.
+Pushed to branch `v13.26-operator` (commits f750a83, ca23f32). NOT merged to main, so NOT live: deploying needs Egor's approval.
 
 ## 19 Nov 2026 · 13.25.4 · B2 importance and blind spots in spacing
 - `mastery.js`: `msImp`, `msBlind`, `msFloor`, `msPrio`, `msWhyDue`; `msQueue` uses the importance threshold and priority order; `msSchedule` scales the gap after Good/Easy.
