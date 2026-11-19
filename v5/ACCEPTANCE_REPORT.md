@@ -33,4 +33,4 @@ The complete architecture in the brief is **not** fully delivered. What is deliv
 
 ## The uncomfortable line the brief asked for
 
-On 19 Nov 2026 twelve versions of War Room were released and the call log shows no dial for the day. The brief says to name it when War Room becomes a distraction from the business. By its own measure it was today.
+On 19 Nov 2026 28 versions of War Room were released and the call log shows no dial for the day. The brief says to name it when War Room becomes a distraction from the business. By its own measure it was today.
