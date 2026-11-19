@@ -180,6 +180,6 @@ function lfFocusTab() {
 /* ═════════ screen ═════════ */
 function renderLife() {
   const el = $('view-life'); if (!el) return;
-  const tabs = [['score', 'Score & roads'], ['day', 'Day'], ['body', 'Body'], ['study', 'BAC'], ['focus', 'Focus']];
-  el.innerHTML = `<div class="crm-top"><div class="st-tabs">${tabs.map(([k, l]) => `<button class="${lifeTab === k ? 'on' : ''}" onclick="lifeTab='${k}';render()">${l}</button>`).join('')}</div></div>${({ score: lfScoreTab, day: lfDayTab, body: lfBodyTab, study: lfStudyTab, focus: lfFocusTab }[lifeTab] || lfScoreTab)()}`;
+  const tabs = [['score', 'Score & roads'], ['day', 'Day'], ['body', 'Body'], ['study', 'BAC'], ['focus', 'Focus'], ['op', 'Operator']];
+  el.innerHTML = `<div class="crm-top"><div class="st-tabs">${tabs.map(([k, l]) => `<button class="${lifeTab === k ? 'on' : ''}" onclick="lifeTab='${k}';render()">${l}</button>`).join('')}</div></div>${({ score: lfScoreTab, day: lfDayTab, body: lfBodyTab, study: lfStudyTab, focus: lfFocusTab, op: () => (typeof lfOpTab === 'function' ? lfOpTab() : '') }[lifeTab] || lfScoreTab)()}`;
 }

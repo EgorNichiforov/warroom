@@ -239,20 +239,29 @@ async function cpFyAi(btn) {
 function cpFySave() { const n = document.querySelectorAll('.cp-fyc:checked').length; if (n >= 4) bcW('fy:' + CPF.id, { at: cpToday(), n }); closeModal(); toast(n >= 4 ? 'Understood: proven in your own words' : `${n}/5. Reread the parts you missed, then try again tomorrow.`); render(); }
 
 /* ── 5. REALITY LOOP: after-action review → experiment → evaluate → adapt ── */
-function cpAar(id) {
-  const L = cpLearnedSet();
+function cpAar(id, capId) {
+  const L = cpLearnedSet(), pre = capId || (id && typeof cmCapsOfCard === 'function' ? ((cmCapsOfCard(id)[0] || {}).id || '') : '');
   openModal(`<div class="ms-h"><span>After-action review</span><span>observe → diagnose → experiment</span></div><div class="ms-t">What just happened?</div>
+    ${typeof cmSel === 'function' ? cmSel('cp-acap', pre) : ''}
     <select class="aq-in" id="cp-ai"><option value="">Which idea was in play? (optional)</option>${L.map((x) => `<option value="${x}" ${x === id ? 'selected' : ''}>${esc(XC.byId[x].t)}</option>`).join('')}</select>
-    ${[['cp-a1', 'What happened? (the facts)'], ['cp-a2', 'What did I expect?'], ['cp-a3', 'What did I misunderstand, and what was the real cause?'], ['cp-a4', 'The experiment: what exactly will I change next time?']].map(([k, p]) => `<textarea class="aq-in cp-aq" id="${k}" placeholder="${p}"></textarea>`).join('')}
+    ${[['cp-a2', 'What was supposed to happen?'], ['cp-a1', 'What actually happened? (the facts)'], ['cp-a5', 'What did I attempt?'], ['cp-a6', 'What worked?'], ['cp-a3', 'What did not work, and why (the real cause)?'], ['cp-a4', 'The change: what exactly will I do differently next time?']].map(([k, p]) => `<textarea class="aq-in cp-aq" id="${k}" placeholder="${p}"></textarea>`).join('')}
+    ${typeof cmJudgeHtml === 'function' ? cmJudgeHtml() : ''}
     <div class="actions"><button class="btn primary" onclick="cpAarSave()">Save the lesson</button></div>`);
 }
+/* 13.26 (B4): effort, outcome and competence are recorded apart. The idea counts as used for real (Applied) only when
+   the skill was performed to standard WITH written evidence. A logged event alone never moves the ladder. */
 function cpAarSave() {
-  const g = (k) => (($(k) || {}).value || '').trim(), r = { at: cpToday(), id: g('cp-ai') || null, hap: g('cp-a1'), exp: g('cp-a2'), cause: g('cp-a3'), chg: g('cp-a4'), ev: null };
+  const g = (k) => (($(k) || {}).value || '').trim(), j = typeof cmJudgeRead === 'function' ? cmJudgeRead() : { eff: '', out: '', comp: '', ev: '' };
+  const r = { at: cpToday(), id: g('cp-ai') || null, cap: g('cp-acap') || null, hap: g('cp-a1'), exp: g('cp-a2'), tried: g('cp-a5'), worked: g('cp-a6'), cause: g('cp-a3'), chg: g('cp-a4'), eff: j.eff, out: j.out, comp: j.comp, proof: j.ev, ev: null };
   if (!r.hap || !r.chg) { toast('Write what happened and what you will change'); return; }
-  bcW('aar', (bcV('aar', []) || []).concat([r]).slice(-40));
-  if (r.id) { const u = bcV('u:' + r.id, null) || { n: 0, log: [] }; u.n++; u.log = (u.log || []).concat([{ at: r.at, note: 'AAR: ' + r.hap.slice(0, 120) }]).slice(-5); bcW('u:' + r.id, u); }
-  const cm = cpMission(); if (cm && !cm.ap) bcW('cm:' + cpToday(), Object.assign({}, cm, { ap: 'real use, logged in an after-action review' }));
-  closeModal(); toast('Saved. Next time, try the change and come back to say if it worked.'); render();
+  if (r.comp === 'yes' && (r.proof || '').length < 3) { toast('"Skill to standard: Yes" needs evidence. Write it, or choose Partly.'); return; }
+  bcW('aar', (bcV('aar', []) || []).concat([r]).slice(-80));
+  const shown = r.comp === 'yes' && (r.proof || '').length >= 3;
+  if (r.id && shown) { const u = bcV('u:' + r.id, null) || { n: 0, log: [] }; u.n++; u.log = (u.log || []).concat([{ at: r.at, note: 'AAR: ' + (r.proof || r.hap).slice(0, 120) }]).slice(-5); bcW('u:' + r.id, u); }
+  if (r.cap && typeof cmRecord === 'function') cmRecord(r.cap, { eff: r.eff || 'did', out: r.out, comp: r.comp || 'no', ev: r.proof, note: r.hap.slice(0, 160), ctx: '', aar: 1 });
+  const cm = cpMission(); if (cm && !cm.ap && shown) bcW('cm:' + cpToday(), Object.assign({}, cm, { ap: 'real use to standard, logged in an after-action review' }));
+  const weak = r.cap && typeof cmPerf === 'function' ? cmPerf(r.cap) : null;
+  closeModal(); toast(shown ? 'Saved as evidence. Next time, test the change.' : weak && weak.fails >= 2 ? 'Saved. This skill fell short again: targeted practice is now recommended.' : 'Saved as a lesson. It does not count as mastery: that needs the skill shown to standard.'); render();
 }
 function cpAarEval(k, v) { const a = (bcV('aar', []) || []).slice(); if (!a[k]) return; a[k] = Object.assign({}, a[k], { ev: v, evAt: cpToday() }); bcW('aar', a); toast(v === 'keep' ? 'Kept: it is now part of how you work' : v === 'mod' ? 'Modify it: write a new AAR with the tweak' : 'Dropped. Good: you tested it instead of guessing.'); if (v === 'mod') cpAar(a[k].id); else render(); }
 function cpAarList() {
@@ -291,7 +300,7 @@ function cpIdea(id) {
     ${R != null ? `<div class="aq-note">Estimated memory ${R}% · importance ${typeof msImp === 'function' ? msImp(id) : 1}/3${typeof msBlind === 'function' && msBlind(id) ? ' · past blind spots: ' + msBlind(id) : ''}${tr ? ` · transfer ${tr.s}/5` : ''}${bcV('bs:' + id, null) ? ' · <b class="red">⚠ blind spot</b>' : ''}</div>` : ''}
     <div class="cp-chain">${chain.map(([n, ok]) => `<span class="${ok ? 'on' : ''}">${n}</span>`).join('<i>›</i>')}</div>
     ${l ? `<button class="cp-next" onclick="closeModal();${na[2]}"><span>Next proof</span><b>${na[0]}</b><em>${na[1]}</em></button>` : `<button class="cp-next" onclick="closeModal();bcLesson('${id}')"><span>Not learned yet</span><b>Start the lesson</b></button>`}
-    <div class="actions"><button class="btn" onclick="xcOpen('${id}')">Open the card</button>${l ? `<button class="btn" onclick="cpAar('${id}')">Log a real use</button>` : ''}</div></div>`, true);
+    <div class="actions" style="flex-wrap:wrap"><button class="btn" onclick="xcOpen('${id}')">Open the card</button>${l ? `<button class="btn" onclick="cpAar('${id}')">Log a real use</button>` : ''}${typeof fmFromCard === 'function' ? `<button class="btn" onclick="fmFromCard('${id}')">Field Manual</button>` : ''}${typeof cmCapsOfCard === 'function' && cmCapsOfCard(id)[0] ? `<button class="btn" onclick="cmCapOpen('${cmCapsOfCard(id)[0].id}')">Capability</button>` : ''}</div></div>`, true);
 }
 
 /* ── 4. THE DAILY MISSION · 25 minutes ── */
@@ -359,7 +368,7 @@ function cpDash() {
   const alloc = al.map(([k, l, tg, c, p]) => `<div class="cp-al"><span>${l} <em>target ${tg}%</em></span><div><i style="width:${p}%"></i><s style="left:${tg}%"></s></div><b>${p}%</b></div>`).join('');
   const alNote = (() => { const t = al.reduce((x, y) => x + y[3], 0); if (!t) return 'Starts counting with your first lesson.'; const now = al[0][4]; return now < 60 ? `Only ${now}% on the current mission. The next lessons should be from the first-client modules.` : now > 85 && t > 8 ? 'Very focused. Fine at this stage; 10% expansion keeps your thinking wide.' : 'On target.'; })();
   return `<div class="card cp-dash"><div class="bcx-sec" style="margin:0 0 8px">Capability <span>evidence, not reading</span></div>${stBar}${dims}${hold}
-      <div class="aq-note">One ladder: Exposed → Understood → Retained → Applied → Integrated → Maintained. Each stage needs its own evidence. Finishing a lesson only reaches Exposed. Sales skills reach Applied only through a real call.</div><button class="btn sm" style="margin-top:8px" onclick="cpCourseView()">Courses: watched · learned · demonstrated ›</button></div>
+      <div class="aq-note">One ladder: Exposed → Understood → Retained → Applied → Integrated → Maintained. Each stage needs its own evidence. Finishing a lesson only reaches Exposed. Sales skills reach Applied only through a real call.</div><button class="btn sm" style="margin-top:8px" onclick="cpCourseView()">Courses: watched · learned · demonstrated ›</button><button class="btn sm" style="margin-top:8px;margin-left:6px" onclick="cmOpen()">Capability map: know vs can do ›</button></div>
     <div class="card cp-dash"><div class="bcx-sec" style="margin:0 0 8px">Do you know what you know? <span>${cal.log.length} answers</span></div>
       ${cal.log.length >= 3 ? `${calSvg}<div class="cp-cals"><div><b>${cal.brier != null ? cal.brier : '–'}</b><span>calibration /100</span></div><div class="${cal.blind ? 'bad' : ''}"><b>${cal.blind}</b><span>blind spots (sure + wrong)</span></div><div><b>${cal.under}</b><span>knew more than you thought</span></div></div><div class="aq-note">${cal.over > 10 ? `You are overconfident by about ${cal.over} points: you feel you know more than you do. Trust the tests, not the feeling.` : cal.over < -10 ? `You underrate yourself by about ${-cal.over} points. You know more than you think.` : 'Your confidence matches reality. That is rare and valuable.'} Dashed line = perfect calibration.</div>${cpBlindIds().length ? `<button class="btn sm" onclick="cpRecallSet(cpBlindIds())">Review ${cpBlindIds().length} blind spot${cpBlindIds().length > 1 ? 's' : ''} ›</button>` : ''}` : '<div class="aq-note">Every recall and decision now asks how sure you are before the answer. After a few, this shows whether your confidence matches reality.</div>'}</div>
     <div class="card cp-dash"><div class="bcx-sec" style="margin:0 0 8px">Lesson mix vs 70 / 20 / 10 <span>counts lessons, not minutes · last 28 days</span></div>${alloc}<div class="aq-note">${alNote}</div></div>`;
