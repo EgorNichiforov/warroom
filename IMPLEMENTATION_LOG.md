@@ -1,5 +1,10 @@
 # Implementation log
 
+## 19 Nov 2026 · 13.25.1 · A2 campaigns connected to the mission
+- `intel.js`: `campMsAuto`, `campMsOk`, `campaignProgress` (evidence only), `msToggle` asks for evidence, `msDone`, `campActive`, `campToggle`, cap of three in `recSave`.
+- `mission.js`: `mcCampFor(dom)`; candidates carry `camp`; shown on the open mission card and in Why this.
+- Data: milestones gain optional `ev`, `at`; campaigns gain optional `active`. Old records read as before; an old tick without evidence stays ticked but does not count.
+
 ## 19 Nov 2026 · 13.25.0 · A1 one recommendation
 - `mission.js`: `mcBuild` returns `facts` (owner + text) from `stage.js sgState` and `engine.js enBottleneck`; shown in Why this. Fold renamed Supporting facts.
 - `brief.js bfAttention`: first item is the mission's top; the engine bottleneck is a 14-day trend line.

@@ -58,6 +58,11 @@ function mcFlorida() {
 }
 function mcCallbacks(k) { try { return qItems().filter((x) => x.status === 'callback' && x.next_at && x.next_at <= k).length; } catch (e) { return 0; } }
 
+/* ── campaigns (intel.js owns the records): at most three active; the mission names the one it advances ── */
+function mcCampDom(c) { if (c.dom) return c.dom; const t = ((c.title || '') + ' ' + (c.objective || '')).toLowerCase(); return /bac|exam|study|school/.test(t) ? 'bac' : /physical|kg|body|train|fit/.test(t) ? 'body' : /client|agency|dial|business|caregiver|revenue|mrr/.test(t) ? 'biz' : 'life'; }
+function mcCampaigns() { try { return (typeof campActive === 'function' ? campActive() : []).sort((a, b) => ((a.deadline || '9') < (b.deadline || '9') ? -1 : 1)).slice(0, 3); } catch (e) { return []; } }
+function mcCampFor(dom) { const cp = mcCampaigns().find((c) => mcCampDom(c) === dom); if (!cp) return null; const ms = cp.milestones || [], nx = ms.find((m) => !campMsOk(m)); return { id: cp.id, title: cp.title, why: cp.objective || '', criteria: cp.criteria || '', next: nx ? nx.t : 'every milestone has evidence', pct: campaignProgress(cp), ms: ms.map((m) => { const a = campMsAuto(m); return { t: m.t, ok: campMsOk(m), ev: a ? a.ev : m.ev || (m.done ? 'ticked without evidence: not counted' : '') }; }) }; }
+
 /* ── the engine ── */
 function mcBuild() {
   const d = new Date(), k = dk(d), o = S.days[k] || { counters: {} }, c = o.counters || {}, nm = nowMin(), mode = mcMode(d), ssn = mcSeason(), dom = ssn ? ssn.dom : null;
@@ -100,6 +105,7 @@ function mcBuild() {
 
   /* 13.24.2: anything you skipped or marked missed today leaves the mission; the next one moves up */
   const gone = (o.mcSkip || []).map((x) => x.s); for (let i = C.length - 1; i >= 0; i--) { C[i].sid = C[i].sid || C[i].k; if (gone.includes(C[i].sid)) C.splice(i, 1); }
+  C.forEach((x) => { if (['biz', 'bac', 'body', 'life'].includes(x.dom)) { try { x.camp = mcCampFor(x.dom); } catch (e) { x.camp = null; } } });
   C.sort((a, b) => a.tier - b.tier || b.urg - a.urg);
   /* risks: conflicts found before they break the day */
   const planned = L.filter((b) => tmin(b.start) > nm && ['dials', 'bac', 'train', 'program', 'agency', 'learn'].includes(b.kind)).reduce((s, b) => s + tmin(b.end) - tmin(b.start), 0), avail = Math.max(0, bedM - nm);
@@ -144,6 +150,7 @@ function mcCard() {
   return `<div class="mc ${done ? 'done' : ''}">${chips}
     <div class="mc-k">${M.picked ? 'Your pick today' : "Today's mission"} · ${MC_TIER[t.tier]}${t.conf !== 'measured' ? ` · ${esc(t.conf)}` : ''}</div>
     <div class="mc-out">${esc(t.out)}</div><div class="mc-why">${esc(t.why)}</div>
+    ${t.camp ? `<div class="mc-camp">Campaign · <b>${esc(t.camp.title)}</b> · ${t.camp.pct}% evidenced → next milestone: ${esc(t.camp.next)}</div>` : ''}
     <div class="mc-meta">${t.min ? `<span>${t.min} min</span>` : ''}<span>Done when: ${esc(t.dod)}</span></div>
     ${t.go && t.next ? `<button class="btn primary block mc-go" onclick="mcGo('${t.k}')">${esc(t.next)} ›</button>` : ''}
     <div class="mc-row">${t.go ? `<button class="btn sm" onclick="fcOpen('${t.k}')">Focus contract</button>` : ''}<button class="btn sm" onclick="mcWhy()">Why this?</button><button class="btn sm" onclick="mcPickOpen()">Not this</button><button class="btn sm" onclick="mcSkip('${t.k}',2)">Done</button><button class="btn sm" onclick="mcSkip('${t.k}')">Skip</button><button class="btn sm" onclick="mcSkip('${t.k}',1)">Missed</button></div>
@@ -155,6 +162,7 @@ function mcWhy() {
   openModal(`<h2>Why this?</h2><div class="mc-out" style="font-size:17px">${esc(t.out)}</div>
     <div class="mc-wl"><span>Measured facts</span>${t.ev.map((e) => `<div>${esc(e)}</div>`).join('')}</div>
     ${M.facts.length ? `<div class="mc-wl"><span>Supporting facts</span>${M.facts.map((f) => `<div>${esc(f.t)} <em>${f.owner}</em></div>`).join('')}</div>` : ''}
+    ${t.camp ? `<div class="mc-wl"><span>Campaign it advances</span><div><b>${esc(t.camp.title)}</b> · ${t.camp.pct}% of milestones evidenced</div><div>Why it matters: ${esc(t.camp.why)}${t.camp.criteria ? ' Success: ' + esc(t.camp.criteria) : ''}</div>${t.camp.ms.map((m) => `<div>${m.ok ? '✓' : '○'} ${esc(m.t)}${m.ev ? ` <em>${esc(m.ev)}</em>` : ''}</div>`).join('')}</div>` : ['biz', 'bac', 'body'].includes(t.dom) ? `<div class="mc-wl"><span>Campaign it advances</span><div>No active campaign for ${MC_DOMS[t.dom]}. <a onclick="closeModal();intelTab='campaigns';show('intel')">Open campaigns</a></div></div>` : ''}
     <div class="mc-wl"><span>If it is delayed</span><div>${esc(t.late)}</div></div>
     <div class="mc-wl"><span>Confidence</span><div>${esc(t.conf)}${M.unk.length ? '. Unknown: ' + M.unk.map(esc).join(' ') : ''}</div></div>
     <div class="mc-wl"><span>How it was ranked</span>${M.C.map((x, i) => `<div class="${x === t ? 'on' : ''}">${i + 1}. ${esc(x.out)} <em>${MC_TIER[x.tier]}${x.tier === 1 && M.ssn ? ' (' + esc(MC_DOMS[M.ssn.dom] || '') + ' comes first this season)' : ''} · gap ${Math.round(x.urg * 100)}%</em></div>`).join('')}<div class="xs muted" style="margin-top:6px">A fixed commitment always outranks the season priority, which outranks protected floors, which outrank maintenance. Inside a tier the bigger open gap goes first. Computed on this device from your own records. Nothing was sent anywhere.</div></div>
@@ -237,7 +245,7 @@ function mcWeekSave(board) { const g = (i) => (($(i) || {}).value || '').trim(),
   .mc.mc-s{padding:10px 12px;gap:6px}.mc-sb{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.mc-sb b{display:block;font-size:16.5px;line-height:1.3;margin:3px 0;color:var(--ink,#eee)}.mc-sb em{font-style:normal;font-size:11.5px;color:var(--muted,#999)}.mc-sgo{align-self:flex-start;min-height:40px}   /* the mission sits directly under the date bar, above every other panel, whatever else is added to the guided day */
   .mc-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.mc-chip{min-height:30px;padding:0 10px;border:1px solid var(--ln,#2a2a2e);border-radius:15px;background:transparent;color:var(--ink,#eee);font:600 11px/1 var(--mono,monospace);cursor:pointer}.mc-chip.min{border-color:var(--warn,#e5a50a);color:var(--warn,#e5a50a)}.mc-chip.rec{border-color:#7fb3d5;color:#7fb3d5}.mc-fl{margin-left:auto;font:11px var(--mono,monospace);color:var(--muted,#999)}
   .mc-k{font:600 10.5px/1.3 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--acc,#C9A24A)}.mc-out{font-size:20px;font-weight:700;line-height:1.25;color:var(--ink,#eee)}.mc-why{font-size:13.5px;line-height:1.45;color:var(--muted,#bbb)}
-  .mc-meta{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;color:var(--ink,#ddd)}.mc-meta span:first-child{font-family:var(--mono,monospace)}.mc-go{min-height:48px;font-size:15px}.mc-row{display:flex;flex-wrap:wrap;gap:6px}.mc-row .btn{min-height:40px}
+  .mc-camp{font-size:12px;line-height:1.4;color:var(--muted,#aaa);border-left:2px solid var(--acc,#C9A24A);padding-left:8px}.mc-camp b{color:var(--ink,#eee)}.mc-meta{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;color:var(--ink,#ddd)}.mc-meta span:first-child{font-family:var(--mono,monospace)}.mc-go{min-height:48px;font-size:15px}.mc-row{display:flex;flex-wrap:wrap;gap:6px}.mc-row .btn{min-height:40px}
   .mc-sec{display:grid;gap:4px;border-top:1px solid var(--ln,#2a2a2e);padding-top:8px}.mc-sec>span,.mc-wl>span{font:600 10.5px/1.4 var(--mono,monospace);text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#999)}.mc-sec button{display:flex;justify-content:space-between;gap:10px;align-items:baseline;text-align:left;min-height:40px;background:none;border:0;color:var(--ink,#eee);font:inherit;cursor:pointer;padding:2px 0}.mc-sec b{font-size:13.5px;font-weight:500}.mc-sec em{font-style:normal;font-size:11px;color:var(--muted,#999);white-space:nowrap}
   .mc-risk{font-size:12.5px;line-height:1.4;color:var(--warn,#e5a50a);border-left:2px solid var(--warn,#e5a50a);padding:2px 0 2px 8px}.mc-risk button{margin-left:6px;min-height:28px;border:1px solid currentColor;border-radius:6px;background:none;color:inherit;font:inherit;font-size:12px;padding:0 8px;cursor:pointer}.mc-unk{font-size:12px;color:var(--muted,#999);cursor:pointer}
   .mc-opt{display:block;width:100%;text-align:left;border:1px solid var(--ln,#2a2a2e);border-radius:10px;background:transparent;color:var(--ink,#eee);font:inherit;padding:10px 12px;margin:6px 0;cursor:pointer;min-height:48px}.mc-opt.on{border-color:var(--acc,#C9A24A)}.mc-opt b{display:block;font-size:14.5px}.mc-opt span{display:block;font-size:12.5px;color:var(--muted,#aaa);margin-top:2px}

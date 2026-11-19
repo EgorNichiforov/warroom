@@ -125,7 +125,7 @@ with sync_playwright() as p:
     check('AI command: only allowed actions survive validation', r['ok'] == ['adddials5'], r)
     check('AI command: malformed output rejected', 'not valid JSON' in r['bad'], r['bad'])
     check('AI command: disallowed actions rejected', 'does not allow' in r['rej'], r['rej'])
-    r = pg.evaluate("""() => { seedCampaigns(); const C = live(S.campaigns); msToggle(C[0].id, 0); const p = campaignProgress(S.campaigns[C[0].id]);
+    r = pg.evaluate("""() => { seedCampaigns(); const C = live(S.campaigns); msToggle(C[0].id, 0); if (document.getElementById('ms-ev')) { document.getElementById('ms-ev').value = 'evidence for the test'; msDone(C[0].id, 0); } const p = campaignProgress(S.campaigns[C[0].id]);
       const id = 'x1'; S.experiments[id] = { id, _u: 1, title: 't', metric: 'dials per day', start: dk(addDays(new Date(), -3)), end: dk(new Date()) }; const m = expMeasure(S.experiments[id], 'now');
       const wg = wgRun(wgDefaults(), 1), wl = wgRun(wgDefaults(), 0.8); const fut = futureEgor(); const w = earlyWarnings();
       recoveryOn(true); const rec = dialTargetFor(new Date()) <= 10; recoveryOff(); const back = !day(new Date()).recovery;
@@ -659,6 +659,14 @@ with sync_playwright() as p:
       out.brief=bfAttention()[0].t===M.top.out; const a=oneAction({kind:'dials',start:'18:00',end:'19:30',title:'Dials',id:'b1'},oneNow()); out.one=/^1 of 40/.test(a.sub)&&a.big==='Dial #2';
       out.chain=arcPhase()==='night'||/<b>1\/40<\/b> dials today/.test(arcHtml()); return out; })()""")
     check('Unify 13.25.0: stage and engine feed the mission as named facts; the attention list leads with the mission; ONE and the stage chain count dials from the call log', r['top'] and r['facts'] and r['why'] and r['brief'] and r['one'] and r['chain'], r)
+    r = ev("""(()=>{ const out={}; closeModal(); show('boot'); ensureIntel(); Object.keys(S.campaigns).forEach(k=>delete S.campaigns[k]); const mk=(id,title,ms)=>{S.campaigns[id]={id,_u:now(),title,objective:'Objective of '+title,deadline:'2027-01-31',criteria:'c',risks:'r',review:'',outcome:'',draft:false,milestones:ms.map(t=>({t,done:false}))};};
+      mk('c1','OPERATION FIRST CLIENT',['1 dials','25 owner conversations','First invoice paid']); mk('c2','BAC EXAM PREPARATION',['English certificate']);
+      let M=mcBuild(); out.link=M.top.k==='dial'&&!!M.top.camp&&M.top.camp.title==='OPERATION FIRST CLIENT'&&M.top.camp.next==='25 owner conversations'; out.auto=campMsOk(S.campaigns.c1.milestones[0])&&campaignProgress(S.campaigns.c1)===33;
+      S.campaigns.c1.milestones[2].done=true; out.noEv=campaignProgress(S.campaigns.c1)===33; S.campaigns.c1.milestones[2].done=false;
+      msToggle('c1',2); out.ask=!!document.getElementById('ms-ev'); document.getElementById('ms-ev').value='Invoice 001 paid 12 Dec'; msDone('c1',2); out.ev=S.campaigns.c1.milestones[2].ev==='Invoice 001 paid 12 Dec'&&campaignProgress(S.campaigns.c1)===67;
+      mk('c3','BODY 85 kg',['78 kg']); mk('c4','FOURTH THING',['x']); out.cap=mcCampaigns().length===3; campToggle('c4'); const paused=S.campaigns.c4.active===false; campToggle('c4'); out.cap2=paused&&S.campaigns.c4.active===false;
+      mcOpenCard=true; out.card=/Campaign ·/.test(mcCard()); mcOpenCard=false; mcWhy(); const tx=document.getElementById('modal').textContent; out.why=/Campaign it advances/.test(tx)&&/Invoice 001 paid/.test(tx)&&/call log: 1 of 1/.test(tx); closeModal(); return out; })()""")
+    check('Campaigns 13.25.1: the mission names its campaign and next milestone; progress counts evidence only (call log or written proof); three active at most', r['link'] and r['auto'] and r['noEv'] and r['ask'] and r['ev'] and r['cap'] and r['cap2'] and r['card'] and r['why'], r)
     check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows
