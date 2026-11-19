@@ -32,6 +32,7 @@ function msNewStab(st, r, g) {
 function msSchedule(id, g) {
   S.cards = S.cards || {}; const c = Object.assign({ step: 0, seen: 0 }, S.cards[id] || {}), st = msStab(id), r = msR(id);
   let ns = msNewStab(st, r, g), step = c.step || 0;
+  if (g >= 2) { const im = msImp(id), bl = msBlind(id); ns = Math.max(1, Math.round(ns * (im >= 3 ? 0.85 : im === 2 ? 1 : 1.25) * (1 - Math.min(0.4, 0.15 * bl)) * 10) / 10); }   /* 13.25.4 */
   if (g === 0) { step = 0; c.lap = (c.lap || 0) + 1; } else if (g >= 2) step = Math.min(4, step + 1);
   const due = new Date(); due.setDate(due.getDate() + (g === 0 ? 1 : Math.max(1, Math.round(ns))));
   S.cards[id] = Object.assign(c, { st: ns, step, last: new Date().toISOString(), due: dk(due), seen: (c.seen || 0) + 1, g, _u: now() });
@@ -45,10 +46,20 @@ function msSchedule(id, g) {
 })();
 
 /* the queue: due first (lowest retention first), then fading ones that aren't due yet */
+/* 13.25.4 · importance and blind-spot history. Predictable rules, no hidden score:
+   importance 3 = current-mission modules, 2 = next stage, 1 = expansion (from CP_ALLOC; a card's own `imp` overrides).
+   Review threshold (estimated memory): importance 3 comes back under 80%, 2 under 70%, 1 under 60%.
+   Gap after a pass: importance 3 ×0.85, 1 ×1.25; each past blind spot (sure and wrong) −15%, at most −40%.
+   Queue order: (1 − estimated memory) × importance, plus 0.1 per past blind spot (max 0.3), plus 0.3 while a blind spot is open. */
+function msImp(id) { const c = (typeof XC !== 'undefined' && XC.byId[id]) || {}; if (c.imp) return Math.max(1, Math.min(3, Number(c.imp))); const m = BC.mod[BC.cardMod[id]], b = m && typeof cpBucket === 'function' ? cpBucket(m.id) : 'wide'; return b === 'now' ? 3 : b === 'next' ? 2 : 1; }
+function msBlind(id) { return Number(bcV('bsn:' + id, 0)) || 0; }
+function msFloor(id) { const i = msImp(id); return i >= 3 ? 0.8 : i === 2 ? 0.7 : 0.6; }
+function msPrio(id) { return (1 - msR(id)) * msImp(id) + Math.min(0.3, 0.1 * msBlind(id)) + (bcV('bs:' + id, null) ? 0.3 : 0); }
+function msWhyDue(id) { return `estimated memory ${Math.round(msR(id) * 100)}% · importance ${msImp(id)}/3${msBlind(id) ? ` · ${msBlind(id)} past blind spot${msBlind(id) > 1 ? 's' : ''}` : ''}`; }
 function msQueue(max) {
   const t = dk(new Date()), L = msLearned();
-  const due = L.filter((id) => { const c = msCard(id); return c && c.due && c.due <= t; }), fade = L.filter((id) => !due.includes(id) && msR(id) < 0.7);
-  return due.concat(fade).sort((a, b) => msR(a) - msR(b)).slice(0, max || 8);
+  const due = L.filter((id) => { const c = msCard(id); return c && c.due && c.due <= t; }), fade = L.filter((id) => !due.includes(id) && msR(id) < msFloor(id));
+  return due.concat(fade).sort((a, b) => msPrio(b) - msPrio(a)).slice(0, max || 8);
 }
 function msStats() {
   const L = msLearned(), t = dk(new Date()), rs = L.map(msR);

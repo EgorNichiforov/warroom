@@ -4,7 +4,8 @@
 'use strict';
 function bfAttention() {
   const A = [], tk = dk(new Date()), add = (lv, t, why, act, btn) => A.push({ lv, t, why, act, btn });
-  try { const B = typeof enBottleneck === 'function' ? enBottleneck()[0] : null; if (B && B.v < 0.8) add(B.v < 0.4 ? 3 : 2, `${B.area}: ${B.name}`, B.line, B.act, B.btn); } catch (e) { }
+  try { const M = typeof mcBuild === 'function' ? mcBuild() : null; if (M && M.top) add(3, M.top.out, M.top.why, "mcGo('" + M.top.k + "')", M.top.next || 'Open'); } catch (e) { }   /* 13.25.0: same first line as the mission, always */
+  try { const B = typeof enBottleneck === 'function' ? enBottleneck()[0] : null; if (B && B.v < 0.8) add(2, `14-day trend · ${B.area}: ${B.name}`, B.line, B.act, B.btn); } catch (e) { }
   try { const cb = qItems().filter((x) => x.status === 'callback' && x.next_at && x.next_at <= tk).length; if (cb) add(3, `${cb} callback${cb > 1 ? 's' : ''} due`, 'You promised to call back. Warm leads go cold in days.', "show('dial')", 'Call them'); } catch (e) { }
   try { Object.values(S.goals || {}).filter((g) => g && !g._del && !g.done && g.deadline && g.horizon !== 'long').forEach((g) => { const n = daysUntil(g.deadline); if (n <= 3 && goalPct(g) < 100) add(n <= 0 ? 3 : 2, g.title, n < 0 ? `Deadline passed ${-n} day${n === -1 ? '' : 's'} ago` : n === 0 ? 'Deadline is today' : `Deadline in ${n} day${n > 1 ? 's' : ''}`, "weekTab='goals';show('week')", 'Open'); }); } catch (e) { }
   try { const od = tasksList().filter((t) => !t.done && t.due && t.due < tk).length; if (od) add(od > 4 ? 2 : 1, `${od} overdue task${od > 1 ? 's' : ''}`, 'Do, reschedule or delete. A stale list stops being trusted.', "weekTab='tasks';show('week')", 'Clear'); } catch (e) { }

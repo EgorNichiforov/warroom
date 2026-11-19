@@ -1,5 +1,28 @@
 # Implementation log
 
+## 19 Nov 2026 · 13.25.4 · B2 importance and blind spots in spacing
+- `mastery.js`: `msImp`, `msBlind`, `msFloor`, `msPrio`, `msWhyDue`; `msQueue` uses the importance threshold and priority order; `msSchedule` scales the gap after Good/Easy.
+- `capability.js`: `cpCal` counts blind spots per idea (`bsn:<id>`); the dossier shows estimated memory, importance and past blind spots.
+- Data: new counter `bsn:<id>` in `S.boot`. Existing review history untouched.
+
+## 19 Nov 2026 · 13.25.3 · B1 course states
+- `capability.js`: `cpLessonState`, `cpCourseStats`, `cpCourseView`; entry button in Progress. Uses `bcRung` and the saved video positions (`vdAll`, device-local, last 80 videos). No data change.
+
+## 19 Nov 2026 · 13.25.2 · A3 controlled replanning
+- `engine.js`: `enReplan` rewritten (keep future blocks, move missed ones into free gaps, Florida window from the time zone, floors first, mode aware), `enReplanModal` (KEEP / MOVE / DROP + reasons), `enReplanUse` (stores `replanPrev`, `replanAt`, `replanLog`), new `enReplanUndo`.
+- Data: day record gains `replanPrev`, `replanAt`, `replanLog`. The calendar and the weekly schedule are never written; only today's `replan` override, as before.
+
+## 19 Nov 2026 · 13.25.1 · A2 campaigns connected to the mission
+- `intel.js`: `campMsAuto`, `campMsOk`, `campaignProgress` (evidence only), `msToggle` asks for evidence, `msDone`, `campActive`, `campToggle`, cap of three in `recSave`.
+- `mission.js`: `mcCampFor(dom)`; candidates carry `camp`; shown on the open mission card and in Why this.
+- Data: milestones gain optional `ev`, `at`; campaigns gain optional `active`. Old records read as before; an old tick without evidence stays ticked but does not count.
+
+## 19 Nov 2026 · 13.25.0 · A1 one recommendation
+- `mission.js`: `mcBuild` returns `facts` (owner + text) from `stage.js sgState` and `engine.js enBottleneck`; shown in Why this. Fold renamed Supporting facts.
+- `brief.js bfAttention`: first item is the mission's top; the engine bottleneck is a 14-day trend line.
+- `stage.js` chain and `one.js oneAction`: dial count from `mcDialEvidence` (call log).
+- Owners: recommend = mission.js only. stage.js = business stage facts. engine.js = 14-day gaps, protocols, replan. brief.js = attention list. one.js = full-screen view of the current calendar block. cockpit.js = the Dial screen (next call). No data change.
+
 ## 19 Nov 2026 · 13.24.0 · branch `overnight-13.24` · NOT deployed
 Baseline: `v5` at `5088e8f` (13.23.2 live), working tree clean, 288 checks passing.
 

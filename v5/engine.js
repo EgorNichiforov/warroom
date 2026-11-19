@@ -63,25 +63,64 @@ function enProtoDel(id) { if (S.protocols[id]) { S.protocols[id]._del = true; S.
 function enProtoToggle(id) { const p = S.protocols[id]; if (!p) return; p.on = !p.on; p._u = now(); save(); render(); }
 
 /* ═════════ 4 · REPLAN: rebuild the rest of today around what is left ═════════ */
+/* 13.25.2 · CONTROLLED REPLANNING. When the day changes: what is still possible, and for every block KEEP, MOVE or DROP
+   with the reason. Fixed commitments never move. Calls stay inside real Florida hours (time zone, not a fixed 16:00).
+   The business and BAC floors are protected first. Nothing changes until you confirm; the last replan can be undone. */
 function enReplan() {
-  const d = new Date(), o = day(d), nm = nowMin(), bed = tmin(S.settings.bed || '21:00'), c = o.counters || {};
-  const fixed = blocksFor(d).filter((b) => !['dials', 'bac', 'agency', 'train', 'program'].includes(b.kind)).map((b) => [tmin(b.start), tmin(b.end)]).sort((a, b) => a[0] - b[0]);
-  const free = []; let t = Math.ceil(nm / 5) * 5; fixed.forEach(([s, e]) => { if (e <= t) return; if (s > t) free.push([t, Math.min(s, bed - 15)]); t = Math.max(t, e); }); if (t < bed - 15) free.push([t, bed - 15]);
-  const need = []; const dl = Math.max(0, dialTargetFor(d) - (Number(c.dials) || 0)); if (dl) need.push(['dials', `Dials · ${dl} left`, Math.min(180, Math.ceil(dl * 2.5)), 16 * 60]);
-  const bc = S.counters.items.find((x) => x.id === 'bac'), bl = Math.max(0, (bc ? bc.targets[dow(d)] || 0 : 0) - (Number(c.bac) || 0)); if (bl) need.push(['bac', `BAC · ${bl} min left`, Math.min(120, bl), 0]);
-  if (!dayTrained(o) && blocksFor(d).some((b) => b.kind === 'train' || b.kind === 'program')) need.push(['train', 'Training · short version', 30, 0]);
-  const plan = []; free.forEach((f) => (f.c = f[0]));
-  need.forEach(([k, title, mins, after]) => { let rem = mins; for (const f of free) { if (rem <= 0) break; const s = Math.max(f.c, after), e = Math.min(f[1], s + rem); if (e - s >= 10) { plan.push({ k, title, s, e }); f.c = e; rem -= e - s; } } });
-  plan.sort((a, b) => a.s - b.s);
-  return { plan, freeMin: free.reduce((a, f) => a + Math.max(0, f[1] - f[0]), 0), need };
+  const d = new Date(), o = day(d), nm = nowMin(), bed = tmin(S.settings.bed || '21:00'), c = o.counters || {}, hm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+  const mode = typeof mcMode === 'function' ? mcMode(d) : 'full', FLEX = ['dials', 'bac', 'agency', 'train', 'program'];
+  const B = blocksFor(d).filter((b) => b.kind !== 'sleep').slice().sort((x, y) => tmin(x.start) - tmin(y.start)), fixedB = B.filter((b) => !FLEX.includes(b.kind));
+  let segs = [], t = Math.ceil(nm / 5) * 5; fixedB.map((b) => [tmin(b.start), tmin(b.end)]).forEach(([s, e]) => { if (e <= t) return; if (s > t) segs.push([t, Math.min(s, bed - 15)]); t = Math.max(t, e); }); if (t < bed - 15) segs.push([t, bed - 15]);
+  segs = segs.filter(([x, y]) => y - x >= 5); const freeMin = segs.reduce((x, f) => x + f[1] - f[0], 0);
+  const cut = (s, e) => { segs = segs.flatMap(([x, y]) => (e <= x || s >= y ? [[x, y]] : [[x, s], [e, y]])).filter(([x, y]) => y - x >= 5); };
+  const take = (mins, w) => { const got = []; let rem = mins, guard = 0; while (rem >= 10 && guard++ < 20) { const sg = segs.map(([x, y]) => [Math.max(x, w ? w[0] : 0), Math.min(y, w ? w[1] : 1e9)]).find(([x, y]) => y - x >= 10); if (!sg) break; const s = sg[0], e = Math.min(sg[1], s + rem); got.push([s, e]); cut(s, e); rem -= e - s; } return got; };
+  const fl = typeof mcFlorida === 'function' ? mcFlorida() : { known: false }, win = !fl.known ? [16 * 60, 24 * 60] : fl.open ? [nm, nm + fl.closeIn] : fl.opensIn != null ? [nm + fl.opensIn, nm + fl.opensIn + 480] : null;
+  const logged = typeof mcDialEvidence === 'function' ? mcDialEvidence(dk(d)).logged : Number(c.dials) || 0, tg = dialTargetFor(d) || 0, minD = Number(S.settings.minDials) || 10, minB = Number(S.settings.minBac) || 25;
+  const bc = S.counters.items.find((x) => x.id === 'bac'), bT = bc ? Number(bc.targets[dow(d)]) || 0 : 0, bDone = Number(c.bac) || 0;
+  const dl = mode === 'rec' ? 0 : Math.max(0, (mode === 'min' ? Math.min(tg, minD) : tg) - logged), bl = mode === 'rec' ? 0 : Math.max(0, (mode === 'min' ? Math.min(bT || minB, minB) : bT) - bDone);
+  const dFloor = Math.min(dl, Math.max(0, minD - logged)), bFloor = Math.min(bl, Math.max(0, minB - bDone)), wantTrain = mode === 'full' && !dayTrained(o) && B.some((b) => b.kind === 'train' || b.kind === 'program');
+  const K = { keep: [], move: [], drop: [] }, plan = [], mins = { dials: 0, bac: 0 }, pend = [];
+  fixedB.filter((b) => tmin(b.end) > nm).forEach((b) => K.keep.push({ id: b.id, title: b.title, from: b.start, to: b.start, why: 'Fixed commitment: never moved.' }));
+  B.filter((b) => FLEX.includes(b.kind)).forEach((b) => {
+    const s = tmin(b.start), e = tmin(b.end), g = b.kind === 'program' ? 'train' : b.kind, it = { id: b.id, title: b.title, from: b.start, to: '' };
+    const still = g === 'dials' ? dl > 0 : g === 'bac' ? bl > 0 : g === 'train' ? wantTrain : e > nm;
+    if (e <= nm && !still) return;                       /* over and done: not part of the rest of today */
+    if (mode === 'rec') { K.drop.push(Object.assign(it, { why: 'Recovery day: only fixed commitments stay.' })); return; }
+    if (!still) { K.drop.push(Object.assign(it, { why: 'Already done today.' })); return; }
+    const okWin = g !== 'dials' || (win && s >= win[0] - 5 && e <= win[1] + 5);
+    if (s >= nm && okWin) { K.keep.push(Object.assign(it, { to: b.start, why: g === 'dials' ? 'Still ahead and inside Florida hours.' : 'Still ahead and still fits.' })); plan.push({ k: g, title: b.title, s, e, id: b.id, kind: b.kind }); cut(s, e); if (mins[g] != null) mins[g] += e - s; return; }
+    pend.push({ b, g, s, e, it });
+  });
+  ['dials', 'bac', 'train', 'agency'].forEach((g) => pend.filter((p) => p.g === g).forEach((p) => {
+    if (g === 'dials' && !win) { K.drop.push(Object.assign(p.it, { why: 'Florida is closed for the rest of today. Calls cannot be moved outside its hours.' })); return; }
+    const want = Math.max(10, g === 'dials' ? Math.min(p.e - p.s, Math.ceil(dl * 2.5) - mins.dials) : g === 'bac' ? Math.min(p.e - p.s, bl - mins.bac) : g === 'train' ? 30 : p.e - Math.max(p.s, nm));
+    const got = take(want, g === 'dials' ? win : null), m = got.reduce((x, y) => x + y[1] - y[0], 0);
+    if (!m) { K.drop.push(Object.assign(p.it, { why: g === 'dials' ? 'No free gap left inside Florida hours.' : 'No free gap left before bed.' })); return; }
+    got.forEach(([s, e]) => plan.push({ k: g, title: p.b.title, s, e, kind: p.b.kind })); if (mins[g] != null) mins[g] += m;
+    K.move.push(Object.assign(p.it, { to: got.map(([s, e]) => hm(s) + '–' + hm(e)).join(', '), why: (p.s < nm ? 'Its time has passed. ' : 'It sat outside Florida hours. ') + (m < want ? `Only ${m} of ${want} minutes fit.` : 'Moved to the next free gap.') }));
+  }));
+  if (mode !== 'rec') {                                  /* the floors, when no block carries them */
+    const nd = Math.ceil(dFloor * 2.5) - mins.dials; if (nd >= 10 && win) take(nd, win).forEach(([s, e]) => { plan.push({ k: 'dials', title: `Dials · minimum ${dFloor}`, s, e, kind: 'dials' }); K.move.push({ id: 'floor-d', title: `Minimum ${dFloor} dials`, from: 'not planned', to: hm(s) + '–' + hm(e), why: 'Added to protect the business floor.' }); });
+    const nb = bFloor - mins.bac; if (nb >= 10) take(nb, null).forEach(([s, e]) => { plan.push({ k: 'bac', title: `BAC · minimum ${bFloor} min`, s, e, kind: 'bac' }); K.move.push({ id: 'floor-b', title: `Minimum ${bFloor} min BAC`, from: 'not planned', to: hm(s) + '–' + hm(e), why: 'Added to protect the BAC floor.' }); });
+  }
+  plan.sort((x, y) => x.s - y.s);
+  return { plan, decisions: K, freeMin, need: [dl ? ['dials', dl] : null, bl ? ['bac', bl] : null].filter(Boolean), win, mode };
 }
 function enReplanModal() {
-  const R = enReplan(), hm = (m) => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
-  openModal(`<h2>Rest of today, rebuilt</h2><div class="xs muted" style="margin-bottom:10px">${R.freeMin} free minutes before bed around your fixed blocks. Dials go after 16:00 (Florida open); the rest fills the gaps.</div>
-    ${R.plan.length ? `<div class="lf-blks">${R.plan.map((p) => `<div class="lf-blk"><span class="tm">${hm(p.s)}–${hm(p.e)}</span><span class="tt">${esc(p.title)}</span><b></b><span></span></div>`).join('')}</div>` : `<div class="empty">${R.need.length ? 'Not enough free time left for the rest. Do the minimum: 10 dials or 25 min BAC.' : 'Nothing left to do today. Close the day.'}</div>`}
-    ${R.plan.length ? `<button class="btn primary block" style="margin-top:12px" onclick="enReplanUse()">Use this plan</button>` : ''}`);
+  const R = enReplan(), o = day(new Date()), hm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60), K = R.decisions, changed = K.move.length + K.drop.length;
+  const grp = (name, cls, L) => (L.length ? `<div class="rp-g ${cls}"><span>${name}</span>${L.map((x) => `<div><b>${esc(String(x.title || '').replace(EMO_RE, '').trim())}</b> <em>${esc(x.from)}${x.to && x.to !== x.from ? ' → ' + esc(x.to) : ''}</em><i>${esc(x.why)}</i></div>`).join('')}</div>` : '');
+  openModal(`<h2>Rest of today, rebuilt</h2><div class="xs muted" style="margin-bottom:10px">${R.freeMin} free minutes before bed around your fixed blocks. ${R.win ? `Calls only between ${hm(R.win[0])} and ${hm(Math.min(R.win[1], 1439))} your time (Florida hours).` : 'Florida is closed for the rest of today.'} Nothing changes until you confirm.</div>
+    ${grp('KEEP', 'k', K.keep)}${grp('MOVE', 'm', K.move)}${grp('DROP', 'd', K.drop)}${changed ? '' : '<div class="empty">The plan still fits. Nothing to change.</div>'}
+    <div class="actions" style="flex-wrap:wrap">${o.replanAt ? `<button class="btn" onclick="enReplanUndo()">Undo the last replan</button>` : ''}<button class="btn" onclick="closeModal()">Keep my plan</button>${changed ? `<button class="btn primary" onclick="enReplanUse()">Use this plan</button>` : ''}</div>`, true);
 }
-function enReplanUse() { const R = enReplan(), o = day(new Date()), hm = (m) => pad(Math.floor(m / 60)) + ':' + pad(m % 60); o.replan = R.plan.map((p) => ({ id: 'rp' + p.s, kind: p.k === 'train' ? 'train' : p.k, title: p.title, start: hm(p.s), end: hm(p.e) })); touch(o); closeModal(); toast('New plan set. ONE follows it.'); if (typeof oneShow === 'function') oneShow(true); }
+function enReplanUse() {
+  const R = enReplan(), o = day(new Date()), hm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+  o.replanPrev = o.replan ? JSON.parse(JSON.stringify(o.replan)) : null; o.replan = R.plan.map((p) => ({ id: p.id || 'rp' + p.s, kind: p.kind || p.k, title: p.title, start: hm(p.s), end: hm(p.e) })); o.replanAt = now();
+  o.replanLog = (o.replanLog || []).concat([{ at: now(), keep: R.decisions.keep.length, move: R.decisions.move.map((x) => x.title), drop: R.decisions.drop.map((x) => x.title) }]).slice(-10);
+  touch(o); closeModal(); toast('New plan set. Undo is under Replan.'); try { mcRefresh(); } catch (e) { render(); }
+}
+function enReplanUndo() { const o = day(new Date()); if (o.replanPrev) o.replan = o.replanPrev; else delete o.replan; delete o.replanPrev; delete o.replanAt; touch(o); closeModal(); toast('Back to the plan from before the replan.'); try { mcRefresh(); } catch (e) { render(); } }
+(function () { const st = document.createElement('style'); st.textContent = '.rp-g{margin:8px 0;display:grid;gap:6px}.rp-g>span{font:600 11px/1.3 var(--mono,monospace);letter-spacing:.08em}.rp-g.k>span{color:var(--good,#3fb950)}.rp-g.m>span{color:var(--acc,#C9A24A)}.rp-g.d>span{color:var(--bad,#e5484d)}.rp-g>div{border-left:2px solid var(--ln,#333);padding-left:8px;font-size:13px;line-height:1.4}.rp-g em{font-style:normal;font-family:var(--mono,monospace);font-size:12px;color:var(--muted,#aaa)}.rp-g i{display:block;font-style:normal;font-size:12px;color:var(--muted,#999)}'; document.head.appendChild(st); })();
 
 /* ═════════ 5 · COMMITMENT SIMULATOR ═════════ */
 function enSimModal() {

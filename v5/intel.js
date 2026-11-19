@@ -237,7 +237,13 @@ function doctrineCheck(c) {
   if (c === 'sleep') { const n = days.filter((d) => { const o = S.days[dk(d)]; return o && sleepMin(o) != null; }), ok = n.filter((d) => sleepMin(S.days[dk(d)]) >= 7.5 * 60); return n.length ? `${ok.length}/${n.length} logged nights ≥ 7.5 h` : 'no nights logged'; }
   return '';
 }
-function campaignProgress(c) { const ms = c.milestones || []; return ms.length ? Math.round((ms.filter((m) => m.done).length / ms.length) * 100) : 0; }
+/* 13.25.1: a milestone counts only with evidence. "N dials" and "N owner conversations" are read from the call log;
+   every other milestone needs a written piece of evidence when it is ticked. A bare tick does not move progress. */
+function campMsAuto(m) { const x = /(\d[\d,]*)\s+(dials|owner conversations)\b/i.exec(String((m && m.t) || '')); if (!x || typeof sgEvidence !== 'function') return null; let e; try { e = sgEvidence(); } catch (err) { return null; } const need = Number(x[1].replace(/,/g, '')), have = /dial/i.test(x[2]) ? e.attempts : e.conv; return { ok: have >= need, ev: `call log: ${have} of ${need}` }; }
+function campMsOk(m) { const a = campMsAuto(m); return a ? a.ok : !!(m && m.done && m.ev); }
+function campaignProgress(c) { const ms = c.milestones || []; return ms.length ? Math.round((ms.filter(campMsOk).length / ms.length) * 100) : 0; }
+function campActive() { return Object.values(S.campaigns || {}).filter((c) => c && !c._del && !c.draft && c.active !== false && !c.outcome); }
+function campToggle(id) { const c = S.campaigns[id]; if (!c) return; if (c.active === false && campActive().length >= 3) { toast('Three active campaigns at most. Pause one first.'); return; } c.active = c.active === false; c._u = now(); save(); closeModal(); render(); }
 const CAMPAIGN_SEED = [
   { title: 'OPERATION FIRST CLIENT', objective: 'First agency pays for a caregiver who worked 5 shifts', deadline: '2027-01-31', criteria: 'Invoice paid', milestones: ['15 screened caregivers in Tampa Bay', 'Payment route working (dad’s company, USD)', '1,000 dials', '25 owner conversations', 'First case taken (Founding Offer)', 'First caregiver works 5 shifts', 'First invoice paid'], risks: 'No supply when a yes comes · new number flagged as spam · no way to invoice' },
   { title: 'BAC EXAM PREPARATION', objective: 'Pass the BAC (8+)', deadline: '2027-06-01', criteria: 'All exams passed', milestones: ['Python exam booked', 'English certificate', 'IT certificate', 'Romanian: 1 full test a week from January', 'History: 1 full test a week from February'], risks: 'Business crowding out study mornings' },
@@ -250,15 +256,21 @@ function recEdit(kind, id) {
     experiments: [['title', 'Name'], ['hypothesis', 'Hypothesis (if I change X, Y improves)'], ['variable', 'The ONE thing I change'], ['metric', 'Metric', 'select'], ['start', 'Start', 'date'], ['end', 'End', 'date'], ['result', 'Result'], ['decision', 'Decision (keep / drop / extend)']] }[kind];
   openModal(`<h2>${x ? 'Edit' : 'New'} ${kind.slice(0, -1)}</h2>${F.map(([f, l, ty]) => `<div class="field"><label>${l}</label>${ty === 'select' ? `<select id="re-${f}">${['owner rate (owners / dials)', 'interest rate (interested / owners)', 'dials per day', 'BAC minutes per day', 'weight'].map((o) => `<option ${x && x[f] === o ? 'selected' : ''}>${o}</option>`).join('')}</select>` : ty === 'date' ? `<input id="re-${f}" type="date" value="${esc((x && x[f]) || '')}">` : `<textarea id="re-${f}" rows="${f === 'title' ? 1 : 2}">${esc((x && x[f]) || '')}</textarea>`}</div>`).join('')}
     ${kind === 'campaigns' ? `<div class="field"><label>Milestones (one per line)</label><textarea id="re-ms" rows="5">${esc(((x && x.milestones) || []).map((m) => m.t).join('\n'))}</textarea></div>` : ''}
-    <div class="actions">${x ? `<button class="btn danger" onclick="recDel('${kind}','${id}')">Delete</button>` : ''}<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="recSave('${kind}','${id || ''}')">Save</button></div>`, true);
+    <div class="actions">${x ? `<button class="btn danger" onclick="recDel('${kind}','${id}')">Delete</button>` : ''}${kind === 'campaigns' && x ? `<button class="btn" onclick="campToggle('${id}')">${x.active === false ? 'Activate' : 'Pause'}</button>` : ''}<button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="recSave('${kind}','${id || ''}')">Save</button></div>`, true);
 }
 function recSave(kind, id) {
   const m = S[kind]; const x = id && m[id] ? m[id] : { id: kind[0] + uid() }; const F = document.querySelectorAll('[id^="re-"]');
   F.forEach((el) => { const f = el.id.slice(3); if (f === 'ms') { const old = x.milestones || []; x.milestones = el.value.split('\n').map((t) => t.trim()).filter(Boolean).map((t) => ({ t, done: !!(old.find((o) => o.t === t) || {}).done })); } else x[f] = el.value.trim(); });
-  if (!x.title) { toast('Give it a title'); return; } if (kind === 'experiments' && !x.baseline) x.baseline = expMeasure(x, 'before'); x.draft = false; x._u = now(); m[x.id] = x; save(); closeModal(); render();
+  if (!x.title) { toast('Give it a title'); return; } if (kind === 'campaigns' && !(id && m[id] && !m[id].draft) && x.active !== false && campActive().filter((c) => c.id !== x.id).length >= 3) { x.active = false; toast('Saved as paused: three active campaigns at most.'); } if (kind === 'experiments' && !x.baseline) x.baseline = expMeasure(x, 'before'); x.draft = false; x._u = now(); m[x.id] = x; save(); closeModal(); render();
 }
 function recDel(kind, id) { const x = S[kind][id]; if (!x) return; x._del = true; x._u = now(); save(); closeModal(); render(); toast('Deleted'); }
-function msToggle(id, i) { const c = S.campaigns[id]; if (!c) return; c.milestones[i].done = !c.milestones[i].done; c._u = now(); save(); render(); }
+function msToggle(id, i) {
+  const c = S.campaigns[id]; if (!c) return; const m = c.milestones[i]; if (!m) return;
+  if (m.done) { m.done = false; delete m.ev; delete m.at; c._u = now(); save(); render(); return; }
+  const a = campMsAuto(m); if (a) { toast(a.ok ? 'Counted from the call log already.' : `Not yet: ${a.ev}. This one is counted from the call log.`); return; }
+  openModal(`<h2>Evidence</h2><div class="hint">${esc(m.t)}<br>What proves it happened? Without it the milestone does not count.</div><input class="aq-in" id="ms-ev" placeholder="e.g. invoice 001 paid 12 Dec · certificate number · mock score"><div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="msDone('${id}',${i})">Mark done</button></div>`, true);
+}
+function msDone(id, i) { const c = S.campaigns[id], ev = (($('ms-ev') || {}).value || '').trim(); if (!c || !c.milestones[i]) return; if (ev.length < 3) { toast('Write the evidence'); return; } Object.assign(c.milestones[i], { done: true, ev, at: dk(new Date()) }); c._u = now(); save(); closeModal(); render(); }
 /* experiment metric, measured the same way before and during the test */
 function expMeasure(x, when) {
   if (!x.start) return null; const s = pd(x.start), e = x.end ? pd(x.end) : new Date(), len = Math.max(1, Math.round((e - s) / 864e5) + 1);
