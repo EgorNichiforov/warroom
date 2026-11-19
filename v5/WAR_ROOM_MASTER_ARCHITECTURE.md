@@ -1,4 +1,4 @@
-# War Room · master architecture (13.43.0, 19 Nov 2026)
+# War Room · master architecture (13.44.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -175,6 +175,19 @@ Look: `graphite` allowed in `unify.js` (`lookGet`, `setAppearance`, appearance c
 - Access: the sync code keeps working exactly as before. A device key (`x-warroom-device`, stored hashed) is a second way in. `warroom_lock(true)`, callable only by an enrolled device, makes the code alone useless; `warroom_lock(false)` undoes it.
 - `mcBuild()` is untouched: nothing on the server ranks or recommends inside the app.
 
+## 8v. The vault (13.44.0; opt-in)
+
+```
+ app (merge, screens)      vault.js (fetch wrapper)            server row
+ S.journal, S.txns … ───▶ seal: stores → {} + vault{iv,ct} ──▶ journal:{}  vault:{…}  days, tasks, goals … (readable)
+ ordinary document   ◀─── open: vault → stores           ◀──
+```
+
+- Stores sealed: journal, txns, accounts, mplan, reality, decisions, risks, wassets, wsnap, boards, protocols.
+- Key: derived from the passphrase on the device; kept in that browser's storage; never synced. `settings.vault` holds only `{on, salt, check, at}`.
+- A device without the key keeps its own copies, syncs everything else, and passes the block through unchanged.
+- The server worker and Claude's scheduled tasks read none of the sealed stores.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -182,6 +195,6 @@ Look: `graphite` allowed in `unify.js` (`lookGet`, `setAppearance`, appearance c
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.43. No role has been run against a real AI model by the build: the tests use a stand-in, so they prove the limits and the plumbing, not the quality of advice. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
+- No real-phone test of 13.31 to 13.44. No role has been run against a real AI model by the build: the tests use a stand-in, so they prove the limits and the plumbing, not the quality of advice. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

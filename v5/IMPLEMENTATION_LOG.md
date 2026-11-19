@@ -294,3 +294,18 @@ Next: nothing further is buildable without Egor: see "Blocked" in `WAR_ROOM_EXEC
 **Live in the app (13.43.0):** `server.js`: Server screen, device key header (sent only when this device has a key for this sync code), `WR-PROPOSE` approve/dismiss through `agApprove`, truthful automation rows. `tests/test_1343.py` (49). `cohere.js` rows corrected: the content scan is daily since 19 Nov.
 
 **Known limits:** the lock does not cover the AI helper function (it still accepts the sync code; it exposes no data). `pg_cron` and the HTTP wake are replaced by stand-ins in the local proof. No job has run against the live project or a real AI model.
+
+
+## 13.44.0 · 20 Nov 2026 (overnight) · the vault
+
+**Asked for (19 Nov 22:32):** encryption.
+
+**Built:** `vault.js`, loaded before `core.js`. It wraps `fetch` for the sync table only. Going out: the eleven private stores are moved into one AES-256-GCM block (key = PBKDF2-SHA-256, 310,000 rounds, of the passphrase; salt and a check value in `settings.vault`). Coming in: the block is opened and the app sees an ordinary document, so `merge()` is untouched. Snapshots (`:snapN` rows) get the same treatment.
+
+**Safety rules in the code:** a device that cannot open the server's block passes it through and never replaces it; if sealing throws, the request is not sent; switching off or changing the passphrase is only possible from a device that has the block open, after a fresh pull.
+
+**Proven:** `tests/test_1344.py` (45): two browsers as two devices against a stand-in for the table, real browser crypto: what the server holds, a closed device, opening on the second device, a server-side note write, snapshots, a damaged block, a failed seal, passphrase change, switching off.
+
+**Limits (also on the Vault screen):** the rest of the document stays readable on the server by design; an unlocked device is not protected; copies made before switching on (rolling snapshots, `warroom_backup`) are unsealed; an old app version on another device could briefly put unsealed records back (the next open device re-seals); no reset without an open device. Not tested against the live project or on a real phone. Not switched on for Egor: it needs his passphrase.
+
+**Found on the way:** `settings` only merges when its `_u` moved, so every on-device settings change must `touch(S.settings)`.

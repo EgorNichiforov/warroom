@@ -46,3 +46,5 @@ On 19 Nov 2026 28 versions of War Room were released and the call log shows no d
 | Content scan runs daily | live since 19 Nov 22:35 | scheduler accepted the change; first daily run not yet observed |
 
 Not applied because Supabase asked Egor to confirm and he was asleep. One confirmation switches it on.
+
+| Vault: private records sealed before sync (13.44.0) | live in the app, **off until Egor sets a passphrase** | `tests/test_1344.py` 45 checks, two browsers, real crypto, stand-in table |

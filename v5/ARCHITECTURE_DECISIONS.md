@@ -56,3 +56,12 @@ The app already has three looks (dark, light, classic) held as CSS variables. Th
 **Why not replace the code outright.** Replacing it is the change that can lock every device out at once. Adding a second way in cannot.
 **Not done.** The AI helper function still authenticates by sync code. Cut-over is never automatic.
 **Encryption.** Nothing here encrypts the data. The app lock is not encryption.
+
+
+## ADR-011 · Encryption: a vault for the private stores, not the whole document · 20 Nov 2026
+
+**Decision.** Encrypt on the device, before sync, only the stores that are private and that no server job needs. Do it at the transport edge (a `fetch` wrapper), so the merge code and every screen stay as they are.
+**Why not everything.** The server worker, the content scan, the attendance report and the dial guard all read the document on the server. Encrypting it all would switch them off.
+**Why a passphrase and not the sync code.** The sync code is known to the server; a key made from it would protect nothing from the server.
+**Cost accepted.** No recovery without an open device. Stated on the screen before the switch.
+**Claim allowed.** "Private records are end-to-end encrypted between your devices when the vault is on." Not allowed: "War Room is encrypted."

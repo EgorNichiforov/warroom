@@ -39,7 +39,7 @@
 | 9 Agent orchestration | Built, bounded (13.42); never run against a live model by the build | `agents.js` |
 | 10 Personal domains | Existed + 13.34 to 13.39 | `depth.js`, `domain.js` |
 | 11 Evolution | Built (13.42); needs weeks of real use to say anything | `agents.js` |
-| 12 Final integration and release | 13.43.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
+| 12 Final integration and release | 13.44.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
@@ -47,7 +47,7 @@ A stage listed for a later release than the current `APP_VERSION` is NOT built y
 
 - **Server migration (13.43.0): written, proven locally, NOT applied.** `apply_migration` made Supabase ask Egor for a confirmation at about 23:00 on 19 Nov; he was asleep and it timed out. Do not run the same SQL through another tool: that would go around his confirmation.
 - Real-phone verification: only Egor can do it.
-- Encryption at rest of the synced document: see the vault notes in `IMPLEMENTATION_LOG.md` (if a vault release exists) or build it next.
+- Vault (13.44.0): built and live in the app, off. Only Egor can switch it on (it needs a passphrase only he knows). Rule learned: any on-device change to `settings` must call `touch(S.settings)` or other devices ignore it.
 
 ## Switching the server on (do this WITH Egor present; about 5 minutes)
 
