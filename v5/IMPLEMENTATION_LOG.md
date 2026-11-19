@@ -309,3 +309,10 @@ Next: nothing further is buildable without Egor: see "Blocked" in `WAR_ROOM_EXEC
 **Limits (also on the Vault screen):** the rest of the document stays readable on the server by design; an unlocked device is not protected; copies made before switching on (rolling snapshots, `warroom_backup`) are unsealed; an old app version on another device could briefly put unsealed records back (the next open device re-seals); no reset without an open device. Not tested against the live project or on a real phone. Not switched on for Egor: it needs his passphrase.
 
 **Found on the way:** `settings` only merges when its `_u` moved, so every on-device settings change must `touch(S.settings)`.
+
+
+## 13.45.0 · 20 Nov 2026 (overnight) · the personal model page
+
+`model.js`: `pmRows()` builds stated / observed / gap / unknown lines from settings, goals, `S.days` (first thing done, skip reasons), the recall log and `scRows()`; minimums of 5 days, 3 skip reasons, 10 recalls before a line is counted. `pmFix` stores a correction in `S.boot.pmfix`. No inference beyond counts. `tests/test_1345.py` (17).
+
+Still not built from the two briefs (kept here so nobody reports them as done): AI-written new-situation recall questions and adaptive quiz difficulty; "contradicts / depends on / example of" link kinds; a people-and-commitments model; comparing saved scenarios; hydration; a body plan that adapts after missed sessions; automatic fold-away of never-opened destinations; reading the later pages of Claude's scheduled-task list for literal ids. A morning-brief Claude task was refused by the scheduler's permission system (the server brief replaces it once the server is on).

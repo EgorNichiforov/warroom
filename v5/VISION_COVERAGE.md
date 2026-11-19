@@ -36,3 +36,6 @@ Status words: **Built** = code exists and a test in `tests/` exercises it. **Exi
 
 - "Agents that run while the app is closed", "job queue", "per-device accounts", "audit": **built and proven locally; switch-on waits for one confirmation in Supabase.** See `WAR_ROOM_EXECUTION_STATE.md` → Switching the server on.
 - Daily research: the content scan is daily (live). Server research for open learning requests: part of the worker (not live).
+- Encryption: vault for the private stores (13.44.0), **live, off until Egor sets a passphrase**.
+- Personal model, observed vs stated, correctable (13.45.0): **live**.
+- Not built: see the list at the end of `IMPLEMENTATION_LOG.md` → 13.45.0.
