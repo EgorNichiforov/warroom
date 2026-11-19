@@ -1,4 +1,4 @@
-# War Room · master architecture (13.35.0, 19 Nov 2026)
+# War Room · master architecture (13.36.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -114,6 +114,7 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - `dxReviewIds()`: the Learn recall step takes lessons answered wrong first, then due ones, interleaved by module.
 - `wfTour()`: six-line tour. `DX_OFF` disables the skip question and the Day-card link.
 - 13.35: `beData()`/`beStuck()`/`beOpen()` (28-day funnel; rates only above `BE_MIN` samples; the stage where it stops), `bwData()`/`bwOpen()` (weight trend and needed pace per weight goal; never chooses between targets), `qrOpen()`/`qrSave()` (quarter in `S.boot['qr:YYYY-Qn']`). All read-only views except the review text. None adds a Mission Control candidate.
+- 13.36: `dxBillCand(X)` supplies ONE candidate (`k:'bill'`, tier 3) through the existing `lxCandidates` hook when a planned outgoing payment is due or overdue. `mcBuild()` ranks it like any other.
 
 ## 9. Known gaps
 
@@ -121,7 +122,7 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - More than one main-type row and three queue rows exist in the cloud; which devices use them is unknown.
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
-- `CP_ST` ladder not folded in. Money reaches Mission Control only under the money lens or when a campaign names it.
-- No real-phone test of 13.31 to 13.35.
+- `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
+- No real-phone test of 13.31 to 13.36.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

@@ -16,7 +16,7 @@ def boot(b, keep=None, t='2026-11-19T17:00:00+02:00'):
 with sync_playwright() as p:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox']); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("S.settings.season={dom:'biz',kind:'bizbuild',primary:'20k MRR'}; save(); 0")
-    check('version 13.35.0', ev("APP_VERSION==='13.35.0'"), ev("APP_VERSION"))
+    check('version 13.36.0', ev("APP_VERSION==='13.36.0'"), ev("APP_VERSION"))
     # ── calls made elsewhere
     check('nothing is counted until you enter it', ev("mcDialEvidence(dk(new Date())).logged===0&&mcWeek().logged===0&&stFunnel(7,0).d===0"))
     ev("dxOutside(); 0"); pg.wait_for_timeout(250)
@@ -117,7 +117,15 @@ with sync_playwright() as p:
     ev("scOpen(); 0"); pg.wait_for_timeout(250)
     check('the scorecard links to funnel, body trend, money split, month and quarter; all are in Where do I…?', ev("document.querySelectorAll('#sc-more button').length===5&&['funnel','bodytrend','quarter'].every(id=>WF.some(x=>x[0]===id))&&(wfFind('weight trend')[0]||[])[0]==='bodytrend'&&(wfFind('where my funnel stops')[0]||[])[0]==='funnel'"), ev("[(wfFind('weight trend')[0]||[])[0],(wfFind('where my funnel stops')[0]||[])[0]]"))
     ev("closeModal(); 0")
-    check('still one global recommender; this layer adds no candidate', ev("(()=>{const M=mcBuild();return M.top===(M.C[0]||null)&&!M.C.some(c=>/^(dx|sc|gc)/.test(c.k))})()"))
+    # ── 13.36: a planned payment that is due is an ordinary candidate
+    check('no planned payment due: Mission Control has no bill line', ev("!mcBuild().C.some(c=>c.k==='bill')"))
+    ev("mnInit(); S.mplan.pp1={id:'pp1',active:true,type:'out',amt:250,acc:(mnAccs()[0]||{}).id,cat:'phone',note:'Phone bill',every:'month',next:dk(addDays(new Date(),-2)),_u:1}; S.mplan.pp2={id:'pp2',active:true,type:'out',amt:90,acc:(mnAccs()[0]||{}).id,cat:'subs',note:'Later one',every:'month',next:dk(addDays(new Date(),5)),_u:1}; S.mplan.pp3={id:'pp3',active:true,type:'in',amt:900,acc:(mnAccs()[0]||{}).id,cat:'tennis',note:'Income',every:'month',next:dk(addDays(new Date(),-1)),_u:1}; 0")
+    Bc = ev("(()=>{const M=mcBuild(),B=M.C.filter(c=>c.k==='bill'),b=B[0]||{};return {n:B.length,out:b.out,tier:b.tier,why:b.why,top:M.top&&M.top.k,above:M.C.filter(c=>c.tier<3).every(c=>M.C.indexOf(c)<M.C.indexOf(b)),ev:(b.ev||[])[0]}})()")
+    check('an overdue planned payment appears once, as maintenance, below the priority and protected work; income and future items do not', Bc['n'] == 1 and 'Phone bill' in Bc['out'] and Bc['tier'] == 3 and Bc['top'] != 'bill' and Bc['above'] and 'your plan' in Bc['ev'], Bc)
+    ev("mnPost('pp1'); 0"); pg.wait_for_timeout(150)
+    check('marking it paid removes the line and records the payment in the ledger', ev("!mcBuild().C.some(c=>c.k==='bill')&&mnTx().some(t=>t.plan==='pp1'&&t.amt===250)"))
+    ev("['pp1','pp2','pp3'].forEach(k=>delete S.mplan[k]); Object.keys(S.txns).forEach(k=>{if(S.txns[k].plan==='pp1')delete S.txns[k]}); 0")
+    check('still one global recommender; this layer only supplies a candidate through the existing hook', ev("(()=>{const M=mcBuild();return M.top===(M.C[0]||null)&&!M.C.some(c=>/^(dx|sc|gc)/.test(c.k))&&lxCandidates._dx===1})()"))
     # ── persistence
     ev("save(true); 0"); pg.wait_for_timeout(400); pg.close(); ctx2, pg, errs2 = boot(b, keep=ctx, t='2026-11-19T17:40:00+02:00'); ev = pg.evaluate
     check('close and reopen: the outside entry, its counts and the skip reasons are still there', ev("mcDialEvidence(dk(new Date())).logged===40&&dxExt(dk(new Date()))[0].src==='Google Sheet'&&dxWhyWeek().by.energy===2"))

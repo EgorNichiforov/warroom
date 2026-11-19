@@ -211,3 +211,11 @@ Not done (from the unified brief): body plan adaptation, focus protocol, quarter
 Caught before release: the body-trend label contained "goal" and outranked the Goals screen in search (13.33 journey 9 failed); renamed.
 
 Tests: `test_1334.py` 47, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` (see commit). Not a real phone.
+
+## 13.36.0 · 19 Nov 2026 · a due planned payment is a Mission Control candidate
+
+**Changed:** `depth.js` (`dxBillCand`, `lxCandidates` wrapped; earlier wrapper flags are copied so older wiring checks still hold), `tests/test_1334.py` (now 50), version strings, documents.
+
+Caught before release: the new wrapper hid the 13.32 hook flag (`lxCandidates._co`), failing a 13.32 wiring check; flags are now carried over. A vacuous assertion I had written (`|| true`) was removed before the run that counts.
+
+Tests: `test_1334.py` 50, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` (see commit). Not a real phone.
