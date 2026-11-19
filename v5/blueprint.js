@@ -1,0 +1,247 @@
+/* War Room 13.31 · blueprint.js
+   1. Personal Development Blueprint: ten areas, every competency with an observable behaviour, and an honest audit of
+      what exists for it (lesson, assessment, practical exercise, checked resource) and what is missing.
+   2. Owner discovery: the open market questions turned into questions for agency owners, captured after an owner talk
+      and kept apart from published research, assumptions and unknowns.
+   3. Knowledge to execution: principles from the books you supplied, adapted (or not) to Caregiver Bench, with a status.
+   4. Competitors by type, email lessons, a real-phone checklist, and a guard that keeps test records out of signals.
+   Nothing here decides anything for you and nothing is scored without a record behind it. */
+const BP_ST = ['Not encountered', 'Introduced', 'Understood', 'Practised', 'Demonstrated', 'Retained', 'Applied independently', 'Able to teach'];
+const BP_LV = { f: 'Foundation', i: 'Intermediate', a: 'Advanced' };
+/* area: [id, letter, name, what it is for, capability-map domains it takes whole] */
+const BP_AREAS = [
+  ['A', 'Character and self-leadership', 'Doing what you said you would, when nobody checks.', ['reg']],
+  ['B', 'Physical development', 'A body that is strong, rested and safe to train.', ['phy']],
+  ['C', 'Social intelligence and relationships', 'Reading people, being good company, treating people well.', []],
+  ['D', 'Communication', 'Being understood, in speech and in writing.', ['com']],
+  ['E', 'Practical independence', 'Running your own life without help: home, papers, travel.', []],
+  ['F', 'Safety and readiness', 'Avoiding trouble and acting lawfully and calmly when it comes.', ['saf']],
+  ['G', 'Thinking and knowledge', 'Learning hard things, judging well, understanding the world.', ['dec', 'lrn', 'jud']],
+  ['H', 'Money and adult administration', 'Earning, keeping, paying what is owed.', ['fin']],
+  ['I', 'Entrepreneurship', 'Building Caregiver Bench into a company that runs.', ['biz']],
+  ['J', 'Creativity and culture', 'Making things and knowing enough of the world to enjoy it.', []]];
+/* competencies that are NOT in the capability map yet: [id, area, name, observable behaviour, level, horizon, keyword test for existing lessons] */
+const BP_EXTRA = [
+  ['bp-values', 'A', 'Knowing your values and saying no', 'Turns down something attractive that conflicts with a stated priority, and says why in one sentence.', 'f', 'now', /personal values|your values|saying no|boundar/i],
+  ['bp-word', 'A', 'Keeping your word', 'Promises are written down with a date and either kept or renegotiated before the date.', 'f', 'now', /keep(ing)? your word/i],
+  ['bp-friend', 'C', 'Making and keeping friends', 'Starts contact with three people a week without a reason, and shows up when it costs something.', 'f', 'now', /friendship|mak(e|ing) friends/i],
+  ['bp-relate', 'C', 'Respectful relationships and dating', 'States interest plainly, hears a no without pressure, understands consent and what a healthy relationship looks like.', 'f', 'next', /dating|relationship|consent|romantic/i],
+  ['bp-repair', 'C', 'Apologising and repairing a conflict', 'Names what he did, without "but", and asks what would make it right.', 'f', 'now', /apolog|repair|make it right/i],
+  ['bp-etiq', 'C', 'Manners, hosting, being a good guest', 'Hosts a meal for four; is the guest people invite again.', 'i', 'later', /manners|etiquette|host(ing)?\b|guest/i],
+  ['bp-write', 'D', 'Clear writing', 'A message a busy stranger understands on the first read and can answer in one line.', 'f', 'now', /\bwriting\b|write clearly|email that/i],
+  ['bp-speak', 'D', 'Speaking to a group', 'Stands up and explains one idea to ten people in three minutes without notes.', 'i', 'next', /public speak|speak(ing)? to a group|present(ation|ing)\b|on stage/i],
+  ['bp-story', 'D', 'Telling a story well', 'Tells a two-minute true story with a start, a turn and a point.', 'i', 'next', /storytell|tell(ing)? a story/i],
+  ['bp-cook', 'E', 'Cooking seven basic meals', 'Cooks a week of dinners from raw ingredients, on budget, without a recipe open.', 'f', 'next', /\bcook|recipe|meal prep/i],
+  ['bp-home', 'E', 'Running a home', 'Laundry, cleaning and a simple repair done on a schedule without being asked.', 'f', 'next', /laundry|cleaning|repair|household/i],
+  ['bp-docs', 'E', 'Documents and bureaucracy (Moldova and abroad)', 'Knows which papers he needs for a bank account, a lease and a residence permit, and where each one is.', 'f', 'next', /bureaucra|residence permit|\blease\b|opening a bank account/i],
+  ['bp-travel', 'E', 'Travelling alone', 'Books and completes a trip abroad alone: transport, stay, insurance, a plan B.', 'i', 'later', /travel(ling)? alone|airport|booking a trip/i],
+  ['bp-health', 'E', 'Using the health system', 'Knows how to see a doctor, what insurance covers and when something is urgent.', 'f', 'next', /see a doctor|health insurance|pharmacy/i],
+  ['bp-drive', 'E', 'Driving licence and road sense', 'Holds a licence and drives defensively.', 'i', 'later', /driving|licence|road sense/i],
+  ['bp-firstaid', 'F', 'First aid basics (from a qualified course)', 'Holds a first-aid certificate and can do the first five minutes until help arrives.', 'f', 'next', /first aid|CPR|recovery position/i],
+  ['bp-digital', 'F', 'Digital security', 'Unique passwords in a manager, two-factor on money and email, backups tested.', 'f', 'now', /password|two-factor|2FA|phishing|backup/i],
+  ['bp-world', 'G', 'Understanding the world', 'Explains one current event from two sides and names what would change his mind.', 'i', 'next', /geopolit|econom(y|ics)\b|how the world|world works/i],
+  ['bp-read', 'G', 'Reading serious books', 'Finishes one serious book a month and can state its argument in five sentences.', 'f', 'next', /\bbooks?\b.*read|reading habit|read(ing)? a book/i],
+  ['bp-create', 'J', 'Making something', 'Publishes one finished piece a month: writing, video or design.', 'i', 'later', /creative|make something|publish(ing)? a/i],
+  ['bp-culture', 'J', 'Music, film, art and history', 'Can talk for five minutes about a film, an album and a period of history he actually knows.', 'i', 'later', /\bmusic\b|\bfilms?\b|art history|high culture/i],
+  ['bp-lang', 'J', 'Languages', 'English at certificate level, Romanian and Russian in formal writing, a start in one more.', 'i', 'next', /language|vocabulary|grammar/i],
+  ['bp-style', 'J', 'Dress and presentation', 'Dresses correctly for a business call, a dinner and a formal event without asking.', 'f', 'later', /\bdress(ing)?\b|grooming|appearance/i]];
+/* capabilities that sit in a different area than their map domain */
+const BP_MOVE = { 'c-humour': 'C', 'f-living': 'E' };
+
+function bpAll() {
+  if (bpAll._c && bpAll._n === (typeof XC !== 'undefined' && XC && XC.cards ? XC.cards.length : 0)) return bpAll._c;
+  const out = [], H = (() => { try { return rsHorizonCaps(); } catch (e) { return { now: [], next: [], later: [] }; } })();
+  BP_AREAS.forEach(([a, , , doms]) => doms.forEach((d) => (CM_CAPS[d] || []).forEach((r) => { const c = cmCap(r[0]); out.push({ id: c.id, area: BP_MOVE[c.id] || a, n: c.n, beh: r[3], lv: /scale|delegat|strategy|invest/.test(c.id) ? 'a' : 'f', hz: H.now.includes(c.id) ? 'now' : H.next.includes(c.id) ? 'next' : 'later', cap: c.id, prac: r[5], as: r[7] }); })));
+  const cards = typeof XC !== 'undefined' && XC && XC.cards ? XC.cards : [];
+  BP_EXTRA.forEach(([id, area, n, beh, lv, hz, kw]) => out.push({ id, area, n, beh, lv, hz, cap: '', kw, kwCards: cards.filter((c) => kw.test(c.t) || (c.m || []).some((m) => kw.test(m))).map((c) => c.id).slice(0, 6) }));
+  bpAll._c = out; bpAll._n = cards.length; return out;
+}
+function bpGet(id) { return bpAll().find((x) => x.id === id) || null; }
+function bpCards(x) { return (x.cap ? cmCards(cmCap(x.cap)) : x.kwCards || []).filter((id) => XC.byId[id]); }
+/* resources: library items mapped to the capability, or found by a research job raised for this competency */
+function bpRes(x) { try { const J = Object.values(S.research || {}).filter((r) => r && !r._del && (r.key === 'bp:' + x.id || (x.cap && r.cap === x.cap))).map((r) => r.id); return ccAll().filter((r) => !r.clip && ((x.cap && (r.caps || []).includes(x.cap)) || (r.job && J.includes(r.job)))); } catch (e) { return []; } }
+/* what exists for one competency. Each flag says exactly what was checked. */
+function bpHas(x) {
+  const C = bpCards(x).map((id) => XC.byId[id]), R = bpRes(x);
+  const scen = C.some((c) => typeof BC !== 'undefined' && BC && BC.cardMod && ((BC.sc || {})[BC.cardMod[c.id]] || []).some((s) => s.a === c.id || (s.o || []).includes(c.id)));
+  return { lessons: C.length, kwOnly: !x.cap && C.length > 0, quiz: C.length > 0, assess: C.filter((c) => (c.q || []).length >= 2).length, scen, exercise: C.filter((c) => String(c.move || '').length > 20).length, flow: !!x.cap,
+    vidInspected: C.filter((c) => c.clipV === 'content').length, vidTitle: C.filter((c) => c.clipV === 'title').length, vidLink: C.filter((c) => c.clipV === 'link' || ((c.clip || []).length && !c.clipV)).length, res: R.length, C, R };
+}
+function bpMissing(x) { const h = bpHas(x), M = []; if (!h.lessons) M.push('lesson'); else if (h.kwOnly) M.push('own lesson (only keyword matches)'); if (!h.assess) M.push(h.quiz ? 'written test questions (auto-generated quiz only)' : 'assessment'); if (!h.exercise) M.push('practical exercise'); if (!h.vidInspected) M.push(h.vidTitle || h.vidLink ? 'inspected resource (video not watched)' : 'resource'); return M; }
+/* stage from records; a manual stage needs proof from "Practised" up */
+function bpAuto(x) {
+  const C = bpCards(x); let st = 0;
+  if (C.some((id) => bcV('l:' + id, null))) st = 1;
+  if (C.some((id) => { try { return bcRung(id) >= 2; } catch (e) { return false; } })) st = Math.max(st, 2);
+  if (x.cap) { const L = cmLog(x.cap), p = cmPerf(x.cap); if (L.length) st = Math.max(st, 3); if (p.lv >= 3) st = Math.max(st, 4); if (p.lv >= 4) st = Math.max(st, 5); if (p.lv >= 5) st = Math.max(st, 6); }
+  return st;
+}
+function bpStage(x) { const m = bcV('bp:' + x.id, null); return Math.max(bpAuto(x), (m && m.st) || 0); }
+function bpAudit() {
+  const A = bpAll(), H = A.map((x) => ({ x, h: bpHas(x), m: bpMissing(x), st: bpStage(x) }));
+  const n = (f) => H.filter(f).length;
+  return { total: A.length, quiz: n((r) => r.h.quiz), lessons: n((r) => r.h.lessons && !r.h.kwOnly), kwOnly: n((r) => r.h.kwOnly), noLesson: n((r) => !r.h.lessons), assess: n((r) => r.h.assess), exercise: n((r) => r.h.exercise), inspected: n((r) => r.h.vidInspected), anyVideo: n((r) => r.h.vidInspected || r.h.vidTitle || r.h.vidLink), complete: n((r) => !r.m.length), evidence: n((r) => r.st >= 3), rows: H };
+}
+let BPA = 'I';
+function bpOpen(area) {
+  if (!(typeof XC !== 'undefined' && XC && XC.byId && typeof BC !== 'undefined' && BC)) { if (typeof xcLoad === 'function') xcLoad(); if (typeof bcLoad === 'function') bcLoad(); openModal('<div class="hint">Loading…</div>'); setTimeout(() => bpOpen(area), 600); return; }
+  BPA = area || BPA; const U = bpAudit(), rows = U.rows.filter((r) => r.x.area === BPA), ar = BP_AREAS.find((a) => a[0] === BPA);
+  const tick = (ok, l, half) => `<i class="${ok ? 'on' : half ? 'half' : ''}" title="${l}">${l[0]}</i>`;
+  openModal(`<h2>Development Blueprint</h2><div class="hint">${U.total} competencies in ten areas. Counted from the records, not from intentions.</div>
+    <div class="bp-sum"><div><b>${U.lessons}</b><span>have their own lesson</span></div><div><b>${U.assess}</b><span>have written test questions</span></div><div><b>${U.exercise}</b><span>have a written exercise</span></div><div><b>${U.inspected}</b><span>have an inspected video</span></div><div><b>${U.noLesson + U.kwOnly}</b><span>have no lesson of their own</span></div><div><b>${U.evidence}</b><span>have real practice logged</span></div></div>
+    <div class="xs muted">"Inspected video" means the content was checked against the lesson. ${U.anyVideo - U.inspected} more have a video whose title or link was checked but which nobody here has watched.</div>
+    <div class="cc-tabs bp-tabs">${BP_AREAS.map((a) => `<button class="${a[0] === BPA ? 'on' : ''}" onclick="bpOpen('${a[0]}')">${a[0]} · ${esc(a[1].split(' ')[0])}</button>`).join('')}</div>
+    <div class="mc-wl"><span>${ar[0]} · ${esc(ar[1])}</span><div class="xs">${esc(ar[2])}</div></div>
+    ${rows.map((r) => `<button class="bp-row" onclick="bpComp('${r.x.id}')"><span><b>${esc(r.x.n)}</b><em>${BP_LV[r.x.lv]} · ${r.x.hz} · ${BP_ST[r.st]}</em>${r.m.length ? `<u>Missing: ${esc(r.m.join(', '))}</u>` : '<u class="ok">Lesson, test, exercise and inspected video all exist</u>'}</span><span class="bp-t">${tick(r.h.lessons && !r.h.kwOnly, 'Lesson', r.h.kwOnly)}${tick(r.h.assess, 'Assessment', r.h.quiz)}${tick(r.h.exercise, 'Practice')}${tick(r.h.vidInspected, 'Resource', r.h.vidTitle || r.h.vidLink)}</span></button>`).join('') || '<div class="hint">Nothing in this area yet.</div>'}
+    <div class="xs muted">L lesson · A assessment · P practical exercise · R resource. Half-filled = partly there (keyword match only, or a video nobody watched).</div>
+    <div class="actions wrap"><button class="btn" onclick="bpGaps()">All gaps</button><button class="btn" onclick="kxOpen()">Knowledge → execution</button><button class="btn primary" onclick="closeModal();lxGo()">Learn</button></div>`, true);
+}
+function bpComp(id) {
+  const x = bpGet(id); if (!x) return; const h = bpHas(x), m = bpMissing(x), st = bpStage(x), man = bcV('bp:' + id, null), job = Object.values(S.research || {}).find((r) => r && !r._del && r.key === 'bp:' + id);
+  openModal(`<h2>${esc(x.n)}</h2><div class="hint">${esc(BP_AREAS.find((a) => a[0] === x.area)[1])} · ${BP_LV[x.lv]} · ${x.hz}</div>
+    <div class="mc-wl"><span>Competent looks like</span><div>${esc(x.beh)}</div></div>
+    <div class="mc-wl"><span>Where you are: ${BP_ST[st]}</span><div class="bp-st">${BP_ST.map((s, i) => `<i class="${i <= st ? 'on' : ''}" title="${s}"></i>`).join('')}</div><div class="xs muted">${man && man.proof ? 'Your proof: ' + esc(man.proof) : 'Set from records: lessons opened, tests passed, practice logged. A video watched never moves this past "Introduced".'}</div></div>
+    <div class="mc-wl"><span>Lessons (${h.lessons})${h.kwOnly ? ' · keyword matches only, none written for this' : ''}</span>${h.C.map((c) => `<button class="kp-row" onclick="closeModal();xcOpen('${c.id}')"><span><b>${esc(c.t)}</b><em>${esc(c.who || '')}${c.clipV ? ' · video: ' + ({ content: 'inspected', title: 'title checked, not watched', link: 'link checked only' }[c.clipV] || c.clipV) : ''}</em></span></button>`).join('') || '<div class="xs">None.</div>'}</div>
+    ${h.R.length ? `<div class="mc-wl"><span>Library resources (${h.R.length})</span>${h.R.slice(0, 5).map((r) => `<button class="kp-row" onclick="closeModal();ccView('${esc(r.id)}')"><span><b>${esc(r.t)}</b><em>${esc(r.by || '')}</em></span></button>`).join('')}</div>` : ''}
+    <div class="mc-wl"><span>${m.length ? 'Missing' : 'Nothing missing'}</span>${m.map((s) => `<div class="xs">• ${esc(s)}</div>`).join('')}${job ? `<div class="xs">Research ${job.st === 'done' ? 'answered' : 'requested'}: ${esc(job.q.slice(0, 120))}</div>` : ''}</div>
+    <div class="actions wrap"><button class="btn" onclick="bpOpen('${x.area}')">Back</button>${m.length && !job ? `<button class="btn" onclick="bpJob('${id}');bpComp('${id}')">Request research</button>` : ''}${x.cap ? `<button class="btn" onclick="closeModal();cmTrain('${x.cap}')">Train</button>` : ''}<button class="btn primary" onclick="bpSet('${id}')">Set stage</button></div>`, true);
+}
+/* one research job per competency */
+function bpJob(id, auto) {
+  const x = bpGet(id); if (!x) return null; S.research = S.research || {}; const all = Object.values(S.research).filter((r) => r && !r._del), ex = all.find((r) => r.key === 'bp:' + id); if (ex) return ex;
+  if (auto && all.some((r) => r.auto && r.st === 'open' && String(r.key || '').startsWith('bp:'))) return null; /* one open Blueprint request at a time, separate from the research module's own three */
+  const rid = 'rq' + uid(); S.research[rid] = { id: rid, _u: now(), at: now(), q: `Find the best free lesson (video preferred, under 20 minutes, by a credible teacher) for: ${x.n}. Competent looks like: ${x.beh}`.slice(0, 400), why: `Blueprint competency "${x.n}" has no lesson of its own.`, cap: x.cap || '', card: '', key: 'bp:' + id, auto: auto ? 1 : 0, urgent: x.hz === 'now' ? 1 : 0, st: 'open' }; save(); return S.research[rid];
+}
+function bpSet(id) { const x = bpGet(id), st = bpStage(x), au = bpAuto(x); openModal(`<h2>${esc(x.n)}</h2><div class="hint">Records put you at "${BP_ST[au]}". Anything above that needs your proof: what you did, when, who saw it.</div><div class="cm-ch">${BP_ST.map((s, i) => `<label><input type="radio" name="bp-st" value="${i}" ${i === st ? 'checked' : ''}> ${s}</label>`).join('')}</div><textarea class="aq-in" id="bp-pf" rows="3" placeholder="Proof (required from Practised up)"></textarea><div class="actions"><button class="btn" onclick="bpComp('${id}')">Cancel</button><button class="btn primary" onclick="bpSetSave('${id}')">Save</button></div>`); }
+function bpSetSave(id) { const x = bpGet(id), v = Number((document.querySelector('input[name=bp-st]:checked') || {}).value) || 0, pf = $('bp-pf').value.trim(); if (v > bpAuto(x) && v >= 3 && pf.length < 15) { toast('Write the proof: what you did, when, who saw it'); return; } bcW('bp:' + id, { st: v, proof: pf, at: dk(new Date()) }); toast(BP_ST[v]); bpComp(id); }
+function bpGaps() { const U = bpAudit(), G = U.rows.filter((r) => r.m.length).sort((a, b) => ({ now: 0, next: 1, later: 2 }[a.x.hz] - { now: 0, next: 1, later: 2 }[b.x.hz]) || b.m.length - a.m.length); openModal(`<h2>What is missing</h2><div class="hint">${G.length} of ${U.total} competencies lack at least one of: own lesson, test, exercise, inspected video. Now first.</div>${['now', 'next', 'later'].map((hz) => { const L = G.filter((r) => r.x.hz === hz); return L.length ? `<div class="mc-wl"><span>${hz.toUpperCase()} (${L.length})</span></div>` + L.map((r) => `<button class="bp-row" onclick="bpComp('${r.x.id}')"><span><b>${r.x.area} · ${esc(r.x.n)}</b><u>${esc(r.m.join(', '))}</u></span></button>`).join('') : ''; }).join('')}<div class="actions"><button class="btn" onclick="bpOpen()">Back</button></div>`, true); }
+
+/* ───────── owner discovery ───────── */
+/* [id, market question it answers, what to ask (their words, never ours), follow-up, kind of note] */
+const OD_Q = [
+  ['od1', 'How big are private-pay agencies here?', 'How many caregivers do you have working this week, and about how many clients?', 'And a year ago?', 'quote'],
+  ['od2', 'What do owners say their biggest staffing problem is?', 'What is the hardest part of staffing right now?', 'Can you give me an example from last week?', 'problem'],
+  ['od3', 'Who already sells recruiting help, and how?', 'What have you tried for hiring: job boards, a recruiter, software? What happened?', 'What did you like and not like about it?', 'competitor'],
+  ['od4', 'What do agencies pay for hiring help, and what would they pay?', 'Roughly what does it cost you to get one caregiver who actually starts?', 'What did you last pay someone to help you hire?', 'wtp'],
+  ['od5', 'How much of the market is private pay?', 'Are your clients mostly private pay, long-term-care insurance, or Medicaid?', 'Has that mix changed?', 'quote'],
+  ['od6', 'Which rules shape what we may do?', 'Are you licensed as a home health agency, a nurse registry, or a companion service? Are your caregivers W-2 employees?', '', 'quote'],
+  ['od7', 'Is the caregiver shortage getting better or worse?', 'Compared with a year ago, is hiring easier, the same, or harder?', 'What changed?', 'trend'],
+  ['od8', 'What keeps a caregiver past 90 days? (extra)', 'Think of a caregiver who has been with you over a year. What happened in her first week?', '', 'caregiver'],
+  ['od9', 'What is one working caregiver worth to the owner? (extra)', 'What do you bill an hour, and what does the caregiver get?', 'How many hours a week does a typical caregiver work for you?', 'wtp']];
+function odAnswers(q) { return Object.values(S.obs || {}).filter((o) => o && !o._del && !o.test && o.q && (!q || o.q === q)); }
+function odStats() { return OD_Q.map((r) => { const A = odAnswers(r[0]); return { id: r[0], n: A.length, who: new Set(A.map((a) => (a.who || '').toLowerCase().trim()).filter(Boolean)).size }; }); }
+function odNext(n) { const s = odStats(); return OD_Q.slice().sort((a, b) => s.find((x) => x.id === a[0]).n - s.find((x) => x.id === b[0]).n || OD_Q.indexOf(a) - OD_Q.indexOf(b)).slice(0, n || 3); }
+function odOpen() {
+  const s = odStats(), tot = odAnswers().length;
+  openModal(`<h2>Owner discovery</h2><div class="hint">Nine questions that only owners can answer. Three per conversation, the ones with the fewest answers first. Write what they said, in their words. ${tot} answer${tot === 1 ? '' : 's'} so far.</div>
+    <div class="mc-wl"><span>Rules</span><div class="xs">• Ask, then stop talking. • Every vague answer gets "can you give me an example?" • Their numbers, never yours. • No answer is an answer: leave it empty, do not guess.</div></div>
+    ${OD_Q.map((r) => { const st = s.find((x) => x.id === r[0]); return `<div class="st-o"><em class="${st.n >= 5 ? 'ok' : 'warn'}">${st.n} answer${st.n === 1 ? '' : 's'} · ${st.who} agenc${st.who === 1 ? 'y' : 'ies'}</em><div><b>"${esc(r[2])}"</b></div>${r[3] ? `<div class="xs">Then: "${esc(r[3])}"</div>` : ''}<div class="xs muted">Answers: ${esc(r[1])}</div>${st.n ? `<button class="btn xs" onclick="odList('${r[0]}')">Read the answers</button>` : ''}</div>`; }).join('')}
+    <div class="xs muted">An answer from five different agencies is a pattern worth acting on. One answer is a story.</div>
+    <div class="actions wrap"><button class="btn" onclick="odCapture('')">Add an answer</button><button class="btn" onclick="closeModal();mktOpen()">Market</button><button class="btn primary" onclick="closeModal();show('dial')">Dial</button></div>`, true);
+}
+function odList(q) { const r = OD_Q.find((x) => x[0] === q), A = odAnswers(q).sort((a, b) => (b.at || '').localeCompare(a.at || '')); openModal(`<h2>"${esc(r[2])}"</h2><div class="hint">${A.length} answers, newest first. Said by owners on calls: not research, not your assumption.</div>${A.map((a) => `<div class="st-o"><em>${esc(a.at || '')}${a.who ? ' · ' + esc(a.who) : ''}</em><div>${esc(a.text)}</div></div>`).join('')}<div class="actions"><button class="btn" onclick="odOpen()">Back</button></div>`, true); }
+/* after an owner talk: three questions, each optional. Saved as market notes with source "owner call". */
+function odCapture(qid, agency) {
+  const Qs = odNext(3), ag = agency || (qid && typeof Q !== 'undefined' && Q && Q.items && Q.items[qid] ? Q.items[qid].agency : '');
+  openModal(`<h2>What did the owner tell you?</h2><div class="hint">${ag ? esc(ag) + ' · ' : ''}Thirty seconds, while you remember the words. Leave empty what was not said.</div>
+    ${ag ? '' : '<input class="aq-in" id="od-who" placeholder="Agency">'}
+    ${Qs.map((r, i) => `<div class="mc-wl"><span>"${esc(r[2])}"</span><textarea class="aq-in od-a" data-q="${r[0]}" rows="2" placeholder="Their words"></textarea></div>`).join('')}
+    <div class="actions"><button class="btn" onclick="closeModal()">Nothing new</button><button class="btn primary" onclick="odSave('${esc(qid || '')}',${JSON.stringify(ag).replace(/"/g, '&quot;')})">Save answers</button></div>`);
+}
+function odSave(qid, agency) {
+  const who = agency || (($('od-who') || {}).value || '').trim(); let n = 0; S.obs = S.obs || {};
+  document.querySelectorAll('.od-a').forEach((el) => { const t = el.value.trim(); if (t.length < 3) return; const r = OD_Q.find((x) => x[0] === el.dataset.q), id = 'ob' + uid() + n; S.obs[id] = { id, _u: now(), at: dk(new Date()), kind: r[4], text: t, who, tag: typeof stTagOf === 'function' ? stTagOf(t) || '' : '', src: 'owner call', q: r[0], qi: qid || '' }; n++; });
+  if (n) save(); closeModal(); toast(n ? n + ' answer' + (n === 1 ? '' : 's') + ' saved to market evidence' : 'Nothing saved'); if (typeof render === 'function') render();
+}
+/* the call workflow: an owner talk that was not a flat "no" ends with the capture */
+if (typeof saveOwner === 'function' && !saveOwner._od) { const f = saveOwner; saveOwner = function (id) { let ag = '', n0 = 0; const n = () => { try { return (Q.items[id].log || []).length; } catch (e) { return 0; } }; try { ag = Q.items[id].agency; n0 = n(); } catch (e) { } const r = f.apply(this, arguments); /* only when the talk was really logged, and never on top of another open sheet */ if (!window.OD_OFF && n() > n0) setTimeout(() => { try { if (!$('modal-bg').classList.contains('open')) odCapture(id, ag); } catch (e) { console.warn('OD', e); } }, 450); return r; }; saveOwner._od = 1; }
+if (typeof PB_SEED !== 'undefined' && !PB_SEED.some((p) => p.id === 'os-discovery')) PB_SEED.push({ id: 'os-discovery', cat: 'ops', title: 'Owner discovery: nine questions only owners can answer', body: `v0 · 19 Nov 2026 · untested until 20 owner conversations.\n\nYour market research has holes that no website fills. Owners fill them, one call at a time.\n\n**How:** three questions per conversation, chosen for you (fewest answers first). After you log an owner talk, War Room asks what they said. Their words, their numbers.\n\n| # | Ask | It answers |\n|---|---|---|\n${OD_Q.map((r, i) => `| ${i + 1} | "${r[2]}"${r[3] ? ' → "' + r[3] + '"' : ''} | ${r[1]} |`).join('\n')}\n\n**Rules**\n1. Ask, then stop talking.\n2. Vague answer → "Can you give me an example?"\n3. Never suggest the answer or a number.\n4. Five agencies saying the same thing is a pattern. One is a story.\n\n**Where it goes:** Operator → Owner discovery, and Market intelligence shows owner answers apart from published research, your assumptions and the unknowns.` });
+
+/* ───────── market: four kinds of knowledge kept apart, competitors by type ───────── */
+function mkCompOpen(cat) {
+  if (!MKT) { mktLoad(() => mkCompOpen(cat)); openModal('<div class="hint">Loading…</div>'); return; } const C = MKT.comp; cat = cat || 'direct'; const L = C.items.filter((x) => x.cat === cat);
+  openModal(`<h2>Who else sells to these owners</h2><div class="hint">${esc(C.note)}</div><div class="cc-tabs">${C.cats.map((c) => `<button class="${c[0] === cat ? 'on' : ''}" onclick="mkCompOpen('${c[0]}')">${esc(c[1].split(':')[0].split(' ').slice(0, 2).join(' '))} ${C.items.filter((x) => x.cat === c[0]).length}</button>`).join('')}</div>
+    <div class="mc-wl"><span>${esc(C.cats.find((c) => c[0] === cat)[1])}</span></div>
+    ${L.map((x) => `<div class="st-o"><em class="warn">${esc(MK_CLS[x.cls][0])}</em><div><b>${esc(x.name)}</b></div><div class="xs">${esc(x.what)}</div>${x.who ? `<div class="xs"><b>For:</b> ${esc(x.who)}</div>` : ''}${x.pos ? `<div class="xs"><b>Says:</b> ${esc(x.pos)}</div>` : ''}${x.price ? `<div class="xs"><b>Price:</b> ${esc(x.price)}</div>` : ''}${x.diff ? `<div class="xs"><b>Against you:</b> ${esc(x.diff)}</div>` : ''}${x.evid ? `<div class="xs"><b>Evidence of results:</b> ${esc(x.evid)}</div>` : ''}${x.url ? `<a class="xs" href="${esc(x.url)}" target="_blank" rel="noopener">Source</a>` : ''}</div>`).join('')}
+    <div class="xs muted">Checked ${esc(C.checked)}. What owners tell you about these on calls goes in Owner discovery, question 3.</div>
+    <div class="actions wrap"><button class="btn" onclick="mktOpen()">Market</button><button class="btn" onclick="stObsNew({kind:'competitor'})">＋ Note</button><button class="btn primary" onclick="rsNowNew()">Research now</button></div>`, true);
+}
+if (typeof mktOpen === 'function' && !mktOpen._bp) {
+  const f = mktOpen; mktOpen = function () { const r = f.apply(this, arguments); try { if (!MKT) return r; const m = document.querySelector('#modal h2'); if (!m || document.getElementById('mk-own')) return r; const A = odAnswers(), own = Object.values(S.obs || {}).filter((o) => o && !o._del && !o.test && !o.q && o.kind !== 'idea').length, idea = Object.values(S.obs || {}).filter((o) => o && !o._del && !o.test && o.kind === 'idea').length;
+    const d = document.createElement('div'); d.id = 'mk-own'; d.innerHTML = `<div class="mk-4"><button onclick="odOpen()"><b>${A.length}</b><span>owner answers</span></button><button onclick="stObsOpen()"><b>${own}</b><span>your other notes</span></button><button onclick="document.getElementById('modal').scrollTop=9e9"><b>${MKT.entries.filter((e) => !e.hist).length}</b><span>published facts</span></button><button><b>${idea}</b><span>your assumptions</span></button></div><div class="xs muted">Four kinds, never mixed: what owners said · what you saw · what is published (below, each with its date and definition) · what you only assume. ${MKT.unknown.length} things nobody here knows are listed at the bottom.</div><div class="actions wrap"><button class="btn" onclick="mkCompOpen()">Competitors by type (${MKT.comp ? MKT.comp.items.length : 0})</button><button class="btn" onclick="odOpen()">Owner discovery</button></div>`;
+    m.parentNode.insertBefore(d, m.nextSibling.nextSibling || null); } catch (e) { console.warn('mk', e); } return r; }; mktOpen._bp = 1;
+}
+
+/* ───────── knowledge → execution (books you supplied) ───────── */
+const KX_ST = ['Discovered', 'Understood', 'Adapted', 'Ready to test', 'Tested', 'Validated', 'Standardized', 'Delegated'];
+const KX_AP = { yes: ['Applies now', 'ok'], part: ['Applies in part', 'warn'], later: ['Later: needs a team or customers', ''], dup: ['Already in your lessons', ''], no: ['Does not transfer', 'bad'] };
+/* [id, source and place, principle, how he used it, verdict, adaptation for Caregiver Bench, assumption that must hold, experiment, OS step, cards, starting status] */
+const KX = [
+  ['kx-pipe', 'Lost Chapters §D pp.133–151 · Gym Launch ch.19', 'Getting staff is the same pipeline as getting customers.', 'Counted five stages for recruits and fixed the weakest one.', 'yes', 'This is the product. For each agency case count: reached, replied, screened, sent, started, working at day 30.', 'Agencies will share start and day-30 data.', 'On the first trial, fill the six counts weekly and name the weakest ratio.', 'r-measure', ['lc-hirelead'], 2],
+  ['kx-why', 'Lost Chapters §D pp.133–136', 'Trace a missed number by asking why down the chain before changing the method.', 'Sales were short because of hiring volume, not the pitch.', 'yes', 'Before touching the script, check dials → conversations → case calls. Today the constraint is dials started.', 'The weakest stage is visible in your own counts.', 'Weekly review: write the three "whys" under the weakest funnel box.', 's-dial', ['lc-hirelead', 'sc-constraint'], 2],
+  ['kx-sameday', 'Gym Launch ch.4', 'Book appointments for today or tomorrow only.', 'Gym consultations; show rate fell after about three days.', 'yes', 'Caregiver interviews and owner case calls are offered only inside 48 hours, with the details texted at once.', 'Agencies can interview within 48 hours (it is already a trial term).', 'Next 10 bookings: record days-to-appointment and showed or not.', 'r-outreach', ['gl-sameday', 'ld-speed'], 2],
+  ['kx-14', 'Gym Launch ch.16', 'A personal reach-out every 14 days; a slow reply is the warning sign.', 'Gym members; claims monthly loss fell from 9% to 3%.', 'part', 'Placed caregivers: day 1, 3, 7, 14, then every 14 days to day 90. Owners: the same rhythm during a trial.', 'Caregivers answer texts from a recruiter after they start.', 'First placement: log reply time to each check-in; call on any reply slower than 24 h.', 'r-retain', ['gl-reach', 'nc-90'], 2],
+  ['kx-exit', 'Gym Launch ch.16', 'Interview everyone who leaves.', 'Exit interviews with members.', 'part', 'Three questions to every caregiver who leaves and every owner who ends a trial.', 'People who leave will answer three questions.', 'First loss of either kind: ask, write the answers as market notes.', 's-retain', ['gl-reach'], 2],
+  ['kx-avatar', 'Lost Chapters pp.9–17', 'Find what the best customers share and sell only to their twins.', 'Surveyed customers, took the top 20%, found 3–5 shared facts.', 'part', 'No customers yet: record size, who hires, payer mix and last hiring source on every owner note; sort at 20 conversations.', 'Twenty conversations show a pattern.', 'At 20 owner conversations write the 3–5 shared facts of the ones who booked.', 's-target', ['lc-avatar'], 2],
+  ['kx-3d', 'Lost Chapters §D pp.139–143', 'Train with Document, Demonstrate, Duplicate.', 'Checklists a stranger can follow.', 'yes', 'Every step you repeat becomes a checklist now, while you still do it yourself. It is the future assistant\'s training.', 'You will repeat the step often enough to be worth writing.', 'This week: one checklist (prospect research), followed once with nothing but the page.', 't-standard', ['lc-3d'], 2],
+  ['kx-diamond', 'Lost Chapters §D pp.145–149', 'Underperformance has four causes: did not know that, did not know how, did not want to, was blocked.', 'Managers diagnosing staff.', 'later', 'Use on yourself and on slow agencies now; on staff when there is staff.', 'The four causes cover an agency that stops replying.', 'Next agency that misses the 24-hour reply: write which of the four it was.', 't-coach', ['lc-diamond'], 2],
+  ['kx-rhythm', 'Gym Launch ch.18 · Lost Chapters §D', 'A short daily huddle, a weekly meeting and weekly one-to-ones.', 'Gym teams.', 'later', 'Solo version: yesterday\'s numbers in two minutes before the first dial. The team version waits for a team.', 'A two-minute number check changes what you do next.', 'None yet: needs a second person.', 't-rhythm', [], 0],
+  ['kx-org', 'Gym Launch ch.17', 'Add roles by client count and hire slightly before you need them.', 'Gym org chart.', 'later', 'Decide the first hire and its trigger only after three paying agencies.', 'Unknown.', 'None yet.', 't-roles', [], 0],
+  ['kx-maker', 'Lost Chapters pp.152–159', 'Protect half-day blocks for making; batch everything else.', 'His own calendar.', 'yes', 'Dial blocks and BAC blocks are maker blocks. Building the app is also making, and must not take the dial block.', 'Blocks can be kept free on school days.', 'One week with no booking inside any dial block; count blocks started.', 's-dial', ['lc-maker'], 2],
+  ['kx-group', 'Lost Chapters §D pp.134–135', 'Screen many applicants at once (group interviews) and train the ones with work ethic.', 'His outreach team: 40 interviews per hire became manageable.', 'part', 'A group information call for caregivers could screen faster. The agency still does its own interview and checks.', 'Caregivers will join a group call; agencies accept candidates screened that way.', 'Not before the first trial. Then test one group call against one-to-one screening.', 'r-screen', ['lc-hirelead'], 1],
+  ['kx-obj', 'Gym Launch bonus', 'Objections come in four kinds; agree first, then ask a question; never say "but".', 'Gym sales.', 'dup', 'Already covered by your objection lessons. Nothing new to add.', '', '', 's-obj', ['sa-objections'], 2],
+  ['kx-cfa', 'Lost Chapters §B pp.46–51 (opening only)', 'A customer\'s first 30 days should pay back more than it cost to win them.', 'His companies.', 'dup', 'Already covered by the money-model lessons. Becomes relevant with the first paying agency.', '', '', 's-close', ['mm-payback', 'mm-3nums'], 2],
+  ['kx-gym', 'Gym Launch ch.1–3, 5–12, 14–15, 20–26', 'Gym pricing, capacity, overhead, supplements.', 'Gyms only.', 'no', 'Not read, and by its chapter titles gym-specific. Nothing taken from it.', '', '', '', [], 0]];
+function kxState(id) { const r = KX.find((x) => x[0] === id), m = bcV('kx:' + id, null); return { st: Math.max(r[10], (m && m.st) || 0), note: (m && m.note) || '', at: (m && m.at) || '' }; }
+function kxOpen() {
+  const by = {}; KX.forEach((r) => { (by[r[4]] = by[r[4]] || []).push(r); });
+  openModal(`<h2>Knowledge → execution</h2><div class="hint">${KX.length} principles from the two books you supplied, each judged for Caregiver Bench. "Adapted" means it is written for your business. Nothing counts as tested until you record a result.</div>
+    <div class="xs muted">Read in full: Lost Chapters pp. 9–17 and 133–159. Read in excerpts: Gym Launch ch. 4, 13, 16–19 and the bonus. Not read: Lost Chapters sections A and C, most of Gym Launch. The copies you sent are not official editions; only short summaries in my own words are kept here.</div>
+    ${['yes', 'part', 'later', 'dup', 'no'].map((k) => (by[k] || []).length ? `<div class="mc-wl"><span>${KX_AP[k][0]} (${by[k].length})</span></div>` + by[k].map((r) => { const s = kxState(r[0]); return `<button class="bp-row" onclick="kxView('${r[0]}')"><span><b>${esc(r[2])}</b><em>${esc(r[1])}</em><u class="${s.st >= 4 ? 'ok' : ''}">${KX_ST[s.st]}</u></span></button>`; }).join('') : '').join('')}
+    <div class="actions wrap"><button class="btn" onclick="kxAdd()">Add your own material</button><button class="btn primary" onclick="osOpen()">Operating system</button></div>`, true);
+}
+function kxView(id) {
+  const r = KX.find((x) => x[0] === id), s = kxState(id), step = r[8] && typeof osStep === 'function' ? osStep(r[8]) : null;
+  openModal(`<h2>${esc(r[2])}</h2><div class="hint">${esc(r[1])}</div>
+    <div class="st-o"><em>How he used it</em><div>${esc(r[3])}</div></div>
+    <div class="st-o"><em class="${KX_AP[r[4]][1]}">${KX_AP[r[4]][0]}</em><div>${esc(r[5])}</div></div>
+    ${r[6] ? `<div class="st-o"><em class="warn">Assumption that must hold</em><div>${esc(r[6])}</div></div>` : ''}${r[7] ? `<div class="st-o"><em>Experiment</em><div>${esc(r[7])}</div></div>` : ''}
+    <div class="mc-wl"><span>Status: ${KX_ST[s.st]}</span><div class="bp-st">${KX_ST.map((x, i) => `<i class="${i <= s.st ? 'on' : ''}" title="${x}"></i>`).join('')}</div>${s.note ? `<div class="xs">${esc(s.at)} · ${esc(s.note)}</div>` : ''}</div>
+    ${step ? `<button class="kp-row" onclick="osView('${r[8]}')"><span><b>Operating system step: ${esc(step.n)}</b><em>where this lives in the company</em></span></button>` : ''}
+    ${r[9].filter((c) => XC && XC.byId[c]).map((c) => `<button class="kp-row" onclick="closeModal();xcOpen('${c}')"><span><b>Lesson: ${esc(XC.byId[c].t)}</b></span></button>`).join('')}
+    <div class="actions wrap"><button class="btn" onclick="kxOpen()">Back</button>${r[7] ? `<button class="btn" onclick="kxExp('${id}')">Make it an experiment</button>` : ''}<button class="btn primary" onclick="kxSet('${id}')">Update status</button></div>`, true);
+}
+function kxSet(id) { const s = kxState(id); openModal(`<h2>Status</h2><div class="hint">From "Tested" up, write what happened: the number before, the number after, how many tries.</div><div class="cm-ch">${KX_ST.map((x, i) => `<label><input type="radio" name="kx-st" value="${i}" ${i === s.st ? 'checked' : ''}> ${x}</label>`).join('')}</div><textarea class="aq-in" id="kx-n" rows="3" placeholder="Result or proof">${esc(s.note)}</textarea><div class="actions"><button class="btn" onclick="kxView('${id}')">Cancel</button><button class="btn primary" onclick="kxSetSave('${id}')">Save</button></div>`); }
+function kxSetSave(id) { const v = Number((document.querySelector('input[name=kx-st]:checked') || {}).value) || 0, n = $('kx-n').value.trim(); if (v >= 4 && n.length < 15) { toast('Write the result first: what you measured'); return; } bcW('kx:' + id, { st: v, note: n, at: dk(new Date()) }); toast(KX_ST[v]); kxView(id); }
+/* creates an experiment only when you tap: nothing changes in the business by itself */
+function kxExp(id) { const r = KX.find((x) => x[0] === id); S.experiments = S.experiments || {}; const eid = 'e' + uid(); S.experiments[eid] = { id: eid, _u: now(), title: 'Test: ' + r[2].slice(0, 60), hypothesis: r[5], variable: '', metric: '', start: dk(new Date()), end: '', result: '', from: 'kx:' + id }; const s = kxState(id); if (s.st < 3) bcW('kx:' + id, { st: 3, note: 'Experiment created: ' + r[7], at: dk(new Date()) }); else save(); toast('Experiment created. Ready to test'); kxView(id); }
+function kxAdd() { openModal(`<h2>Add your own material</h2><div class="hint">A book, course or notes you own. It is logged as "to process" and a research request is written, so the next scan (or "Research now") turns it into lessons. Files are never uploaded by this screen.</div><input class="aq-in" id="kx-t" placeholder="Title and author"><input class="aq-in" id="kx-w" placeholder="Where it is (link, or \'PDF sent in chat\')"><textarea class="aq-in" id="kx-q" rows="2" placeholder="What you want from it"></textarea><label class="xs"><input type="checkbox" id="kx-own"> I own a legitimate copy</label><div class="actions"><button class="btn" onclick="kxOpen()">Cancel</button><button class="btn primary" onclick="kxAddSave()">Add</button></div>`); }
+function kxAddSave() { const t = $('kx-t').value.trim(); if (t.length < 4) { toast('Title first'); return; } S.research = S.research || {}; const rid = 'rq' + uid(); S.research[rid] = { id: rid, _u: now(), at: now(), q: `Process my material "${t}" (${$('kx-w').value.trim() || 'location not given'}): inventory, lessons in own words with chapter references, what applies to Caregiver Bench. ${$('kx-q').value.trim()}`.slice(0, 400), why: 'Material supplied by you' + ($('kx-own').checked ? ' (own copy)' : ' (ownership not confirmed: summaries only)'), cap: '', card: '', key: 'own:' + t.toLowerCase().slice(0, 40), auto: 0, urgent: 0, st: 'open' }; save(); toast('Logged. Open Research to send it now'); kxOpen(); }
+
+/* ───────── email lessons ───────── */
+function emLessons() { try { return ccAll().filter((x) => !x.clip && (x.type === 'email' || /^em-/.test(x.id) || /acquisition\.com|Mozi Minute/i.test((x.by || '') + (x.t || ''))) && (x.ins || x.why) && !/^Promotion/.test(x.ins || '')); } catch (e) { return []; } }
+function emOpen() {
+  const L = emLessons().sort((a, b) => (b.at || '').localeCompare(a.at || '')), noCard = L.filter((x) => !(x.cards || []).length);
+  openModal(`<h2>Email lessons</h2><div class="hint">${L.length} emails with a lesson written from the email itself. ${L.length - noCard.length} are tied to Bootcamp lessons; ${noCard.length} are not yet.</div>
+    ${L.slice(0, 60).map((x) => { const steps = typeof osOfCard === 'function' ? (x.cards || []).map((c) => osOfCard(c)).flat().filter(Boolean) : [], sn = [...new Set(steps.map((s) => s.n))].slice(0, 2); return `<div class="st-o"><em>${esc(x.at || '')}${x.tier ? ' · ' + esc(x.tier) : ''}</em><div><b>${esc(x.t || x.id)}</b></div><div class="xs">${esc(x.ins || x.why || '')}</div>${x.cb ? `<div class="xs"><b>For Caregiver Bench:</b> ${esc(x.cb)}</div>` : ''}<div class="xs muted">${(x.cards || []).filter((c) => XC && XC.byId[c]).map((c) => `<a onclick="closeModal();xcOpen('${c}')">${esc(XC.byId[c].t)}</a>`).join(' · ') || 'no lesson linked'}${sn.length ? ' → ' + esc(sn.join(', ')) : ''}</div>${x.cb && typeof kpExp === 'function' ? `<button class="btn xs" onclick="kpExp('${esc(x.id)}')">Make it an experiment</button>` : ''}</div>`; }).join('') || '<div class="hint">No processed emails on this device yet.</div>'}
+    <div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`, true);
+}
+
+/* ───────── real-phone checklist: only you can run it ───────── */
+const PT = [['install', 'Add to Home Screen, open from the icon, version shows 13.31.0 in Settings'], ['offline', 'Airplane mode on: the app opens and today\'s plan is there'], ['learn', 'Work → Learn: choose 10 minutes, start, finish one step'], ['resume', 'Close the app mid-session, reopen: "Resume" shows the same step'], ['video', 'A lesson video plays inside the card with sound'], ['dial', 'Log one owner talk: the discovery questions appear after it'], ['sync', 'Change something on the phone; it appears on the laptop within a minute'], ['tap', 'Evening: open a course lesson and tap an idea: the panel opens (the bug fixed in 13.31)'], ['text', 'No screen needs sideways scrolling; buttons are reachable with a thumb']];
+function ptOpen() { const R = bcV('pt:1331', {}); openModal(`<h2>Phone test · 13.31</h2><div class="hint">Automated tests ran in a desktop browser at phone size. That is not your phone. Tick what you checked yourself; a fail with one line helps most.</div>${PT.map(([k, t]) => `<div class="st-o"><em class="${R[k] === 'ok' ? 'ok' : R[k] === 'bad' ? 'bad' : ''}">${R[k] === 'ok' ? 'passed' : R[k] === 'bad' ? 'failed' : 'not tested'}</em><div>${esc(t)}</div><div class="actions"><button class="btn xs" onclick="ptSet('${k}','ok')">Pass</button><button class="btn xs" onclick="ptSet('${k}','bad')">Fail</button></div></div>`).join('')}<div class="xs muted">${Object.values(R).filter((v) => v === 'ok').length} of ${PT.length} passed on a real phone.</div><div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`, true); }
+function ptSet(k, v) { const R = Object.assign({}, bcV('pt:1331', {})); R[k] = v; bcW('pt:1331', R); ptOpen(); }
+
+/* ───────── test and seed records never drive signals ───────── */
+if (typeof stEvidence === 'function' && !stEvidence._dg) { const f = stEvidence; stEvidence = function () { return f.apply(this, arguments).filter((e) => !e.test && !e.seed); }; stEvidence._dg = 1; }
+function dgAudit() { const out = {}; ['obs', 'opps', 'assets', 'experiments', 'research', 'sources', 'tasks'].forEach((k) => { const L = Object.values(S[k] || {}).filter((r) => r && !r._del); out[k] = { n: L.length, seed: L.filter((r) => r.seed).length, test: L.filter((r) => r.test || /^test[-_ ]|TEST-ONLY/i.test(String(r.title || r.t || r.text || r.q || ''))).length }; }); return out; }
+function dgOpen() { const A = dgAudit(); openModal(`<h2>Test and starter records</h2><div class="hint">Automated tests run in a throwaway browser that never touches your data or your cloud row. This screen shows what is on this device.</div>${Object.entries(A).map(([k, v]) => `<div class="st-o"><em class="${v.test ? 'bad' : 'ok'}">${v.test} test · ${v.seed} starter</em><div><b>${k}</b>: ${v.n} records</div></div>`).join('')}<div class="xs muted">Starter records are the examples War Room created for you (marked "seed"). Neither kind is counted as market evidence or used for signals.</div><div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`); }
+
+(function () {
+  const st = document.createElement('style'); st.textContent = `.bp-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.bp-sum div{border:1px solid var(--ln,#2a2a2e);border-radius:10px;padding:8px 6px;text-align:center}.bp-sum b{display:block;font-size:20px}.bp-sum span{font-size:10.5px;opacity:.7;line-height:1.2;display:block}
+.bp-tabs{flex-wrap:wrap}.bp-row{display:flex;gap:8px;align-items:center;justify-content:space-between;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--ln,#2a2a2e);padding:9px 2px;color:inherit;font:inherit}.bp-row span:first-child{min-width:0;flex:1}.bp-row b{display:block;font-size:14px;overflow-wrap:anywhere}.bp-row em{display:block;font-style:normal;font-size:11px;opacity:.65}.bp-row u{display:block;text-decoration:none;font-size:11px;color:var(--warn,#d29922);overflow-wrap:anywhere}.bp-row u.ok{color:var(--good,#3fb950)}
+.bp-t{display:flex;gap:3px;flex:none}.bp-t i{font-style:normal;font-size:10px;width:18px;height:18px;line-height:18px;text-align:center;border-radius:5px;border:1px solid var(--ln,#2a2a2e);opacity:.45}.bp-t i.on{opacity:1;background:var(--good,#3fb950);color:#000;border-color:transparent}.bp-t i.half{opacity:1;border-color:var(--warn,#d29922);color:var(--warn,#d29922)}
+.bp-st{display:flex;gap:3px;margin:6px 0}.bp-st i{flex:1;height:6px;border-radius:3px;background:var(--ln,#2a2a2e)}.bp-st i.on{background:var(--good,#3fb950)}
+.mk-4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.mk-4 button{border:1px solid var(--ln,#2a2a2e);border-radius:10px;padding:8px 2px;background:none;color:inherit;font:inherit;text-align:center}.mk-4 b{display:block;font-size:18px}.mk-4 span{font-size:10px;opacity:.7;display:block;line-height:1.15}
+.btn.xs{font-size:11.5px;padding:5px 9px;margin-top:5px}.st-o a{text-decoration:underline;cursor:pointer}`; document.head.appendChild(st);
+})();

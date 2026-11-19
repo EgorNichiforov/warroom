@@ -124,3 +124,25 @@ Known rough edge: the stage "Constraint" strip still shows under the mission and
 
 ## 18 Nov 2026 · 13.23.2 · deployed
 Integrity pass: per-field sync merge, CRM/bench read-merge-write, convergence push, full restore, evidence-true mastery, Playbook territory in AI prompts. 288/288. Server-side backup of 22 rows taken first.
+
+## 13.31.0 · 19 Nov 2026 · one way to learn, Blueprint audit, owner discovery, market v2
+
+**New files:** `blueprint.js`, `learnx.js`, `tests/test_1331.py`. **Changed:** `arc.js` (startup race), `lib/cards.json` (+16, 250 total), `lib/boot.json`, `capmap.js` (five gaps filled), `lib/market.json` (v13.31), `lib/sources.json` (two book notes), `research.js` (one topic label), `reality.js` and `shell.js` (entry points), `index.html`, `sw.js`, `core.js`, `playbook.js`.
+
+**Learn (learnx.js).** Work → Learn opens on a new first tab, "Now". `lxBuild(min, focus, opt)` returns a session: steps of kind lesson, review, practice, mission, apply, consume. Each step launches the component that already owns that record (`bcLesson`, `cpRecallSet`, `cmTrain`, `ccDone`, `ccPlay`); a mission writes capability evidence only with a written account, or becomes a task. Session state is `S.boot['lx:cur']`, the log is `S.boot['lx:log']` (last 60); both sync like every Bootcamp value. Nothing else is stored, so there is still one source of progress per kind. Order of decisions: unused or unpractised learning first → due reviews → new lesson (path order, NOW capabilities first, dial gate respected) → practice of that lesson's capability → mission → library resources → second lesson. Track rotation: after two business sessions the next is personal. A Blueprint competency with no lesson and no resource raises one research job (`key: 'bp:<id>'`, one open at a time); a resource imported for that job becomes the main block of the next personal session. The Library (`ccTab`) is rendered as a tab of Learn. `window.LX_OFF` or `LN_OFF` restores the old default tab for the legacy tests.
+
+**Blueprint (blueprint.js).** `bpAll()` = every capability-map row placed in one of ten areas (A–J) plus 23 competencies that are not in the map yet. `bpHas`/`bpMissing` report per competency: own lesson, keyword-only match, written test questions, written exercise, inspected video, title-checked video, library resources. `bpStage` is the larger of the stage derived from records and a manual stage (proof required from "Practised"). Audit on a clean profile: 107 competencies; 84 with a lesson of their own, 5 with keyword matches only, 18 with none; 53 with written test questions; 53 with an inspected video, 36 more with a video nobody has watched.
+
+**Owner discovery.** `OD_Q` (nine questions), `odCapture` after `saveOwner` (wrapper, `OD_OFF` disables), answers saved in `S.obs` with `q`, `qi`, `src: 'owner call'`. `mktOpen` shows four counts kept apart. Playbook page `os-discovery`.
+
+**Knowledge → execution.** `KX` (15 principles from $100M Lost Chapters and Gym Launch Secrets), verdict yes / part / later / dup / no, status in `S.boot['kx:<id>']`, proof required from "Tested". Source PDFs were supplied by the user, are not official editions, are not in the repository; only own-words summaries with chapter or page references are stored.
+
+**Market v2.** BLS 2025–35 (current) and 2024–34 (flagged `hist`), each with definition, dates, forecast period. Florida count broken into four licence types with what it does and does not include. `comp`: 19 entries in six types, each with source class; missing prices say "Not public". Three consolidation entries.
+
+**Fix.** `arc.js`: the 1.6 s startup fallback re-opened the Day overlay after navigation when start-up was slow. Reproduced 9/18 (2/9 at noon, 7/9 at 17:44 simulated), 0/18 after. Cause of the old "evening" test failure: a real race, more frequent in the evening in my runs; why evening is worse was not established.
+
+**Guard.** `stEvidence()` drops records flagged `test` or `seed`; `dgAudit()` counts them. Tests run in throwaway browser contexts with the cloud blocked.
+
+**Tests.** `test_1331.py` 72 checks including scenarios A–G of the unified-learning brief; `test_1327.py` 122; `test_1326.py` 55; legacy `run.py` 316, run at an evening clock (the one that used to fail).
+
+**Not done / blocked.** No real-phone test (checklist in Operator → Phone test). No video among the 16 new lessons has been watched. Lost Chapters sections A and C and most of Gym Launch are unread. Competitor prices mostly not public; Tampa Bay-local recruiters and staffing firms not searched. Daily research schedule still not approved. Tax lesson: the 2027 Moldovan rate proposal's status is unverified. 23 Blueprint competencies have no lesson of their own.

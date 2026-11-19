@@ -97,3 +97,23 @@ Rule kept: one recommender. Content, campaigns and money add candidates or facts
 ## 13.28 · Strategy
 
 `strategy.js` owns `S.obs`, `S.opps`, `S.assets`, `S.settings.strategy`. Reads: queue call notes, experiments, Field Manual, tasks, campaigns, stage. Writes: experiments (on validation), one fact and at most one risk into `mcBuild`. `stFocusCaps()` feeds `ccFocus()` so learning follows the business stage. The A/B/C comparison never starts with numbers: every cell is unknown until scored with a named basis.
+
+## 13.31 · the learning system as one map
+
+```
+GOAL (Mission, long game)
+  └ COMPETENCY  blueprint.js  bpAll(): capability map + 23 not-yet-mapped, ten areas A–J
+      └ PATH    learnx.js     LX_PATHS: nine paths = ordered Bootcamp modules + Blueprint areas
+          └ MODULE / LESSON   lib/boot.json, lib/cards.json (250), bootcamp.js
+              └ RESOURCE      lib/sources.json + S.sources, card clips (content.js ccAll)
+              └ PRACTICE      expand.js cmTrain, scenarios (bootcamp.js)
+              └ MISSION       card.move → capability evidence (capmap.js cmRecord) or a task
+              └ ASSESSMENT    Bootcamp quiz, written recall questions
+              └ REVIEW        mastery.js msQueue / msSchedule
+      └ MASTERY  bpStage(): max(records, proven manual stage)
+SESSION  learnx.js lxBuild → S.boot['lx:cur'] → lxEnd → S.boot['lx:log']
+REVERSE  weak or unpractised capability → session becomes practice; competency without lesson → research job (bp:<id>)
+         → scan or "Research now" → inbox import → resource tied to the job → next session offers it
+BUSINESS opsys.js steps ← KX principles (blueprint.js) ← books; owner answers (S.obs, q) → market screen
+```
+One record per kind: learned `l:<card>`, memory `S.cards`, evidence `cx:<cap>`, resource state `S.content`, session `lx:*`.
