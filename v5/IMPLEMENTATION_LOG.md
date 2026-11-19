@@ -239,3 +239,15 @@ Part 2 requirement by requirement, as verified in code: spaced repetition by rec
 Not built: questions generated for a new situation (needs the AI key and would be unverifiable offline), automatic difficulty inside the quiz mode.
 
 Tests: see commit. Not a real phone.
+
+## 13.39.0 · 19 Nov 2026 · domain depth (Part 3) and getting around (Part 4)
+
+**New:** `domain.js`, `ux.js`, `tests/test_1339.py` (39). **Changed:** `index.html`, `sw.js`, version strings, documents.
+
+Part 3, what was built on existing records: loss reasons, planned vs done, business economics with a "cannot be measured yet" list, goal kind/priority/milestones/review date, body log suggestions, focus row, monthly change follow-through, the nine-area map. Already in the app before today and only linked: net worth (wealth.js), forecast and runway (money2/4), focus blocks (mission.js), campaigns, decisions, the company operating system, BAC plan.
+
+Part 4: back-button handling did not exist at all before this release. Workflows, guided tour, kinds page added. Bottom navigation was already five plain names (Day, Work, +, Money, You).
+
+Not built: a body plan that rewrites itself, lifetime value and margin per placement (no data exists), per-screen reduction of controls (screens show 15 to 33 controls; not restructured), renaming inner tabs.
+
+Tests: see commit. Not a real phone.

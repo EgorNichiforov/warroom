@@ -16,7 +16,7 @@ def boot(b, keep=None, t='2026-11-19T17:00:00+02:00'):
 with sync_playwright() as p:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox']); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("S.settings.season={dom:'biz',kind:'bizbuild',primary:'20k MRR'}; save(); 0")
-    check('version 13.38.0', ev("APP_VERSION==='13.38.0'"), ev("APP_VERSION"))
+    check('version 13.39.0', ev("APP_VERSION==='13.39.0'"), ev("APP_VERSION"))
     # ── calls made elsewhere
     check('nothing is counted until you enter it', ev("mcDialEvidence(dk(new Date())).logged===0&&mcWeek().logged===0&&stFunnel(7,0).d===0"))
     ev("dxOutside(); 0"); pg.wait_for_timeout(250)
@@ -53,7 +53,7 @@ with sync_playwright() as p:
     R = ev("scRows().map(r=>({n:r[0],v:r[1],p:r[2],t:r[3],k:r[4],src:r[5],def:r[6],low:r[7]}))")
     check('scorecard: every number has a meaning, a source and what to do when it is low; none is a composite score', len(R) >= 12 and all(r['src'] and len(r['def']) > 20 and len(r['low']) > 15 and r['k'] in ('lead', 'lag') for r in R) and not any('score' in r['n'].lower() for r in R), [r['n'] for r in R])
     check('scorecard reads the same records as everything else (dials 40, owner conversations 1)', R[0]['v'] == 40 and 'outside report' in R[0]['src'] and R[2]['v'] == 1, R[:3])
-    check('targets appear only where you set a weekly goal', ev("(()=>{const g=(re)=>Object.values(S.goals||{}).find(g=>g&&!g._del&&g.horizon==='week'&&re.test(g.title||''));const R=scRows();return R.every((r,i)=>r[3]===null||[0,6,7].includes(i))&&((g(/dial/i)?R[0][3]===Number(g(/dial/i).target):R[0][3]===null))})()"))
+    check('targets appear only where you set a weekly goal', ev("(()=>{const g=(re)=>Object.values(S.goals||{}).find(g=>g&&!g._del&&g.horizon==='week'&&re.test(g.title||''));const R=scRows();return R.every((r)=>r[3]===null||['Dials','BAC minutes','Training days'].includes(r[0]))&&((g(/dial/i)?R[0][3]===Number(g(/dial/i).target):R[0][3]===null))})()"))
     ev("scOpen(); 0"); pg.wait_for_timeout(250)
     check('scorecard screen: rows open to their meaning; no measurement is said, not hidden; no overflow', ev("document.querySelectorAll('#modal .sc-r').length>=12&&/no measurement|of 5/.test(document.getElementById('modal').textContent)&&document.getElementById('modal').scrollWidth<=390") and ev("(()=>{const r=document.querySelector('#modal .sc-r');r.click();return getComputedStyle(r.querySelector('.sc-d')).display==='block'})()"))
     # ── goal check
@@ -115,7 +115,7 @@ with sync_playwright() as p:
     ev("$('qr-d').value='Yes: owners take the call'; $('qr-r').value='First paying agency'; qrSave(); 0")
     check('the quarter is saved under its own key', ev("/^qr:2026-Q4$/.test(qrKey())&&bcV(qrKey(),null).result==='First paying agency'"))
     ev("scOpen(); 0"); pg.wait_for_timeout(250)
-    check('the scorecard links to funnel, body trend, money split, month and quarter; all are in Where do I…?', ev("document.querySelectorAll('#sc-more button').length===5&&['funnel','bodytrend','quarter'].every(id=>WF.some(x=>x[0]===id))&&(wfFind('weight trend')[0]||[])[0]==='bodytrend'&&(wfFind('where my funnel stops')[0]||[])[0]==='funnel'"), ev("[(wfFind('weight trend')[0]||[])[0],(wfFind('where my funnel stops')[0]||[])[0]]"))
+    check('the scorecard links to funnel, body trend, money split, month and quarter; all are in Where do I…?', ev("document.querySelectorAll('#sc-more button').length>=5&&['Funnel','Body trend','Money split','Month','Quarter'].every(t=>[...document.querySelectorAll('#sc-more button')].some(b=>b.textContent.includes(t)))&&['funnel','bodytrend','quarter'].every(id=>WF.some(x=>x[0]===id))&&(wfFind('weight trend')[0]||[])[0]==='bodytrend'&&(wfFind('where my funnel stops')[0]||[])[0]==='funnel'"), ev("[(wfFind('weight trend')[0]||[])[0],(wfFind('where my funnel stops')[0]||[])[0]]"))
     ev("closeModal(); 0")
     # ── 13.36: a planned payment that is due is an ordinary candidate
     check('no planned payment due: Mission Control has no bill line', ev("!mcBuild().C.some(c=>c.k==='bill')"))

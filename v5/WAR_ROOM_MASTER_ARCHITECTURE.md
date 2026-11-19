@@ -1,4 +1,4 @@
-# War Room · master architecture (13.38.0, 19 Nov 2026)
+# War Room · master architecture (13.39.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -131,6 +131,12 @@ Wraps the recall engine; plans nothing. `msGrade` → `rlog` (`[day, card, grade
 
 Stage 8 cleanup: 33 top-level functions with no reference in any script, the HTML shell or the lesson data were removed by parser range (three passes). `nova.js` stays loaded: six of its functions are still referenced from eight files. Modules that only hook in through wrappers were not touched.
 
+## 8f. Domain depth and getting around (13.39, `domain.js`, `ux.js`)
+
+`domain.js` (ranks nothing): `saveOwner` wrapped → `slWhyAsk` when the talk ended in status `no` (`log[].why`, `item.lostWhy`), then the owner-answer capture; `slWhyStats()`. `pdWeek()` = `dialTargetFor(day)` against `mcDialLog()`. `ecData()`/`ecOpen()` read `members()`, `PLANS`, `trials()`, `placements()`, the ledger (`mbMonth`, `mnTx`), call durations and the bench; `D.miss` names what cannot be measured. Goals gain `kind`, `prio`, `ms[]`, `review` (edited one goal at a time; `gcOpen` shows the attention split). `bwSuggest()` reads training gaps and bedtime spread. `mrSave` adds one task for the month's change; `mrOpen` asks whether last month's happened (`kept`). `DM` + `dmOpen(id)`: nine areas, each with purpose, reality, goals, Mission Control's candidate for that domain (`mcLast.C`), homes, scorecard rows, what to do when it slips.
+
+`ux.js`: `NB` back handling (`popstate` → sheet, drive mode, Learn sub-screen, previous screen, Day; a guard history entry is re-armed on every `show`/`openModal`). `UX_FLOW` + `wfFlow(id)`: five workflows whose steps are wayfinding ids. `wfTour` with "Show me". `wfKinds()`.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -138,6 +144,6 @@ Stage 8 cleanup: 33 top-level functions with no reference in any script, the HTM
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.38.
+- No real-phone test of 13.31 to 13.39. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.
