@@ -146,3 +146,7 @@ Integrity pass: per-field sync merge, CRM/bench read-merge-write, convergence pu
 **Tests.** `test_1331.py` 72 checks including scenarios A–G of the unified-learning brief; `test_1327.py` 122; `test_1326.py` 55; legacy `run.py` 316, run at an evening clock (the one that used to fail).
 
 **Not done / blocked.** No real-phone test (checklist in Operator → Phone test). No video among the 16 new lessons has been watched. Lost Chapters sections A and C and most of Gym Launch are unread. Competitor prices mostly not public; Tampa Bay-local recruiters and staffing firms not searched. Daily research schedule still not approved. Tax lesson: the 2027 Moldovan rate proposal's status is unverified. 23 Blueprint competencies have no lesson of their own.
+
+## 13.31.1 · 19 Nov 2026
+
+`content.js`: the banner that 13.28 injected above Learn and Courses is no longer added when `learnx.js` is loaded (seen on the live build: it was a second entry point next to Learn → Now). One new check in `test_1331.py`.
