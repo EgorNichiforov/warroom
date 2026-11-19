@@ -667,6 +667,17 @@ with sync_playwright() as p:
       mk('c3','BODY 85 kg',['78 kg']); mk('c4','FOURTH THING',['x']); out.cap=mcCampaigns().length===3; campToggle('c4'); const paused=S.campaigns.c4.active===false; campToggle('c4'); out.cap2=paused&&S.campaigns.c4.active===false;
       mcOpenCard=true; out.card=/Campaign ·/.test(mcCard()); mcOpenCard=false; mcWhy(); const tx=document.getElementById('modal').textContent; out.why=/Campaign it advances/.test(tx)&&/Invoice 001 paid/.test(tx)&&/call log: 1 of 1/.test(tx); closeModal(); return out; })()""")
     check('Campaigns 13.25.1: the mission names its campaign and next milestone; progress counts evidence only (call log or written proof); three active at most', r['link'] and r['auto'] and r['noEv'] and r['ask'] and r['ev'] and r['cap'] and r['cap2'] and r['card'] and r['why'], r)
+    r = ev("""(()=>{ const out={}, o=day(new Date()); closeModal(); S.settings.bed='21:00'; delete o.replan; delete o.replanAt; delete o.replanPrev; mcSetMode('full'); closeModal(); const FL=(open,closeIn)=>({h:10,t:'10:30',wd:'Wed',open,known:true,closeIn,opensIn:null});
+      nowMin=()=>17*60+30; mcFlorida=()=>FL(true,300); window.__blocks=[{id:'b1',start:'18:00',end:'19:30',title:'Dials',kind:'dials'},{id:'b2',start:'19:40',end:'20:30',title:'BAC',kind:'bac'}];
+      let R=enReplan(); out.calm=R.decisions.keep.length===2&&!R.decisions.move.length&&!R.decisions.drop.length;
+      nowMin=()=>19*60; mcFlorida=()=>FL(true,120); window.__blocks=[{id:'b1',start:'16:00',end:'17:30',title:'Dials',kind:'dials'},{id:'b2',start:'19:40',end:'20:30',title:'BAC',kind:'bac'},{id:'t1',start:'20:30',end:'20:45',title:'Tennis',kind:'tennis'}];
+      R=enReplan(); out.move=R.decisions.move.some(x=>x.id==='b1'&&/19:00/.test(x.to))&&R.decisions.keep.some(x=>x.id==='b2')&&R.decisions.keep.some(x=>x.id==='t1'&&/Fixed/.test(x.why))&&R.plan.some(p=>p.k==='dials'&&p.s===1140&&p.e===1180);
+      mcFlorida=()=>({h:18,t:'18:30',wd:'Wed',open:false,known:true,closeIn:0,opensIn:null}); R=enReplan(); out.drop=R.decisions.drop.some(x=>x.id==='b1'&&/Florida/.test(x.why));
+      enReplanModal(); const tx=document.getElementById('modal').textContent; out.modal=/KEEP/.test(tx)&&/DROP/.test(tx)&&/Keep my plan/.test(tx)&&/Nothing changes until you confirm/.test(tx); closeModal(); out.declined=!o.replan&&!o.replanAt;
+      mcFlorida=()=>FL(true,120); enReplanUse(); out.applied=Array.isArray(o.replan)&&o.replan.some(b=>b.kind==='dials'&&b.start==='19:00')&&!!o.replanAt&&o.replanLog.length===1; enReplanUndo(); out.undo=!o.replan&&!o.replanAt;
+      mcSetMode('rec'); R=enReplan(); out.rec=R.decisions.drop.some(x=>x.id==='b2')&&R.decisions.keep.some(x=>x.id==='t1'); mcSetMode('full'); closeModal(); nowMin=()=>17*60+30; return out; })()""")
+    check('Replan 13.25.2: a calm day keeps everything; a missed call block moves inside Florida hours; outside them it is dropped with the reason; fixed blocks never move', r['calm'] and r['move'] and r['drop'] and r['rec'], r)
+    check('Replan 13.25.2: nothing changes until confirmed; declining leaves the plan intact; applying is recorded and can be undone', r['modal'] and r['declined'] and r['applied'] and r['undo'], r)
     check('Mission 13.24: no page errors', not errs, errs[:3]); b.close()
 
     # Parity 13.8: the phone gets everything the laptop shows
