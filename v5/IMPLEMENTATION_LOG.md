@@ -251,3 +251,11 @@ Part 4: back-button handling did not exist at all before this release. Workflows
 Not built: a body plan that rewrites itself, lifetime value and margin per placement (no data exists), per-screen reduction of controls (screens show 15 to 33 controls; not restructured), renaming inner tabs.
 
 Tests: see commit. Not a real phone.
+
+## 13.40.0 · 19 Nov 2026 · the learning decision applied on-device; caregiver drop-out reasons
+
+**Changed:** `learnx.js` (`lxPersMigrate`, explicit `'none'`), `domain.js` (`CG_WHY`, `cgWhyAsk`, `cgWhyStats`), tests (`test_1337.py` 18, `test_1339.py` 41), version strings, documents.
+
+Found while checking the work: the cloud-side write of `settings.learn` made at 20:43 was gone by 21:22 after a laptop sync (goal changes made the same way survived, because goals merge per record by newest timestamp). Fixed by applying the decision in the app on each synced device.
+
+Tests: see commit. Not a real phone.

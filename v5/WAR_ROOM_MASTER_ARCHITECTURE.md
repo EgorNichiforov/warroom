@@ -1,4 +1,4 @@
-# War Room · master architecture (13.39.0, 19 Nov 2026)
+# War Room · master architecture (13.40.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -137,6 +137,11 @@ Stage 8 cleanup: 33 top-level functions with no reference in any script, the HTM
 
 `ux.js`: `NB` back handling (`popstate` → sheet, drive mode, Learn sub-screen, previous screen, Day; a guard history entry is re-armed on every `show`/`openModal`). `UX_FLOW` + `wfFlow(id)`: five workflows whose steps are wayfinding ids. `wfTour` with "Show me". `wfKinds()`.
 
+## 8g. 13.40
+
+- `lxPersMigrate()` (learnx.js, runs at load): on a device with a sync code and no recorded choice, sets `settings.learn.persMode = 'need'` once (`S.migrations.m20261119learn`). "No guarantee" is now stored as `persMode: 'none'` so it is a recorded choice. Lesson learned: a cloud-side edit of a `settings` field did not survive a device sync within the hour; settings must be changed on a device, where the merge base is correct.
+- `cgOutcome(id,'no')` wrapped → `cgWhyAsk` (`CG_WHY`, `item.dropWhy`); `cgWhyStats()` shown in `ecOpen()`.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -144,6 +149,6 @@ Stage 8 cleanup: 33 top-level functions with no reference in any script, the HTM
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.39. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
+- No real-phone test of 13.31 to 13.40. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

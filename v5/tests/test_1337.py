@@ -45,6 +45,16 @@ with sync_playwright() as p:
     ev("S.settings.learn={persMode:'need'}; CO_LEARN.t=0; 0")
     D = ev("(()=>{const M=mcBuild(),c=M.C.find(c=>c.k==='learn');return c?{why:c.why,dom:c.dom,tier:c.tier}:null})()")
     check('the Day candidate words it the same way and Mission Control still ranks alone', D is None or (D['dom'] != 'life') or ('as much as needed' in D['why']), D)
+    # 13.40: the decision of 19 Nov is applied by the app itself, once, only on a device that syncs his data
+    ev("S.settings.learn={}; delete S.migrations.m20261119learn; S.settings.sync.code=''; 0")
+    check('a device with no sync code is left alone (fresh installs and tests keep "no guarantee")', ev("lxPersMigrate()===false&&lxPersMode()==='none'&&!S.migrations.m20261119learn"))
+    ev("window.__pt=typeof pushTimer!=='undefined'; S.settings.sync.code='testcode-not-real-0000'; S.settings.sync.url='https://x.test'; 0")
+    check('on a synced device with no choice recorded, "as much as needed" is set once', ev("lxPersMigrate()===true&&lxPersMode()==='need'&&!!S.migrations.m20261119learn"))
+    ev("lxPersSave('none'); 0")
+    check('choosing "No guarantee" afterwards is stored as a choice and is not overridden when the step runs again', ev("(()=>{delete S.migrations.m20261119learn;const r=lxPersMigrate();return r===false&&S.settings.learn.persMode==='none'&&lxPersMode()==='none'})()"))
+    ev("S.settings.learn={persMin:60}; delete S.migrations.m20261119learn; 0")
+    check('minutes you set are never replaced', ev("lxPersMigrate()===false&&lxPersMin()===60"))
+    ev("S.settings.sync.code=''; clearTimeout(pushTimer); 0")
     check('no page errors', not errs, errs[:3]); b.close()
 bad = [r for r in RES if not r[1]]
 print(f"\n{len(RES) - len(bad)}/{len(RES)} passed"); sys.exit(1 if bad else 0)
