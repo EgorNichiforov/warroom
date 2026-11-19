@@ -1,4 +1,4 @@
-# Bootcamp system spec (13.24.0)
+# Bootcamp system spec (13.26.0)
 
 Goal: from not knowing → understanding → remembering → using. Nothing counts because it was read or watched.
 
@@ -32,10 +32,18 @@ knowledge · performance · problem-solving · physical · self-regulation · ju
 Watched (video position saved) · Learned (lesson reached Understood) · Demonstrated (Applied+). Today only the ladder shows this; a per-course view is on the roadmap.
 
 ## Application evidence from real work
-After-action review (`cpAar`) links a real event to an idea and counts as real use. Call transcripts → coaching → next lesson is blocked on the Quo setup. A recorded call never awards a stage by itself: the review does.
+13.26: after-action review (`cpAar`) links a real event to a capability and an idea. Effort (did / partly / avoided), outcome (good / mixed / bad) and skill to standard (yes / partly / no) are recorded separately. The idea counts as real use (Applied) only when the skill was performed to standard WITH written evidence. Before 13.26 any review counted. Call transcripts → coaching → next lesson is blocked on the Quo setup. A recorded call never awards a stage by itself: the review does.
 
 ## BAC loop (bac.js + life.js)
 error → error card (spaced 1/3/7/14/30) → due errors become the day's BAC mission → timed mock every 14 days per subject → last-3 average vs target → weakest subject + most-missed topic gets the study block. "On track" is stated only when every subject has a mock. Subjects/targets come from `LF_SUBJ` and are NOT verified against the ministry's 2027 rules.
 
 ## Provenance
 Each idea shows its source (`who` / course) and claim type. Default label: "practitioner advice, paraphrased, not independently verified". A `kind` field on a card overrides it (research finding · legal requirement · practitioner advice · business heuristic · personal experiment). No card has been re-verified yet.
+
+
+## Capability map (13.26, capmap.js)
+Nine domains (business, communication, judgment, safety, decisions, self-regulation, money and adult life, physical, learning), about 95 capabilities. Each defines: meaning, observable competent behaviour, knowledge, practice, real-world evidence, assessment, next step, training mode, and the existing cards that teach it. A capability with no card is shown as **missing content**; nothing is invented to fill it.
+Two separate levels per capability:
+- **Knowledge** = how many of its mapped ideas are Understood / Retained / Applied on the ladder.
+- **Performance** = judged real events in `cx:<id>`: 0 none · 1 attempted · 2 partly · 3 demonstrated (skill to standard with evidence) · 4 reliable (3+ on 3+ days) · 5 transferred (2+ contexts). Simulations, scenarios and call-log activity never raise it.
+`cmNext()` picks one capability to develop with its reasons: season domain, active campaign, 2+ shortfalls in 45 days (→ targeted practice), avoidance, theory known but no performance.

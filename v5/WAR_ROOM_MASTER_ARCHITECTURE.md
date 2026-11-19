@@ -1,4 +1,4 @@
-# War Room · master architecture (13.24.0, 19 Nov 2026)
+# War Room · master architecture (13.26.0, 19 Nov 2026)
 
 Authoritative map of the app as built. Supersedes sections 1 and 2 of `ARCHITECTURE.md` (its runbook parts still apply).
 Plain-JavaScript PWA, no build step, offline-first. 71 scripts loaded in order by `index.html`.
@@ -47,3 +47,34 @@ See `SECURITY_AND_RECOVERY.md`. In short: three documents (main `S`, queue `Q`, 
 
 ## Module ownership rule
 A change goes in the file that owns the function. 13.24 edited owners directly (`arc.js`, `views.js`, `core.js`, `bootcamp.js`, `mastery.js`, `capability.js`, `intel.js`). Still wrapped (legacy, to unwind): `arcHtml` (9 files), `render` (8), `show` (5), `bcPath` (4).
+
+
+## 13.26 · master map of the life systems (single source of truth per system)
+
+Loop: reality → understanding → priorities → decisions → action → evidence → learning → adaptation. `mcBuild()` stays the only recommender; every system below feeds it facts or records evidence.
+
+| System | Source of truth | Owner file | Feeds / reads | Status (19 Nov) |
+|---|---|---|---|---|
+| Personal reality (facts with status, constraints) | `S.reality` | reality.js | Red Team, Operator, search | Implemented, tested |
+| Season (purpose, priorities, must-not-sacrifice, review) | `S.settings.season` | mission.js | mcBuild tier 1, cmNext, weekly review | Implemented, tested |
+| Lens for today | `day.lens` | mission.js | mcBuild tier 1 (fixed commitments still first) | Implemented, tested |
+| Life direction | `S.settings.direction` | reality.js | Operator | Implemented (UI only, no logic) |
+| Campaigns + milestones (evidence only, max 3) | `S.campaigns` | intel.js | mcBuild, Red Team, journal history | Implemented (13.25.1) |
+| Capacity, conflicts, week fix | computed from `blocksFor`; changes in `day.sched` | reality.js | mcBuild risks, weekly review | Implemented, tested |
+| Stagnation + execution nudge | computed | reality.js | mcBuild facts / card | Implemented, tested |
+| Capability map (9 domains) | `CM_CAPS` in capmap.js + `S.boot['cx:*']` | capmap.js | Bootcamp, AAR, journal, Judgment Lab, Field Manual, pipeline | Implemented, tested |
+| Mastery ladder | `bcRung` (bootcamp.js) from `S.boot` evidence | bootcamp.js | capability knowledge level | Implemented (13.24) |
+| After-action review | `S.boot.aar` | capability.js | capability performance, journal | Implemented, tested |
+| Reality Journal + history + search | `S.journal` (+ reads all owners) | journal.js | protocols, Field Manual, practice | Implemented, tested |
+| Decisions + predictions | `S.decisions` | judge.js (intel.js legacy form) | calibration, weekly review, mcBuild due reviews | Implemented, tested |
+| Red Team + risks + pre-mortem | `S.risks` (+ computed checks) | judge.js | tasks, mcBuild due reviews | Implemented, tested |
+| Attention Defense | triggers in `S.journal`, protocols `S.protocols` (t 'attn') | defense.js | indicators, patterns | Implemented, tested |
+| Field Manual + Contingency | `S.manual` | defense.js | capabilities, pipeline | Implemented, tested |
+| Knowledge pipeline | `lib/sources.json` + `S.sources` | kpipe.js | cards, capabilities, manual, experiments, tasks | Implemented, tested; weekly discovery task NOT created (needs approval) |
+| BAC loop + official sources | `S.lifeTests`, `S.lifeErrors`, `BAC_OFFICIAL` | bac.js, life.js | mcBuild | Loop implemented; topic map pending the official programmes PDF |
+| Indicators | computed | reality.js | Operator | Implemented |
+
+Entry points: You → Engine → **Operator** (one screen of tiles), the global ＋ (Journal, Trigger), the Day mission (Why this, mode/lens), Progress → Capability map.
+
+### Continuous discovery (approved design, scheduled task not yet created)
+Weekly, Monday 07:37 Chisinau: Gmail read-only search for Acquisition.com / Hormozi mail of the last 8 days → process each educational email in own words (no long quotes), mark linked videos "not accessed" unless a transcript is reachable → de-duplicate against `lib/sources.json` and `lib/cards.json` → one "📥 Knowledge discovery" note in the in-app inbox (same SQL pattern as the nightly review) with a one-line JSON list → Egor pastes it into Knowledge pipeline → Import. Nothing is imported, operationalized or changed without him. The full prompt is in the session report of 19 Nov 2026.

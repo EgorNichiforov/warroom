@@ -161,6 +161,10 @@ with sync_playwright() as p:
     ev("kpImport(); $('kp-json').value=JSON.stringify([{t:'A',url:'https://example.com/v'},{t:'New email video',url:'https://example.com/n',type:'video'}]); kpImportRun()")
     check('import skips duplicates by link', ev("kpAll().filter(x=>x.url==='https://example.com/v').length===1 && kpAll().some(x=>x.t==='New email video')"))
 
+    check('researched inventory loads into the pipeline', ev("kpAll().filter(x=>x.lib).length>=70 && kpAll().some(x=>x.id==='hz-lost'&&x.gap)"))
+    check('email archive items wait at a real stage, processed ones are further', ev("kpNext(kpGet(kpAll().find(x=>x.t==='We listened to 11,000 sales calls').id))!=='process'"))
+    check('BAC board cites official Moldovan sources, not Romania', ev("bacOpen(); /2046/.test($('modal').innerHTML) && /ance\\.gov\\.md/.test($('modal').innerHTML)"))
+    ev("closeModal()")
     # 8 · spaced repetition still runs on recall (13.25.4 engine untouched)
     check('memory queue still available', ev("Array.isArray(msQueue(8))"))
 
