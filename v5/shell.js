@@ -106,7 +106,7 @@ function shHScroll(el) { for (let n = el; n && n !== document.body; n = n.parent
 const SH_QUICK = [
   ['+1 dial', 'arcApply([["dials",1,"+1 dial"]])', 'dial'], ['+1 owner talk', 'arcApply([["owners",1,"+1 owner talk"]])', 'star'], ['Spent', 'mnEdit(null,{type:"out"})', 'wallet'], ['Earned', 'mnEdit(null,{type:"in",cat:"tennis"})', 'wallet'],
   ['Weight', 'closeModal();weightModal()', 'scale'], ['Trained', 'adChange()', 'train'], ['BAC 25 min', 'closeModal();startTimer("bac",25);arcRender&&arcRender()', 'timer'], ['Change today', 'adChange()', 'cal'],
-  ['Count money', 'mnCountModal()', 'check'], ['Food', 'closeModal();show("food")', 'food'], ['Journal', 'jnNew()', 'pen'], ['Trigger', 'dfTriggerEdit("")', 'shield'], ['Content', 'ccOpen()', 'star'], ['Market note', 'stObsNew()', 'pen'], ['Strategy', 'stOpen()', 'star'], ['Energy', 'enCheck()', 'scale'],
+  ['Count money', 'mnCountModal()', 'check'], ['Food', 'closeModal();show("food")', 'food'], ['Journal', 'jnNew()', 'pen'], ['Trigger', 'dfTriggerEdit("")', 'shield'], ['Content', 'ccOpen()', 'star'], ['Market note', 'stObsNew()', 'pen'], ['Strategy', 'stOpen()', 'star'], ['Company OS', 'osOpen()', 'check'], ['Energy', 'enCheck()', 'scale'],
 ];
 function shCapture() {
   shBuzz(10); const sr = window.SpeechRecognition || window.webkitSpeechRecognition;

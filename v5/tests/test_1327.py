@@ -26,7 +26,7 @@ with sync_playwright() as p:
     ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); bacLoad(); clLoad&&clLoad();")
     pg.wait_for_timeout(1800); pg.clock.run_for(2000)
     check('libraries loaded (cards, bootcamp, sources, mentors, BAC)', ev("!!(XC&&XC.byId&&BC&&KPL&&CCM&&BACD)"))
-    check('version is 13.28.0', ev("APP_VERSION==='13.28.0'"), ev("APP_VERSION"))
+    check('version is 13.29.0', ev("APP_VERSION==='13.29.0'"), ev("APP_VERSION"))
 
     # ── data integrity
     check('31 new sourced cards, every one with a source, a kind and two test questions', ev("XC.cards.filter(c=>c.added==='13.27').length===31 && XC.cards.filter(c=>c.added==='13.27').every(c=>c.src&&c.kind&&c.q.length>=2&&c.move&&c.trap)"))
@@ -161,6 +161,36 @@ with sync_playwright() as p:
     check('strategy adds one fact to the mission, no second recommendation; seven questions answered', r['f'] == 1 and r['top'] == 0 and r['q'] == 7, r)
     check('new maps sync', ev("['obs','opps','assets'].every(k=>MERGE_MAPS.includes(k))"))
     check('BAC: profile and certificates recorded as confirmed by you, source stated', ev("(()=>{delete S.settings.m1328b; exSeed2(); return bacProfile().ok && S.reality.rf1328c.st==='confirmed' && /stated by Egor/.test(S.reality.rf1328c.src)})()"))
+    # ── 13.29 · operating system, right knowledge at the right time
+    check('operating system: 31 steps in three engines; every lesson and procedure it points at exists', ev("osSteps().length===31 && osSteps().every(s=>s.cards.every(c=>XC.byId[c])&&s.pages.every(p=>pb(p))&&s.metric&&s.why&&s.test&&OS_WHEN[s.when])"), ev("osSteps().filter(s=>!s.pages.every(p=>pb(p))).map(s=>s.id)"))
+    check('ten new procedures are in the Playbook, marked untested, and keep the legal lines', ev("OS_PAGES.length===10 && OS_PAGES.every(p=>pb(p.id)&&/v0 · untested/.test(pb(p.id).body)) && /We do not run background or reference checks/.test(pb('os-match').body) && /Never charge a caregiver/.test(pb('os-source').body) && /per-family/.test(pb('os-team').body)"))
+    check('team engine is prepared for later, not for now', ev("osSteps().filter(s=>s.eng==='team'&&s.when==='later').length>=9 && /No hire before the gate/.test(pb('os-team').body)"))
+    ev("S.settings.opsys={steps:{},log:[]}; osSet('s-open'); document.querySelector('input[name=os-st][value=\"5\"]').checked=true; document.getElementById('os-n').value='used it on calls'; osSetSave('s-open')")
+    check('a stage above Implemented needs a number; ticking is not enough', ev("osState('s-open').st===0"))
+    ev("document.getElementById('os-n').value='100 dials, 9 answered, 2 conversations'; osSetSave('s-open')")
+    check('stage saved with its proof and logged', ev("osState('s-open').st===5 && osCfg().log.length===1"))
+    na = ev("stAssets().length")
+    ev("osSet('s-open'); document.querySelector('input[name=os-st][value=\"7\"]').checked=true; document.getElementById('os-n').value='12 of 100'; osSetSave('s-open')")
+    check('Delegated needs a name', ev("osState('s-open').st===5"))
+    ev("document.querySelector('input[name=os-st][value=\"6\"]').checked=true; document.getElementById('os-n').value='opener B: 12 of 100 answered became conversations'; osSetSave('s-open')")
+    check('a standardised step becomes an asset', ev("osState('s-open').st===6") and ev("stAssets().length") == na + 1 and ev("stAssets().some(a=>a.from==='os:s-open'&&a.stage==='doc')"))
+    ev("osExp('s-follow', 2)")
+    check('an expert disagreement opens an experiment with the baseline and the metric', ev("(()=>{const e=S.experiments[osState('s-follow').exp]; return e&&e.src==='os:s-follow'&&/Voicemail/.test(e.title)&&e.metric&&e.baseline})()"))
+    check('every lesson shows where the business uses it', ev("/In the business/.test(xcCardHtml(XC.byId['hz-askagain'])) && /Handling objections/.test(xcCardHtml(XC.byId['hz-askagain'])) && /Personal development/.test(xcCardHtml(XC.byId['mn-compound']))"))
+    nt2 = ev("Object.keys(S.tasks).length"); ev("osApply('jb-opener','task')")
+    check('a lesson turns into a task from its own move', ev("Object.keys(S.tasks).length") == nt2 + 1)
+    r = ev("(()=>{const H=rsHorizonCaps(); return {now:H.now, st:H.stage, a:rsHorizon({caps:['b-cold']}), b:rsHorizon({caps:['f-invest']})}})()")
+    check('now / next / later follows the business stage: with no conversations, cold calling is NOW and investing is LATER', r['st'] == 0 and 'b-cold' in r['now'] and r['a'] == 'now' and r['b'] == 'later', r)
+    ev("Object.keys(S.research||{}).forEach(k=>{delete S.research[k]})"); k1 = ev("rsAutoJobs()"); k2 = ev("rsAutoJobs()")
+    check('research jobs are written from real needs, capped at three, never duplicated', 1 <= k1 <= 3 and k2 == 0 and ev("Object.values(S.research).every(r=>r.auto&&r.key&&r.why&&r.q.length>20)"), (k1, k2))
+    jid = ev("Object.values(S.research)[0].id")
+    ev(f"ccImportItems([{{t:'Answer video',url:'https://www.youtube.com/watch?v=CCCCCCCCCCC',job:'{jid}',learn:'Open a call without sounding like a seller',apply:'Use it on the first ten dials tomorrow',expert:'ran outbound teams',caps:['b-cold'],stat:'official',tier:'core',claim:'practitioner'}}])")
+    check('an answered job closes itself and the resource carries what to learn and what to do', ev(f"S.research['{jid}'].st==='done' && (()=>{{const x=kpAll().find(x=>x.yt==='CCCCCCCCCCC'); return x.learn&&x.apply&&x.expert&&rsHorizon(x)==='now'}})()"))
+    sn = ev("rsSnapshot()")
+    check('direction snapshot is synced for the cloud scan and contains only record-based facts', sn and 'dials' in sn['last28'] and len(sn['now']) >= 2 and ev("!!S.settings.rsnap && /undecided/.test(S.settings.rsnap.building)"), sn)
+    ev("['v-voss','v-treasure','v-headlee'].forEach(id=>ccW(id,{st:'done',ins:'an idea I have not used yet',doneAt:now()}))")
+    check('three unused ideas: the planner says apply first instead of feeding more', ev("(()=>{const P=ccPlan(20,'any','any'); return P.apply===1 && P.steps.every(s=>s.k==='capture') && ccPlan(20,'calm','any').apply!==1})()"))
+    ev("['v-voss','v-treasure','v-headlee'].forEach(id=>{delete S.content[id]})")
     # ── BAC
     check('BAC: verified dates, deadlines and the open questions are all present', ev("BACD.exams.find(e=>e.k==='ro').d==='2027-06-08' && BACD.exams.find(e=>e.k==='ist').d==='2027-06-15' && BACD.deadlines.length===2 && BACD.verify.length>=3 && BACD.start==='09:00'"))
     r = ev("(()=>{const a=bacSeq('ro'), b=bacSeq('ist'); return {ro:a.T.length, ist:b.T.length, d:a.days, pw:a.perWeek, nx:a.next.length, mf:a.mocksFrom}})()")
@@ -183,7 +213,7 @@ with sync_playwright() as p:
     check('13.27 seed is idempotent and never overwrites your own exam date', ev("S.settings.bacDate==='2027-06-01' && Object.keys(S.risks).filter(k=>/^r1327/.test(k)).length===2 && Object.keys(S.reality).filter(k=>/^rf1327/.test(k)).length===2"))
 
     # ── every new screen at phone width
-    screens = ["ccOpen('rec')", "ccOpen('men')", "ccOpen('aud')", "ccOpen('res')", "ccOpen('impl')", "ccOpen('new')", "ccView('lc-12')", "ccView('em-20261112-57455')", "ccMentor('hormozi')", "ccPlanOpen(15)", "ccPlanRun(25,'any','any')", "ccStats()", "ccRoadmap()", "ccSettings()", "ccResearchNew()", "ccCapture()", "ccAudio('lc-02')", "ccDone('lc-02')", "cxList()", "cxOpen('cT')", "cxFields('cT')", "enCheck()", "cmTrain('c-speak')", "cmTrain('r-focus')", "cmMoneyDrill('f-bank')", "jlBrList()", "jlBrOpen('br-stall')", "kpAuditOpen()", "bacMapOpen('ro')", "bacDiagOpen('ro')", "bacDiagMiss('ro')", "bacFactsOpen()", "bacProfileSet()", "stOpen()", "stObsOpen()", "stObsNew()", "stOppOpen()", "stOppEdit('')", "stAssetOpen()", "stAssetEdit('')", "stModelsOpen()", "stCellEdit('A','wtp')", "stReviewOpen()", "xcOpen('lh-emotion')", "xcOpen('hz-askagain')", "xcOpen('sf-scam4')", "cmCapOpen('j-scam')"]
+    screens = ["ccOpen('rec')", "ccOpen('men')", "ccOpen('aud')", "ccOpen('res')", "ccOpen('impl')", "ccOpen('new')", "ccView('lc-12')", "ccView('em-20261112-57455')", "ccMentor('hormozi')", "ccPlanOpen(15)", "ccPlanRun(25,'any','any')", "ccStats()", "ccRoadmap()", "ccSettings()", "ccResearchNew()", "ccCapture()", "ccAudio('lc-02')", "ccDone('lc-02')", "cxList()", "cxOpen('cT')", "cxFields('cT')", "enCheck()", "cmTrain('c-speak')", "cmTrain('r-focus')", "cmMoneyDrill('f-bank')", "jlBrList()", "jlBrOpen('br-stall')", "kpAuditOpen()", "bacMapOpen('ro')", "bacDiagOpen('ro')", "bacDiagMiss('ro')", "bacFactsOpen()", "bacProfileSet()", "stOpen()", "stObsOpen()", "stObsNew()", "stOppOpen()", "stOppEdit('')", "stAssetOpen()", "stAssetEdit('')", "stModelsOpen()", "stCellEdit('A','wtp')", "stReviewOpen()", "osOpen()", "osEngine('sales')", "osEngine('team')", "osView('s-open')", "osView('r-match')", "osSet('s-diag')", "rsOpen()", "xcOpen('lh-emotion')", "xcOpen('hz-askagain')", "xcOpen('sf-scam4')", "cmCapOpen('j-scam')"]
     bad = []
     for sc in screens:
         try:
@@ -210,12 +240,12 @@ with sync_playwright() as p:
     p2.goto(URL); p2.wait_for_timeout(1500)
     try:
         p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); p2.wait_for_timeout(6000)
-        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.28\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
+        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.29\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
         need = ['content.js', 'expand.js', 'lib/bac.json', 'lib/mentors.json', 'lib/sources.json', 'lib/cards.json']
         check('offline cache holds the new files', all(n in cached for n in need), [n for n in need if n not in cached])
         c2.set_offline(True); p2.reload(); p2.wait_for_timeout(3000)
         r = p2.evaluate("(async()=>{ccLoad(); bacLoad(); xcLoad&&xcLoad(); await new Promise(r=>setTimeout(r,1500)); return {v:APP_VERSION, lib:!!(KPL&&KPL.sources.length>150), bac:!!BACD, men:!!CCM, plan:(KPL?ccPlan(15,'any','any').steps.length:0)}})()")
-        check('app starts offline and the content planner works from cache', r['v'] == '13.28.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
+        check('app starts offline and the content planner works from cache', r['v'] == '13.29.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
         check('offline: no page errors', not e2, e2[:3])
     except Exception as e:
         check('offline test ran', False, str(e)[:200])
