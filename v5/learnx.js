@@ -82,7 +82,7 @@ function lxBuild(min, focus, opt) {
   const skip = new Set(opt.skip || []), steps = [], notes = []; let left = min;
   const add = (s) => { s.min = Math.max(1, Math.min(s.min, Math.max(1, left))); steps.push(Object.assign({ done: 0, res: '' }, s)); left -= s.min; };
   const p = opt.path && lxPathOf(opt.path), D = focus === 'biz' || focus === 'life' || p ? null : lxDomain(), dom = focus === 'biz' || focus === 'life' ? focus : p ? p[5] : D.dom;
-  let due = []; try { due = msQueue(8); } catch (e) { }
+  let due = []; try { due = typeof dxReviewIds === 'function' ? dxReviewIds(8) : msQueue(8); } catch (e) { } /* 13.34: lessons you got wrong come first, subjects are mixed */
   let un = []; try { un = rsUnapplied(); } catch (e) { }
   const unp = lxUnpracticed(), g = bcGate(dom); let obj = '', why = '', after = '', mode = 'learn', lesson = null;
   /* A · use before more input */

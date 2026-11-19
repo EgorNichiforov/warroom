@@ -73,3 +73,9 @@ Open, in order of value:
 3. Reconcile today's calls: none are in the call log or the day counter.
 4. Remaining fragmentation: `CP_ST` ladder, retired home code, money as a standing candidate, Operator tiles grouped by lifecycle.
 5. From the 13.31 list, still open: lessons for 23 Blueprint competencies, unwatched videos, unread book parts, competitor prices, accountant, daily research approval.
+
+## After 13.34.0 (19 Nov 2026)
+
+Done: outside calls counted as your report; skip reasons; weekly scorecard with definitions; goal check; business/personal money split; monthly review; weak-first mixed recall; one-minute tour.
+
+Next, in order of leverage: (1) per-call import of an outside call sheet so agency history and callbacks stay true; (2) body plan that adapts to missed sessions and weight trend; (3) quarterly review built from saved monthly reviews; (4) tab names and back-navigation audit on a real phone; (5) retire dead home code after proving no caller.

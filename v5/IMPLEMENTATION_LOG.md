@@ -183,3 +183,18 @@ Tests: `test_1333.py` 29 (the twelve usability journeys, each: found by its plai
 Regression caught and fixed before release: the purpose line was first inserted inside each screen, which made the stable renderer rebuild whole screens on every refresh (8 legacy checks failed). It now sits before the screen element; a test compares the rebuild count with and without it.
 
 Not done in this release (from the unified brief): per-domain operating systems beyond what exists (business economics, money management depth, body, focus), goal structure (definition, baseline, milestones), scorecards with definitions and trends, review cadence per domain, renaming of tabs, back-navigation audit. The coverage matrices that say what exists and what is missing are in the Claude doc "War Room 13.31.1 · whole-system coherence audit".
+
+## 13.34.0 · 19 Nov 2026 · reality in, reasons out (parts 2 to 4 of the unified brief, next slice)
+
+**New:** `depth.js`, `tests/test_1334.py`. **Changed:** `learnx.js` (recall step uses `dxReviewIds`), `index.html`, `sw.js`, `core.js`, `playbook.js`, `blueprint.js` (version text), test version strings, documents.
+
+- Calls made outside the app: `dxOutside()`/`dxSave()`/`dxDel()`; stored on the day as `ext[]`; `mcDialLog()` wrapped so the day, week, funnel and dial mission count them; labelled "your report" on the Day card, in the weekly review and in the scorecard source. Refuses impossible numbers and future days. Never auto-filled.
+- Skip reasons: `mcSkip()` wrapped; `DX_WHY`; `dxWhyWeek()`; shown in the weekly review with the fix for a reason that repeats.
+- Weekly scorecard `scOpen()` (12 rows with definitions), goal check `gcOpen()` (read-only until one goal is edited; three fields), money split `mbOpen()` with a user-set tax percentage, monthly review `mrOpen()`, caregiver funnel by status, one-minute tour `wfTour()`; six new entries in "Where do I…?".
+- Learn recall: wrong-answer lessons first, modules interleaved.
+
+Tests: `test_1334.py` 38, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` 316. Throwaway browser at phone size; not a real phone.
+
+Caught before release: the new Day-card link reused the wayfinding link's class and broke a 13.33 check that counts it; it has its own class now.
+
+Not done (from the unified brief): body plan adaptation, focus protocol, quarterly review, tab renaming, back-navigation audit, folding the `CP_ST` ladder, removing retired home code, money as a standing Mission Control candidate, per-call import of outside calls. Awaiting decisions: weekly personal learning minutes, BAC goal wording, goal merge, the scheduled-task prompt change, old cloud rows.

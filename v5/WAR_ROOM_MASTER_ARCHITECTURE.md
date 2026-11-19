@@ -1,4 +1,4 @@
-# War Room · master architecture (13.33.0, 19 Nov 2026)
+# War Room · master architecture (13.34.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -101,6 +101,19 @@ Release: bump `APP_VERSION` (`core.js`), cache name and shell list (`sw.js`), `?
 It is a navigation aid: it never ranks. Entry points: Day mission card, the ⌘ palette, the ? at the top of each screen.
 The top-right + and the bottom + open the same capture sheet. Operator tiles are grouped by purpose.
 
+## 8c. Reality in, reasons out (13.34)
+
+`depth.js` adds no candidate and ranks nothing. It wraps existing functions:
+
+- `mcDialLog()` also counts `S.days[k].ext[]` (calls made outside the app, entered by you: `{id,d,c,o,cu,ou,src,note,at,del}`). Everything downstream (`mcDialEvidence`, `mcWeek`, `stFunnel`, the dial mission) reads them through that one function. `cu`/`ou` = "not counted". The Day card states how many of today's dials are your report.
+- `mcSkip()` asks why (`DX_WHY`, eight reasons) and stores `why` on the skip entry. `dxWhyWeek()` feeds the weekly review (`coWeekHtml` wrapped) and the monthly review.
+- `scRows()`/`scOpen()`: the weekly scorecard. Rows read `mcWeek`, the pipeline, the bench, the Learn log, energy checks and tasks. Targets only from your weekly goals. Money is left off (currencies are not summed there).
+- `gcRows()`/`gcOpen()`/`gcEdit()`: goal completeness. Writes only `why`, `start`, `next` on the one goal you edit.
+- `mbMonth()`/`mbOpen()`: business (income "agency", spending "business") apart from personal, three months. `S.settings.mnTaxPct` is unset until you set it.
+- `mrOpen()`/`mrSave()`: monthly review in `S.boot['mr:YYYY-MM']`; offered from the weekly review in the last week of a month.
+- `dxReviewIds()`: the Learn recall step takes lessons answered wrong first, then due ones, interleaved by module.
+- `wfTour()`: six-line tour. `DX_OFF` disables the skip question and the Day-card link.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -108,4 +121,6 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control only under the money lens or when a campaign names it.
-- No real-phone test of 13.31 or 13.32.
+- No real-phone test of 13.31 to 13.34.
+- Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
+- Body plan adaptation, a focus protocol, quarterly review, tab renaming and a back-navigation audit are not built.

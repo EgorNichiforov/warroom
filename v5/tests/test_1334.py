@@ -1,0 +1,104 @@
+"""War Room 13.34 checks: calls made outside the app (your report, counted and labelled), reasons for skipped
+missions, the weekly scorecard with definitions, the goal check, weak-first mixed reviews.
+Throwaway browser, cloud blocked. Not a real phone."""
+import sys
+from playwright.sync_api import sync_playwright
+URL = sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:8765/v5/'
+RES = []
+def check(name, ok, info=''):
+    RES.append((name, bool(ok), info)); print(('PASS ' if ok else 'FAIL ') + name + (('  · ' + str(info)) if info and not ok else ''))
+def boot(b, keep=None, t='2026-11-19T17:00:00+02:00'):
+    ctx = keep or b.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Chisinau', service_workers='block')
+    pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)[:200])); pg.route('**/rest/v1/**', lambda r: r.abort())
+    pg.clock.install(time=t); pg.goto(URL); pg.wait_for_timeout(2500); pg.clock.run_for(4000)
+    pg.evaluate("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); 0"); pg.wait_for_timeout(1800); pg.clock.run_for(2000)
+    return ctx, pg, errs
+with sync_playwright() as p:
+    b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox']); ctx, pg, errs = boot(b); ev = pg.evaluate
+    ev("S.settings.season={dom:'biz',kind:'bizbuild',primary:'20k MRR'}; save(); 0")
+    check('version 13.34.0', ev("APP_VERSION==='13.34.0'"), ev("APP_VERSION"))
+    # ── calls made elsewhere
+    check('nothing is counted until you enter it', ev("mcDialEvidence(dk(new Date())).logged===0&&mcWeek().logged===0&&stFunnel(7,0).d===0"))
+    ev("dxOutside(); 0"); pg.wait_for_timeout(250)
+    check('the form explains what each number means and that it is your report', ev("/your report/.test(document.getElementById('modal').textContent)&&/gatekeepers included/.test(document.getElementById('modal').textContent)&&document.getElementById('modal').scrollWidth<=390"))
+    ev("$('dx-d').value='40'; $('dx-c').value='3'; $('dx-o').value='5'; dxSave(); 0")
+    check('impossible numbers are refused (more owner talks than answered)', ev("!(day(new Date()).ext||[]).length"))
+    ev("$('dx-d').value='40'; $('dx-c').value='6'; $('dx-o').value='1'; $('dx-src').value='Google Sheet'; dxSave(); 0"); pg.wait_for_timeout(200)
+    E = ev("(()=>{const k=dk(new Date()),o=S.days[k],E=mcDialEvidence(k),W=mcWeek(),F=stFunnel(7,0),M=mcBuild(),d=M.C.find(c=>c.k==='dial');return {ext:o.ext.length,cd:o.counters.dials,co:o.counters.owners,logged:E.logged,conv:E.conv,dm:E.dm,manual:E.manual,w:W.logged,wdm:W.dm,f:F,fact:M.facts.some(f=>/outside log/.test(f.t)&&f.owner==='your report'),out:d?d.out:'no dial candidate'}})()")
+    check('40 dials, 6 answered, 1 owner talk entered once are counted in the day, the week and the funnel', E['ext'] == 1 and E['cd'] == 40 and E['co'] == 1 and E['logged'] == 40 and E['conv'] == 6 and E['dm'] == 1 and E['manual'] == 0 and E['w'] == 40 and E['wdm'] == 1 and E['f'] == {'d': 40, 'c': 6, 'o': 1}, E)
+    check('the Day card says these came from your outside log, not the dialer', E['fact'], E)
+    check('the dial mission moves by what you entered', '40 of' in E['out'] or 'no dial candidate' in E['out'], E['out'])
+    pg.clock.run_for(700); pg.wait_for_timeout(300)
+    check('an owner talk entered this way still asks what the owner told you', ev("/What did the owner tell you/.test((document.querySelector('#modal h2')||{}).textContent||'')"))
+    ev("closeModal(); dxOutside(); 0"); pg.wait_for_timeout(200)
+    ev("$('dx-day').value=dk(addDays(new Date(),-1)); $('dx-d').value='25'; dxSave(); 0"); pg.wait_for_timeout(200); pg.clock.run_for(700)
+    check('a past day can be entered; a count you did not keep is "not counted", not zero', ev("(()=>{const k=dk(addDays(new Date(),-1)),e=S.days[k].ext[0];return e.d===25&&e.cu===1&&e.ou===1&&mcWeek().logged===65&&dxWeek()===65})()"))
+    ev("closeModal(); dxOutside(); 0"); pg.wait_for_timeout(200)
+    check('entries are listed with their source and can be removed', ev("document.querySelectorAll('#modal .co-wa').length===2&&/Google Sheet/.test(document.getElementById('modal').textContent)"))
+    ev("dxDel(dk(addDays(new Date(),-1)), S.days[dk(addDays(new Date(),-1))].ext[0].id); 0"); pg.wait_for_timeout(200)
+    check('removing an entry takes its numbers back out', ev("mcWeek().logged===40&&(Number(S.days[dk(addDays(new Date(),-1))].counters.dials)||0)===0"))
+    ev("closeModal(); 0")
+    check('finding it: "calls elsewhere" in Where do I…? and a button on the + sheet', ev("(wfFind('calls elsewhere')[0]||[])[0]==='outside'&&SH_QUICK.some(q=>q[0]==='Calls made elsewhere')"))
+    # ── why a plan failed
+    ev("arcShow(); mcSkip('bac',0); 0"); pg.clock.run_for(400); pg.wait_for_timeout(250)
+    check('skipping a mission asks one question with eight plain answers', ev("/What got in the way/.test((document.querySelector('#modal h2')||{}).textContent||'')&&document.querySelectorAll('#modal .dx-why button').length===8"))
+    ev("document.querySelectorAll('#modal .dx-why button')[4].click(); 0"); pg.wait_for_timeout(150)
+    ev("(()=>{const o=day(new Date());o.mcSkip.push({s:'train',t:'Train',miss:1,done:0,at:now()+5,why:'energy'});o.mcSkip.push({s:'os:x',t:'Company step',miss:0,done:1,at:now()+6});touch(o);})(); 0")
+    Wy = ev("dxWhyWeek()")
+    check('reasons are stored on the skip and counted for the week; "done" marks are not skips', Wy['n'] == 2 and Wy['by'].get('energy') == 2 and Wy['top'][0] == 'energy', Wy)
+    ev("mcWeekOpen(); 0"); pg.wait_for_timeout(300)
+    check('the weekly review shows the repeated reason with a fix that is not "try harder"', ev("/Repeated:.*low energy.*sleep and food/i.test((document.getElementById('dx-why-w')||{}).textContent||'')&&/40 of this week's dials were entered from your outside log/.test(document.getElementById('modal').textContent)"), ev("(document.getElementById('dx-why-w')||{}).textContent"))
+    ev("closeModal(); DX_OFF=0; 0")
+    # ── scorecard
+    R = ev("scRows().map(r=>({n:r[0],v:r[1],p:r[2],t:r[3],k:r[4],src:r[5],def:r[6],low:r[7]}))")
+    check('scorecard: every number has a meaning, a source and what to do when it is low; none is a composite score', len(R) >= 12 and all(r['src'] and len(r['def']) > 20 and len(r['low']) > 15 and r['k'] in ('lead', 'lag') for r in R) and not any('score' in r['n'].lower() for r in R), [r['n'] for r in R])
+    check('scorecard reads the same records as everything else (dials 40, owner conversations 1)', R[0]['v'] == 40 and 'outside report' in R[0]['src'] and R[2]['v'] == 1, R[:3])
+    check('targets appear only where you set a weekly goal', ev("(()=>{const g=(re)=>Object.values(S.goals||{}).find(g=>g&&!g._del&&g.horizon==='week'&&re.test(g.title||''));const R=scRows();return R.every((r,i)=>r[3]===null||[0,6,7].includes(i))&&((g(/dial/i)?R[0][3]===Number(g(/dial/i).target):R[0][3]===null))})()"))
+    ev("scOpen(); 0"); pg.wait_for_timeout(250)
+    check('scorecard screen: rows open to their meaning; no measurement is said, not hidden; no overflow', ev("document.querySelectorAll('#modal .sc-r').length>=12&&/no measurement|of 5/.test(document.getElementById('modal').textContent)&&document.getElementById('modal').scrollWidth<=390") and ev("(()=>{const r=document.querySelector('#modal .sc-r');r.click();return getComputedStyle(r.querySelector('.sc-d')).display==='block'})()"))
+    # ── goal check
+    ev("closeModal(); S.goals['t1']={id:'t1',_u:1,title:'Same title',target:5,unit:'x',horizon:'long',deadline:'2027-01-01',source:'manual'}; S.goals['t2']={id:'t2',_u:1,title:'Same title',target:5,unit:'x',horizon:'long',deadline:'2027-01-01',source:'manual'}; save(); 0")
+    before = ev("JSON.stringify(Object.values(S.goals).filter(g=>g.id!=='t1'))")
+    G = ev("(()=>{const R=gcRows(),a=R.find(r=>r.g.id==='t1');return {n:R.length,live:Object.values(S.goals).filter(g=>g&&!g._del&&!g.done).length,miss:a.miss,same:a.same}})()")
+    check('goal check lists every open goal as it is and says what each lacks', G['n'] == G['live'] and 'why it matters' in G['miss'] and 'baseline' in G['miss'] and 'next action' in G['miss'] and G['same'] == 2, G)
+    ev("gcOpen(); 0"); pg.wait_for_timeout(200); ev("gcEdit('t1'); 0"); pg.wait_for_timeout(150); ev("$('gc-w').value='Proof the offer works'; $('gc-b').value='0'; $('gc-n').value='Ask the first trial for a case study'; gcSave('t1'); 0"); pg.wait_for_timeout(150)
+    check('editing saves three fields on that one goal; no other goal changes; same-title goals are not merged', ev("(()=>{const g=S.goals.t1;return g.why==='Proof the offer works'&&g.start===0&&g.next==='Ask the first trial for a case study'&&g.title==='Same title'&&g.target===5&&!!S.goals.t2&&!S.goals.t2._del})()") and ev("JSON.stringify(Object.values(S.goals).filter(g=>g.id!=='t1'))") == before)
+    check('a goal with a reason, baseline, date and next action only lacks what the records cannot measure', ev("gcRows().find(r=>r.g.id==='t1').miss.every(m=>m==='measurement')"), ev("gcRows().find(r=>r.g.id==='t1').miss"))
+    ev("closeModal(); delete S.goals.t1; delete S.goals.t2; 0")
+    # ── learn reviews
+    L = ev("(()=>{S.cards=S.cards||{};const ids=Object.keys(BC.cardMod),m1=BC.cardMod[ids[0]],m2=ids.map(i=>BC.cardMod[i]).find(m=>m!==m1),a=ids.filter(i=>BC.cardMod[i]===m1).slice(0,3),b=ids.filter(i=>BC.cardMod[i]===m2).slice(0,2);a.concat(b).forEach(id=>{bcW('l:'+id,{at:'2026-11-10',r:1});S.cards[id]={step:0,due:'2026-11-12',seen:1,_u:1}});bcW('x:'+b[1],3);const R=dxReviewIds(8),mods=R.map(id=>BC.cardMod[id]);let adj=0;for(let i=1;i<mods.length;i++)if(mods[i]===mods[i-1])adj++;const P=lxBuild(10,'auto',{dry:1}),rv=P.steps.find(s=>s.k==='review');return {n:R.length,weak:R[0]===b[1],adj,mods,inPlan:!!rv&&rv.ids.includes(b[1])}})()")
+    check('reviews put a lesson you got wrong in the set and mix subjects instead of clustering them', L['n'] == 5 and L['weak'] and L['adj'] <= 1 and L['inPlan'], L)
+    # ── Day card link, bench funnel, money split, monthly review, tour
+    ev("arcShow(); 0"); pg.wait_for_timeout(300)
+    check('the Day card offers "Called outside the app?" when calling is on today\'s list', ev("!mcLast.C.some(c=>c.k==='dial')||!!document.getElementById('dx-out')"))
+    check('caregiver funnel is counted by status from the bench, or says it has not loaded', ev("typeof dxBenchText()==='string'&&dxBenchText().length>10&&/by status/.test(scRows()[4][6])"), ev("dxBenchText()"))
+    ev("mnInit(); const a=mnAccs()[0]||{id:'x'}; const ym=mnYm(new Date()); [['in','agency',2000],['out','business',500],['in','tennis',3000],['out','food',1000]].forEach(([t,c,v],i)=>{S.txns['tt'+i]={id:'tt'+i,_u:1,type:t,cat:c,amt:v,acc:a.id,date:ym+'-10',at:i}}); 0")
+    Mb = ev("(()=>{const m=mbMonth(mnYm(new Date())),fx=mnB(1,mnAccCur((mnAccs()[0]||{}).id));return {bi:m.bi/fx,bo:m.bo/fx,br:m.br/fx,pi:m.pi/fx,po:m.po/fx,pr:m.pr/fx}})()")
+    check('money split: agency income and business costs apart from personal, from the ledger\'s own categories', all(abs(Mb[k] - v) < 0.01 for k, v in {'bi': 2000, 'bo': 500, 'br': 1500, 'pi': 3000, 'po': 1000, 'pr': 2000}.items()), Mb)
+    ev("delete S.settings.mnTaxPct; mbOpen(); 0"); pg.wait_for_timeout(250)
+    check('tax line: nothing is calculated until you set your own percentage, and it says it is not tax advice', ev("/No percentage is set, so nothing is calculated/.test(document.getElementById('modal').textContent)&&/needs an accountant/.test(document.getElementById('modal').textContent)&&document.getElementById('modal').scrollWidth<=390"))
+    ev("mbTax(); 0"); pg.wait_for_timeout(150); ev("$('mb-p').value='99'; mbTaxSave(); 0")
+    check('a percentage outside 0 to 60 is refused', ev("S.settings.mnTaxPct==null"))
+    ev("$('mb-p').value='20'; mbTaxSave(); 0"); pg.wait_for_timeout(200)
+    check('with your 20% set, the reserve is that share of this month\'s agency income', ev("S.settings.mnTaxPct===20&&/Your rule: 20%/.test(document.getElementById('modal').textContent)&&document.getElementById('modal').textContent.includes(mnF(mbMonth(mnYm(new Date())).bi*0.2))"))
+    ev("closeModal(); mnTab='over'; show('money'); 0"); pg.wait_for_timeout(300)
+    check('the Money screen links to the split', ev("!!document.getElementById('mb-go')"))
+    ev("['tt0','tt1','tt2','tt3'].forEach(k=>delete S.txns[k]); delete S.settings.mnTaxPct; mrOpen(); 0"); pg.wait_for_timeout(250)
+    Mr = ev("(()=>{const A=mrSpan(0),B=mrSpan(4);return {a:A.logged,b:B.logged,why:(A.why[0]||[])[0],txt:document.getElementById('modal').textContent}})()")
+    check('monthly review: four weeks against the four before, from the same records, with the commonest failure reason', Mr['a'] == 40 and Mr['b'] == 0 and Mr['why'] == 'energy' and 'low energy' in Mr['txt'] and 'Last 4 weeks' in Mr['txt'], {k: Mr[k] for k in ('a', 'b', 'why')})
+    ev("mrSave(); 0")
+    check('it will not save without the one change', ev("!bcV(mrKey(),null)"))
+    ev("$('mr-k').value='Entering outside calls'; $('mr-c').value='Dial block starts at 15:30 with phone on the desk'; mrSave(); 0")
+    check('keep, stop and one change are saved for the month', ev("bcV(mrKey(),null).change==='Dial block starts at 15:30 with phone on the desk'&&bcV(mrKey(),null).keep==='Entering outside calls'"))
+    check('finding them: money split, monthly review, scorecard, goal check and the one-minute tour are all in Where do I…?', ev("['bizmoney','month','score','gcheck','tour','outside'].every(id=>WF.some(x=>x[0]===id))&&(wfFind('how does this app work')[0]||[])[0]==='tour'&&(wfFind('review the month')[0]||[])[0]==='month'"), ev("[(wfFind('how does this app work')[0]||[])[0],(wfFind('review the month')[0]||[])[0]]"))
+    ev("wfTour(); 0"); pg.wait_for_timeout(150)
+    check('the tour is six plain lines and fits the phone', ev("document.querySelectorAll('#modal .co-wa').length===6&&document.getElementById('modal').scrollWidth<=390"))
+    ev("closeModal(); 0")
+    check('still one global recommender; this layer adds no candidate', ev("(()=>{const M=mcBuild();return M.top===(M.C[0]||null)&&!M.C.some(c=>/^(dx|sc|gc)/.test(c.k))})()"))
+    # ── persistence
+    ev("save(true); 0"); pg.wait_for_timeout(400); pg.close(); ctx2, pg, errs2 = boot(b, keep=ctx, t='2026-11-19T17:40:00+02:00'); ev = pg.evaluate
+    check('close and reopen: the outside entry, its counts and the skip reasons are still there', ev("mcDialEvidence(dk(new Date())).logged===40&&dxExt(dk(new Date()))[0].src==='Google Sheet'&&dxWhyWeek().by.energy===2"))
+    check('no page errors', not errs and not errs2, (errs + errs2)[:3])
+    b.close()
+bad = [r for r in RES if not r[1]]
+print(f"\n{len(RES) - len(bad)}/{len(RES)} passed"); sys.exit(1 if bad else 0)

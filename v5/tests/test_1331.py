@@ -21,7 +21,7 @@ def boot(b, t='2026-11-19T17:00:00+02:00', keep=None):
 with sync_playwright() as p:
     b = p.chromium.launch(**CH); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("(()=>{const o=day(new Date());o.counters.dials=12;touch(o);save();})(); 0")
-    check('libraries loaded; version 13.33.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='13.33.0'"), ev("APP_VERSION"))
+    check('libraries loaded; version 13.34.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='13.34.0'"), ev("APP_VERSION"))
 
     # ── lessons
     check('16 new lessons: source, kind, two questions, a move, a video, in a module', ev("(()=>{const N=XC.cards.filter(c=>c.added==='13.31');return N.length===16&&N.every(c=>c.src&&c.kind&&c.q.length===2&&c.move.length>30&&c.clip.length===1&&c.clipBy&&c.clipMin>0&&BC.cardMod[c.id])})()"))
@@ -182,7 +182,7 @@ with sync_playwright() as p:
         c3.close()
     check('tapping away from Day right after launch is not undone by the startup timer (noon, evening x2, night)', bad == 0, bad)
     sw = ev("fetch('./sw.js').then(r=>r.text())")
-    check('service worker caches the two new files under the new cache name', "warroom-v13.33.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
+    check('service worker caches the two new files under the new cache name', "warroom-v13.34.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
     b.close()
 bad = [r for r in RES if not r[1]]
 print(f"\n{len(RES) - len(bad)}/{len(RES)} passed"); sys.exit(1 if bad else 0)
