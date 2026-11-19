@@ -198,3 +198,16 @@ Tests: `test_1334.py` 38, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 7
 Caught before release: the new Day-card link reused the wayfinding link's class and broke a 13.33 check that counts it; it has its own class now.
 
 Not done (from the unified brief): body plan adaptation, focus protocol, quarterly review, tab renaming, back-navigation audit, folding the `CP_ST` ladder, removing retired home code, money as a standing Mission Control candidate, per-call import of outside calls. Awaiting decisions: weekly personal learning minutes, BAC goal wording, goal merge, the scheduled-task prompt change, old cloud rows.
+
+## 13.35.0 · 19 Nov 2026 · funnel rates, body trend, quarterly review
+
+**Changed:** `depth.js` (three views appended), `tests/test_1334.py` (now 47), version strings, documents.
+
+- `beOpen()`: 28-day funnel from `stFunnel` (so outside reports count) and `PIPE`; rates hidden below `BE_MIN`; `beStuck()` names the first stage with no throughput. No dials-to-goal projection without measured rates.
+- `bwOpen()`: `avgWeight(7)` now and 14 days earlier → kg per week; needed pace per open weight goal; flags fewer than 4 weigh-ins in 7 days; shows multiple targets without choosing.
+- `qrOpen()`: 13 weeks vs 13 before via `mcWeek`; lists saved monthly changes; three answers saved per quarter.
+- `scOpen()` wrapped to link Funnel, Body trend, Money split, Month, Quarter. Three new "Where do I…?" entries.
+
+Caught before release: the body-trend label contained "goal" and outranked the Goals screen in search (13.33 journey 9 failed); renamed.
+
+Tests: `test_1334.py` 47, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` (see commit). Not a real phone.

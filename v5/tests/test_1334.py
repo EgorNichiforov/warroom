@@ -16,7 +16,7 @@ def boot(b, keep=None, t='2026-11-19T17:00:00+02:00'):
 with sync_playwright() as p:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox']); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("S.settings.season={dom:'biz',kind:'bizbuild',primary:'20k MRR'}; save(); 0")
-    check('version 13.34.0', ev("APP_VERSION==='13.34.0'"), ev("APP_VERSION"))
+    check('version 13.35.0', ev("APP_VERSION==='13.35.0'"), ev("APP_VERSION"))
     # ── calls made elsewhere
     check('nothing is counted until you enter it', ev("mcDialEvidence(dk(new Date())).logged===0&&mcWeek().logged===0&&stFunnel(7,0).d===0"))
     ev("dxOutside(); 0"); pg.wait_for_timeout(250)
@@ -93,6 +93,29 @@ with sync_playwright() as p:
     check('finding them: money split, monthly review, scorecard, goal check and the one-minute tour are all in Where do I…?', ev("['bizmoney','month','score','gcheck','tour','outside'].every(id=>WF.some(x=>x[0]===id))&&(wfFind('how does this app work')[0]||[])[0]==='tour'&&(wfFind('review the month')[0]||[])[0]==='month'"), ev("[(wfFind('how does this app work')[0]||[])[0],(wfFind('review the month')[0]||[])[0]]"))
     ev("wfTour(); 0"); pg.wait_for_timeout(150)
     check('the tour is six plain lines and fits the phone', ev("document.querySelectorAll('#modal .co-wa').length===6&&document.getElementById('modal').scrollWidth<=390"))
+    ev("closeModal(); 0")
+    # ── 13.35: funnel rates, body trend, quarter
+    D = ev("(()=>{const D=beData(28);return {d:D.F.d,c:D.F.c,o:D.F.o,ext:D.ext,rc:D.rate.conv,rd:D.rate.dm,st:beStuck(D)[0]}})()")
+    check('funnel: 40 dials are below the sample needed, so no rate is shown and it says volume comes first', D['d'] == 40 and D['ext'] == 40 and D['rc'] is None and D['rd'] is None and 'Too few dials' in D['st'], D)
+    ev("(()=>{for(let i=1;i<=3;i++){const o=day(addDays(new Date(),-i));o.ext=[{id:'t'+i,d:60,c:9,o:i===1?2:0,src:'test',at:1}];touch(o);}})(); 0")
+    D = ev("(()=>{const D=beData(28);return {d:D.F.d,c:D.F.c,o:D.F.o,rc:D.rate.conv,rd:D.rate.dm,st:beStuck(D)[0]}})()")
+    check('with 220 dials and 33 answered the answer rate and owner rate appear, computed from the records', D['d'] == 220 and D['c'] == 33 and abs(D['rc'] - 0.15) < 1e-9 and abs(D['rd'] - 3 / 33) < 1e-9 and 'not becoming case calls' in D['st'], D)
+    ev("beOpen(); 0"); pg.wait_for_timeout(250)
+    check('funnel screen: shows the rates, where it stops, and that dials-to-goal is not calculated without your own rates', ev("/15% of dials/.test(document.getElementById('modal').textContent)&&!!document.getElementById('be-stuck')&&/cannot be honestly calculated/.test(document.getElementById('modal').textContent)&&document.getElementById('modal').scrollWidth<=390"))
+    ev("closeModal(); (()=>{for(let i=1;i<=3;i++){const o=S.days[dk(addDays(new Date(),-i))];o.ext=[];touch(o);}})(); 0")
+    ev("(()=>{for(let i=0;i<5;i++){day(addDays(new Date(),-i)).weight=78.5;day(addDays(new Date(),-14-i)).weight=78.0;} S.goals.w1={id:'w1',_u:1,title:'Weight A',target:80,unit:'kg',horizon:'long',deadline:dk(addDays(new Date(),70)),source:'weight'}; S.goals.w2={id:'w2',_u:1,title:'Weight B',target:77,unit:'kg',horizon:'long',deadline:dk(addDays(new Date(),70)),source:'weight'}; })(); 0")
+    Bw = ev("(()=>{const D=bwData();return {a:D.a,rate:D.rate,n7:D.n7,needs:D.G.filter(x=>['w1','w2'].includes(x.g.id)).map(x=>Math.round(x.need*100)/100)}})()")
+    check('body trend: 7-day average, kg per week over two weeks, and the pace each goal needs', abs(Bw['a'] - 78.5) < 1e-9 and abs(Bw['rate'] - 0.25) < 1e-9 and Bw['n7'] == 5 and sorted(Bw['needs']) == [-0.15, 0.15], Bw)
+    ev("bwOpen(); 0"); pg.wait_for_timeout(250)
+    check('conflicting weight targets are shown as they are and left for you to decide; no advice is given', ev("/different weight targets are open/.test(document.getElementById('modal').textContent)&&/Which one stands is your decision/.test(document.getElementById('modal').textContent)&&/not medical or nutrition advice/.test(document.getElementById('modal').textContent)&&!!S.goals.w1&&!!S.goals.w2&&document.getElementById('modal').scrollWidth<=390"))
+    ev("closeModal(); delete S.goals.w1; delete S.goals.w2; for(let i=0;i<5;i++){delete S.days[dk(addDays(new Date(),-i))].weight;delete S.days[dk(addDays(new Date(),-14-i))].weight;} qrOpen(); 0"); pg.wait_for_timeout(250)
+    check('quarterly review: thirteen weeks against thirteen, the saved monthly change, the priority on record', ev("qrSpan(0).logged===40&&qrSpan(13).logged===0&&/Dial block starts at 15:30/.test(document.getElementById('modal').textContent)&&/20k MRR/.test(document.getElementById('modal').textContent)"))
+    ev("qrSave(); 0")
+    check('it will not save without the direction answer and the one result', ev("!bcV(qrKey(),null)"))
+    ev("$('qr-d').value='Yes: owners take the call'; $('qr-r').value='First paying agency'; qrSave(); 0")
+    check('the quarter is saved under its own key', ev("/^qr:2026-Q4$/.test(qrKey())&&bcV(qrKey(),null).result==='First paying agency'"))
+    ev("scOpen(); 0"); pg.wait_for_timeout(250)
+    check('the scorecard links to funnel, body trend, money split, month and quarter; all are in Where do I…?', ev("document.querySelectorAll('#sc-more button').length===5&&['funnel','bodytrend','quarter'].every(id=>WF.some(x=>x[0]===id))&&(wfFind('weight trend')[0]||[])[0]==='bodytrend'&&(wfFind('where my funnel stops')[0]||[])[0]==='funnel'"), ev("[(wfFind('weight trend')[0]||[])[0],(wfFind('where my funnel stops')[0]||[])[0]]"))
     ev("closeModal(); 0")
     check('still one global recommender; this layer adds no candidate', ev("(()=>{const M=mcBuild();return M.top===(M.C[0]||null)&&!M.C.some(c=>/^(dx|sc|gc)/.test(c.k))})()"))
     # ── persistence

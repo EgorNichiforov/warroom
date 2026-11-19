@@ -1,4 +1,4 @@
-# War Room · master architecture (13.34.0, 19 Nov 2026)
+# War Room · master architecture (13.35.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -113,6 +113,7 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - `mrOpen()`/`mrSave()`: monthly review in `S.boot['mr:YYYY-MM']`; offered from the weekly review in the last week of a month.
 - `dxReviewIds()`: the Learn recall step takes lessons answered wrong first, then due ones, interleaved by module.
 - `wfTour()`: six-line tour. `DX_OFF` disables the skip question and the Day-card link.
+- 13.35: `beData()`/`beStuck()`/`beOpen()` (28-day funnel; rates only above `BE_MIN` samples; the stage where it stops), `bwData()`/`bwOpen()` (weight trend and needed pace per weight goal; never chooses between targets), `qrOpen()`/`qrSave()` (quarter in `S.boot['qr:YYYY-Qn']`). All read-only views except the review text. None adds a Mission Control candidate.
 
 ## 9. Known gaps
 
@@ -121,6 +122,6 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control only under the money lens or when a campaign names it.
-- No real-phone test of 13.31 to 13.34.
+- No real-phone test of 13.31 to 13.35.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
-- Body plan adaptation, a focus protocol, quarterly review, tab renaming and a back-navigation audit are not built.
+- Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.
