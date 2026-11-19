@@ -81,11 +81,11 @@ function dvWebSay(text, tok) {
   });
 }
 function dvCloudGet(text) {
-  if (dvCache.has(text)) return dvCache.get(text);
+  const voice = dvVoiceName(), ck = voice + '|' + text; if (dvCache.has(ck)) return dvCache.get(ck);
   const p = (async () => {
     const c = aiCfg(); let last = null;
     for (const m of ['gemini-2.5-flash-preview-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-pro-preview-tts']) {
-      const r = await aiNet(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Read this clearly, like an energetic coach: ' + text }] }], generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } } } } }) });
+      const r = await aiNet(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': c.key }, body: JSON.stringify({ contents: [{ parts: [{ text: 'Say this the way a direct, high-energy coach talks to one person next to him in the car. Natural and conversational, human pace, real pauses, no announcer tone: ' + text }] }], generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } } }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) { last = new Error((j.error && j.error.message) || 'HTTP ' + r.status); if (r.status === 404 || r.status === 400) continue; throw last; }
       const part = (((j.candidates || [])[0] || {}).content || {}).parts || [], d = (part.find((x) => x.inlineData) || {}).inlineData; if (!d) { last = new Error('no audio returned'); continue; }
       const rate = +((/rate=(\d+)/.exec(d.mimeType || '') || [])[1] || 24000), bin = atob(d.data), n = bin.length >> 1, f = new Float32Array(n);
@@ -94,7 +94,7 @@ function dvCloudGet(text) {
     }
     throw last || new Error('no AI voice model answered');
   })();
-  dvCache.set(text, p); p.catch(() => dvCache.delete(text)); if (dvCache.size > 40) dvCache.delete(dvCache.keys().next().value); return p;
+  dvCache.set(ck, p); p.catch(() => dvCache.delete(ck)); if (dvCache.size > 40) dvCache.delete(dvCache.keys().next().value); return p;
 }
 async function dvCloudSay(text, tok) {
   const a = await dvCloudGet(text); if (tok !== DV.tok) return;
@@ -104,7 +104,11 @@ async function dvCloudSay(text, tok) {
 }
 function dvTextSay(text, tok) { return dvWait(Math.max(1800, text.split(/\s+/).length / 2.6 * 1000 / DV.rate)); }
 const DV_SAY = { native: dvNativeSay, web: dvWebSay, cloud: dvCloudSay, text: dvTextSay };
-function dvOrder() { return [DV_NATIVE ? 'native' : null, !DV_NATIVE ? 'web' : null, dvCloudOk() ? 'cloud' : null, 'text'].filter((e) => e && !(DV.bad || {})[e]); }
+/* 13.24.1: the natural AI voice goes first when it is available and you are online; the phone voice is the fallback. */
+const DV_VOICES = ['Orus', 'Fenrir', 'Algenib', 'Charon', 'Puck', 'phone'];
+function dvVoiceName() { let v = ''; try { v = localStorage.getItem('wr-dv-voice') || ''; } catch (e) { } return DV_VOICES.includes(v) ? v : 'Orus'; }
+function dvVoiceNext() { const i = DV_VOICES.indexOf(dvVoiceName()), v = DV_VOICES[(i + 1) % DV_VOICES.length]; try { localStorage.setItem('wr-dv-voice', v); } catch (e) { } dvTest(); }
+function dvOrder() { const ai = dvCloudOk() && navigator.onLine !== false && dvVoiceName() !== 'phone'; return [ai ? 'cloud' : null, DV_NATIVE ? 'native' : null, !DV_NATIVE ? 'web' : null, 'text'].filter((e) => e && !(DV.bad || {})[e]); }
 function dvPrefetch() { if (DV.eng !== 'cloud') return; const nx = DV.parts[DV.part + 1] || (DV.q[DV.i + 1] ? dvParts(DV.q[DV.i + 1])[0] : null); if (nx) dvCloudGet(nx.t).catch(() => { }); }
 
 function dvStopVoice() { clearTimeout(DV.timer); clearInterval(DV.poll); DV.tok++; try { if (DV_NATIVE) dvNat('stopSpeak').catch(() => { }); if (window.speechSynthesis && speechSynthesis.speaking) speechSynthesis.cancel(); if (dvSrc) { dvSrc.onended = null; dvSrc.stop(); dvSrc = null; } } catch (e) { } }
@@ -150,7 +154,7 @@ function dvRender() {
     ${c ? `<div class="dv-k">${item.kind === 'review' ? 'Review' : 'New'} · ${esc(p ? p.lab : '')}</div><div class="dv-t">${esc(c.t)}</div><div class="dv-s">${esc(p ? p.t : '')}</div>` : `<div class="dv-t">${DV.on ? 'Wrapping up…' : 'Done'}</div><div class="dv-s">Use one idea on your next call. Then mark the lesson in Learn.</div>`}
     <div class="dv-bar"><i style="width:${DV.q.length ? Math.round(DV.i / DV.q.length * 100) : 0}%"></i></div>
     <div class="dv-ctl"><button onclick="dvBack()">⏮<em>Repeat</em></button><button class="big" onclick="${DV.on ? 'dvPause()' : 'dvStart()'}">${!DV.on ? '▶' : DV.paused ? '▶' : '⏸'}<em>${!DV.on ? 'Again' : DV.paused ? 'Play' : 'Pause'}</em></button><button onclick="dvNext()">⏭<em>Next idea</em></button></div>
-    <div class="dv-voice ${DV.eng === 'text' ? 'bad' : ''}"><span>🔊 ${esc(DV_ENG[DV.eng || dvOrder()[0]] || '')}</span><button onclick="dvTest()">Test voice</button><button onclick="dvRate()">Speed ${DV.rate.toFixed(1)}×</button></div>
+    <div class="dv-voice ${DV.eng === 'text' ? 'bad' : ''}"><span>🔊 ${esc(DV_ENG[DV.eng || dvOrder()[0]] || '')}</span><button onclick="dvVoiceNext()">${dvCloudOk() ? 'Voice: ' + (dvVoiceName() === 'phone' ? 'phone' : dvVoiceName()) : 'Phone voice'}</button><button onclick="dvTest()">Test</button><button onclick="dvRate()">Speed ${DV.rate.toFixed(1)}×</button></div>
     ${DV.eng === 'text' ? `<div class="dv-why"><b>No sound on this phone yet.</b> ${(DV.why || []).map((x) => esc(x)).join(' · ')}<br>Fix: ${DV_NATIVE ? 'install app 1.9, or ' : ''}install <b>Speech Services by Google</b> + an English voice (Settings → Text-to-speech), or add a Gemini AI key (More → Food photo AI) for the AI voice. <button onclick="dvTtsSettings()">Voice settings</button></div>` : ''}
     <div class="dv-n">Eyes on the road. Answer out loud: saying it is what makes it stick.</div>`;
 }

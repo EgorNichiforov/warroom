@@ -20,7 +20,14 @@ const MC_MODES = { full: ['Full', 'Normal capacity. Run the whole plan.'], min: 
 const MC_SEASONS = { build: 'Build', exam: 'Exam', recovery: 'Recovery', transition: 'Transition', explore: 'Exploration' };
 const MC_DOMS = { biz: 'Business', bac: 'BAC', body: 'Body', life: 'Life' };
 const MC_TIER = ['Fixed commitment', 'Season priority', 'Protected commitment', 'Maintenance'];
-let mcLast = null;
+let mcLast = null, mcOpenCard = false;
+function mcToggle() { mcOpenCard = !mcOpenCard; mcRefresh(); }
+/* 13.24.1: everything on the Day screen that is not the mission or the step you are on sits behind one More fold */
+function mcMoreBtn() { const on = (document.getElementById('arc') || { classList: { contains: () => false } }).classList.contains('more'); return `<button class="arc-more" onclick="arcMoreToggle(this)">${on ? 'Less ▴' : 'More: stage, week, numbers ▾'}</button>`; }
+function arcMoreToggle(btn) { const a = document.getElementById('arc'); if (!a) return; const on = a.classList.toggle('more'); if (btn) btn.textContent = on ? 'Less ▴' : 'More: stage, week, numbers ▾'; }
+/* 13.24.1: forgot to tap "going to sleep"? type last night's times in ten seconds */
+function mcSleepOpen() { const o = S.days[dk(new Date())] || {}; openModal(`<h2>Last night's sleep</h2><div class="hint">Type the two times. Saved as typed, exactly like a tapped night.</div><label class="xs muted">In bed, asleep around</label><input class="aq-in" type="time" id="sl-b" value="${esc(o.bedAt || S.settings.bed || '21:00')}"><label class="xs muted">Woke up</label><input class="aq-in" type="time" id="sl-w" value="${esc(o.wokeAt || S.settings.wake || '05:00')}"><div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="mcSleepSave()">Save</button></div>`, true); }
+function mcSleepSave() { const b = ($('sl-b') || {}).value, w = ($('sl-w') || {}).value; if (!b || !w) { toast('Enter both times'); return; } const o = day(new Date()); o.bedAt = b; o.wokeAt = w; o.sleepSrc = 'typed'; touch(o); closeModal(); toast('Sleep saved'); mcRefresh(); }
 const mcHm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(Math.round(m) % 60);
 function mcRefresh() { try { render(); } catch (e) { } try { if (typeof arcRender === 'function') arcRender(); } catch (e) { } }
 function mcSeason() { const s = (S.settings || {}).season; return s && (s.primary || s.dom) ? s : null; }
@@ -28,7 +35,7 @@ function mcMode(d) { const o = S.days[dk(d || new Date())]; return (o && MC_MODE
 function mcSetMode(m) { const o = day(new Date()); o.mode = m; touch(o); closeModal(); toast(MC_MODES[m][0] + ' day. ' + MC_MODES[m][1]); mcRefresh(); }
 function mcModeOpen() {
   const cur = mcMode(), rd = typeof readiness === 'function' ? (() => { try { return readiness(new Date()); } catch (e) { return null; } })() : null;
-  openModal(`<h2>Today's mode</h2>${rd && rd.lvl ? `<div class="hint">Readiness ${rd.s}/100 suggests: <b>${esc(rd.lvl[1])}</b>. A suggestion from last night's sleep log, not a measurement of you. You choose.</div>` : '<div class="hint">No sleep logged, so there is no readiness suggestion today. You choose.</div>'}
+  openModal(`<h2>Today's mode</h2>${rd && rd.lvl ? `<div class="hint">Readiness ${rd.s}/100 suggests: <b>${esc(rd.lvl[1])}</b>. A suggestion from last night's sleep log, not a measurement of you. You choose.</div>` : '<div class="hint">No sleep logged, so there is no readiness suggestion today. <a onclick="closeModal();mcSleepOpen()">Enter last night\'s times</a>. You choose.</div>'}
     ${Object.keys(MC_MODES).map((m) => `<button class="mc-opt ${cur === m ? 'on' : ''}" onclick="mcSetMode('${m}')"><b>${MC_MODES[m][0]}</b><span>${MC_MODES[m][1]}</span></button>`).join('')}`, true);
 }
 
@@ -98,6 +105,7 @@ function mcBuild() {
   if (fl.open && left > 0 && fl.closeIn <= 60) risks.push({ t: `Florida closes in ${fl.closeIn} minutes with ${left} dials still to log.` });
   if (bd != null && bd <= 120 && bc && typeof counterWeek === 'function') { const wT = Object.values(bc.targets || {}).reduce((s, v) => s + (Number(v) || 0), 0), wM = counterWeek('bac', d); if (wT && dow(d) >= 4 && wM < wT * 0.4) risks.push({ t: `BAC is ${bd} days away and this week has ${wM} of ${wT} planned study minutes.` }); }
   if (typeof syncState !== 'undefined' && Math.abs(syncState.skew || 0) > 120) risks.push({ t: `This device's clock is off by about ${Math.round(Math.abs(syncState.skew) / 60)} minutes. Sync decides "newest" by the clock: fix the time setting.` });
+  if (!night && !o.bedAt) risks.push({ t: "Last night's sleep is not logged.", btn: 'Enter times', act: 'mcSleepOpen()' });
   if (ssn && ssn.review && ssn.review <= k) risks.push({ t: 'Season review date reached.', btn: 'Review', act: 'mcSeasonOpen()' });
   const pick = o.mcPick && C.find((x) => x.k === o.mcPick), top = pick || C[0] || null;
   return (mcLast = { C, top, picked: !!pick && pick !== C[0], rec: C[0] || null, unk, risks, mode, ssn, fl, E, free, k });
@@ -111,10 +119,11 @@ function mcDoneToggle(k) { const o = day(new Date()); o.mcDone = o.mcDone && o.m
 function mcCard() {
   let M; try { M = mcBuild(); } catch (e) { console.error(e); return ''; }
   const t = M.top, o = S.days[M.k] || {}, run = (o.fc || []).find((x) => x.id === o.fcRun && !x.t1);
-  const chips = `<div class="mc-h"><button onclick="mcModeOpen()" class="mc-chip ${M.mode}">${MC_MODES[M.mode][0]} day ▾</button><button onclick="mcSeasonOpen()" class="mc-chip">${M.ssn ? esc(MC_SEASONS[M.ssn.kind] || 'Season') + ' season' : 'Set season'}</button>${typeof bacOpen === 'function' && S.settings.bacDate ? `<button onclick="bacOpen()" class="mc-chip">BAC D-${daysUntil(S.settings.bacDate)}</button>` : ''}<span class="mc-fl">${M.fl.known ? `Florida ${M.fl.t}${M.fl.open ? '' : ' · closed'}` : ''}</span></div>`;
+  const chips = `<div class="mc-h"><button onclick="mcModeOpen()" class="mc-chip ${M.mode}">${MC_MODES[M.mode][0]} day ▾</button><button onclick="mcSeasonOpen()" class="mc-chip">${M.ssn ? esc(MC_SEASONS[M.ssn.kind] || 'Season') + ' season' : 'Set season'}</button>${typeof bacOpen === 'function' && S.settings.bacDate ? `<button onclick="bacOpen()" class="mc-chip">BAC D-${daysUntil(S.settings.bacDate)}</button>` : ''}<button onclick="mcToggle()" class="mc-chip">Hide ▴</button><span class="mc-fl">${M.fl.known ? `Florida ${M.fl.t}${M.fl.open ? '' : ' · closed'}` : ''}</span></div>`;
   if (run) { const el = Math.max(0, Math.round((now() - run.t0) / 60000));
     return `<div class="mc">${chips}<div class="mc-k">Focus contract · ${el} of ${run.min} min</div><div class="mc-out">${esc(run.res)}</div><div class="mc-meta"><span>Done when: ${esc(run.dod)}</span></div><div class="mc-row"><button class="btn primary" onclick="fcFinishOpen()">Finish</button><button class="btn" onclick="fcInterrupt()">I got interrupted</button></div></div>`; }
   if (!t) return `<div class="mc">${chips}<div class="mc-k">Mission</div><div class="mc-out">Nothing required right now.</div><div class="mc-why">Every floor for today is met by the evidence. Rest, or pick something on purpose.</div>${mcFoot(M)}</div>`;
+  if (!mcOpenCard) return `<div class="mc mc-s"><button class="mc-sb" onclick="mcToggle()"><span class="mc-k">${MC_MODES[M.mode][0]} day · mission${M.picked ? ' · your pick' : ''}</span><b>${esc(t.out)}</b><em>${t.min ? t.min + ' min · ' : ''}tap for why, done condition, options ▾</em></button>${t.go && t.next ? `<button class="btn primary sm mc-sgo" onclick="mcGo('${t.k}')">${esc(t.next)} ›</button>` : ''}${M.risks.map((r) => `<div class="mc-risk">${esc(r.t)}${r.btn ? ` <button onclick="${r.act}">${r.btn}</button>` : ''}</div>`).join('')}</div>`;
   const sec = M.C.filter((x) => x !== t).slice(0, 3), done = o.mcDone && o.mcDone.k === t.k;
   return `<div class="mc ${done ? 'done' : ''}">${chips}
     <div class="mc-k">${M.picked ? 'Your pick today' : "Today's mission"} · ${MC_TIER[t.tier]}${t.conf !== 'measured' ? ` · ${esc(t.conf)}` : ''}</div>
@@ -205,7 +214,10 @@ function mcWeekSave(board) { const g = (i) => (($(i) || {}).value || '').trim(),
   window.addEventListener('pagehide', fold); setTimeout(mcReconcile, 4000);
   const st = document.createElement('style'); st.id = 'mc-css';
   st.textContent = `.mc{border:1px solid var(--acc,#C9A24A);border-radius:12px;padding:12px 14px;margin:0 0 12px;background:linear-gradient(160deg,rgb(201 162 74 / .10),transparent 60%);display:flex;flex-direction:column;gap:8px}.mc.done{border-color:var(--good,#3fb950)}
-  .arc-in>.arc-top{order:-2}.arc-in>.mc{order:-1}   /* the mission sits directly under the date bar, above every other panel, whatever else is added to the guided day */
+  .arc-in>.arc-top{order:-3}.arc-in>.mc{order:-2}.arc-in>.gd{order:-1}.arc-in>.arc-more{order:1}.arc-in>.sf-chip,.arc-in>.arc-wk,.arc-in>.sg-chain,.arc-in>.bf-strip{order:2}.arc-in>.arc-change{order:3}
+  #arc:not(.more) .arc-in>.sf-chip,#arc:not(.more) .arc-in>.arc-wk,#arc:not(.more) .arc-in>.sg-chain,#arc:not(.more) .arc-in>.bf-strip{display:none}
+  .arc-more{align-self:center;min-height:40px;margin:10px 0;padding:0 14px;background:none;border:1px solid var(--ln,#2a2a2e);border-radius:20px;color:var(--muted,#999);font:600 11px/1 var(--mono,monospace);letter-spacing:.04em;cursor:pointer}
+  .mc.mc-s{padding:10px 12px;gap:6px}.mc-sb{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}.mc-sb b{display:block;font-size:16.5px;line-height:1.3;margin:3px 0;color:var(--ink,#eee)}.mc-sb em{font-style:normal;font-size:11.5px;color:var(--muted,#999)}.mc-sgo{align-self:flex-start;min-height:40px}   /* the mission sits directly under the date bar, above every other panel, whatever else is added to the guided day */
   .mc-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.mc-chip{min-height:30px;padding:0 10px;border:1px solid var(--ln,#2a2a2e);border-radius:15px;background:transparent;color:var(--ink,#eee);font:600 11px/1 var(--mono,monospace);cursor:pointer}.mc-chip.min{border-color:var(--warn,#e5a50a);color:var(--warn,#e5a50a)}.mc-chip.rec{border-color:#7fb3d5;color:#7fb3d5}.mc-fl{margin-left:auto;font:11px var(--mono,monospace);color:var(--muted,#999)}
   .mc-k{font:600 10.5px/1.3 var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--acc,#C9A24A)}.mc-out{font-size:20px;font-weight:700;line-height:1.25;color:var(--ink,#eee)}.mc-why{font-size:13.5px;line-height:1.45;color:var(--muted,#bbb)}
   .mc-meta{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;color:var(--ink,#ddd)}.mc-meta span:first-child{font-family:var(--mono,monospace)}.mc-go{min-height:48px;font-size:15px}.mc-row{display:flex;flex-wrap:wrap;gap:6px}.mc-row .btn{min-height:40px}

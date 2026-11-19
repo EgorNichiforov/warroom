@@ -6,7 +6,11 @@
    Subjects and targets come from LF_SUBJ in life.js (the owner's own setup). They are NOT verified here against the
    Ministry of Education's 2027 regulations: the board says so. "On track" is only stated when the evidence allows it. */
 'use strict';
-function bacSubj() { return typeof LF_SUBJ !== 'undefined' ? LF_SUBJ.map(([id, name, max, target]) => ({ id, name, max, target })) : []; }
+/* 13.24.1: targets are yours to set (BAC board → Change targets). Exam subjects default to 8. One list (LF_SUBJ) feeds every screen. */
+function bacApply() { if (typeof LF_SUBJ === 'undefined' || !S || !S.settings) return; const t = (S.settings.bac || {}).t || {}; LF_SUBJ.forEach((s) => { if (s._d == null) s._d = s[3]; s[3] = t[s[0]] != null && !isNaN(Number(t[s[0]])) ? Number(t[s[0]]) : (s[2] === 10 ? 8 : s._d); }); }
+function bacTargetsOpen() { bacApply(); openModal(`<h2>BAC targets</h2><label class="xs muted">Target average for the exam subjects</label><input class="aq-in" id="bt-avg" inputmode="decimal" value="${Number((S.settings.bac || {}).target) || 8}">${bacSubj().map((s) => `<label class="xs muted">${esc(s.name)} (out of ${s.max})</label><input class="aq-in bt-s" data-id="${s.id}" inputmode="decimal" value="${s.target}">`).join('')}<div class="actions"><button class="btn" onclick="bacOpen()">Cancel</button><button class="btn primary" onclick="bacTargetsSave()">Save targets</button></div>`, true); }
+function bacTargetsSave() { const n = (v) => Number(String(v).replace(',', '.')), t = {}; document.querySelectorAll('.bt-s').forEach((el) => { const v = n(el.value); if (!isNaN(v) && v > 0) t[el.dataset.id] = v; }); const avg = n(($('bt-avg') || {}).value); S.settings.bac = { target: !isNaN(avg) && avg > 0 ? avg : 8, t }; S.settings._u = now(); save(); bacApply(); toast('Targets saved'); bacOpen(); try { mcRefresh(); } catch (e) { } }
+function bacSubj() { bacApply(); return typeof LF_SUBJ !== 'undefined' ? LF_SUBJ.map(([id, name, max, target]) => ({ id, name, max, target })) : []; }
 function bacStats() {
   const today = dk(new Date()), errs = typeof lfErrs === 'function' ? lfErrs() : [];
   return bacSubj().map((s) => {
@@ -41,10 +45,11 @@ function bacOpen() {
     <div class="bac-line ${tr.known ? (tr.ok ? 'ok' : 'low') : ''}"><span>${tr.known ? (tr.ok ? 'On track, on current evidence' : 'Not on track yet') : 'Cannot tell yet'}</span>${esc(tr.line)}</div>
     ${St.some((s) => s.top) ? `<div class="mc-wl"><span>Errors that keep coming back</span>${St.filter((s) => s.top).map((s) => `<div>${esc(s.name)}: ${esc(s.top)}</div>`).join('')}</div>` : ''}
     ${nx ? `<div class="mc-wl"><span>Study next</span><div><b>${esc(nx.out)}</b></div><div>${esc(nx.why)}</div><div class="xs muted">Done when: ${esc(nx.dod)}</div></div>` : ''}
-    <div class="actions" style="flex-wrap:wrap">${St.reduce((a, s) => a + s.due, 0) && typeof lfReview === 'function' ? `<button class="btn primary" onclick="lfReview()">Review due errors</button>` : ''}${typeof lfTestModal === 'function' ? `<button class="btn" onclick="lfTestModal()">Log a mock</button>` : ''}${typeof lfErrModal === 'function' ? `<button class="btn" onclick="lfErrModal()">Add an error</button>` : ''}</div>
+    <div class="actions" style="flex-wrap:wrap">${St.reduce((a, s) => a + s.due, 0) && typeof lfReview === 'function' ? `<button class="btn primary" onclick="lfReview()">Review due errors</button>` : ''}${typeof lfTestModal === 'function' ? `<button class="btn" onclick="lfTestModal()">Log a mock</button>` : ''}${typeof lfErrModal === 'function' ? `<button class="btn" onclick="lfErrModal()">Add an error</button>` : ''}<button class="btn" onclick="bacTargetsOpen()">Change targets</button></div>
     <div class="xs muted" style="margin-top:10px">Subjects and targets are the ones in your study setup (Română and Istorie by exam, English and IT by certificate). They have not been checked against the ministry's 2027 examination rules. Study minutes are a floor, not proof: only mocks and the error log move this board.</div>`, true);
 }
 (function () {
+  setTimeout(() => { try { bacApply(); } catch (e) { } }, 2500);
   const st = document.createElement('style'); st.id = 'bac-css';
   st.textContent = `.bac-t{display:grid;gap:2px;margin:8px 0;font-size:12.5px}.bac-r{display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr .7fr 1.1fr;gap:6px;padding:6px 0;border-bottom:1px solid var(--ln,#222);align-items:center}.bac-r.hd{font:600 10px/1.3 var(--mono,monospace);text-transform:uppercase;color:var(--muted,#999)}.bac-r span:not(:first-child){font-family:var(--mono,monospace)}.bac-r.low span:nth-child(3){color:var(--warn,#e5a50a)}.bac-r b{color:var(--acc,#C9A24A)}
   .bac-line{border-left:3px solid var(--ln,#444);padding:6px 10px;margin:10px 0;font-size:13px;line-height:1.45}.bac-line span{display:block;font:600 11px/1.4 var(--mono,monospace);text-transform:uppercase}.bac-line.ok{border-color:var(--good,#3fb950)}.bac-line.ok span{color:var(--good,#3fb950)}.bac-line.low{border-color:var(--warn,#e5a50a)}.bac-line.low span{color:var(--warn,#e5a50a)}`;
