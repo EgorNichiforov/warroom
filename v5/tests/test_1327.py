@@ -26,7 +26,7 @@ with sync_playwright() as p:
     ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); bacLoad(); clLoad&&clLoad();")
     pg.wait_for_timeout(1800); pg.clock.run_for(2000)
     check('libraries loaded (cards, bootcamp, sources, mentors, BAC)', ev("!!(XC&&XC.byId&&BC&&KPL&&CCM&&BACD)"))
-    check('version is 13.27.1', ev("APP_VERSION==='13.27.1'"), ev("APP_VERSION"))
+    check('version is 13.28.0', ev("APP_VERSION==='13.28.0'"), ev("APP_VERSION"))
 
     # ── data integrity
     check('31 new sourced cards, every one with a source, a kind and two test questions', ev("XC.cards.filter(c=>c.added==='13.27').length===31 && XC.cards.filter(c=>c.added==='13.27').every(c=>c.src&&c.kind&&c.q.length>=2&&c.move&&c.trap)"))
@@ -130,6 +130,37 @@ with sync_playwright() as p:
     check('source audit finds the declared contradiction, unprocessed emails, gaps and unverified links', r['c'] == 1 and r['u'] > 20 and r['g'] >= 1 and r['v'] >= 1, r)
     check('spacing: costly-to-forget lessons get a higher memory floor', ev("msFloor('sf-112')===0.85 && msImp('sf-112')===3 && msFloor('lf-4laws')<0.85 && /costly to forget/.test(msWhyDue('sf-112'))"))
 
+    # ── 13.28 · a video on every lesson; strategy layer
+    check('233 of 234 lessons have a video; the one without says so', ev("XC.cards.filter(c=>(c.clip||[]).length).length===233 && /No verified video/.test(xcCardHtml(XC.byId['nc-florida']))"), ev("XC.cards.filter(c=>!(c.clip||[]).length).map(c=>c.id)"))
+    check('the video comes first on the card, names who and how long, and says when it is not the original teacher', ev("(()=>{const h=xcCardHtml(XC.byId['as-desc']); return h.indexOf('Watch first')<h.indexOf('xc-s plain') && /TEDx Talks/.test(h) && /different, credible teacher/.test(h) && /Leila Hormozi · \\d+ min/.test(xcCardHtml(XC.byId['lh-emotion']))})()"))
+    ev("delete S.settings.m1328; delete S.assets; delete S.opps; delete S.obs; delete S.settings.strategy; stSeed(); stSeed()")
+    check('strategy seed: real assets at honest stages, opportunities in all doors, no scores invented', ev("stAssets().length===7 && stAssets().every(a=>a.proof) && stLive(S.opps).length===5 && ['4','5'].every(c=>stLive(S.opps).some(o=>o.cls===c&&o.st==='parked')) && stCoverage().known===0 && !stCfg().lean && !!stCfg().next"))
+    ev("""S.obs={}; ['Sunrise Home Care','Gulf Coast Care','Bayside Seniors'].forEach((w,i)=>{S.obs['o'+i]={id:'o'+i,_u:now(),at:'2026-11-19',kind:'quote',text:'Our caregivers need more clients, census is down this month',who:w,tag:stTagOf('need clients census')}}); S.opps.op1328b._del=true; 0""")
+    r = ev("(()=>{const s=stSignals(); return {opp:s.filter(x=>x.k==='opp').length, t:(s.find(x=>x.k==='opp')||{}).t||'', busy:s.some(x=>x.k==='busy')}})()")
+    check('signal: three agencies with the same problem flag a possible opportunity (and only then)', r['opp'] == 1 and '3 agencies' in r['t'], r)
+    check('signal: little dialing is named as the problem, not rewarded', r['busy'])
+    ev("stOppEdit('',{tag:'clients'}); document.getElementById('sp-t').value='Client acquisition for agencies'; stOppSave('')")
+    oid = ev("stLive(S.opps).find(o=>o.tag==='clients'&&!o.seed).id")
+    check('opportunity carries its evidence and grade; the signal clears', ev(f"stOppEv(S.opps['{oid}']).grade[0]==='pattern' && stOppEv(S.opps['{oid}']).agencies===3 && !stSignals().some(x=>x.k==='opp')"))
+    ev(f"stOppExp('{oid}')")
+    check('validation opens a real experiment; no project is created', ev(f"S.opps['{oid}'].st==='validating' && !!S.experiments[S.opps['{oid}'].exp] && S.experiments[S.opps['{oid}'].exp].src==='opp:{oid}'"))
+    ev("S.experiments.eW={id:'eW',_u:now(),title:'Test: owner-phrase opener',result:'worked: 4 of 20 answered became conversations'}")
+    check('signal: a result that worked asks to be registered as an asset', ev("stSignals().some(x=>x.k==='doc'&&/owner-phrase/.test(x.t))"))
+    ev("stAssetFrom('exp','eW'); stAssetSave('')")
+    check('asset register takes it at stage "worked once" with its proof', ev("stAssets().some(a=>a.from==='exp:eW'&&a.stage==='once'&&/4 of 20/.test(a.proof)) && !stSignals().some(x=>x.k==='doc'&&/owner-phrase/.test(x.t))"))
+    ev("stCellEdit('B','demand'); document.getElementById('sc-s').value='4'; document.getElementById('sc-c').value='some'; document.getElementById('sc-n').value=''; document.getElementById('sc-w').value='three owners asked'; stCellSave('B','demand')")
+    check('A/B/C: an evidenced score needs the evidence named', ev("stCell('B','demand').c==='unknown'"))
+    ev("document.getElementById('sc-n').value='3 owner quotes in market notes, Nov 2026'; stCellSave('B','demand')")
+    check('A/B/C: score saved with confidence, reason logged, coverage counted', ev("stCell('B','demand').s===4 && stCfg().log.length===1 && stCfg().log[0].why==='three owners asked' && stCoverage().proven===1 && stModelScore('B').avg===4 && stModelScore('A').avg===null"))
+    ev("stReviewOpen(); document.getElementById('sr-a').value='Owners talk about clients more than staff'; document.getElementById('sr-l').value='B'; stReviewSave()")
+    check('strategic review: a lean is refused on thin evidence; direction stays open', ev("!stCfg().lean && stCfg().reviews.length===0"))
+    ev("document.getElementById('sr-l').value=''; stReviewSave()")
+    check('strategic review recorded, next one in 90 days', ev("stCfg().reviews.length===1 && daysUntil(stCfg().next)===90"))
+    check('business stage steers learning: with no dials the focus is cold calling and starting', ev("stFocusCaps().includes('b-cold') && ccFocus().caps.includes('b-cold')"))
+    r = ev("(()=>{const M=mcBuild(); return {f:M.facts.filter(x=>x.owner==='strategy.js').length, top:M.C.filter(x=>x.owner==='strategy.js').length, q:stAnswers().length}})()")
+    check('strategy adds one fact to the mission, no second recommendation; seven questions answered', r['f'] == 1 and r['top'] == 0 and r['q'] == 7, r)
+    check('new maps sync', ev("['obs','opps','assets'].every(k=>MERGE_MAPS.includes(k))"))
+    check('BAC: profile and certificates recorded as confirmed by you, source stated', ev("(()=>{delete S.settings.m1328b; exSeed2(); return bacProfile().ok && S.reality.rf1328c.st==='confirmed' && /stated by Egor/.test(S.reality.rf1328c.src)})()"))
     # ── BAC
     check('BAC: verified dates, deadlines and the open questions are all present', ev("BACD.exams.find(e=>e.k==='ro').d==='2027-06-08' && BACD.exams.find(e=>e.k==='ist').d==='2027-06-15' && BACD.deadlines.length===2 && BACD.verify.length>=3 && BACD.start==='09:00'"))
     r = ev("(()=>{const a=bacSeq('ro'), b=bacSeq('ist'); return {ro:a.T.length, ist:b.T.length, d:a.days, pw:a.perWeek, nx:a.next.length, mf:a.mocksFrom}})()")
@@ -143,7 +174,7 @@ with sync_playwright() as p:
     ne = ev("Object.keys(S.lifeErrors||{}).length")
     ev("bacDiagMiss('ist'); document.querySelectorAll('.bd-m')[3].checked=true; document.querySelectorAll('.bd-m')[5].checked=true; bacDiagMissSave('ist')")
     check('BAC: diagnostic misses become weak topics, error cards and the front of the sequence', ev("Object.keys(S.lifeErrors).length") == ne + 2 and ev("bacSeq('ist').weak===2 && bacSeq('ist').next[0].weak"))
-    check('BAC: unconfirmed profile is shown as an assumption', ev("!bacProfile().ok && /To confirm/.test(document.getElementById('modal').textContent)"))
+    check('BAC: confirmed profile is no longer shown as an assumption', ev("bacProfile().ok && !/To confirm/.test(document.getElementById('modal').textContent)"))
     ev("closeModal(); bacFactsOpen()")
     check('BAC: dates screen lists the deadlines and what is not verified', ev("/10 Apr/.test(document.getElementById('modal').textContent) && /Still to verify/.test(document.getElementById('modal').textContent)"))
     ev("closeModal(); bacOpen()")
@@ -152,7 +183,7 @@ with sync_playwright() as p:
     check('13.27 seed is idempotent and never overwrites your own exam date', ev("S.settings.bacDate==='2027-06-01' && Object.keys(S.risks).filter(k=>/^r1327/.test(k)).length===2 && Object.keys(S.reality).filter(k=>/^rf1327/.test(k)).length===2"))
 
     # ── every new screen at phone width
-    screens = ["ccOpen('rec')", "ccOpen('men')", "ccOpen('aud')", "ccOpen('res')", "ccOpen('impl')", "ccOpen('new')", "ccView('lc-12')", "ccView('em-20261112-57455')", "ccMentor('hormozi')", "ccPlanOpen(15)", "ccPlanRun(25,'any','any')", "ccStats()", "ccRoadmap()", "ccSettings()", "ccResearchNew()", "ccCapture()", "ccAudio('lc-02')", "ccDone('lc-02')", "cxList()", "cxOpen('cT')", "cxFields('cT')", "enCheck()", "cmTrain('c-speak')", "cmTrain('r-focus')", "cmMoneyDrill('f-bank')", "jlBrList()", "jlBrOpen('br-stall')", "kpAuditOpen()", "bacMapOpen('ro')", "bacDiagOpen('ro')", "bacDiagMiss('ro')", "bacFactsOpen()", "bacProfileSet()", "xcOpen('hz-askagain')", "xcOpen('sf-scam4')", "cmCapOpen('j-scam')"]
+    screens = ["ccOpen('rec')", "ccOpen('men')", "ccOpen('aud')", "ccOpen('res')", "ccOpen('impl')", "ccOpen('new')", "ccView('lc-12')", "ccView('em-20261112-57455')", "ccMentor('hormozi')", "ccPlanOpen(15)", "ccPlanRun(25,'any','any')", "ccStats()", "ccRoadmap()", "ccSettings()", "ccResearchNew()", "ccCapture()", "ccAudio('lc-02')", "ccDone('lc-02')", "cxList()", "cxOpen('cT')", "cxFields('cT')", "enCheck()", "cmTrain('c-speak')", "cmTrain('r-focus')", "cmMoneyDrill('f-bank')", "jlBrList()", "jlBrOpen('br-stall')", "kpAuditOpen()", "bacMapOpen('ro')", "bacDiagOpen('ro')", "bacDiagMiss('ro')", "bacFactsOpen()", "bacProfileSet()", "stOpen()", "stObsOpen()", "stObsNew()", "stOppOpen()", "stOppEdit('')", "stAssetOpen()", "stAssetEdit('')", "stModelsOpen()", "stCellEdit('A','wtp')", "stReviewOpen()", "xcOpen('lh-emotion')", "xcOpen('hz-askagain')", "xcOpen('sf-scam4')", "cmCapOpen('j-scam')"]
     bad = []
     for sc in screens:
         try:
@@ -179,12 +210,12 @@ with sync_playwright() as p:
     p2.goto(URL); p2.wait_for_timeout(1500)
     try:
         p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); p2.wait_for_timeout(6000)
-        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.27\\.1/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
+        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.28\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
         need = ['content.js', 'expand.js', 'lib/bac.json', 'lib/mentors.json', 'lib/sources.json', 'lib/cards.json']
         check('offline cache holds the new files', all(n in cached for n in need), [n for n in need if n not in cached])
         c2.set_offline(True); p2.reload(); p2.wait_for_timeout(3000)
         r = p2.evaluate("(async()=>{ccLoad(); bacLoad(); xcLoad&&xcLoad(); await new Promise(r=>setTimeout(r,1500)); return {v:APP_VERSION, lib:!!(KPL&&KPL.sources.length>150), bac:!!BACD, men:!!CCM, plan:(KPL?ccPlan(15,'any','any').steps.length:0)}})()")
-        check('app starts offline and the content planner works from cache', r['v'] == '13.27.1' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
+        check('app starts offline and the content planner works from cache', r['v'] == '13.28.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
         check('offline: no page errors', not e2, e2[:3])
     except Exception as e:
         check('offline test ran', False, str(e)[:200])

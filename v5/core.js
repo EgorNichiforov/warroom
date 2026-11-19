@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.27.1';
+const APP_VERSION = '13.28.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -775,7 +775,7 @@ async function pushCloud() {
    merge() also notes whether this device holds anything the cloud lacks (syncAhead) so a pull can push it back:
    a change can no longer sit on one device waiting for its next edit. */
 const MERGE_SINGLES = ['settings', 'routines', 'habits', 'counters', 'schedule', 'programByDay', 'food', 'secrets', 'doctrine'];
-const MERGE_MAPS = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices', 'playbook', 'slab', 'wassets', 'wsnap', 'acq', 'inbox', 'meetings', 'campaigns', 'decisions', 'experiments', 'lifeTests', 'lifeErrors', 'protocols', 'boards', 'accounts', 'txns', 'mplan', 'focus', 'cards', 'boot', 'journal', 'risks', 'manual', 'reality', 'sources', 'content', 'research'];
+const MERGE_MAPS = ['programs', 'days', 'tasks', 'goals', 'reviews', 'stakes', 'devices', 'playbook', 'slab', 'wassets', 'wsnap', 'acq', 'inbox', 'meetings', 'campaigns', 'decisions', 'experiments', 'lifeTests', 'lifeErrors', 'protocols', 'boards', 'accounts', 'txns', 'mplan', 'focus', 'cards', 'boot', 'journal', 'risks', 'manual', 'reality', 'sources', 'content', 'research', 'obs', 'opps', 'assets'];
 const BASE_KEY = 'warroom2-base';
 let syncBase = null, syncAhead = false;
 const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);

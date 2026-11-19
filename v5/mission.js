@@ -131,6 +131,7 @@ function mcBuild() {
   /* 13.26: the life layer (reality.js) adds conflicts, stagnation, due reviews and readiness as facts and risks. It never adds a second recommendation. */
   try { if (typeof lxAugment === 'function') lxAugment(M, { d, o, L, nm, bedM, night }); } catch (e) { }
   try { if (typeof exAugment === 'function') exAugment(M, { nm }); } catch (e) { }
+  try { if (typeof stAugment === 'function') stAugment(M); } catch (e) { }
   return (mcLast = M);
 }
 function mcOpen(w) { try { if (typeof arcHide === 'function') arcHide(true); } catch (e) { } if (w === 'bac') { if (typeof bacOpen === 'function') bacOpen(); return; } try { show(w); } catch (e) { } }

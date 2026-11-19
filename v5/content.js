@@ -25,7 +25,7 @@ function ccCfg() { const c = (S.settings || {}).discovery || {}; return { freq: 
 /* the index: library + your own sources + clips that sit on lesson cards */
 function ccAll() {
   const out = (typeof kpAll === 'function' ? kpAll() : []).map((x) => Object.assign({ fmt: 'read', min: 5, tier: 'support', claim: 'unverified' }, x));
-  if (typeof XC !== 'undefined' && XC && XC.cards) XC.cards.forEach((c) => (c.clip || []).forEach((cl, i) => { const sec = (cl[2] || 0) - (cl[1] || 0); if (out.some((x) => x.yt === cl[0] && (x.cards || []).includes(c.id))) return; out.push({ id: 'clip:' + c.id + ':' + i, t: cl[3] || c.t, by: c.who || '', fmt: 'watch', min: sec > 0 ? Math.max(1, Math.round(sec / 60)) : 5, est: !(sec > 0), yt: cl[0], s: cl[1] || 0, e: cl[2] || 0, cards: [c.id], caps: typeof cmCapsOfCard === 'function' ? cmCapsOfCard(c.id).map((k) => k.id || k) : [], tier: c.c === 'life' ? 'support' : 'core', claim: 'practitioner', why: 'The moment in the source video that teaches "' + c.t + '".', clip: 1, screen: true, stat: 'official' }); }));
+  if (typeof XC !== 'undefined' && XC && XC.cards) XC.cards.forEach((c) => (c.clip || []).forEach((cl, i) => { const sec = (cl[2] || 0) - (cl[1] || 0); if (out.some((x) => x.yt === cl[0] && (x.cards || []).includes(c.id))) return; out.push({ id: 'clip:' + c.id + ':' + i, t: cl[3] || c.t, by: c.who || '', fmt: 'watch', min: sec > 0 ? Math.max(1, Math.round(sec / 60)) : c.clipMin || 5, est: !(sec > 0) && !c.clipMin, yt: cl[0], s: cl[1] || 0, e: cl[2] || 0, cards: [c.id], caps: typeof cmCapsOfCard === 'function' ? cmCapsOfCard(c.id).map((k) => k.id || k) : [], tier: c.c === 'life' ? 'support' : 'core', claim: 'practitioner', why: 'The moment in the source video that teaches "' + c.t + '".', clip: 1, screen: true, stat: 'official' }); }));
   return out.map((x) => Object.assign(x, { u: ccRec(x.id) }));
 }
 function ccGet(id) { return ccAll().find((x) => x.id === id) || null; }
@@ -36,6 +36,7 @@ function ccFocus() {
   const F = { caps: [], cards: [], why: '', dom: '' }; let ssn = null; try { ssn = typeof mcSeason === 'function' ? mcSeason() : null; } catch (e) { }
   try { const lens = typeof mcLens === 'function' ? mcLens() : ''; F.dom = lens || (ssn ? ssn.dom : ''); } catch (e) { }
   try { const nx = typeof cmNext === 'function' ? cmNext() : null; if (nx && nx.cap) { F.caps.push(nx.cap.id); F.why = nx.cap.n; (nx.cap.cards || []).forEach((c) => F.cards.push(c)); } } catch (e) { }
+  try { if (typeof stFocusCaps === 'function' && (!F.dom || F.dom === 'biz')) stFocusCaps().forEach((c) => { if (!F.caps.includes(c)) F.caps.push(c); }); } catch (e) { }
   try { (typeof cmWeak === 'function' ? cmWeak() : []).slice(0, 3).forEach((w) => { const id = (w.c && w.c.id) || w.id; if (id && !F.caps.includes(id)) F.caps.push(id); }); } catch (e) { }
   return F;
 }
@@ -304,6 +305,10 @@ function ccRoadmap() {
   .cc-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.cc-kpi div{border:1px solid var(--ln,#2a2a2e);border-radius:10px;padding:8px 4px;text-align:center}.cc-kpi b{display:block;font-size:20px}.cc-kpi span{font-size:10.5px;opacity:.7}
   .cc-rq{display:flex;gap:8px;align-items:center;font-size:13px;border-top:1px solid var(--ln,#2a2a2e);padding:6px 0}.cc-rq span{flex:1;overflow-wrap:anywhere}.cc-rq em{font-style:normal;font-size:11px;opacity:.7}
   .xc-nav{max-width:100%;min-width:0}.xc-card .xc-nav button.btn{min-width:0;max-width:calc(50% - 4px);flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}.xc-card{min-width:0;max-width:100%}.xc-src{font-size:11.5px;opacity:.7;line-height:1.4;margin-top:4px}
+  .cc-ban{margin:0 0 10px}.xc-vid{border:1px solid var(--good,#3fb950);border-radius:10px;padding:10px}
   .lnk{background:none;border:0;color:var(--acc,#58a6ff);padding:6px 0;text-align:left;font-size:13px;display:block}.actions.wrap{flex-wrap:wrap}`; document.head.appendChild(st); })();
 
 (function w() { if (typeof S !== 'undefined' && S && S.settings) { ccLoad(() => { try { ccAutoImport(); } catch (e) { } }); setInterval(() => { try { ccAutoImport(); } catch (e) { } }, 60000); } else setTimeout(w, 500); })();
+
+/* 13.28: the library is reachable from where you learn, not only from You → Content */
+setInterval(() => { try { ['view-boot', 'view-acq'].forEach((id) => { const el = document.getElementById(id); if (!el || !el.offsetParent || el.querySelector('.cc-ban')) return; const d = document.createElement('div'); d.className = 'cc-ban'; d.innerHTML = '<button class="btn block" onclick="ccOpen(\'rec\')">▶ Content library · videos, audio, reading · I have X minutes</button>'; el.insertBefore(d, el.firstChild); }); } catch (e) { } }, 900);

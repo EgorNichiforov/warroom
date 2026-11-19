@@ -1,5 +1,23 @@
 # Implementation log
 
+## 19 Nov 2026 · 13.28.0 · Strategy layer, a video on every lesson, self-updating library (13.27.1)
+
+Audit before building (what already existed and was reused): call log and funnel (`mcDialLog`, `sgState`, `enBottleneck`), experiments and decisions (`intel.js`, `judge.js`), Field Manual, campaigns with projects, capability map, content index. Missing: a place for market evidence, opportunities tied to evidence, an asset register, a way to compare business models without deciding early, and signals that connect them.
+
+| Built | Where | Status |
+|---|---|---|
+| Market notes, also read live from call-log notes | `strategy.js` `stObs*`, `stCallNotes` | implemented + tested |
+| Opportunities (6 classes, evidence grade, max 2 validating, opens a real experiment) | `stOpp*` | implemented + tested |
+| Asset register with maturity stages; fed from experiments and procedures | `stAsset*` | implemented + tested |
+| A/B/C decision: 36 cells, confidence per cell, change log, 90-day review, lean refused on thin evidence | `stModels*`, `stReview*` | implemented + tested |
+| Signals from records; seven questions | `stSignals`, `stAnswers` | implemented + tested on synthetic records; no real owner data exists yet |
+| Stage → capabilities → content focus | `stFocusCaps`, `ccFocus` | implemented + tested |
+| Video on every lesson (233/234), video first on the card | `lib/cards.json`, `explain.js` | each id checked by YouTube oEmbed on 19 Nov; fit of video to lesson was matched by title, not by watching |
+| Library imports scan notes by itself; app checks for updates in the foreground | `content.js`, `views.js` | implemented + tested |
+| One-off cloud task reads all listed emails into the library | scheduled task | created; result not yet observed |
+
+Needs a backend or permission (not built): automatic capture of what owners say (needs call recording + transcription), competitor monitoring, any market-size data.
+
 ## 19 Nov 2026 · 13.27.0 · Content Command Center and the declared gaps of 13.26
 
 Build gate: 0 dials this week. Overridden by Egor in writing ("I'll do the calls today at 16:00"). Logged in the changelog.

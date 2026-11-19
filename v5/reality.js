@@ -246,6 +246,7 @@ function lfOpTab() {
       ${tile('Knowledge pipeline', `${typeof kpAll === 'function' ? kpAll().length : 0} sources`, 'kpOpen()')}
       ${tile('Capacity & resources', over ? `${over} day${over > 1 ? 's' : ''} over capacity` : 'next 7 days fit', 'rlCapOpen()', over)}
       ${tile('Indicators', 'a few honest numbers', 'lxMetricsOpen()')}
+      ${tile('Strategy', 'evidence · opportunities · assets · A/B/C', 'stOpen()', typeof stSignals === 'function' && stSignals().some((s) => s.w >= 3))}
       ${tile('Content', 'today\'s queue · I have X minutes · library', 'ccOpen()')}
       ${tile('Campaigns', `${typeof campActive === 'function' ? campActive().length : 0} active · projects · next actions`, 'cxList()')}
       ${tile('Branching scenarios', `${typeof JL_BR !== 'undefined' ? JL_BR.length : 0} multi-step situations`, 'jlBrList()')}
