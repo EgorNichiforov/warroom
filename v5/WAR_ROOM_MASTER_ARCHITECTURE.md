@@ -1,4 +1,4 @@
-# War Room · master architecture (13.41.0, 19 Nov 2026)
+# War Room · master architecture (13.42.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -148,6 +148,14 @@ Read model over existing stores (ADR-002). `EN_SRC` has one adapter per type (go
 
 Mission documents: `WAR_ROOM_EXECUTION_STATE.md` (resume here), `ARCHITECTURE_DECISIONS.md`, `VISION_COVERAGE.md`, `INVENTORY.md` (generated).
 
+## 8i. Strategy, scenarios, roles, evolution (13.42)
+
+`future.js`: `bkOpen/bkSave` store `goal.plan = {measure, must[], caps, res, obst, unknown, assume}`; `ocData/ocOpen` build the chain (season priority → goals by attention → `dep` → tasks with `task.goal`); `ocTaskSave` links a new task. Scenario model: `smSeed()` takes only measured or planned values (thresholds `BE_MIN`), `smCalc`, `smCases`, `smNeed`, `smWeak`, `smExp` (draft in `S.experiments`, `src:'scenario'`), saved in `S.boot['sm:<id>']`. Options in `S.boot['opt:<id>']` (`OP_Q`, no score). Decisions, predictions, calibration, red team, pre-mortems: unchanged in `judge.js`.
+
+`agents.js` (ADR-006): `AG_PACK` (deterministic briefings), `AG` (8 roles: name, job, packs it may read, kinds it may propose), `agSystem`, `agRoute`, `agValidate` (shape check, contract filter, markup stripped), `agRun` (max one AI call; `agRun('red', q, answer)` is the one optional second), `agApprove/agDismiss` (records are created only here, through `addTaskAuto`, `S.research`, `coCapNew`, `jlDecEdit`), `aglog` in `S.boot` (last 80), daily cap `settings.agCap` (default 15). `evoRecs`, `evoTrend`, `evoOpen`: evaluation, read-only.
+
+Look: `graphite` allowed in `unify.js` (`lookGet`, `setAppearance`, appearance card); variables in `monolith.css`.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -155,6 +163,6 @@ Mission documents: `WAR_ROOM_EXECUTION_STATE.md` (resume here), `ARCHITECTURE_DE
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.41. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
+- No real-phone test of 13.31 to 13.42. No role has been run against a real AI model by the build: the tests use a stand-in, so they prove the limits and the plumbing, not the quality of advice. The back button in particular behaves differently in an installed app than in a test browser and needs a real press.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

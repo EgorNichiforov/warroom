@@ -273,3 +273,18 @@ html[data-look="light"] .nav button .badge{color:#fff}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
 @media (forced-colors:active){.card,.btn,.chip{border:1px solid CanvasText}}
 @media (max-width:380px){.plate .pn{font-size:46px}.hero .title{font-size:27px}}
+
+/* 13.42 · Graphite · teal (the 100% vision brief's starting tokens). Variables only: every component inherits. */
+html[data-look="graphite"]{
+  --bg:#0B0F14;--bg2:#121923;--bg3:#192330;--bg4:#202C39;
+  --line:#293543;--line2:#35475A;--engrave:rgba(255,255,255,.03);
+  --text:#F1F5F9;--sub:#D5DCE4;--muted:#A0ADBA;--dim:#718096;
+  --acc:#66D9C2;--acc-ink:#06231D;--acc-rgb:102 217 194;--acc-dim:rgb(102 217 194 / .12);
+  --ok:#52C995;--ok-rgb:82 201 149;--bad:#EF7474;--bad-rgb:239 116 116;--warn:#E9B65C;--info:#83A8FF;--info-rgb:131 168 255;
+  --purple:#A99BEA;--pink:#E08BB0;
+  --co:#66D9C2;--co2:#8FE6D4;--body:#52C995;--body2:#3FAE7F;--mind:#83A8FF;--mind2:#6B8FE6;
+  --ring-co1:#66D9C2;--ring-co2:#A5EFE0;--ring-body1:#3FAE7F;--ring-body2:#7BDDB0;--ring-mind1:#6B8FE6;--ring-mind2:#A9C2FF;
+  --shadow:0 1px 0 var(--engrave) inset,0 10px 30px -18px rgba(0,0,0,.7);
+  --scrim:rgba(5,8,12,.6);
+  color-scheme:dark;
+}

@@ -2,13 +2,13 @@
    Appearance per device: 'dark' (Monolith obsidian, default) · 'light' (Monolith limestone) · 'classic' (the 5.12 look, rollback).
    Stored in localStorage only, never synced: it is a property of the screen, not of the data.
    Also: the HQ mission plate, and the emoji quietener for UI chrome (titles, buttons, chips). */
-const LOOKS = [['dark', 'Monolith · obsidian', 'Dark graphite with bronze. The default.'], ['light', 'Monolith · limestone', 'Light stone for daylight and outdoors.'], ['classic', 'Classic', 'The 5.12 orange look. Rollback, nothing else changes.']];
+const LOOKS = [['dark', 'Monolith · obsidian', 'Dark graphite with bronze. The default.'], ['light', 'Monolith · limestone', 'Light stone for daylight and outdoors.'], ['classic', 'Classic', 'The 5.12 orange look. Rollback, nothing else changes.'], ['graphite', 'Graphite · teal', 'Cool graphite with one teal accent. New in 13.42: try it on your screen.']];
 function lookGet() { try { const l = localStorage.getItem('wr-look'); return LOOKS.some((x) => x[0] === l) ? l : 'dark'; } catch (e) { return 'dark'; } }
 function isMonolith() { return lookGet() !== 'classic'; }
 function applyLook(l) {
   l = l || lookGet(); const root = document.documentElement; root.dataset.look = l;
   const css = document.getElementById('mono-css'); if (css) css.disabled = l === 'classic';
-  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', l === 'light' ? '#E8E4DA' : l === 'classic' ? '#060707' : '#0B0E0F');
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', l === 'light' ? '#E8E4DA' : l === 'classic' ? '#060707' : l === 'graphite' ? '#0B0F14' : '#0B0E0F');
 }
 function setAppearance(l) {
   if (!LOOKS.some((x) => x[0] === l)) return;

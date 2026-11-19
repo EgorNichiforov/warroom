@@ -88,7 +88,7 @@ with sync_playwright() as p:
     check('it will not save without what changes next year', ev("!bcV(yrKey(),null)"))
     ev("$('yr-n').value='Dial before building'; yrSave(); 0")
     check('saved, and it appears as a record', ev("bcV(yrKey(),null).next==='Dial before building'&&enAll('review',true).some(e=>/^Yearly review/.test(e.title))"))
-    check('finding them by words', ev("(wfFind('the whole situation')[0]||[])[0]==='brief'&&(wfFind('find a record')[0]||[])[0]==='find'&&(wfFind('records disagree')[0]||[])[0]==='disagree'&&(wfFind('is war room working')[0]||[])[0]==='health'&&(wfFind('review the year')[0]||[])[0]==='year'"), ev("['the whole situation','find a record','records disagree','is war room working','review the year'].map(q=>(wfFind(q)[0]||[])[0])"))
+    check('finding them by words', ev("(wfFind('the whole situation')[0]||[])[0]==='brief'&&(wfFind('find a record')[0]||[])[0]==='find'&&(wfFind('records disagree')[0]||[])[0]==='disagree'&&(wfFind('app errors storage sync')[0]||[])[0]==='health'&&(wfFind('review the year')[0]||[])[0]==='year'"), ev("['the whole situation','find a record','records disagree','app errors storage sync','review the year'].map(q=>(wfFind(q)[0]||[])[0])"))
     check('still one recommender; this layer adds no candidate', ev("(()=>{const M=mcBuild();return M.top===(M.C[0]||null)&&!M.C.some(c=>/^(en|rc|rb|hx)/.test(c.k))})()"))
     check('no page errors', not errs, errs[:3]); b.close()
 bad = [r for r in RES if not r[1]]

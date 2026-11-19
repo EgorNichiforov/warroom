@@ -269,3 +269,11 @@ Leftovers from the previous brief closed here: the tour opens once by itself (sy
 Still blocked: daily research schedule (scheduler refused the change twice); scheduled tasks beyond the first page of the list were not read (each page costs more than it is worth mid-build).
 
 Next: 13.42 = objective chain and backward plan, what judge.js lacks, scenario engine with sensitivity (`future.js`).
+
+## 13.42.0 · 19 Nov 2026 · vision stages 3, 8, 9, 11 (+ what stage 4 lacked: nothing; judge.js covers it)
+
+**New:** `future.js`, `agents.js`, `tests/test_1342.py` (41), `VISION_COVERAGE.md`, `USER_GUIDE.md`, `ACCEPTANCE_REPORT.md`. **Changed:** `unify.js` + `look.js` + `monolith.css` (graphite look), `index.html`, `sw.js`, version strings, documents.
+
+Honest limits: scenarios model one funnel with no churn and no capacity; roles were tested with a stand-in for the AI; the evolution view needs weeks of real use before it says anything; the graphite look was checked for contrast by calculation, not by eye.
+
+Next: nothing further is buildable without Egor: see "Blocked" in `WAR_ROOM_EXECUTION_STATE.md` and "What only you can do" in `ACCEPTANCE_REPORT.md`.
