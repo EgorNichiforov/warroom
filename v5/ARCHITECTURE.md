@@ -18,6 +18,8 @@ execution, not tools. Every Claude session that builds War Room, plans, or write
 
 The aim (Egor's own principle, 15 Nov): "War Room exists to improve my life outside War Room."
 
+> **Read this first (19 Nov 2026):** the current architecture is `WAR_ROOM_MASTER_ARCHITECTURE.md`. The Build Gate above is also in `BUILD_GATE.md`. Everything below this line is the 14 Nov runbook and history: its map of screens and engines is out of date; its sync, backup and recovery procedures still apply.
+
 # War Room · architecture, status and runbook (14 Nov 2026, v5.12)
 
 ## 1. Map

@@ -150,3 +150,20 @@ Integrity pass: per-field sync merge, CRM/bench read-merge-write, convergence pu
 ## 13.31.1 · 19 Nov 2026
 
 `content.js`: the banner that 13.28 injected above Learn and Courses is no longer added when `learnx.js` is loaded (seen on the live build: it was a second entry point next to Learn → Now). One new check in `test_1331.py`.
+
+## 13.32.0 · 19 Nov 2026 · whole-system coherence (stages 1–6 and the safe part of 8)
+
+Build Gate: 0 dials in the records for the week; overridden by Egor in writing for this scoped plan. He reports calls made today that are not in the records.
+
+**New:** `cohere.js`, `BUILD_GATE.md` (restored, rules unchanged), `tests/test_1332.py`. **Changed:** `learnx.js`, `mission.js` (one sentence), `reality.js`, `life.js`, `blueprint.js`, `playbook.js`, `index.html`, `sw.js`, `core.js`, the four documents, three test files.
+
+- **Stage 1.** One current architecture file; README and `ARCHITECTURE.md` point at it; gate file back in `main:v5/`. BAC wording now says "the minimum that keeps a pass on track" (Day reason, Playbook seed row, one reality fact). The live goal record still reads "8+ average": not edited.
+- **Stage 2.** `mcBuild` unchanged as the only ranker. Through `lxCandidates`: `follow` (radar minus today's callbacks), `fix` (answer-rate signal, lesson attached), `os` (tier 2, urgency 0.3), `task` (oldest overdue, tier 2, urgency ≤ 0.45), `learn` (tier 3, or tier 2 while the weekly personal minimum is unmet). Through `exAugment`: an energy risk line that proposes a Minimum day.
+- **Stage 3.** `lxDomain()` replaces turn-taking. `settings.learn.persMin` (unset by default; nothing is guaranteed until set). `rebuild` and `debrief` steps taken over from the capability mission. `ccPlanOpen`, `ccPlanRun` and `cpMissionStart` open `lxPlanOpen`; an old mission in progress still opens its own screen. Old `lx:log` entries read unchanged.
+- **Stage 4.** `coFit(min)` on the Day card: filters `mcBuild().C` by time and the next fixed commitment; names what ranked higher and does not fit; hands learning to `lxPlanOpen`.
+- **Stage 5.** `mcDoneToggle` asks expected vs observed (`day.mcDone.exp/.obs`) and shows whether `mcMet` agrees. Weekly review: per-day rows (marked / evidence / outcome), one change required, optional task for Monday (`reviews[wk].acts`, `.changeTask`).
+- **Stage 6.** + sheet: "send it as" (task, market note, decision, journal, resource, money, note, not sure), a suggestion by keywords that never routes by itself, original text kept in `boot` `cap:<id>`, link written on the owner's record (`cap`) when its form is saved, Unprocessed list. Text the number-logger cannot read is kept instead of refused.
+- **Stage 8 (safe part).** Blueprint hand-set stage also writes capability evidence. You → Content points to Learn → Library. Automation status screen. Not done: removing `nova.js`/`ops.js` leftovers (callers not all proven dead), folding `CP_ST`.
+- **Stage 7.** Investigation only; no data written.
+
+Tests: `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` 315 (the count varies by one or two with the clock: some checks are conditional). Desktop browser at phone width; no real phone.

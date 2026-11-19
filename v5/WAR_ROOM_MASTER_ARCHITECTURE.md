@@ -1,119 +1,105 @@
-# War Room · master architecture (13.26.0, 19 Nov 2026)
+# War Room · master architecture (13.32.0, 19 Nov 2026)
 
-Authoritative map of the app as built. Supersedes sections 1 and 2 of `ARCHITECTURE.md` (its runbook parts still apply).
-Plain-JavaScript PWA, no build step, offline-first. 71 scripts loaded in order by `index.html`.
+**This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
+Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
+Written from a read of the code and the live synced data on 19 Nov 2026 (audit: Claude doc "War Room 13.31.1 · whole-system coherence audit").
 
-## The six layers and who owns them
+## 1. Shape
 
-| Layer | Question | Owner files | Data |
+- Plain JavaScript, no build step, offline-first PWA. 87 scripts loaded in order by `index.html`; `sw.js` caches the shell.
+- State: one object `S` (`core.js`) in `localStorage`, synced to one Supabase row per sync code (`warroom_sync`), merged per record.
+  The call queue and the caregiver bench are separate documents and separate rows (`<code>:queue`, `<code>:bench`).
+- Authoritative source: branch `main`, folder `v5/`. GitHub Pages deploys from `main`. Branch `v5` is a mirror with old extra files; nothing deploys from it.
+- Navigation: four hubs (Day · Work · Money · You) and the + sheet (`shell.js`). Day (`arc.js`) is the only home.
+
+## 2. Lifecycle and owners
+
+| Stage | System | Owner | Source of truth |
 |---|---|---|---|
-| 1 Direction | What am I trying to do? | `mission.js` (season), `intel.js` (campaigns), `core.js` (goals) | `S.settings.season`, `S.campaigns`, `S.goals` |
-| 2 Organization | What do I have and owe? | `calendar.js`, `todoist.js`, `dial.js` + `crm.js` (CRM), `pipeline.js` (bench), `money*.js`, `train*.js`, `life.js` (study log) | `S.schedule`, `S.tasks`, `Q` (own row), `B` (own row), `S.txns`, day records |
-| 3 Intelligence | What does it imply? | **`mission.js` `mcBuild()`** is the one recommender. `bac.js` `bacNext()` and `stage.js` `sgEvidence()` feed it facts. | computed, never stored |
-| 4 Execution | What happens now? | `mission.js` (mission card, day modes, focus contract, restart), `arc.js` + `guide.js` (guided day), `adapt.js` + `engine.js` (replan) | day record: `mode`, `mc`, `mcDone`, `mcPick`, `fc[]` |
-| 5 Development | What am I becoming able to do? | `bootcamp.js` (ladder, lessons), `mastery.js` (spacing), `capability.js` (evidence, sims, daily learning mission), `bac.js` (BAC loop), `drive.js` | `S.boot`, `S.cards`, `S.lifeTests`, `S.lifeErrors` |
-| 6 Feedback | What happened, what changes? | `mission.js` (weekly review, overhead), `capability.js` (after-action reviews), `intel.js` (decisions, experiments) | `S.reviews`, `S.boot.aar`, `S.decisions`, `S.experiments`, day `appMin` |
+| Direction | Season, priorities | `mission.js` | `settings.season` |
+| Direction | Goals | `core.js`, `ops.js` | `goals` |
+| Direction | Life direction; strategy A/B/C; assets | `reality.js`, `strategy.js` | `reality`, `opps`, `assets`, `settings.strategy` |
+| Reality | Call queue, call log | `dial.js`, `ledger.js` | queue row |
+| Reality | Pipeline, bench | `pipeline.js`, `crm.js` | queue row, bench row |
+| Reality | Day: counters, blocks, sleep, food, mode, energy | `core.js`, `night.js`, `food.js`, `expand.js` | `days` |
+| Reality | Calendar (read-only feed) | `calendar.js` | Google Calendar |
+| Reality | Tasks (two-way) | `todoist.js` | Todoist; copy in `tasks` |
+| Reality | Money | `money*.js`, `wealth.js`, `keep.js` | `txns`, `accounts` |
+| Reality | Training | `train.js`, `trainlog.js` | `programs`, day record |
+| Reality | Market evidence, owner answers | `strategy.js`, `blueprint.js` | `obs` |
+| Understanding | Stage, bottleneck, insights, signals | `stage.js`, `engine.js`, `intel.js`, `strategy.js` | derived from the call log |
+| **Prioritization** | **Mission Control** | **`mission.js` · `mcBuild()`** | derived; pick, skips, done, expected/observed in the day record |
+| Planning | Day plan, replanning | `guide.js`, `adapt.js` | day blocks |
+| Planning | Campaigns | `ops.js`, `expand.js` | `campaigns` |
+| Execution | Dialer, training player, timers | `cockpit.js`, `body.js`, `flow.js` | write to the records above |
+| Execution | Learn session (the one timed learning planner) | `learnx.js` · `lxBuild()` | `boot` keys `lx:cur`, `lx:log` |
+| Evidence | Lessons, memory | `bootcamp.js`, `mastery.js` | `lib/cards.json`, `boot`, `cards` |
+| Evidence | Capability evidence (the one capability record) | `capmap.js` | `boot` keys `cx:` |
+| Evidence | Company operating system | `opsys.js` | `settings.opsys`, Playbook pages |
+| Evidence | Decisions, predictions | `judge.js` | `decisions` |
+| Learning | Library, research | `content.js`, `kpipe.js`, `research.js` | `lib/sources.json`, `sources`, `content`, `research`, `inbox` |
+| Learning | Blueprint (a view, not a store) | `blueprint.js` | derived from the capability map and lessons |
+| Adaptation | Weekly, season, strategy reviews | `mission.js`, `reality.js`, `strategy.js`, `cohere.js` | `reviews`, `settings` |
+| Capture | The + sheet, Unprocessed | `shell.js`, `cohere.js` | `boot` keys `cap:` plus the owner's record |
 
-## Sources of truth
+## 3. Recommendation flow: one authority
 
-| Fact | Source | Not a source |
-|---|---|---|
-| Dials, answered calls, owner conversations | the call log: `Q.items[].log` (`mcDialLog`, `sgEvidence`) | the hand counter `day.counters.dials` (shown apart as "not in the log"; healed upward if below the log) |
-| Study done | timed mocks and the error log (`bac.js`) | BAC minutes (a floor only) |
-| Mastery stage | `bcRung(id)` in `bootcamp.js`, from evidence in `S.boot` | lesson completion, video watched |
-| Money | `S.txns` + money4 rules (earned ≠ received; payout ≠ income) | day money fields |
-| Today's plan | `blocksFor(date)` = calendar + schedule + one-off overrides | Todoist |
-| What comes first | `S.settings.season.dom` | any other screen |
+`mcBuild()` is the only function that ranks what to do now. Order: tier (0 fixed commitment or sleep · 1 season priority ·
+2 protected commitment · 3 maintenance), then urgency. Your pick, skips and reasons are kept per day.
 
-## Recommendation flow (mission.js)
+Candidates built inside `mcBuild`: sleep, fixed commitment, dials, dial prep, BAC floor, training, recall, weekly review, recovery.
+Candidates supplied through its hook `lxCandidates` (`expand.js`, extended by `cohere.js`): money (money lens), campaign next action,
+follow-up (`command.js` radar, minus today's callbacks), corrective action for a fallen answer rate (`strategy.js` signal, with the
+lesson for `b-cold`), next company-OS step (`opsys.js`, tier 2), oldest overdue task (tier 2, low urgency), one Learn candidate
+(`learnx.js`; tier 3, or tier 2 while your weekly personal minimum is unmet).
+Facts and risks only, never candidates: `stage.js`, `engine.js`, `reality.js` (`lxAugment`), `expand.js` (`exAugment`),
+`strategy.js` (`stAugment`), energy (`cohere.js`: two low readings propose a Minimum day).
 
-facts (call log, Florida clock, calendar blocks, study counter, error log, mocks, training log, memory model)
-→ candidates (each: outcome, why, next action, minutes, done condition, evidence, cost of delay, confidence)
-→ ranking by tier: 0 fixed commitment · 1 season priority · 2 protected floor · 3 maintenance; bigger open gap first inside a tier
-→ day mode filter (Full / Minimum = floors / Recovery = fixed commitments only)
-→ one mission card, "Why this?" (facts, unknowns, ranking), "Not this" (your override, recorded)
-→ evidence back on the day record → weekly review.
-All local. No AI, nothing leaves the device. Missing facts are listed as unknown.
+Specialist "next" functions that stay local: next call (`dial.js`), next lesson (`bootcamp.js`), next capability (`capmap.js`),
+next exercise (`trnow.js`), next research (`research.js`), next block on the timeline (`guide.js`).
+"I have N minutes" on the Day card (`cohere.js` `coFit`) filters `mcBuild`'s list for what fits before the next fixed
+commitment. A learning answer is passed to `lxBuild`. There is no second planner.
 
-Other advisers still in the code and their status: `command.js` briefing (replaced on the Day screen by the mission),
-`engine.js` bottleneck + protocols (still shown in Life), `stage.js` constraint strip (still shown under the mission),
-`one.js`, `cockpit.js`, `brief.js` (still wrapped into the guided day). Merging these into `mcBuild` is the next unify step.
+## 4. Learn
 
-## Time zones
-Device local time decides day keys (`dk`). Florida time is always computed with `America/New_York` (`mcFlorida`, `ops.js flHour`): calls are only recommended 09:00 to 17:00 Florida time, Monday to Friday. Calendar events are written as `Europe/Chisinau`.
+One planner, `lxBuild(min, focus, opt)`. The Library's old time prompt (`ccPlanOpen`) and the 25-minute capability mission
+(`cpMissionStart`) open it; a capability mission already in progress still opens its own screen. Step kinds: lesson, review,
+rebuild, practice, mission, apply, consume, debrief. Each runs the component that owns the record.
+Which track a session serves (`lxDomain`): your weekly personal minimum if set and unmet (`settings.learn.persMin`) → a
+capability the current business stage needs with weak evidence → a personal competency marked NOW → the business path.
+No turn-taking. Until a minimum is set, nothing guarantees personal sessions and the Learn screen says so.
 
-## Sync and security boundaries
-See `SECURITY_AND_RECOVERY.md`. In short: three documents (main `S`, queue `Q`, bench `B`), each one row in `warroom_sync`, row id derived from the sync code (a bearer password). Records merge by timestamp; days and settings merge per field against the last cloud copy seen.
+## 5. Ladders
 
-## Module ownership rule
-A change goes in the file that owns the function. 13.24 edited owners directly (`arc.js`, `views.js`, `core.js`, `bootcamp.js`, `mastery.js`, `capability.js`, `intel.js`). Still wrapped (legacy, to unwind): `arcHtml` (9 files), `render` (8), `show` (5), `bcPath` (4).
+Lesson: `BC_RUNG` (`bootcamp.js`). Capability: `CM_PERF` evidence in `capmap.js` is the record; the Blueprint's eight stages
+are a display of it, and a stage set by hand with proof is also written as capability evidence. Business step: `OS_ST`
+(`opsys.js`); knowledge-to-execution statuses (`KX_ST`) point at those steps. Resource: `KP_ST` (`kpipe.js`); `CC_CHAIN` is its display.
+Known leftover: `CP_ST` in `capability.js` is an older per-capability state still used by that file's own screens.
 
+## 6. Feedback
 
-## 13.26 · master map of the life systems (single source of truth per system)
+Marking a mission done asks expected vs observed (`day.mcDone.exp/.obs`) and states whether the logs agree (`mcMet`).
+The weekly review lists each day's mission as marked / evidence in the logs / outcome written, needs one change to be
+saved, and can put that change on Monday's tasks. Decisions, campaigns and experiments are created only by you.
 
-Loop: reality → understanding → priorities → decisions → action → evidence → learning → adaptation. `mcBuild()` stays the only recommender; every system below feeds it facts or records evidence.
+## 7. Automation (also shown in Operator → Automation)
 
-| System | Source of truth | Owner file | Feeds / reads | Status (19 Nov) |
-|---|---|---|---|---|
-| Personal reality (facts with status, constraints) | `S.reality` | reality.js | Red Team, Operator, search | Implemented, tested |
-| Season (purpose, priorities, must-not-sacrifice, review) | `S.settings.season` | mission.js | mcBuild tier 1, cmNext, weekly review | Implemented, tested |
-| Lens for today | `day.lens` | mission.js | mcBuild tier 1 (fixed commitments still first) | Implemented, tested |
-| Life direction | `S.settings.direction` | reality.js | Operator | Implemented (UI only, no logic) |
-| Campaigns + milestones (evidence only, max 3) | `S.campaigns` | intel.js | mcBuild, Red Team, journal history | Implemented (13.25.1) |
-| Capacity, conflicts, week fix | computed from `blocksFor`; changes in `day.sched` | reality.js | mcBuild risks, weekly review | Implemented, tested |
-| Stagnation + execution nudge | computed | reality.js | mcBuild facts / card | Implemented, tested |
-| Capability map (9 domains) | `CM_CAPS` in capmap.js + `S.boot['cx:*']` | capmap.js | Bootcamp, AAR, journal, Judgment Lab, Field Manual, pipeline | Implemented, tested |
-| Mastery ladder | `bcRung` (bootcamp.js) from `S.boot` evidence | bootcamp.js | capability knowledge level | Implemented (13.24) |
-| After-action review | `S.boot.aar` | capability.js | capability performance, journal | Implemented, tested |
-| Reality Journal + history + search | `S.journal` (+ reads all owners) | journal.js | protocols, Field Manual, practice | Implemented, tested |
-| Decisions + predictions | `S.decisions` | judge.js (intel.js legacy form) | calibration, weekly review, mcBuild due reviews | Implemented, tested |
-| Red Team + risks + pre-mortem | `S.risks` (+ computed checks) | judge.js | tasks, mcBuild due reviews | Implemented, tested |
-| Attention Defense | triggers in `S.journal`, protocols `S.protocols` (t 'attn') | defense.js | indicators, patterns | Implemented, tested |
-| Field Manual + Contingency | `S.manual` | defense.js | capabilities, pipeline | Implemented, tested |
-| Knowledge pipeline | `lib/sources.json` + `S.sources` | kpipe.js | cards, capabilities, manual, experiments, tasks | Implemented, tested; weekly discovery task NOT created (needs approval) |
-| BAC loop + official sources | `S.lifeTests`, `S.lifeErrors`, `BAC_OFFICIAL` | bac.js, life.js | mcBuild | Loop implemented; topic map pending the official programmes PDF |
-| Indicators | computed | reality.js | Operator | Implemented |
+Runs alone: weekly content scan (Mon 07:37), monthly curriculum review (1st), Dial Guard push, cloud sync, calendar feed,
+Todoist sync when connected, import of scan notes when the app opens. Needs a tap: Research now, video inspection, the
+real-phone checklist. Blocked: daily research (schedule change not approved).
 
-Entry points: You → Engine → **Operator** (one screen of tiles), the global ＋ (Journal, Trigger), the Day mission (Why this, mode/lens), Progress → Capability map.
+## 8. Tests and release
 
-### Continuous discovery (approved design, scheduled task not yet created)
-Weekly, Monday 07:37 Chisinau: Gmail read-only search for Acquisition.com / Hormozi mail of the last 8 days → process each educational email in own words (no long quotes), mark linked videos "not accessed" unless a transcript is reachable → de-duplicate against `lib/sources.json` and `lib/cards.json` → one "📥 Knowledge discovery" note in the in-app inbox (same SQL pattern as the nightly review) with a one-line JSON list → Egor pastes it into Knowledge pipeline → Import. Nothing is imported, operationalized or changed without him. The full prompt is in the session report of 19 Nov 2026.
+Suites (Playwright, system Chrome, throwaway profile, cloud blocked): `tests/run.py` (legacy), `test_1326.py`, `test_1327.py`,
+`test_1331.py` (Learn scenarios A–G), `test_1332.py` (whole-system journeys A–H). None is a real-phone test.
+Release: bump `APP_VERSION` (`core.js`), cache name and shell list (`sw.js`), `?v=` (`index.html`); changelog row in
+`playbook.js` with the dial count at the time; log entry; all suites; commit to `main`; verify the live cache name.
 
+## 9. Known gaps
 
-## 13.27 · Content and the rest of the map
-
-| Need | Owner | Data | Feeds |
-|---|---|---|---|
-| What to learn now | `content.js` (`ccPlan`, `ccToday`) | `lib/sources.json`, `lib/mentors.json`, `S.content` | reads `mcBuild` (gate), `cmNext` (focus); writes journal, tasks, experiments, manual |
-| Discovery | Claude scheduled tasks (weekly scan, monthly review) | `S.research`, `S.settings.discovery`, inbox notes | proposes only; `ccInboxImport` adds on tap |
-| Campaign execution | `expand.js` (`cx*`) | `S.campaigns[].projects`, `S.tasks[].camp` | `lxCandidates` → `mcBuild` |
-| Extra candidates | `expand.js` `lxCandidates` | money log, campaign actions | the single ranking in `mcBuild` |
-| Practice | `expand.js` `cmTrain`, `JL_BR` | `S.boot['cx:*']`, `S.boot['jb:*']` | capability log as `src:'sim'` (never evidence) |
-| BAC plan | `expand.js` (`bac*`) + `bac.js` | `lib/bac.json`, `S.boot['bt:*']`, `S.lifeErrors` | `bacNext` → `mcBuild` |
-
-Rule kept: one recommender. Content, campaigns and money add candidates or facts; none of them shows a second "do this now".
-
-
-## 13.28 · Strategy
-
-`strategy.js` owns `S.obs`, `S.opps`, `S.assets`, `S.settings.strategy`. Reads: queue call notes, experiments, Field Manual, tasks, campaigns, stage. Writes: experiments (on validation), one fact and at most one risk into `mcBuild`. `stFocusCaps()` feeds `ccFocus()` so learning follows the business stage. The A/B/C comparison never starts with numbers: every cell is unknown until scored with a named basis.
-
-## 13.31 · the learning system as one map
-
-```
-GOAL (Mission, long game)
-  └ COMPETENCY  blueprint.js  bpAll(): capability map + 23 not-yet-mapped, ten areas A–J
-      └ PATH    learnx.js     LX_PATHS: nine paths = ordered Bootcamp modules + Blueprint areas
-          └ MODULE / LESSON   lib/boot.json, lib/cards.json (250), bootcamp.js
-              └ RESOURCE      lib/sources.json + S.sources, card clips (content.js ccAll)
-              └ PRACTICE      expand.js cmTrain, scenarios (bootcamp.js)
-              └ MISSION       card.move → capability evidence (capmap.js cmRecord) or a task
-              └ ASSESSMENT    Bootcamp quiz, written recall questions
-              └ REVIEW        mastery.js msQueue / msSchedule
-      └ MASTERY  bpStage(): max(records, proven manual stage)
-SESSION  learnx.js lxBuild → S.boot['lx:cur'] → lxEnd → S.boot['lx:log']
-REVERSE  weak or unpractised capability → session becomes practice; competency without lesson → research job (bp:<id>)
-         → scan or "Research now" → inbox import → resource tied to the job → next session offers it
-BUSINESS opsys.js steps ← KX principles (blueprint.js) ← books; owner answers (S.obs, q) → market screen
-```
-One record per kind: learned `l:<card>`, memory `S.cards`, evidence `cx:<cap>`, resource state `S.content`, session `lx:*`.
+- Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
+- More than one main-type row and three queue rows exist in the cloud; which devices use them is unknown.
+- One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
+- Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
+- `CP_ST` ladder not folded in. Money reaches Mission Control only under the money lens or when a campaign names it.
+- No real-phone test of 13.31 or 13.32.

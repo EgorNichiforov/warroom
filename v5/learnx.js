@@ -12,7 +12,7 @@
    the app loses nothing. Watching a video never counts as mastery: only tests, practice and missions move a stage. */
 const LX_MIN = [5, 10, 15, 20, 30, 45, 60, 90, 120];
 const LX_FOCUS = { auto: 'Best use', biz: 'Business', life: 'Personal', review: 'Review' };
-const LX_KIND = { lesson: 'Lesson', review: 'Recall', practice: 'Practice', mission: 'Mission', apply: 'Use it', consume: 'Resource', research: 'Research' };
+const LX_KIND = { lesson: 'Lesson', review: 'Recall', rebuild: 'Rebuild', practice: 'Practice', mission: 'Mission', apply: 'Use it', consume: 'Resource', debrief: 'Debrief', research: 'Research' };
 /* learning paths: [id, name, who you become, Bootcamp modules in order, Blueprint areas, track] */
 const LX_PATHS = [
   ['cb', 'Build and scale Caregiver Bench', 'An owner who knows the market, the offer and the numbers.', ['m1', 'mk', 'm2', 'm7', 'lg'], ['I'], 'biz'],
@@ -31,8 +31,25 @@ function lxCur() { const s = bcV('lx:cur', null); return s && s.steps && s.steps
 function lxSaveCur(s) { bcW('lx:cur', s || 0); try { save(true); } catch (e) { } /* written at once: closing the app a second later must not lose the step */ }
 function lxVid(c) { const x = (c.clip || [])[0]; if (!x) return 0; return x[2] > x[1] ? Math.max(1, Math.ceil((x[2] - x[1]) / 60)) : Number(c.clipMin) || 0; }
 function lxTr(cardId) { const m = BC.mod[BC.cardMod[cardId]]; return m && m.tr === 'life' ? 'life' : 'biz'; }
-/* business does not get every session: after two business sessions in a row the next one is personal */
-function lxTurn() { const L = lxLog().slice(-2).map((s) => s.dom); return L.length === 2 && L[0] === 'biz' && L[1] === 'biz' ? 'life' : 'biz'; }
+/* 13.32 · which track a session serves is decided by evidence, never by taking turns:
+   1. your own weekly personal minimum, if you set one and this week is under it;
+   2. a capability the current business stage needs that has weak evidence;
+   3. a personal competency your Blueprint marks NOW that has an unopened lesson;
+   4. otherwise the business path. Unused learning and due reviews are handled inside lxBuild for either track. */
+function lxWeekMin(dom) { const m = dk(monday(new Date())); return lxLog().filter((s) => (s.d || '') >= m && (!dom || s.dom === dom)).reduce((a, s) => a + (Number(s.spent) || 0), 0); }
+function lxPersMin() { const v = Number((((S.settings || {}).learn) || {}).persMin); return v > 0 ? v : null; }
+function lxPersUnder() { const m = lxPersMin(); if (!m) return null; const got = lxWeekMin('life'); return got < m ? { min: m, got, def: (m - got) / m } : null; }
+function lxBlocking() { let H = { now: [] }; try { H = rsHorizonCaps(); } catch (e) { } return H.now.map((id) => cmCap(id)).filter((c) => c && cmCards(c).some((id) => BC.cardMod[id] && lxTr(id) === 'biz')).map((c) => ({ c, lv: cmPerf(c.id).lv })).filter((r) => r.lv < 3).sort((a, b) => a.lv - b.lv); }
+function lxDomain() {
+  const u = lxPersUnder(); if (u) return { dom: 'life', why: `Personal development has ${u.got} of your ${u.min} weekly minutes.` };
+  const B = lxBlocking(); if (B.length) return { dom: 'biz', cap: B[0].c.id, why: `"${B[0].c.n}" is needed at your current business stage and the record shows "${CM_PERF[B[0].lv].toLowerCase()}".` };
+  let pn = null; try { pn = bpAll().find((x) => x.hz === 'now' && x.area !== 'I' && bpCards(x).some((id) => !bcV('l:' + id, null) && BC.cardMod[id] && lxTr(id) === 'life')); } catch (e) { }
+  if (pn) return { dom: 'life', why: `"${pn.n}" is marked NOW in your Blueprint and has an unopened lesson.` };
+  return { dom: 'biz', why: 'Nothing is blocking right now, so the next lesson on the business path.' };
+}
+function lxTurn() { return lxDomain().dom; } /* kept for old callers */
+function lxPersSet() { const cur = lxPersMin(); openModal(`<h2>Weekly personal minimum</h2><div class="hint">Minutes of personal development (body, mind, people, practical life) you want Learn to protect each week. While a week is under it, the next session is personal. Empty or 0 = no guarantee.</div><input class="aq-in" id="lx-pm" type="number" inputmode="numeric" min="0" max="600" value="${cur || ''}" placeholder="minutes per week"><div class="xs muted">This week so far: ${lxWeekMin('life')} personal minutes in finished sessions.</div><div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="lxPersSave()">Save</button></div>`); }
+function lxPersSave() { const v = Math.max(0, Math.min(600, Math.round(Number(($('lx-pm') || {}).value) || 0))); S.settings.learn = Object.assign({}, S.settings.learn || {}, { persMin: v || null, _u: now() }); save(); closeModal(); toast(v ? `Protected: ${v} personal minutes a week` : 'No weekly minimum set'); render(); }
 function lxLearned(ids) { return ids.filter((id) => bcV('l:' + id, null)); }
 /* learned but never practised (or practice skipped twice in sessions): action before more input */
 function lxUnpracticed() {
@@ -44,13 +61,13 @@ function lxPathOf(id) { return LX_PATHS.find((p) => p[0] === id) || null; }
 function lxPathCards(p) { return p[3].map((m) => BC.mod[m]).filter(Boolean).flatMap((m) => m.cards).filter((c) => XC.byId[c]); }
 function lxPathProg(p) { const C = lxPathCards(p), d = lxLearned(C).length; return { n: C.length, d, pct: C.length ? Math.round(d / C.length * 100) : 0, next: C.find((c) => !bcV('l:' + c, null)) || null }; }
 /* next new lesson: inside a chosen path, else an open module of the track, capabilities that matter NOW first */
-function lxNextCard(tr, skip, path) {
+function lxNextCard(tr, skip, path, cap) {
   let pool = []; const p = path && lxPathOf(path);
   if (p) pool = lxPathCards(p); else { try { pool = bcTrack(tr).filter((m) => bcOpen(m)).flatMap((m) => m.cards); } catch (e) { pool = []; } }
   pool = pool.filter((id) => XC.byId[id] && !bcV('l:' + id, null) && !skip.has(id)); if (!pool.length) return null;
   let H = { now: [] }; try { H = rsHorizonCaps(); } catch (e) { }
-  const hot = pool.find((id) => cmCapsOfCard(id).some((c) => H.now.includes(c.id)));
-  return XC.byId[p ? pool[0] : hot || pool[0]];
+  const blk = cap ? pool.find((id) => cmCapsOfCard(id).some((c) => c.id === cap)) : null, hot = pool.find((id) => cmCapsOfCard(id).some((c) => H.now.includes(c.id)));
+  return XC.byId[p ? pool[0] : blk || hot || pool[0]];
 }
 /* a Blueprint competency that matters soon and has no lesson of its own */
 function lxGap(tr) { const A = tr === 'life' ? 'ABCDEFGHJ' : 'I'; return bpAll().filter((x) => A.includes(x.area) && x.hz !== 'later' && !bpCards(x).length && !bpRes(x).length).sort((a, b) => (a.hz === 'now' ? 0 : 1) - (b.hz === 'now' ? 0 : 1))[0] || null; }
@@ -64,7 +81,7 @@ function lxBuild(min, focus, opt) {
   opt = opt || {}; min = Math.max(3, Math.min(180, Math.round(Number(min) || 20))); focus = focus || 'auto';
   const skip = new Set(opt.skip || []), steps = [], notes = []; let left = min;
   const add = (s) => { s.min = Math.max(1, Math.min(s.min, Math.max(1, left))); steps.push(Object.assign({ done: 0, res: '' }, s)); left -= s.min; };
-  const p = opt.path && lxPathOf(opt.path), dom = focus === 'biz' || focus === 'life' ? focus : p ? p[5] : lxTurn();
+  const p = opt.path && lxPathOf(opt.path), D = focus === 'biz' || focus === 'life' || p ? null : lxDomain(), dom = focus === 'biz' || focus === 'life' ? focus : p ? p[5] : D.dom;
   let due = []; try { due = msQueue(8); } catch (e) { }
   let un = []; try { un = rsUnapplied(); } catch (e) { }
   const unp = lxUnpracticed(), g = bcGate(dom); let obj = '', why = '', after = '', mode = 'learn', lesson = null;
@@ -84,9 +101,9 @@ function lxBuild(min, focus, opt) {
     else {
       const gr = !p && dom === 'life' ? lxGapRes() : null;
       if (gr) { add({ k: 'consume', id: gr.r.id, min: Math.min(left, gr.r.min || 10), t: gr.r.t, why: `Found by research for "${gr.x.n}", which has no lesson of its own yet.` }); obj = 'Get a first grounding in: ' + gr.x.n + '.'; why = 'It is a gap in your Blueprint and a resource for it has just been found.'; after = 'Afterwards, write the one thing you will try.'; }
-      const c = left >= 5 ? lxNextCard(dom, skip, opt.path) : null;
+      const c = left >= 5 ? lxNextCard(dom, skip, opt.path, D && D.cap) : null;
       if (c) { const v = lxVid(c), withV = v > 0 && v + 5 <= left, caps = cmCapsOfCard(c.id), hz = caps.some((k) => { try { return rsHorizonCaps().now.includes(k.id); } catch (e) { return false; } });
-        add({ k: 'lesson', id: c.id, vid: v, withV, min: 5 + (withV ? v : 0), t: c.t, why: (p ? `Next on the path "${p[1]}".` : hz ? 'Next lesson for a capability you need now.' : dom === 'life' ? 'Your last two sessions were business. This one is for you.' : 'Next on the business path.') + (v && !withV ? ` Its video is ${v} min: too long for this slot, so read and test now, watch later.` : '') });
+        add({ k: 'lesson', id: c.id, vid: v, withV, min: 5 + (withV ? v : 0), t: c.t, why: (p ? `Next on the path "${p[1]}".` : D ? D.why : hz ? 'Next lesson for a capability you need now.' : dom === 'life' ? 'You chose personal.' : 'You chose business.') + (v && !withV ? ` Its video is ${v} min: too long for this slot, so read and test now, watch later.` : '') });
         lesson = c; if (!gr) obj = 'Learn "' + c.t + '" well enough to answer its questions without looking.'; if (!gr) why = caps.length ? 'It builds: ' + caps.slice(0, 2).map((k) => k.n).join(', ') + '.' : 'It is the next lesson in order.'; after = c.move ? 'Afterwards you can: ' + c.move.split('. ')[0] + '.' : ''; }
       else if (!gr) notes.push(p ? 'This path has no unopened lesson left.' : 'No unopened lesson is available on this track right now.');
     }
@@ -94,6 +111,8 @@ function lxBuild(min, focus, opt) {
   /* D · practise what the lesson teaches · E · do it for real */
   if (lesson && left >= 3) { const cap = cmCapsOfCard(lesson.id)[0]; if (cap) add({ k: 'practice', cap: cap.id, min: left >= 8 ? 6 : Math.min(4, left), t: 'Practise: ' + cap.n, why: 'A lesson is only "Introduced" until you practise it.' }); }
   if (lesson && lesson.move && min >= 20 && left >= 5) add({ k: 'mission', id: lesson.id, min: left >= 15 ? 10 : 5, t: 'Do it for real', why: lesson.move });
+  /* E2 · the two steps taken over from the old 25-minute capability mission */
+  if (lesson && min >= 15 && left >= 3) add({ k: 'rebuild', ids: [lesson.id], min: 3, t: 'Rebuild from memory: ' + lesson.t, why: 'Closed book. What you can rebuild is what you own.' });
   /* F · a longer resource from the library; a resource found for a competency that has no lesson goes first */
   if (focus !== 'review' && left >= 8) {
     if (left >= 10) { const cap5 = min >= 90 ? 5 : 3, have = new Set(steps.map((s) => s.id)); let n = 0; lxRes().forEach((r) => { if (n >= cap5 || left < 8 || have.has(r.x.id)) return; const L = ccLeft(r.x); if (L < 5 && min > 15) return; if (L <= left) { add({ k: 'consume', id: r.x.id, min: L, t: r.x.t, why: r.why }); n++; } else if (!n && left >= 15) { add({ k: 'consume', id: r.x.id, min: left, t: r.x.t, why: r.why + ` · ${left} of ${L} min now; it resumes where you stop` }); n++; } }); }
@@ -103,6 +122,7 @@ function lxBuild(min, focus, opt) {
   /* H · a competency with no lesson: ask for research instead of pretending */
   const gap = !p ? lxGap(dom) : null;
   if (gap) { const had = Object.values(S.research || {}).some((r) => r && !r._del && r.key === 'bp:' + gap.id), j = opt.dry ? null : bpJob(gap.id, true); if (j || had) notes.push(`"${gap.n}" has no lesson yet. Research ${had ? 'is already requested' : 'was requested just now'}; it will appear here when a resource is found.`); else notes.push(`"${gap.n}" has no lesson yet.`); }
+  if (min >= 20 && steps.length && focus !== 'review' && left >= 1) add({ k: 'debrief', min: 1, t: 'Debrief: one sentence', why: 'What will you do differently because of this session?' });
   if (!obj && steps.length) obj = steps[0].t;
   return { id: 'lx' + Date.now().toString(36), at: new Date().toISOString(), min, focus, dom, mode, path: opt.path || '', obj, why, after, notes, steps, i: 0, planned: steps.reduce((a, s) => a + s.min, 0), card: lesson ? lesson.id : '' };
 }
@@ -130,7 +150,7 @@ function lxTick(s) {
   let ch = false;
   s.steps.forEach((st) => { if (st.done || !st.t0) return; let ok = false;
     if (st.k === 'lesson') { const c = (S.cards || {})[st.id]; ok = !!bcV('l:' + st.id, null) && (st.wasNew || !!(c && c._u >= st.t0 - 1000)); }
-    if (st.k === 'review') ok = st.ids.every((id) => { const c = (S.cards || {})[id]; return c && c._u >= st.t0 - 1000; });
+    if (st.k === 'review' || st.k === 'rebuild') ok = st.ids.every((id) => { const c = (S.cards || {})[id]; return c && c._u >= st.t0 - 1000; });
     if (st.k === 'practice') ok = cmLog(st.cap).length > (st.n0 || 0);
     if (st.k === 'apply' || st.k === 'consume') { try { const x = ccGet(st.id); ok = st.k === 'apply' ? !!(x && (x.u.impl || x.man || x.exp || x.task)) : !!(x && x.u.st === 'done'); } catch (e) { } }
     if (ok) { st.done = 1; st.res = st.res || 'done'; st.t1 = now(); ch = true; } });
@@ -142,7 +162,8 @@ function lxDo(i) {
   if (st.k === 'lesson') { st.wasNew = !bcV('l:' + st.id, null) || st.wasNew; lxSaveCur(s); bcLesson(st.id); return; }
   if (st.k === 'practice') { st.n0 = cmLog(st.cap).length; lxSaveCur(s); cmTrain(st.cap); return; }
   lxSaveCur(s);
-  if (st.k === 'review') cpRecallSet(st.ids);
+  if (st.k === 'review' || st.k === 'rebuild') cpRecallSet(st.ids);
+  else if (st.k === 'debrief') lxDebrief(i);
   else if (st.k === 'apply') ccDone(st.id);
   else if (st.k === 'consume') ccPlay(st.id);
   else if (st.k === 'mission') lxMission(i);
@@ -150,11 +171,12 @@ function lxDo(i) {
 function lxMission(i) { const s = lxCur(), st = s.steps[i], c = XC.byId[st.id]; openModal(`<h2>Mission</h2><div class="hint">From "${esc(c.t)}". A mission counts when it happened in the real world.</div><div class="mc-wl"><span>Do this</span><div>${esc(c.move)}</div></div><textarea class="aq-in" id="lx-mn" rows="3" placeholder="What you did, with whom, what happened (needed to count it as done)"></textarea><div class="actions wrap"><button class="btn" onclick="closeModal()">Back</button><button class="btn" onclick="lxMissionTask(${i})">Schedule it</button><button class="btn primary" onclick="lxMissionDone(${i})">I did it</button></div>`); }
 function lxMissionDone(i) { const n = $('lx-mn').value.trim(); if (n.length < 15) { toast('Write what you did: that is the evidence'); return; } const s = lxCur(), st = s.steps[i], cap = cmCapsOfCard(st.id)[0]; if (cap) cmRecord(cap.id, { src: 'real', eff: 'tried', out: '', comp: '', ev: n.slice(0, 300), note: 'Learn session mission' }); closeModal(); lxStepDone(i, 'did it'); }
 function lxMissionTask(i) { const s = lxCur(), st = s.steps[i], c = XC.byId[st.id], d = new Date(); d.setDate(d.getDate() + 1); const t = { id: uid(), _u: now(), title: 'Mission: ' + c.t, due: dk(d), done: false, note: c.move }; S.tasks = S.tasks || {}; S.tasks[t.id] = t; save(); try { if (typeof taskHook === 'function') taskHook('create', t); } catch (e) { } closeModal(); lxStepDone(i, 'scheduled'); toast('On tomorrow\'s tasks'); }
+function lxDebrief(i) { openModal(`<h2>Debrief</h2><div class="hint">One sentence. What will you do differently because of this session?</div><textarea class="aq-in" id="lx-db" rows="2"></textarea><div class="actions"><button class="btn" onclick="closeModal();lxStepDone(${i},'skipped')">Skip</button><button class="btn primary" onclick="const v=$('lx-db').value.trim();if(v.length<8){toast('One real sentence')}else{closeModal();lxStepDone(${i},v.slice(0,200))}">Save</button></div>`); }
 function lxStepDone(i, res) { const s = lxCur(); if (!s) return; const st = s.steps[i]; st.done = 1; st.res = res || 'done'; st.t0 = st.t0 || now(); st.t1 = now(); while (s.i < s.steps.length && s.steps[s.i].done) s.i++; lxSaveCur(s); if (s.i >= s.steps.length) lxEnd(); else render(); }
 function lxPause() { toast('Saved. It is waiting under Learn'); if (typeof show === 'function') show('now'); }
 function lxEnd(early) {
   const s = lxCur(); if (!s) return; const done = s.steps.filter((x) => x.done && x.res !== 'skipped'), out = s.steps.filter((x) => !x.done || x.res === 'skipped' || x.res === 'scheduled'), spent = lxSpent(s);
-  const L = lxLog().concat([{ at: s.at, d: dk(new Date()), min: s.min, spent, dom: s.dom, mode: s.mode, path: s.path, done: done.length, total: s.steps.length, kinds: s.steps.map((x) => x.k), card: s.card, skipped: s.steps.filter((x) => x.k === 'practice' && (!x.done || x.res === 'skipped')).map((x) => x.cap), early: early ? 1 : 0 }]).slice(-60);
+  const L = lxLog().concat([{ at: s.at, d: dk(new Date()), min: s.min, spent, dom: s.dom, mode: s.mode, path: s.path, done: done.length, total: s.steps.length, kinds: s.steps.map((x) => x.k), card: s.card, skipped: s.steps.filter((x) => x.k === 'practice' && (!x.done || x.res === 'skipped')).map((x) => x.cap), note: ((s.steps.find((x) => x.k === 'debrief' && x.done && x.res !== 'skipped') || {}).res) || '', early: early ? 1 : 0 }]).slice(-60);
   bcW('lx:log', L); lxSaveCur(null); let nx = null; try { nx = lxBuild(s.min, 'auto', { dry: 1 }); } catch (e) { }
   const tests = s.steps.filter((x) => x.k === 'review' && x.done).reduce((a, x) => a + x.ids.length, 0), les = s.steps.filter((x) => x.k === 'lesson' && x.done);
   openModal(`<h2>Session ${early ? 'ended' : 'complete'}</h2><div class="bp-sum"><div><b>${done.length}/${s.steps.length}</b><span>steps done</span></div><div><b>${spent}</b><span>minutes (planned ${s.planned})</span></div><div><b>${tests + les.length}</b><span>lessons tested</span></div></div>
@@ -202,12 +224,13 @@ function lxHome() {
     <button class="lx-more" onclick="lxPaths()">All ${LX_PATHS.length} paths and how they connect ›</button>
     <div class="lx-sec">What you can actually do</div>
     <button class="lx-row" onclick="bpOpen()"><b>${U.evidence}</b><span>of ${U.total} competencies have real practice on record<em>${U.noLesson + U.kwOnly} still have no lesson of their own</em></span><i>›</i></button>
+    <button class="lx-row" onclick="lxPersSet()"><b>${lxPersMin() ? lxWeekMin('life') : '–'}</b><span>${lxPersMin() ? `of ${lxPersMin()} personal minutes this week` : 'No weekly personal minimum is set'}<em>${lxPersMin() ? (lxPersUnder() ? 'under it: the next session is personal' : 'met: business leads again') : 'so nothing guarantees personal sessions. Tap to set one.'}</em></span><i>›</i></button>
     ${last ? `<div class="xs muted lx-last">Last session ${esc(last.d || '')}: ${last.done}/${last.total} steps, ${last.spent} min, ${last.dom === 'biz' ? 'business' : 'personal'}.</div>` : ''}
     <div class="lx-sec">Browse</div>
     <div class="lx-br"><button onclick="bcGo('home',{tab:'path'})">Path</button><button onclick="bcGo('home',{tab:'courses'})">Courses</button><button onclick="bcGo('home',{tab:'library'})">Library</button><button onclick="bcGo('home',{tab:'progress'})">Progress</button><button onclick="rsOpen()">Research</button><button onclick="bpOpen()">Blueprint</button></div></div>`;
 }
 function lxPaths() {
-  openModal(`<h2>Your development map</h2><div class="hint">Nine paths, two tracks. Business paths feed the company; personal paths build the person who runs it. Sessions alternate so neither track disappears.</div>
+  openModal(`<h2>Your development map</h2><div class="hint">Nine paths, two tracks. Business paths feed the company; personal paths build the person who runs it. Which one a session serves follows your stage, your evidence and the weekly personal minimum you set.</div>
     ${['biz', 'life'].map((tr) => `<div class="mc-wl"><span>${tr === 'biz' ? 'Business' : 'Personal'}</span></div>` + LX_PATHS.filter((p) => p[5] === tr).map((p) => { const g = lxPathProg(p), A = bpAll().filter((x) => p[4].includes(x.area)), ev = A.filter((x) => bpStage(x) >= 3).length; return `<button class="lx-path" onclick="lxPath('${p[0]}')"><span><b>${esc(p[1])}</b><em>${g.d}/${g.n} lessons · ${ev}/${A.length} competencies practised · areas ${p[4].join(', ')}</em></span><div class="lx-bar"><i style="width:${g.pct}%"></i></div></button>`; }).join('')).join('')}
     <div class="xs muted">Areas are the Blueprint's ten letters. A lesson can sit on a path and feed several competencies; a library resource can serve several lessons.</div>
     <div class="actions wrap"><button class="btn" onclick="bpOpen()">Blueprint</button><button class="btn" onclick="closeModal()">Close</button></div>`, true);

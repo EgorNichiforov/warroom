@@ -507,7 +507,8 @@ with sync_playwright() as p:
     ev("bcS.tab='progress';render();0"); pg.wait_for_timeout(300)
     r = ev("({d:document.querySelectorAll('.cp-dash').length, cal:!!document.querySelector('.cp-dash svg'), al:document.querySelectorAll('.cp-al').length, db:document.querySelectorAll('.cp-db').length})")
     check('Capability 13.23: Progress shows capability status, 4 dimensions, confidence vs reality and 70/20/10', r['d'] == 3 and r['al'] == 3 and r['db'] == 4, r)
-    ev("cpMissionStart(0);0"); pg.wait_for_timeout(300)
+    # 13.32: a NEW timed session is planned by Learn (lxBuild). The mission screen stays for a mission already in progress, so the test starts one the way 13.23 stored it.
+    ev("(()=>{const n=cpPickNew();bcW('cm:'+cpToday(),{t0:Date.now(),long:0,id:n?n.c:null,rv:msQueue(8).length?0:1});bcGo('cpm')})();0"); pg.wait_for_timeout(300)
     check('Capability 13.23: the mission screen has the 6 steps with the briefing open', ev("document.querySelectorAll('.cp-ms').length===6 && !!document.querySelector('.cp-ms.on .cp-brf, .cp-ms.on .aq-note')"))
     ev("cpMSet('brief');0"); pg.wait_for_timeout(200)
     check('Capability 13.23: finishing a step moves the mission on', ev("document.querySelector('.cp-ms.on .cp-msh b').textContent!=='Mission briefing'"))

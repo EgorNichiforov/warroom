@@ -21,7 +21,7 @@ def boot(b, t='2026-11-19T17:00:00+02:00', keep=None):
 with sync_playwright() as p:
     b = p.chromium.launch(**CH); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("(()=>{const o=day(new Date());o.counters.dials=12;touch(o);save();})(); 0")
-    check('libraries loaded; version 13.31.1', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='13.31.1'"), ev("APP_VERSION"))
+    check('libraries loaded; version 13.32.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='13.32.0'"), ev("APP_VERSION"))
 
     # ── lessons
     check('16 new lessons: source, kind, two questions, a move, a video, in a module', ev("(()=>{const N=XC.cards.filter(c=>c.added==='13.31');return N.length===16&&N.every(c=>c.src&&c.kind&&c.q.length===2&&c.move.length>30&&c.clip.length===1&&c.clipBy&&c.clipMin>0&&BC.cardMod[c.id])})()"))
@@ -90,7 +90,7 @@ with sync_playwright() as p:
     # ── Learn: one entry point
     ev("lxGo(); 0"); pg.wait_for_timeout(500)
     check('Learn opens on "Now": time question, 9 durations + custom, focus chips, one recommendation', ev("document.querySelector('.bcx-tabs button.on').textContent==='Now'&&document.querySelectorAll('.lx-chips button').length===10&&document.querySelectorAll('.lx-foc button').length===4&&document.querySelectorAll('.lx-rec').length===1"))
-    check('home is short: recommendation, three waiting rows, four paths, one capability line; no overflow', ev("document.querySelectorAll('.lx-row').length<=5&&document.querySelectorAll('.lx-path').length===4&&document.documentElement.scrollWidth<=390"), ev("[document.querySelectorAll('.lx-row').length,document.documentElement.scrollWidth]"))
+    check('home is short: recommendation, three waiting rows, four paths, one capability line; no overflow', ev("document.querySelectorAll('.lx-row').length<=6&&document.querySelectorAll('.lx-path').length===4&&document.documentElement.scrollWidth<=390"), ev("[document.querySelectorAll('.lx-row').length,document.documentElement.scrollWidth]"))
     pg.clock.run_for(2000); pg.wait_for_timeout(300)
     check('no second entry point: the old library banner is gone from Learn', ev("!document.querySelector('#view-boot .cc-ban')"))
     check('the Library is a tab of Learn, not a separate place', ev("(()=>{bcGo('home',{tab:'library'});return !!document.querySelector('#view-boot .lx-lib')&&document.querySelector('#view-boot .lx-lib').children.length>0})()"))
@@ -125,7 +125,8 @@ with sync_playwright() as p:
     check('a video longer than the slot is not squeezed in: read and test now, watch later', ev("(()=>{const m=BC.mod['m10'];const keep=m.cards.slice();BC.mod['m10'].cards=['em-angry'];const P=lxBuild(10,'biz',{dry:1,path:'lead'});BC.mod['m10'].cards=keep;const s=P.steps[0];return s.id==='em-angry'&&s.withV===false&&/watch later/.test(s.why)&&s.min<=10})()"))
     # Scenario F · several paths, balance
     check('F · nine paths on two tracks, each with real modules and progress', ev("LX_PATHS.length===9&&LX_PATHS.every(p=>p[3].every(m=>BC.mod[m])&&lxPathProg(p).n>0)&&new Set(LX_PATHS.map(p=>p[5])).size===2"))
-    check('F · business does not take every session: after two business sessions the next is personal', ev("(()=>{const L=lxLog();bcW('lx:log',L.concat([{dom:'biz',done:1,total:1,kinds:[]}]));const t=lxTurn(),P=lxBuild(20,'auto',{dry:1});bcW('lx:log',L);return t==='life'&&P.dom==='life'&&/for you/.test(P.steps[0].why)&&lxTurn()==='biz'})()"))
+    check('F · no turn-taking: with no weekly minimum set, the track follows stage and evidence, and the screen says nothing is guaranteed', ev("(()=>{const L=lxLog();bcW('lx:log',L.concat([{dom:'biz',d:dk(new Date()),spent:20,done:1,total:1,kinds:[]},{dom:'biz',d:dk(new Date()),spent:20,done:1,total:1,kinds:[]}]));const D=lxDomain(),none=lxPersMin()===null&&lxPersUnder()===null;bcW('lx:log',L);return none&&D.dom==='biz'&&D.why.length>20})()") and ev("(()=>{lxGo();return /No weekly personal minimum is set/.test(document.querySelector('.lx').textContent)})()"))
+    check('F · a weekly personal minimum you set protects personal sessions until the week reaches it', ev("(()=>{S.settings.learn={persMin:60};const a=lxDomain(),P=lxBuild(20,'auto',{dry:1});const L=lxLog();bcW('lx:log',L.concat([{dom:'life',d:dk(new Date()),spent:60,done:1,total:1,kinds:[]}]));const b=lxDomain();bcW('lx:log',L);S.settings.learn={persMin:null};return a.dom==='life'&&/of your 60 weekly minutes/.test(a.why)&&P.dom==='life'&&b.dom==='biz'})()"))
     check('F · a business session leaves the other paths untouched; a chosen path decides the lesson', ev("(()=>{const g=lxPathProg(lxPathOf('body'));const P=lxBuild(20,'life',{dry:1,path:'body'});return g.d===0&&lxPathCards(lxPathOf('body')).includes(P.card)&&lxPathProg(lxPathOf('cb')).d+lxPathProg(lxPathOf('sell')).d+lxPathProg(lxPathOf('lead')).d+lxPathProg(lxPathOf('self')).d>=1})()"))
     # Scenario E · spaced repetition
     ev(f"S.cards['{A['card']}']={{step:0,due:'2026-11-18',seen:1,_u:1}}; save(); 0")
@@ -181,7 +182,7 @@ with sync_playwright() as p:
         c3.close()
     check('tapping away from Day right after launch is not undone by the startup timer (noon, evening x2, night)', bad == 0, bad)
     sw = ev("fetch('./sw.js').then(r=>r.text())")
-    check('service worker caches the two new files under the new cache name', "warroom-v13.31.1" in sw and './blueprint.js' in sw and './learnx.js' in sw)
+    check('service worker caches the two new files under the new cache name', "warroom-v13.32.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
     b.close()
 bad = [r for r in RES if not r[1]]
 print(f"\n{len(RES) - len(bad)}/{len(RES)} passed"); sys.exit(1 if bad else 0)

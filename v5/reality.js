@@ -29,7 +29,7 @@ function rlSeed() {
     F('con', 'Owners can only be reached 09:00–17:00 Florida time, Monday to Friday (16:00–24:00 Chisinau in winter).', 'confirmed', 'computed from time zones', 'geo');
     F('con', 'School on weekdays; tennis groups and team training are fixed commitments.', 'user', 'calendar', 'fixed');
     F('con', 'Bed 21:00, wake 05:20 (Settings). Sleep is never cut.', 'user', 'Settings', 'recovery');
-    F('dl', 'Goals to 1 July 2027: $20k MRR, BAC 8+ average, 85 kg body weight.', 'user', 'goals');
+    F('dl', 'Goals to 1 July 2027: $20k MRR, BAC passed, 85 kg body weight.', 'user', 'goals');
     F('dl', 'Planned move out of Chisinau around July 2027.', 'user', 'profile');
     F('dl', 'BAC 2027 timetable is set by MEC Order 2051 of 8 Oct 2026 (on ance.gov.md; the PDF is a scan, not yet read). A private guide reads it as 2–18 June. Confirm in the PDF.', 'verify', 'ance.gov.md, checked 19 Nov 2026');
   }
@@ -252,6 +252,8 @@ function lfOpTab() {
       ${tile('Knowledge → execution', 'books → Caregiver Bench', 'kxOpen()')}
       ${tile('Competitors', 'by type, with sources', 'mkCompOpen()')}
       ${tile('Email lessons', (() => { try { return emLessons().length + ' lessons'; } catch (e) { return 'from your inbox'; } })(), 'emOpen()')}
+      ${tile('Automation', 'what really runs by itself', 'coAuto()')}
+      ${tile('Unprocessed', (() => { try { return coOpenCaps().length + ' captured lines waiting'; } catch (e) { return 'captured lines'; } })(), 'coInbox()')}
       ${tile('Phone test', 'real-device checklist', 'ptOpen()')}
       ${tile('Test records', 'kept out of signals', 'dgOpen()')}
       ${tile('Operating system', (() => { try { const n = osNextStep(); return n ? 'next: ' + esc(n.n) : 'three engines'; } catch (e) { return 'three engines'; } })(), 'osOpen()')}

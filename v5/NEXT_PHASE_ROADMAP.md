@@ -65,3 +65,11 @@ Open, in order of value:
 6. Competitor prices (not public), Tampa Bay-local recruiters, staffing firms: not researched.
 7. Accountant: seller form and tax regime before the first invoice; status of the 2027 Moldovan rate proposal.
 8. Daily research schedule: still waiting for approval; weekly scan runs.
+
+## After 13.32.0 (19 Nov 2026)
+
+1. Real-phone check of the Day card ("I have N minutes"), the + sheet and Learn. Not done.
+2. Your decisions: the weekly personal minimum (minutes); the BAC goal record's wording; the goals merge (dry run delivered); the scheduled-task prompt fix.
+3. Reconcile today's calls: none are in the call log or the day counter.
+4. Remaining fragmentation: `CP_ST` ladder, retired home code, money as a standing candidate, Operator tiles grouped by lifecycle.
+5. From the 13.31 list, still open: lessons for 23 Blueprint competencies, unwatched videos, unread book parts, competitor prices, accountant, daily research approval.
