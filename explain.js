@@ -65,6 +65,7 @@ function xcCardHtml(c, opts) {
     ${sec('move', 'Your move · Caregiver Bench', c.move)}
     ${sec('trap', 'The trap', c.trap)}
     ${c.lesson ? `<a class="xc-lesson" data-t="${esc(c.t + ' ' + (c.hook || ''))}" href="${esc(c.lesson[0])}" target="_blank" rel="noopener"><i>🎓</i><span><b>Full course lesson: ${esc(c.lesson[1])}</b><em>the real course video · plays here when it can</em></span></a>` : ''}
+    ${typeof osForCard === 'function' && !opts.noRes ? osForCard(c.id) : ''}
     ${typeof ccForCard === 'function' && !opts.noRes ? ccForCard(c.id) : ''}
     ${c.src ? `<div class="xc-src">Source: ${esc(c.src)}${c.kind ? ' · ' + esc(c.kind) : ''}</div>` : ''}
     ${c.memo ? `<div class="xc-memo"><span>Lock it in</span><b>${pbInline(c.memo)}</b></div>` : ''}
