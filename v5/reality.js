@@ -24,7 +24,7 @@ function rlSeed() {
     F('who', 'Age 17. Some contracts, bank and investment products may need a parent or be unavailable: check Moldovan rules before acting.', 'user', 'expansion brief, 19 Nov 2026', 'legal');
     F('who', 'Lives in Chisinau (Europe/Chisinau time).', 'user', 'profile');
     F('who', 'Business: Caregiver Bench. Cold-calls private-pay home care agency owners in Florida; recruits and places caregivers.', 'user', 'Hormozi brief, 19 Nov 2026');
-    F('who', 'Territory: the 19 Nov brief says Naples; the Playbook says Tampa Bay first. Decide which is current.', 'verify', 'brief vs playbook.js');
+    F('who', 'Territory: Tampa Bay first (decided 17 Nov 2026; 813 number; ~875 agencies in the queue). Collier + Lee (Naples, Fort Myers) are the second wave after 3 paying agencies. Re-check after 300 dials.', 'confirmed', 'decision 17 Nov, re-checked 19 Nov');
     F('who', 'Earns money coaching tennis groups.', 'user', 'profile');
     F('con', 'Owners can only be reached 09:00–17:00 Florida time, Monday to Friday (16:00–24:00 Chisinau in winter).', 'confirmed', 'computed from time zones', 'geo');
     F('con', 'School on weekdays; tennis groups and team training are fixed commitments.', 'user', 'calendar', 'fixed');
