@@ -19,7 +19,7 @@ function coLearnCand(X) {
     const P = lxBuild(20, 'auto', { dry: 1 }), s = P.steps[0], under = lxPersUnder();
     if (s) { const apply = P.mode === 'apply', prot = !!under && P.dom === 'life';
       v = { k: 'learn', sid: 'learn', dom: P.dom === 'life' ? 'life' : 'biz', tier: prot ? 2 : 3, urg: prot ? Math.min(0.6, 0.3 + under.def * 0.3) : apply ? 0.45 : s.k === 'review' ? 0.2 : 0.25,
-        out: (apply ? 'Use what you learned: ' : prot ? 'Personal development: ' : 'Learn: ') + s.t.replace(/^(Use it|Practise): /, ''), why: (prot ? `Your weekly personal minimum is ${under.min} minutes; this week has ${under.got}. ` : '') + (P.why || s.why),
+        out: (apply ? 'Use what you learned: ' : prot ? 'Personal development: ' : 'Learn: ') + s.t.replace(/^(Use it|Practise): /, ''), why: (prot ? (under.need ? 'No personal session yet this week (your setting: as much as needed, never zero). ' : `Your weekly personal minimum is ${under.min} minutes; this week has ${under.got}. `) : '') + (P.why || s.why),
         next: 'Plan the session', go: () => { mcOpen('boot'); setTimeout(() => { try { lxGo(); lxPlanOpen(20); } catch (e) { } }, 250); }, min: Math.max(5, Math.min(20, P.planned)), dod: 'The session is finished and its steps are recorded', ev: [prot ? `Learn log: ${under.got} personal minutes this week (source: finished sessions)` : apply ? 'Lessons or resources finished with nothing practised or used yet (source: Learn records)' : 'Next step chosen by the Learn planner from stage, evidence and reviews'], late: apply ? 'Unused learning fades within days.' : 'Nothing breaks today; skills compound slowly.', conf: 'your records', src: 'learn' }; }
   } catch (e) { console.warn('co learn', e); }
   CO_LEARN = { t: Date.now(), k: X.k, v }; return v;

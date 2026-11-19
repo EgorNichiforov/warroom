@@ -219,3 +219,13 @@ Tests: `test_1334.py` 47, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 7
 Caught before release: the new wrapper hid the 13.32 hook flag (`lxCandidates._co`), failing a 13.32 wiring check; flags are now carried over. A vacuous assertion I had written (`|| true`) was removed before the run that counts.
 
 Tests: `test_1334.py` 50, `test_1333.py` 30, `test_1332.py` 46, `test_1331.py` 74, `test_1327.py` 122, `test_1326.py` 55, legacy `run.py` (see commit). Not a real phone.
+
+## 13.37.0 · 19 Nov 2026 · decisions applied (BAC 7, weight 80, learning by need, cleanup)
+
+**Changed:** `core.js` (starter goals, `seed` flag, `merge()` guard), `learnx.js` (`lxPersMode`, `lxPersWaiting`, three-way setting), `cohere.js` (wording), `playbook.js`, `intel.js`, `ask.js` (BAC wording), `tests/run.py` (never reaches the cloud table), new `tests/test_1337.py` (14), version strings, documents.
+
+**Data, with Egor's approval of 19 Nov 20:25:** main row copied to `warroom_backup` (id 23, md5 matched); 17 goal records soft-deleted (15 exact copies + 2 "Weight 77 kg"), BAC goal retitled with target 7; 13 live goals remain; the odd monthly "350 dials" record was left alone (not identical). 11 old or test rows copied to `warroom_backup` and deleted from `warroom_sync` (12 rows remain: main, queue, bench, 6 snapshots, 2 staging, 1 share).
+
+**Scheduled tasks:** Acvila attendance prompt rewritten without the row id (accepted). Discovery scan → daily: refused by the permission system; unchanged.
+
+Tests: see commit. Not a real phone.

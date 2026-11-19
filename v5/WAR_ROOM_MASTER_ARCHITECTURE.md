@@ -1,4 +1,4 @@
-# War Room · master architecture (13.36.0, 19 Nov 2026)
+# War Room · master architecture (13.37.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.
@@ -116,6 +116,15 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - 13.35: `beData()`/`beStuck()`/`beOpen()` (28-day funnel; rates only above `BE_MIN` samples; the stage where it stops), `bwData()`/`bwOpen()` (weight trend and needed pace per weight goal; never chooses between targets), `qrOpen()`/`qrSave()` (quarter in `S.boot['qr:YYYY-Qn']`). All read-only views except the review text. None adds a Mission Control candidate.
 - 13.36: `dxBillCand(X)` supplies ONE candidate (`k:'bill'`, tier 3) through the existing `lxCandidates` hook when a planned outgoing payment is due or overdue. `mcBuild()` ranks it like any other.
 
+## 8d. Decisions applied on 19 Nov (13.37)
+
+- BAC floor: average not lower than 7 (Egor, 19 Nov). Starter goal, Playbook, campaign template and assistant prompt agree.
+- Personal learning: `S.settings.learn.persMode = 'need'` ("as much as needed"). `lxPersUnder()` then returns `{need:1}` only when the week has no personal minutes AND `lxPersWaiting()` finds a personal NOW competency with an unopened lesson or a personal lesson due for recall. A number in `persMin` still takes precedence.
+- Starter goals carry `seed: 1`. `merge()` drops a seeded local goal when the cloud already holds a goal with that title (live or deleted), or any BAC-pass / November-weight goal. Goals you create are never dropped.
+- Cloud: goal cleanup and row archive were done with SQL after copying the main row and each removed row into `warroom_backup` (RLS on, no policies). Restore = copy `data` back from that table.
+- The legacy test suite no longer reaches `warroom_sync` (it used to leave a real test row behind, which could be picked up by scheduled-task lookups that order by `updated_at`).
+- Scheduled tasks: the Acvila attendance task finds the row inside its query (largest main row); no literal id in its text. The discovery scan is still weekly: the write to make it daily was refused by the permission system.
+
 ## 9. Known gaps
 
 - Goals: duplicate-looking records and no link to campaigns (no campaigns exist). Cleanup needs your approval.
@@ -123,6 +132,6 @@ The top-right + and the bottom + open the same capture sheet. Operator tiles are
 - One scheduled task holds a sync identifier in its prompt; a replacement is proposed, not applied.
 - Retired home code (`nova.js`, parts of `ops.js`) still loads; `one.js` is live (`oneNight`, `oneGo`).
 - `CP_ST` ladder not folded in. Money reaches Mission Control under the money lens, when a campaign names it, or when a planned payment is due (13.36).
-- No real-phone test of 13.31 to 13.36.
+- No real-phone test of 13.31 to 13.37.
 - Outside calls are a daily total, not call-by-call: they cannot feed per-agency history, callbacks or owner discovery answers (the capture is offered once after saving).
 - Body plan adaptation (the plan does not change itself from the trend), a focus protocol, tab renaming and a back-navigation audit are not built.

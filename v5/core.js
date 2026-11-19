@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.36.0';
+const APP_VERSION = '13.37.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -139,13 +139,13 @@ function seed() {
     ] },
   };
   const R = (id, title, days, link) => ({ id, title, days, link: link || '' });
-  const G = (title, horizon, target, unit, deadline, source, extra) => Object.assign({ id: uid(), _u: t, title, horizon, target, unit, deadline: deadline || '', source: source || 'manual', current: null, done: false }, extra || {});
+  const G = (title, horizon, target, unit, deadline, source, extra) => Object.assign({ id: uid(), _u: t, title, horizon, target, unit, deadline: deadline || '', source: source || 'manual', current: null, done: false, seed: 1 }, extra || {});
   const goals = {};
   [
     G('EgorFlow MRR', 'long', 20000, '$', '2027-07-01'), G('Priority Bench clients', 'long', 8, 'clients', '2027-07-01'), G('Multi-site clients', 'long', 3, 'clients', '2027-07-01'),
     G('Owner conversations (before any new idea)', 'long', 100, 'convos', '', 'counter:owners'), G('Body weight', 'long', 85, 'kg', '2027-07-01', 'weight'),
-    G('BAC average 9+ (Română, Istorie by exam; English + IT certificates)', 'long', 9, 'avg', '2027-06-30'),
-    G('Weight 77 kg by end of November', 'month', 77, 'kg', '2026-11-30', 'weight'), G('Book the Python ITS exam (UTM, Dec 14–18)', 'month', 1, '', '2026-11-15', 'check'),
+    G('BAC: pass, average not lower than 7', 'long', 7, 'avg', '2027-06-30'),
+    G('Weight 80 kg by end of November', 'month', 80, 'kg', '2026-11-30', 'weight'), G('Book the Python ITS exam (UTM, Dec 14–18)', 'month', 1, '', '2026-11-15', 'check'),
     G('Python ITS exam: 700/1000', 'month', 700, 'pts', '2026-12-18'),
     G('350 dials', 'week', 350, 'dials', '', 'counter:dials:week'), G('20 h BAC study', 'week', 1200, 'min', '', 'counter:bac:week'), G('6 training days', 'week', 6, 'days', '', 'workouts:week'),
   ].forEach((g) => (goals[g.id] = g));
@@ -811,6 +811,8 @@ function mergeRec(l, r, b) {   /* → { v: record to keep, changed: differs from
 }
 function merge(remote, threeWay) {
   let changed = false; syncAhead = false; const base = threeWay ? baseGet() : {};
+  /* 13.37: a fresh install seeds starter goals. If the cloud already holds a goal with that title (live or deleted), the starter copy is dropped here instead of becoming a duplicate, or bringing back a goal you removed. */
+  try { if (remote.goals && S.goals) { const T = new Set(Object.values(remote.goals).filter(Boolean).map((g) => g.title)); if (T.size) for (const id in S.goals) { const g = S.goals[id]; if (g && g.seed && !remote.goals[id] && (T.has(g.title) || (/^BAC: pass/.test(g.title) && [...T].some((t) => /^BAC: pass/.test(t))) || (/^Weight \d+ kg by end of/.test(g.title) && [...T].some((t) => /^Weight \d+ kg by end of/.test(t))))) { delete S.goals[id]; changed = true; } } } } catch (e) { }
   for (const k of MERGE_SINGLES) {
     if (!remote[k]) { if (S[k] && S[k]._u) syncAhead = true; continue; }
     const keepSync = k === 'settings' ? S.settings.sync : null, res = mergeRec(S[k], remote[k], base[k]);

@@ -14,7 +14,7 @@ def check(name, cond, info=''):
     results.append((name, bool(cond), info))
 
 def fresh(p):
-    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2200)
     return b, pg, errs
@@ -90,7 +90,7 @@ with sync_playwright() as p:
       await aiShare({ provider: 'gemini', key: 'AIzaREALKEYxxxxxxxxxxxxxxxxxx', model: 'm' }, true); const stored = calls.some((x) => x.body.includes('"op":"store"'));
       const syncHasNoKey = !JSON.stringify(S.secrets).includes('AIza');
       S.secrets = { _u: 2, ai: { provider: 'gemini', key: 'AIzaOLDKEYinsyncxxxxxxxxxxxxx', model: 'm' } }; await aiMoveKeyToServer(); const moved = !JSON.stringify(S.secrets).includes('AIza') && S.secrets.ai.server === true;
-      window.fetch = realFetch; localStorage.removeItem(FOOD_AI_KEY); S.secrets = { _u: 3 };
+      window.fetch = realFetch; localStorage.removeItem(FOOD_AI_KEY); S.secrets = { _u: 3 }; S.settings.sync.code = ''; clearTimeout(pushTimer);
       return { viaProxy, direct, noStoreOfPlaceholder, stored, syncHasNoKey, moved }; }""")
     for k2, v in r.items(): check('AI key: ' + k2, v)
 
@@ -223,7 +223,7 @@ with sync_playwright() as p:
     b.close()
 
     # launch: the first painted screen is the real one
-    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); seen = []
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); pg = ctx.new_page(); seen = []
     pg.add_init_script("window.__seen=[];new MutationObserver(()=>{const h=document.documentElement;if(document.body&&!h.classList.contains('wr-boot')){const t=(document.querySelector('#nav')||{}).textContent||'';if(t&&window.__seen.indexOf(t)<0)window.__seen.push(t)}}).observe(document,{childList:true,subtree:true,attributes:true});")
     pg.goto(URL); pg.wait_for_timeout(3200)
     seen = pg.evaluate("__seen")
@@ -285,7 +285,7 @@ with sync_playwright() as p:
     b.close()
 
     # Day: Done on the current block must move the screen on (classic screen: with Guided day on, the guided card replaces this hero, 13.13.1)
-    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script("localStorage.setItem('wr-guide','off')"); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); ctx.add_init_script("localStorage.setItem('wr-guide','off')"); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2400); ev = pg.evaluate
     cur = ev("(()=>{const d=new Date(),nm=nowMin(),L=arcBlocks(d);let b=L.find(x=>tmin(x.start)<=nm&&nm<tmin(x.end)&&!['dials','bac','agency','train','program'].includes(x.kind));if(!b){const o=day(d);o.sched=o.sched||{};const s=String(Math.floor(nm/60)).padStart(2,'0')+':'+String(nm%60).padStart(2,'0'),e2=Math.min(nm+30,1439),e=String(Math.floor(e2/60)).padStart(2,'0')+':'+String(e2%60).padStart(2,'0');return null}return {id:b.id,title:b.title}})()")
     if cur and pg.query_selector('#arc .arc-now'):
@@ -710,7 +710,7 @@ with sync_playwright() as p:
     check('Parity: Settings has Jump to (App lock one tap away) and the App lock card on the phone', r['jump'] >= 6 and r['lockCard'], r)
     check('Parity: the Day side column shows on the phone', r['day'], r)
     check('Parity: no page errors', not errs, errs[:3]); b.close()
-    b = p.chromium.launch(**_CH); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.goto(URL); pg.wait_for_timeout(2200)
+    b = p.chromium.launch(**_CH); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); pg.goto(URL); pg.wait_for_timeout(2200)
     check('Parity: laptop keeps its side rail, no doubled phone copies', pg.evaluate("show('money'),document.querySelectorAll('.ph-rail').length") == 0 and pg.evaluate("document.querySelectorAll('.ph-day').length") == 0); b.close()
 
     # Courses 13.9: every course as a working module (old layout via LN_OFF: the internals still power Learn → Tools)
