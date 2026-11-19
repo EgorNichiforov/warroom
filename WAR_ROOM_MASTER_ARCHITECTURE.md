@@ -92,3 +92,8 @@ Weekly, Monday 07:37 Chisinau: Gmail read-only search for Acquisition.com / Horm
 | BAC plan | `expand.js` (`bac*`) + `bac.js` | `lib/bac.json`, `S.boot['bt:*']`, `S.lifeErrors` | `bacNext` → `mcBuild` |
 
 Rule kept: one recommender. Content, campaigns and money add candidates or facts; none of them shows a second "do this now".
+
+
+## 13.28 · Strategy
+
+`strategy.js` owns `S.obs`, `S.opps`, `S.assets`, `S.settings.strategy`. Reads: queue call notes, experiments, Field Manual, tasks, campaigns, stage. Writes: experiments (on validation), one fact and at most one risk into `mcBuild`. `stFocusCaps()` feeds `ccFocus()` so learning follows the business stage. The A/B/C comparison never starts with numbers: every cell is unknown until scored with a named basis.
