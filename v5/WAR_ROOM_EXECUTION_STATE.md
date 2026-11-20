@@ -85,3 +85,10 @@ NEVER create a non-`staging-` room row on the live project without renaming it a
 1. Everything listed in the two briefs has a built counterpart as of 13.49.0. What remains is use and verification, not building.
 2. Egor presses the phone checklist and reports what breaks.
 3. After two weeks of use, open "Is War Room working?" and fold away what was never opened.
+
+
+## Scheduled tasks · state on 20 Nov 11:30
+
+Edited today: Nightly review, Sunday audit, Morning brief 05:03, Bench Bulletin, Sheet sync, Weekly review (facts), Content discovery (daily wording, de-dup against the app's sources), System check (strict lookup, check 7 one War Room, check 8 server jobs and 03:00 backup). Paused: Morning brief 06:00. Still on the looser lookup (same row today): Weekly review, Close the day, paused 06:00 brief.
+
+NEXT, with Egor present (one confirmation in Supabase): migration adding `warroom_owner()` (returns the owner's room id from `warroom_config`), then replace the lookup in all fifteen task prompts with it. `update_trigger` needs each whole prompt re-sent; `list_triggers` returns about four tasks per page.
