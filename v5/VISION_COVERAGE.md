@@ -54,3 +54,5 @@ Status words: **Built** = code exists and a test in `tests/` exercises it. **Exi
 
 | XX Security (13.50.0) | One real device (laptop) enrolled and verified; a storage clash that destroyed the key on real devices found and fixed; owner-room function on the server |
 | XXV Testing (13.50.0) | First test on a real device with real data: 16 screens open clean on the laptop. Phone still untested |
+| XVI Agents (13.51.0) | All twelve roles the brief names exist in the app; six of them can also run on the server. Collaboration is still one optional red-team pass |
+| XVII Evolution | An automatic audit schedule exists: the server's weekly check (Mondays 05:50) and the daily System check task |

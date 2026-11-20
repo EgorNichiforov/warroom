@@ -5,7 +5,7 @@
 # (the scheduled tasks pick the newest row that has days in it; a fresh room is exactly that until it is renamed)
 U=https://lajechvmsrmrmfcluhkr.supabase.co
 K=$(grep -o "sb_publishable_[A-Za-z0-9_-]*" /home/claude/warroom/v5/core.js | head -1)
-R="verify$(head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+R="staging-verify$(head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
 echo "$R" > /tmp/live_room.txt
 H=(-s -m 30 -H "apikey: $K" -H "Authorization: Bearer $K" -H "Content-Type: application/json")
 code() { curl "${H[@]}" -o /tmp/lh.out -w "%{http_code}" "$@"; }

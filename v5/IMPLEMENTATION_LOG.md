@@ -413,3 +413,10 @@ Egor asked Claude to enrol his laptop itself. Done from his real Chrome (Claude 
 - **Tasks now using `warroom_owner()`:** Sheet sync (the only one that copies data INTO the room), Dial Guard, Acvila attendance. **Still on "newest row":** Morning brief 05:03, Nightly review, Sunday audit, Bench Bulletin, Content discovery, Curriculum review, System check (it has the one-War-Room tripwire), Weekly review, Close the day, Monthly archive, paused 06:00 brief. Each needs its whole text re-sent; do them a few at a time.
 - **Acvila attendance task:** it is tied to his computer. After the text change the reply showed it switched off with the reason "device absent"; switching it on again worked and the reason cleared. Its last recorded run (19 Nov 20:10) is "abandoned". Worth watching tonight.
 - If the sync code is ever changed on purpose: `update warroom_config set v = <new id> where k = 'owner_room'`.
+
+
+## 13.51.0 · 20 Nov 2026, 13:20 · twelve roles
+
+- `agents.js`: packs `bench` (counts by status and town, consent gaps, waiting applicants, agencies with a case), `know` (library by claim class and tier, finished against used, open requests, link kinds), `auto` (automation rows). Roles `recruit`, `curator`, `research`, `ops`. Routing words added after the existing ones, so earlier routes still win.
+- `test_1342`: twelve roles; packs exist; a planted name and phone number do not appear in a pack; new and old questions route correctly.
+- **Pending Egor's tap:** migration `warroom_server_v1_closed` (file in `supabase/`). It asked him to confirm in Supabase and timed out after 120 s. NOT applied, and not run any other way. It closes creation of new rooms once an owner room is named, which makes the "newest row" lookup safe for every scheduled task without rewriting eleven prompts.
