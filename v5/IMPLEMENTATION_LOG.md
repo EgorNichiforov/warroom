@@ -515,7 +515,7 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Real gap found and fixed:** 21 older screens were not reachable through the finder by the names the prompts use. Added in `audit.js` (generated): judgmentlab, redteam, attention, fieldmanual, contingency, reality, direction, capacity, mypatterns, indicators, strategy, stratreview, capmap, devblueprint, ownerq, k2e, kpipeline, rightknow, whoelse, weakspots, winning. Each opener was checked to open with no input (`bkOpen`, `ccOpen`, `enOpen`, `bacDiagOpen`, `jnSearchOpen` need input and were left out). Ledger rows of the older prompts now carry Open buttons.
 
 
-## 13.64.0 · 21 Nov 2026, 00:15 · P01 sections 1–3 settled in the code
+## 13.64.0 · 20 Nov 2026, about 22:25 · P01 sections 1–3 settled in the code
 
 - Read: P01 lines 1–360 (sections 1–4 opening). Settled by reading the code, not by word probe.
 - **Present:** 2A `S.reality` facts in four areas with status, source and date; 2B season (`mcSeasonSave`: kind, purpose, primary, prios, secondary, protect, cons, res, success, paused, start, review, cadence); 2C `RL_ST` seven statuses; 2D `RL_CTYPE` nine constraint kinds; 2E `rlPatterns` (time against plan, best hour, interruptions, most-skipped mission, triggers, start delay) — no line on which routines support execution; 3A direction (five parts); 3B cap of three (`campToggle`, `recSave`).
@@ -524,7 +524,7 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Not settled:** 3C campaign intelligence beyond Mission Control, 3D campaign-to-Bootcamp (`cxCamp` exists, not read), 3E campaign-to-calendar; section 4 onward (lines 360–2354) not read yet.
 
 
-## 13.65.0 · 21 Nov 2026, 01:30 · P01 sections 5–10 read and settled
+## 13.65.0 · 20 Nov 2026, about 22:55 · P01 sections 5–10 read and settled
 
 - Read: P01 lines 360–1220. Settled in the code: 5 (judge.js: `jlDecEdit` 14 fields, `jlPredEdit`, `JL_Q`, `JL_SC`, `jlScTransfer`), 6 (`rtCheck` ten questions, `rtRiskEdit` nine fields, `rtPremortem`), 7 (defense.js triggers, protocols with `dp-review`/`dp-src`, `dfLapse`, `dfProtoStats`; modes in mission.js `MC_MODES`), 8 (`FM_F` + name, quality, caps, card, rev; `fmFromCard`, `fmFlagged`).
 - **Missing, built:** `rtReality()` / `rtRealityHtml()` in judge.js (shown at the top of `rtOpen`; two triggers: a mission skipped >= 3 times in 14 days, or >= 5 planning records touched in 7 days with a 7-day dial target >= 20 and under 25% recorded; reads `mcBuild().top`, adds no candidate). `MC_OPS` + `mcModeOps()` in mission.js (from Playbook pages daily8 and cutorder; own restart condition in boot key `mode:restart`). Eight rows in `CM_CAPS` (92 capabilities), each linked to the nearest existing cards (the invariant `cmGaps().length===0` in test_1327 and test_1331 holds) and each saying its own lesson is missing.
@@ -533,8 +533,13 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - The reality check is NOT in Mission Control (one recommender rule). It is on the Red Team screen only.
 
 
-## 13.66.0 · 21 Nov 2026, 02:40 · reality check counts versions released
+## 13.66.0 · 20 Nov 2026, about 23:10 · reality check counts versions released
 
 - Laptop check of 13.65.0 on real data: `rtReality()` returned null. Components: made 2, target 350, planning records touched 3 (2 risks, 1 experiment), no mission skipped 3 times. The rule could not see system-building done through Claude.
 - Added a third evidence line in `rtReality()`: changelog rows (`PB_SEED` page `changelog`) dated in the last 7 days; threshold 5 with the same dial condition. Returns `ver`.
 - `test_1365` now 23 checks.
+
+
+## 13.67.0 · 20 Nov 2026, 23:25 · dates corrected
+
+- The entries for 13.64–13.66 carried 21 Nov and invented clock times: I assumed the time instead of reading it. Read from the clock tool at 23:18 on 20 Nov and corrected here, in the changelog and in the ledger. Rule: read the time before writing a date.
