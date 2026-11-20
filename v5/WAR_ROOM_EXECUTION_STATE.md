@@ -147,3 +147,8 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - Communication increments 1–4 live (speak.js … speak4.js; tests 1354, 1357, 1359, 1361). Left in that brief: kept audio (5.2), more scenario families (Part 10), real microphone and phone tests, quality on his main model.
 - Second brief: backlog 1 done, 2 and 3 partly. NEXT: 4 (what changed since last week), 5 (hypotheses as records tied to experiments), 6 (tested cross-domain links, 20 paired days minimum).
+
+## 20 Nov 23:00 · after 13.62.0
+
+- audit.js + ALL_PROMPTS_AUDIT.md: every prompt, 180 sections (generator: v5/tools/audit_gen.py; rerun it after any status changes, then release). NEXT AUDIT STEP: line-by-line pass, one prompt per run, oldest first (P01 = /mnt/user-data/uploads/49b9b331-attachment.txt, 2,354 lines): read it in chunks, check each requirement against the code (not the header note), correct the ledger, build what is missing.
+- test_1358 made independent of background day-record creation.

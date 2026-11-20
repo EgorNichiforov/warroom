@@ -30,6 +30,9 @@ with sync_playwright() as p:
     check('the screen gives the range, the method, the simple rule, the verdict and what is missing; and fits', ev(f"/10 dials to 40 dials, most likely about 25/.test({t})&&/made after Monday/.test({t})&&/No forecast for average weight/.test({t})&&/range held in 3 of 6/.test({t})&&/17\\.1 on average, against 22\\.5/.test({t})&&/beats the simple rule/.test({t})&&/never shown anywhere as a fact/.test({t})&&{fits}"), ev(t)[:300])
     # ── a real Monday: made in advance
     pg.clock.set_fixed_time('2026-11-23T08:00:00+02:00')
+    # the app may or may not have opened an empty record for a day of last week by now (a background tick): remove them,
+    # so the four weeks under the forecast are the seeded ones whichever way the timing fell
+    ev("Object.keys(S.days).filter(k=>k>='2026-11-16'&&k<'2026-11-23').forEach(k=>{delete S.days[k]}); 0")
     made = ev("fctEnsure()")
     M = ev("fctAll().filter(x=>x.w==='2026-11-23')")
     check('on Monday the forecast is made in advance (not late) and names its method', made == 2 and all(not x['late'] for x in M) and all('last four recorded weeks' in x['method'] for x in M) and [x for x in M if x['m'] == 'dials'][0]['point'] == 25, M)

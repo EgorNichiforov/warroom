@@ -498,3 +498,11 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Test `test_1361` (23 checks); `test_1354` now expects thirty exercises and six levels.
 - **Correction:** on Egor's real data `ckLate` said 13 of 14 day records were "changed on a later day". True, and useless as a statement about him: the hourly Sheet sync and the nightly review also stamp past days. The screen now says exactly that. Real "happened at / recorded at" needs a time on each entry when he types it; not built (backlog item 3 stays mostly open).
 - Communication brief, still open: 5.2 kept audio and playback; Part 10's remaining scenario families; a real microphone test; anything on the phone; quality on his main model.
+
+
+## 13.62.0 · 20 Nov 2026, 22:50 · the ledger of every prompt (`audit.js`, `ALL_PROMPTS_AUDIT.md`)
+
+- Egor (21:30): read every prompt, make sure each is done, make it visible. All 20 uploaded files listed: 17 prompt texts (one sent twice) and 3 books. Section headings extracted from each (672 headings), reduced to 180 sections, each given a status from: this mission's own tests (Built), the existing module's header note plus passing tests (Exists), the coverage table for the 100% vision, the baseline for the second brief, and the open lists in this log.
+- Totals: Built 42 · Exists 84 · Partly 46 · Not built 3 · Needs you 2 · rule of work 3.
+- **What this is not:** a line-by-line check. About 17,000 lines of prompts were not re-read sentence by sentence against the app, and "Exists" rests on what older modules say about themselves. A real line-by-line pass is the next audit step, one prompt per run, starting with the oldest and largest (P01).
+- Source of truth: `/home/claude/work/audit/gen.py` generates both the markdown and `audit.js`. That script is outside the repo: copy kept at `v5/tools/audit_gen.py`.
