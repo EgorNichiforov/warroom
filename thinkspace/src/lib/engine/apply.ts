@@ -11,12 +11,11 @@ import type {
   ModelVersion,
   Relation,
   Scene,
-  SessionSnapshot,
   SystemModel,
   Thought,
   TranscriptSegment,
 } from "@/lib/contracts/domain";
-import type { Extraction, ExtractedChange, SceneDirective } from "@/lib/contracts/extraction";
+import type { ExtractedChange, SceneDirective } from "@/lib/contracts/extraction";
 import type { NewSessionEvent } from "@/lib/contracts/events";
 import { snapshotFocus } from "./digest";
 import type { ApplyInput, ApplyResult } from "./types";
@@ -397,6 +396,11 @@ function applyCorrections(ctx: Ctx) {
     const affectedModels = uniq([...relationIds, ...conceptIds].flatMap((id) => ctx.modelsContaining(id)));
     const description = cor.description.trim() || "Correction";
     if (affectedModels.length === 0) {
+      // an explicit correction change from the same utterance already records this correction
+      const explicit = ctx.input.extraction.changes.some(
+        (c) => c.kind === "correction" && c.sourceSegmentIds.some((id) => cor.sourceSegmentIds.includes(id)),
+      );
+      if (explicit) continue;
       ctx.insertChange({
         id: ctx.id("chg"),
         sessionId: ctx.sessionId,

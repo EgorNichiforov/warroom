@@ -4,7 +4,9 @@
  */
 import "server-only";
 import { z } from "zod";
-import { RepoError } from "@/lib/db/repo";
+import { getSession, RepoError } from "@/lib/db/repo";
+import { requireOwner } from "@/lib/auth";
+import type { Session } from "@/lib/contracts/domain";
 import { ensureStartup } from "@/lib/server/retention";
 
 export function jsonError(status: number, error: string, code: string, details?: unknown): Response {
@@ -53,3 +55,11 @@ export type IdSceneCtx = { params: Promise<{ id: string; sceneId: string }> };
 export type IdActionCtx = { params: Promise<{ id: string; actionId: string }> };
 export type IdThoughtCtx = { params: Promise<{ id: string; thoughtId: string }> };
 export type AssetCtx = { params: Promise<{ assetId: string }> };
+
+/** Authenticates the request and loads a session the owner may access; 404 when missing/foreign. */
+export async function requireSession(req: Request, id: string): Promise<{ ownerId: string; session: Session }> {
+  const ownerId = await requireOwner(req);
+  const session = await getSession(id, ownerId);
+  if (!session) throw notFound("session not found");
+  return { ownerId, session };
+}

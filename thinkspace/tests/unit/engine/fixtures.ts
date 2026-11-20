@@ -10,8 +10,19 @@ import type { LlmProvider } from "@/lib/providers/llm/types";
 
 export const NOW = "2026-11-20T10:00:00.000Z";
 
-export function makeIdFactory() {
+/** Deterministic ids; when a snapshot is given, counters continue after the ids already in it. */
+export function makeIdFactory(snapshot?: SessionSnapshot) {
   const counters = new Map<string, number>();
+  if (snapshot) {
+    const rows: { id: string }[] = [
+      ...snapshot.thoughts, ...snapshot.concepts, ...snapshot.relations, ...snapshot.models,
+      ...snapshot.versions, ...snapshot.changes, ...snapshot.scenes, ...snapshot.actions,
+    ];
+    for (const { id } of rows) {
+      const m = /^([a-z]+)_(\d+)$/.exec(id);
+      if (m) counters.set(m[1], Math.max(counters.get(m[1]) ?? 0, Number(m[2])));
+    }
+  }
   return (prefix: string) => {
     const n = (counters.get(prefix) ?? 0) + 1;
     counters.set(prefix, n);
@@ -88,7 +99,7 @@ export type Step = { line: ScriptLine; extraction: Extraction; result: ApplyResu
 
 /** Runs script lines one by one through provider.extract → applyExtraction → applyToSnapshot. */
 export async function runScript(lines: ScriptLine[], provider: LlmProvider, start = makeSnapshot()): Promise<{ snapshot: SessionSnapshot; steps: Step[] }> {
-  const newId = makeIdFactory();
+  const newId = makeIdFactory(start);
   let snapshot = start;
   const steps: Step[] = [];
   for (const line of lines) {

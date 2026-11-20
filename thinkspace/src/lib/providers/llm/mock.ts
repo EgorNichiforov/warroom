@@ -389,10 +389,12 @@ const RULES: Rule[] = [
 // Generic fallback for arbitrary text
 // ---------------------------------------------------------------------------
 
-const DECISION_CUES = /\b(i've decided|i have decided|we are going to|we're going to|am decis|hotărât|hotarat|rămâne așa)\b/i;
-const ACTION_CUES = /\b(need to|needs to|next step|trebuie să|trebuie sa|să facem|sa facem|to do:)\b/i;
-const QUESTION_CUES = /\?|\b(whether|dacă|daca|mă întreb|ma intreb|i wonder|should we|ar trebui)\b/i;
-const CORRECTION_CUES = /\b(not what i meant|nu asta am vrut|actually,|de fapt|wrong|greșit|gresit)\b/i;
+// Unicode-aware word boundaries: JS `\b` is ASCII-only and fails after Romanian diacritics.
+const cues = (alternatives: string) => new RegExp(`(?<!\\p{L})(?:${alternatives})(?!\\p{L})`, "iu");
+const DECISION_CUES = cues("i've decided|i have decided|we are going to|we're going to|am decis|hotărât|hotarat|rămâne așa");
+const ACTION_CUES = cues("need to|needs to|next step|trebuie să|trebuie sa|să facem|sa facem|to do:");
+const QUESTION_CUES = new RegExp(`\\?|${cues("whether|dacă|daca|mă întreb|ma intreb|i wonder|should we|ar trebui").source}`, "iu");
+const CORRECTION_CUES = cues("not what i meant|nu asta am vrut|actually,|de fapt|wrong|greșit|gresit");
 const TERM_RE = /\b(\p{Lu}[\p{Ll}\p{M}]+(?:\s+\p{Lu}[\p{Ll}\p{M}]+)+)\b/gu;
 const SENTENCE_STARTS = /(?:^|[.!?]\s+)(\p{Lu}[\p{Ll}\p{M}]+(?:\s+\p{Lu}[\p{Ll}\p{M}]+)+)/gu;
 
