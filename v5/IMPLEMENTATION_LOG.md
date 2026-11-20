@@ -321,3 +321,19 @@ Still not built from the two briefs (kept here so nobody reports them as done): 
 ## 20 Nov 2026, 07:36–07:50 · the server switched on
 
 Egor confirmed in Supabase. Three migrations applied, worker deployed three times (v1, then two fixes from the first live run), timers inserted, first jobs run, access paths checked live in a rolled-back transaction, security advisor read and the grants tightened (`supabase/warroom_server_v1_tidy.sql`). Local proofs now 68 SQL + 43 worker checks. Details and the one thing that does not work (search quota on his AI key) are in `WAR_ROOM_EXECUTION_STATE.md`.
+
+
+## 13.46.0 · 20 Nov 2026 · the last seven pieces
+
+`finish.js`, `tests/test_1346.py` (46). Built from the "still not built" list above:
+1. Link kinds: wrappers on `pfLink` / `pfLinkSave`; the kind is stored on both sides and written into the sentence in its own direction.
+2. `smCompare()`: saved scenarios through the same `smCalc`, with the inputs that differ.
+3. Water: `S.days[k].water`, `S.settings.waterGoal` (no default; no advice).
+4. Missed training: `trmMissed()` over the last three days of `blocksFor().filter(isTrainBlock)`; a decision is stored in `day.trDec`; "move" creates a task for today, or tomorrow if today still has a session.
+5. `wfList` folds away destinations not opened for 14 days once there are 14 days of usage data; search is untouched.
+6. People and commitments: `S.boot['pp:<id>']`, `S.boot['pc:<id>']`. Not in the vault.
+7. `nqAsk()` / `nqOpen()`: one AI question from one card, level from the last three grades on that card, validated, self-graded into `rlog` with level 4.
+
+Honest limits: (7) was tested with a stand-in for the AI, so the plumbing and the limits are proven, not the quality of the questions. (4) decides nothing about load or recovery. (5) will fold most of the list for someone who uses five screens; that is the point, and "now" is never folded.
+
+Of the list above, one item is left: reading the later pages of Claude's scheduled-task list for literal ids (see the next entry if it was done).

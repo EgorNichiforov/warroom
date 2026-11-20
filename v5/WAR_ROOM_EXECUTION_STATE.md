@@ -39,7 +39,7 @@
 | 9 Agent orchestration | Built, bounded (13.42); never run against a live model by the build | `agents.js` |
 | 10 Personal domains | Existed + 13.34 to 13.39 | `depth.js`, `domain.js` |
 | 11 Evolution | Built (13.42); needs weeks of real use to say anything | `agents.js` |
-| 12 Final integration and release | 13.45.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
+| 12 Final integration and release | 13.46.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
@@ -60,8 +60,14 @@ A stage listed for a later release than the current `APP_VERSION` is NOT built y
 - Vault (13.44.0): built and live in the app, off. Only Egor can switch it on (it needs a passphrase only he knows). Rule learned: any on-device change to `settings` must call `touch(S.settings)` or other devices ignore it.
 - A morning-brief Claude scheduled task was refused by the scheduler's permission system; the server brief replaces it.
 
+## Before every release
+
+- Check for a function name defined twice: `grep -ohE "^(async )?function [A-Za-z0-9_]+" *.js | sed -E 's/^(async )?function //' | sort | uniq -d` must print only `cmOpen endSession renderStats startSession` (old, intended). On 20 Nov a new `bpOpen` silently replaced the Blueprint screen; the 13.31 suite caught it.
+- Run the legacy suite at a daytime clock for the moment of the run (`TZ=Etc/GMT-6` in the Chisinau morning, `TZ=Etc/GMT+6` in the evening). At night three checks fail on any version.
+- Run suites that failed under 14 parallel browsers once more alone before believing them.
+
 ## Next action
 
-1. Build what is left from the two briefs (list at the end of `IMPLEMENTATION_LOG.md`).
+1. Everything listed in the two briefs has a built counterpart as of 13.46.0. What remains is use and verification, not building.
 2. Egor presses the phone checklist and reports what breaks.
 3. After two weeks of use, open "Is War Room working?" and fold away what was never opened.

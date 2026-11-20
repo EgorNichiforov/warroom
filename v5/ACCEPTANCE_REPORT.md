@@ -48,3 +48,5 @@ On 19 Nov 2026 28 versions of War Room were released and the call log shows no d
 Not applied because Supabase asked Egor to confirm and he was asleep. One confirmation switches it on.
 
 | Vault: private records sealed before sync (13.44.0) | live in the app, **off until Egor sets a passphrase** | `tests/test_1344.py` 45 checks, two browsers, real crypto, stand-in table |
+| Server switched on (20 Nov 07:36) | **live** | migrations applied with Egor's confirmation; access paths checked live in a rolled-back transaction; real jobs run; first automatic timer run observed |
+| Seven last pieces (13.46.0) | live | `tests/test_1346.py` 46 checks; AI part with a stand-in |

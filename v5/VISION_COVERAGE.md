@@ -39,3 +39,4 @@ Status words: **Built** = code exists and a test in `tests/` exercises it. **Exi
 - Encryption: vault for the private stores (13.44.0), **live, off until Egor sets a passphrase**.
 - Personal model, observed vs stated, correctable (13.45.0): **live**.
 - Not built: see the list at the end of `IMPLEMENTATION_LOG.md` → 13.45.0.
+- 13.46.0: server ON (live); link kinds, scenario comparison, water, missed training, folding, people and commitments, AI new-situation questions: **live**. Server research: **not working** (no search quota on the AI key).
