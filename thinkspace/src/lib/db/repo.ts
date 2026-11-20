@@ -6,6 +6,7 @@
  * database handle and a transaction handle.
  */
 import "server-only";
+import type { SearchResult } from "@/lib/contracts/api";
 import { and, asc, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
 import type { AnyPgColumn, PgDatabase, PgQueryResultHKT, PgTable } from "drizzle-orm/pg-core";
 import { getDb, schema, type Db } from "./client";
@@ -951,16 +952,7 @@ export async function logUsage(input: {
 
 // ---------- search ----------
 
-export type SearchResult = {
-  kind: "session" | "segment" | "thought" | "concept" | "action";
-  id: string;
-  sessionId: string;
-  sessionTitle: string;
-  text: string;
-  /** session-relative ms when known (segments) */
-  atMs: number | null;
-  createdAt: string;
-};
+export type { SearchResult };
 
 export async function searchAll(ownerId: string, q: string, limit = 50): Promise<SearchResult[]> {
   const term = q.trim();

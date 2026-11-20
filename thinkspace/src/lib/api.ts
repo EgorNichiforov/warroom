@@ -3,6 +3,7 @@
  * src/lib/contracts/api.ts). Everything is JSON; auth is a cookie set by
  * POST /api/auth/login. Streaming endpoints return NDJSON (one SessionEvent per line).
  */
+import type { SearchResult } from "@/lib/contracts/api";
 import type {
   ActionItem,
   Language,
@@ -186,15 +187,7 @@ export type SegmentInput = {
   confidence?: number | null;
 };
 
-export type SearchResult = {
-  sessionId: string;
-  sessionTitle: string;
-  kind: string;
-  id: string;
-  text: string;
-  atMs: number | null;
-  createdAt: string;
-};
+export type { SearchResult };
 
 export type SpeechTokenResponse = { token: string; expiresAt: string };
 

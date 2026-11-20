@@ -71,4 +71,21 @@ export const HealthResponse = z.object({
 });
 export type HealthResponse = z.infer<typeof HealthResponse>;
 
+export const SearchResultKind = z.enum(["session", "segment", "thought", "concept", "action"]);
+export type SearchResultKind = z.infer<typeof SearchResultKind>;
+
+/** One hit from GET /api/search. atMs = session-relative ms of the hit (first source segment) when known. */
+export type SearchResult = {
+  kind: SearchResultKind;
+  id: string;
+  sessionId: string;
+  sessionTitle: string;
+  text: string;
+  atMs: number | null;
+  createdAt: string;
+};
+
+/** Per-session counts returned alongside each session by GET /api/sessions. */
+export type SessionCounts = { segments: number; thoughts: number; concepts: number; actions: number };
+
 export type ApiError = { error: string; code?: string; details?: unknown };
