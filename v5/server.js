@@ -9,9 +9,12 @@ const SV_KINDS = { brief: ['Morning brief', 'Reads your records and leaves one n
 const SV_ROLES = ['chief', 'analyst', 'coach', 'strategist', 'learning', 'red'];
 let SV = { st: null, dev: null, jobs: null, sch: null, aud: null };
 function svHash(s) { let h = 5381; s = String(s || ''); for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; return h.toString(36); }
-/* the device key is kept per War Room: change the sync code and the old key is simply not sent */
-function svTok() { try { const o = JSON.parse(localStorage.getItem('wr-device') || 'null'), s = S.settings.sync || {}; return o && o.t && s.code && o.h === svHash(s.code) ? o.t : ''; } catch (e) { return ''; } }
-function svTokSet(t) { try { if (t) localStorage.setItem('wr-device', JSON.stringify({ h: svHash(S.settings.sync.code), t })); else localStorage.removeItem('wr-device'); } catch (e) { } }
+/* the device key is kept per War Room: change the sync code and the old key is simply not sent.
+   13.50.0: it has its OWN storage key. Until then it shared 'wr-device' with devices.js (this device's name and id),
+   so each wiped the other: the key vanished on the next sync and the device got a second identity. Found on Egor's
+   laptop on 20 Nov, the first time a real device was enrolled. */
+function svTok() { try { const o = JSON.parse(localStorage.getItem('wr-devkey') || 'null'), s = S.settings.sync || {}; return o && o.t && s.code && o.h === svHash(s.code) ? o.t : ''; } catch (e) { return ''; } }
+function svTokSet(t) { try { if (t) localStorage.setItem('wr-devkey', JSON.stringify({ h: svHash(S.settings.sync.code), t })); else localStorage.removeItem('wr-devkey'); } catch (e) { } }
 ['hdr', 'bHdr', 'qHdr', 'snapHdr'].forEach((n) => { const f = window[n]; if (typeof f === 'function' && !f._sv) { const w = function () { const h = f.apply(this, arguments), t = svTok(); if (t) h['x-warroom-device'] = t; return h; }; w._sv = 1; window[n] = w; } });
 async function svRpc(fn, args) { const s = S.settings.sync || {}; if (!s.url || !s.code || !s.key) return { error: 'sync-off' }; try { const r = await fetch(`${s.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: hdr(), body: JSON.stringify(args || {}) }); if (r.status === 404) return { error: 'not-installed' }; const j = await r.json().catch(() => null); if (!r.ok) return { error: (j && j.message) || 'HTTP ' + r.status }; return j || {}; } catch (e) { return { error: 'offline' }; } }
 function svCache() { try { return JSON.parse(localStorage.getItem('wr-sv') || 'null') || {}; } catch (e) { return {}; } }

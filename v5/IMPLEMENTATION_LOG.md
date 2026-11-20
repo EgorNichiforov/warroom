@@ -394,3 +394,13 @@ Nothing was changed in any task.
 - **Deliberately not edited:** Weekly review, Close the day, and the paused 06:00 brief still exclude only `staging-`. Today that picks the same row as the strict lookup (share rows carry the 2000-01-01 stamp), and "strict" would not have protected against this morning's throwaway-room mistake either. The real fix is one server function that names the owner's room, then one pass over all fifteen prompts: it needs a migration, which needs Egor's tap in Supabase. Until then check 7 is the tripwire.
 - The app note "what needs you" was brought up to 13.49: the dial question is marked settled, the live proof is named.
 - Seen while listing the tasks, not War Room work: the Acvila attendance task's last recorded run (19 Nov 20:10) has the status ABANDONED. Not investigated.
+
+
+## 13.50.0 · 20 Nov 2026, 12:40 · the device key had been sharing a storage slot
+
+Egor asked Claude to enrol his laptop itself. Done from his real Chrome (Claude in Chrome), app on 13.49.0, real data. The server recorded the device (12:35:25, seen 12:35:32). Seconds later a read with the device key alone returned nothing: the key was no longer in the browser.
+
+- **Cause:** `server.js` kept the key in `localStorage['wr-device']`; `devices.js` (older) keeps this device's id and name in the same slot. `svTokSet` overwrote the identity; `devInfo()` then found no `id`, created a new identity and overwrote the key. Result: key lost, and a second "Windows (laptop)" in the devices list.
+- **Why no test saw it:** `test_1343` enrolled against a fake server and never called `devStamp()` afterwards; the live HTTP proof used curl, which has no `devices.js`.
+- **Fix:** the key lives in `wr-devkey`. New check in `test_1343`: enrol, sync-stamp, both the key and the same identity are still there.
+- **Clean-up on his laptop:** identity put back to the earlier id, the two-minute-old duplicate entry marked deleted, the orphaned server key revoked through the app's own revoke call. Lock was never on.
