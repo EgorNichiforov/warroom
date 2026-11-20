@@ -178,3 +178,8 @@ Not mine: `/icon.svg` auth gating in `src/proxy.ts` (Agent D finding 3) and a de
 - Vercel project `thinkspace` created from the repo (root `thinkspace`, Next.js, Node 22, region iad1, Vercel Authentication off); production deployed from the branch; URL https://thinkspace-delta.vercel.app.
 - Supabase: free plan at its 2-active-project limit, so no new project. Created the `thinkspace` schema in `egorflow`; the app now hardcodes that schema for every table and the migrations ledger. A custom `thinkspace` role was tried but Supabase's shared pooler only accepts the `postgres` user ("tenant/user not found"); the role was dropped and the schema reassigned to `postgres`.
 - `DATABASE_URL` is set on Vercel with a `__PASSWORD__` placeholder that the app fills from `DATABASE_PASSWORD`; the owner supplies that password plus the API keys (secrets of other Vercel projects are blocked for this session; the owner's computer is not connected).
+
+## Lead — go-live (2026-11-20)
+- Owner added DATABASE_PASSWORD, ANTHROPIC_API_KEY, GEMINI_API_KEY and SONIOX_API_KEY on Vercel.
+- The egorflow pooler lives on aws-0-us-east-1 (aws-1 answered "tenant/user not found"); DATABASE_URL corrected and redeployed.
+- /api/health on production: db postgres, llm anthropic (real, claude-sonnet-5-5), image gemini (real), speech browser + soniox, auth passphrase. 14 tables created in the thinkspace schema.
