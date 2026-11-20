@@ -43,27 +43,25 @@
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
+## The server is ON (since 20 Nov 2026, 07:36 Chisinau)
+
+- Applied with Egor's confirmation: `warroom_server_v1_devices_jobs_audit`, `warroom_server_v1_policies_cron`, `warroom_server_v1_tidy_grants`. Worker `warroom-worker` deployed (version 3). `pg_cron` job `warroom-tick` every 10 minutes: first automatic run observed at 05:40 UTC.
+- Timers for his room: backup 03:00, research 05:40, quality 05:50 Mondays, brief 06:10 (Europe/Chisinau).
+- Verified live, in a transaction that rolled back: the sync code still reads and writes its row; private tables and worker functions refuse the browser role; a device key reads the room's 9 rows; the lock shuts out the code alone; with no header nothing is readable.
+- Real jobs run: quality (note left), backup (3 rows), brief with the Chief of Staff from his real Gemini key (1 call, about 1.9 s), one role answer.
+- Found on the first live run and fixed in worker v2/v3: failed AI tries counted against the daily cap; a failed search was marked handled; dials were read only from the per-agency call log and not from `days[k].counters.dials` (the big dial button), so the brief said 0 where the counter had 2.
+- **Server research does not work with his key:** Gemini answers "exceeded your current quota" for search-grounded calls. The job reports it in its summary, leaves no note, retries daily. Needs a key with search quota, or stays off.
+- To redeploy the worker the whole file must be sent in the tool call (about 22 KB). Batch worker changes.
+- Rollback: `select cron.unschedule('warroom-tick')`; drop policies `warroom_*_by_device`, `warroom_gate_locked` and trigger `warroom_sync_audit_t`.
+
 ## Blocked, with the exact reason
 
-- **Server migration (13.43.0): written, proven locally, NOT applied.** `apply_migration` made Supabase ask Egor for a confirmation at about 23:00 on 19 Nov; he was asleep and it timed out. Do not run the same SQL through another tool: that would go around his confirmation.
 - Real-phone verification: only Egor can do it.
 - Vault (13.44.0): built and live in the app, off. Only Egor can switch it on (it needs a passphrase only he knows). Rule learned: any on-device change to `settings` must call `touch(S.settings)` or other devices ignore it.
-
-## Switching the server on (do this WITH Egor present; about 5 minutes)
-
-1. `apply_migration` name `warroom_server_v1_devices_jobs_audit`, body = `supabase/warroom_server_v1.sql`. He taps Confirm.
-2. `apply_migration` name `warroom_server_v1_policies_cron`, body = `supabase/warroom_server_v1_policies_cron.sql`.
-3. `deploy_edge_function` name `warroom-worker`, `verify_jwt` false, file `supabase/functions/warroom-worker/index.ts`.
-4. Check as the browser role inside a transaction that rolls back (headers via `set_config('request.headers', …, true)`, a scratch `staging-…` row): key still reads its row; private tables refuse; `warroom_server_status()` answers.
-5. Insert the timers for his room by SQL (room id through a subquery, never printed): backup 03:00, research 05:40, quality 05:50 Mondays (`dow = '{1}'`), brief 06:10.
-6. Queue one `quality` and one `brief` job by SQL, run `select public.warroom_tick()`, then read `warroom_job` and `net._http_response`. This is also the first run of a role against a real model: read the note before telling him it works.
-7. Run `get_advisors` (security) and fix anything it reports about the new objects.
-8. He opens Server in the app, gives each device its own key. The lock is his decision, later.
-
-Rollback: `select cron.unschedule('warroom-tick')`; drop the four `warroom_*_by_device` / `warroom_gate_locked` policies and the trigger; the new tables can stay (nothing reads them).
+- A morning-brief Claude scheduled task was refused by the scheduler's permission system; the server brief replaces it.
 
 ## Next action
 
-1. Switch the server on with Egor (above).
+1. Build what is left from the two briefs (list at the end of `IMPLEMENTATION_LOG.md`).
 2. Egor presses the phone checklist and reports what breaks.
 3. After two weeks of use, open "Is War Room working?" and fold away what was never opened.

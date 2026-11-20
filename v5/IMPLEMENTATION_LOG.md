@@ -316,3 +316,8 @@ Next: nothing further is buildable without Egor: see "Blocked" in `WAR_ROOM_EXEC
 `model.js`: `pmRows()` builds stated / observed / gap / unknown lines from settings, goals, `S.days` (first thing done, skip reasons), the recall log and `scRows()`; minimums of 5 days, 3 skip reasons, 10 recalls before a line is counted. `pmFix` stores a correction in `S.boot.pmfix`. No inference beyond counts. `tests/test_1345.py` (17).
 
 Still not built from the two briefs (kept here so nobody reports them as done): AI-written new-situation recall questions and adaptive quiz difficulty; "contradicts / depends on / example of" link kinds; a people-and-commitments model; comparing saved scenarios; hydration; a body plan that adapts after missed sessions; automatic fold-away of never-opened destinations; reading the later pages of Claude's scheduled-task list for literal ids. A morning-brief Claude task was refused by the scheduler's permission system (the server brief replaces it once the server is on).
+
+
+## 20 Nov 2026, 07:36–07:50 · the server switched on
+
+Egor confirmed in Supabase. Three migrations applied, worker deployed three times (v1, then two fixes from the first live run), timers inserted, first jobs run, access paths checked live in a rolled-back transaction, security advisor read and the grants tightened (`supabase/warroom_server_v1_tidy.sql`). Local proofs now 68 SQL + 43 worker checks. Details and the one thing that does not work (search quota on his AI key) are in `WAR_ROOM_EXECUTION_STATE.md`.
