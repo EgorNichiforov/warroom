@@ -9,10 +9,10 @@ import { getSnapshot, listEvents } from "@/lib/db/repo";
 
 export const runtime = "nodejs";
 
-export async function GET(req: Request) {
+export async function GET(req?: Request) {
   return handle(async () => {
     // TEMPORARY diagnostics: ?probe=<sessionId> times the snapshot/event queries (counts only, no content).
-    const probe = new URL(req.url).searchParams.get("probe");
+    const probe = req && new URL(req.url).searchParams.get("probe");
     if (probe) {
       const t0 = Date.now();
       const snap = await Promise.race([getSnapshot(probe), new Promise<"timeout">((r) => setTimeout(() => r("timeout"), 15000))]);
