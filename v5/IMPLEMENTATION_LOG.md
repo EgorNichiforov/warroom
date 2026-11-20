@@ -451,3 +451,11 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Found by running a real coach call on Egor's laptop (his key lives on the server: `aiCfg().server`). `aiNet` and `aiProxy` (food.js) sent `hdr()` to `/functions/v1/warroom-ai`; since 13.43 `hdr()` adds `x-warroom-device` on an enrolled device; the function's CORS list does not include it → pre-flight fails → "Failed to fetch". Dead from 12:53 (enrolment) to this release.
 - Fix: `fnHdr()` = `hdr()` without the device key, used for both function calls. Check added to `test_1343`.
 - **Before the lock is ever switched on:** read the `warroom-ai` function (its source is not in this repo) and see how it authorises a room. If it reads `warroom_sync` with the sync code under row security, the lock would shut the AI out; it would then need to accept the device key (and list the header in its CORS reply).
+
+
+## 13.56.0 · 20 Nov 2026, 16:50 · coach prompt after one real answer
+
+- Real call on Egor's laptop through the `warroom-ai` relay (works again since 13.55.0): relay status 200 in 1.4 s; `gemini-flash-lite-latest` answered a coaching request in 4.1 s; valid JSON; validator dropped one point whose quote was not in the text. Nothing was written to his record (`spkCoach` called directly).
+- Quality of that answer was poor in three ways (copied text as summary; code-switching listed as a breakdown; vague word missed; "other" not the other-language equivalent). Prompt rules 4, 4b, 8 rewritten; validator blanks a summary longer than 70% of the transcript.
+- His configured main model `gemini-3.8-flash` gave no answer within 60 s on three tries today. `aiText` waits the full 60 s per model before the next one: a hanging first model makes every AI feature feel dead. NOT changed (shared code); candidate fix: 25 s for the first model when alternatives exist.
+- Still true: one real answer is not an evaluation. Coach quality with his main model is untested.

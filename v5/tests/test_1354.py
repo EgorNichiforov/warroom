@@ -39,6 +39,7 @@ with sync_playwright() as p:
     f = a2.get('fb') or {}
     check('a point whose quote is not in what he said is dropped, and so is a score without one', len(f.get('breaks', [])) == 1 and [s['dim'] for s in f.get('scores', [])] == ['org', 'prec'] and f.get('dropped') == 3, f)
     check('nothing about pronunciation survives: the coach only ever sees text', all('pronun' not in w.lower() for w in f.get('worked', [])) and len(f.get('worked', [])) == 1, f.get('worked'))
+    check('a "summary" that is just his text copied back is not shown as a summary (seen with a real model, 13.56)', ev("(t)=>spkValidate(JSON.stringify({said:t,worked:[],breaks:[],better:{},scores:[],words:[]}),t).said===''&&spkValidate(JSON.stringify({said:'Trezitul devreme conteaza.',worked:[]}),t).said.length>5", RO) and ev("/never be listed as a breakdown/.test(spkSys('ro'))&&/equivalent in the OTHER language/.test(spkSys('en'))"))
     check('the seven parts are shown in order, the quote in his own words, and it fits', ev(f"/1 · What you communicated/.test({t})&&/3 · Where it broke down/.test({t})&&/4 · The same thought, said better/.test({t})&&/6 · One thing to fix/.test({t})&&/7 · Say it again/.test({t})&&/“pot să învăț”/.test({t})&&/left out: the quote was not in what you said/.test({t})&&{fits}"))
     ev("spkKeep(0); spkKeep(0); 0")
     V = ev("spkAll('v')")
