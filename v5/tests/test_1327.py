@@ -26,7 +26,7 @@ with sync_playwright() as p:
     ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); bacLoad(); clLoad&&clLoad();")
     pg.wait_for_timeout(1800); pg.clock.run_for(2000)
     check('libraries loaded (cards, bootcamp, sources, mentors, BAC)', ev("!!(XC&&XC.byId&&BC&&KPL&&CCM&&BACD)"))
-    check('version is 13.52.0', ev("APP_VERSION==='13.52.0'"), ev("APP_VERSION"))
+    check('version is 13.53.0', ev("APP_VERSION==='13.53.0'"), ev("APP_VERSION"))
 
     # ── data integrity
     check('31 new sourced cards, every one with a source, a kind and two test questions', ev("XC.cards.filter(c=>c.added==='13.27').length===31 && XC.cards.filter(c=>c.added==='13.27').every(c=>c.src&&c.kind&&c.q.length>=2&&c.move&&c.trap)"))
@@ -261,12 +261,12 @@ with sync_playwright() as p:
     p2.goto(URL); p2.wait_for_timeout(1500)
     try:
         p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); p2.wait_for_timeout(6000)
-        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.52\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
+        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.53\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
         need = ['content.js', 'expand.js', 'blueprint.js', 'learnx.js', 'lib/bac.json', 'lib/mentors.json', 'lib/sources.json', 'lib/cards.json']
         check('offline cache holds the new files', all(n in cached for n in need), [n for n in need if n not in cached])
         c2.set_offline(True); p2.reload(); p2.wait_for_timeout(3000)
         r = p2.evaluate("(async()=>{ccLoad(); bacLoad(); xcLoad&&xcLoad(); await new Promise(r=>setTimeout(r,1500)); return {v:APP_VERSION, lib:!!(KPL&&KPL.sources.length>150), bac:!!BACD, men:!!CCM, plan:(KPL?ccPlan(15,'any','any').steps.length:0)}})()")
-        check('app starts offline and the content planner works from cache', r['v'] == '13.52.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
+        check('app starts offline and the content planner works from cache', r['v'] == '13.53.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
         check('offline: no page errors', not e2, e2[:3])
     except Exception as e:
         check('offline test ran', False, str(e)[:200])

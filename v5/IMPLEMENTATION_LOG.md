@@ -428,3 +428,9 @@ Egor asked Claude to enrol his laptop itself. Done from his real Chrome (Claude 
 - This is also the first piece of the addendum's "Personal Model Fidelity Map" (its section 4.2) and "Intelligence Gap Engine" (section 15): coverage, freshness, kind of evidence, resolution, unknowns, next best information. Not yet there: predictive validation per domain, consistency between sources, cost of obtaining each piece.
 - `tests/test_1352.py`: 21 checks.
 - `release.py` did not add the new script to `index.html` (it only handled `sw.js`); added by hand after `range.js`. Do the same for the next new file.
+
+
+## 13.53.0 · 20 Nov 2026, 15:25 · repair of 13.52.0
+
+- `fidelity.js` defined `fmOpen` and `cxOpen`, which already exist (`defense.js`, `expand.js`); loaded last, it replaced both screens. It also kept its records under `S.boot['cx:…']`, which `capability.js` uses. Renamed to `fdm*` / `sdx*`, store `sdx:<id>`. 13.52.0 was live from about 15:18 to 15:27.
+- Cause in the process: the duplicate-name check was chained AFTER `git commit && git push` in one command. **Rule: run the duplicate check and stop if it prints anything but `cmOpen endSession renderStats startSession`, before committing.** Also grep a new file's boot-key prefixes against the others.
