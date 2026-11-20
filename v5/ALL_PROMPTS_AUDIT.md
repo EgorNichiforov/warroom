@@ -7,8 +7,8 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | Status | Sections |
 |---|---|
 | Built, with a test | 42 |
-| Exists (not re-checked line by line) | 84 |
-| Partly | 46 |
+| Exists (not re-checked line by line) | 83 |
+| Partly | 47 |
 | Not built | 3 |
 | Needs you | 2 |
 | A rule of work | 3 |
@@ -17,8 +17,8 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| 2 Personal reality model | Exists (not re-checked line by line) | reality.js, model.js, fidelity.js | Health and relationships are thin on purpose (no inference). |
-| 3 Life strategy and campaigns | Exists (not re-checked line by line) | strategy.js, ops.js, future.js |  |
+| 2 Personal reality model | Exists (not re-checked line by line) | reality.js, mission.js (season), model.js, fidelity.js | CHECKED LINE BY LINE 20 Nov: circumstances, the season with all eleven fields, the seven fact statuses with dates, all nine kinds of constraint, and patterns from records are in the code. One line missing: which routines support your execution. |
+| 3 Life strategy and campaigns | Partly | reality.js (direction), intel.js (campaigns), future.js (the chain) | CHECKED LINE BY LINE 20 Nov: life direction and the cap of three active campaigns were there; a campaign had 7 of the 15 fields you listed, and now has all of them (13.64). Still thin: the questions in 3C (which campaign is behind and why) are answered only through Mission Control, and campaign-to-calendar (3E) was not verified. |
 | 4 Personal intelligence layer | Exists (not re-checked line by line) | intel.js, reality.js |  |
 | 5 Judgment lab | Exists (not re-checked line by line) | judge.js |  |
 | 6 Red team and reality check | Exists (not re-checked line by line) | judge.js, agents.js (Red Team role) |  |

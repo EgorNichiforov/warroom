@@ -6,8 +6,8 @@ import os; R = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/'
 L = []
 def brief(key, title, sent, rows): L.append({'k': key, 't': title, 'sent': sent, 'rows': [dict(zip(('s', 'st', 'w', 'n', 'o'), (r + ('',) * 5)[:5])) for r in rows]})
 brief('P01', 'Complete personal operating system and human development', 'before 19 Nov', [
- ('2 Personal reality model', 'E', 'reality.js, model.js, fidelity.js', 'Health and relationships are thin on purpose (no inference).', 'fdmOpen'),
- ('3 Life strategy and campaigns', 'E', 'strategy.js, ops.js, future.js', ''),
+ ('2 Personal reality model', 'E', 'reality.js, mission.js (season), model.js, fidelity.js', 'CHECKED LINE BY LINE 20 Nov: circumstances, the season with all eleven fields, the seven fact statuses with dates, all nine kinds of constraint, and patterns from records are in the code. One line missing: which routines support your execution.', 'rlOpen'),
+ ('3 Life strategy and campaigns', 'P', 'reality.js (direction), intel.js (campaigns), future.js (the chain)', 'CHECKED LINE BY LINE 20 Nov: life direction and the cap of three active campaigns were there; a campaign had 7 of the 15 fields you listed, and now has all of them (13.64). Still thin: the questions in 3C (which campaign is behind and why) are answered only through Mission Control, and campaign-to-calendar (3E) was not verified.'),
  ('4 Personal intelligence layer', 'E', 'intel.js, reality.js', ''),
  ('5 Judgment lab', 'E', 'judge.js', '', 'jlOpen'),
  ('6 Red team and reality check', 'E', 'judge.js, agents.js (Red Team role)', '', 'agOpen'),
