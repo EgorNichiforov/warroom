@@ -3,6 +3,8 @@ import { SessionEvent, SessionSnapshot } from "@/lib/contracts";
 import { closeDb } from "@/lib/db/client";
 import { POST as ingest } from "@/app/api/sessions/[id]/ingest/route";
 import { GET as snapshot } from "@/app/api/sessions/[id]/snapshot/route";
+import { GET as search } from "@/app/api/search/route";
+import { GET as listSessions } from "@/app/api/sessions/route";
 import { appendTestSegments, createTestSession, ctx, jsonRequest, readNdjson } from "./helpers";
 
 afterAll(() => closeDb());
@@ -38,6 +40,22 @@ describe("POST /api/sessions/:id/ingest (mock LLM)", () => {
     expect(snap.thoughts.length).toBeGreaterThan(0);
     expect(snap.segments.every((x) => x.ingestedAt !== null)).toBe(true);
     expect(snap.lastEventSeq).toBe(Math.max(...seqs));
+
+    // derived items (thoughts/concepts/actions) carry counts and deep-link positions
+    const { sessions: list } = await (await listSessions(jsonRequest("GET", "/api/sessions?q=Ingest"))).json();
+    const mine = list.find((x: { id: string }) => x.id === s.id);
+    expect(mine.counts.segments).toBe(3);
+    expect(mine.counts.thoughts).toBe(snap.thoughts.length);
+    expect(mine.counts.concepts).toBe(snap.concepts.length);
+    expect(mine.counts.actions).toBe(snap.actions.length);
+
+    const thought = snap.thoughts.find((t) => t.sourceSegmentIds.length > 0)!;
+    const word = thought.text.split(/\s+/).find((w) => w.length > 4)!.replace(/[^\p{L}\p{N}]/gu, "");
+    const { results } = await (await search(jsonRequest("GET", `/api/search?q=${encodeURIComponent(word)}`))).json();
+    const hit = results.find((r: { kind: string; id: string }) => r.kind === "thought" && r.id === thought.id);
+    expect(hit).toBeTruthy();
+    const firstSeg = snap.segments.find((x) => x.id === thought.sourceSegmentIds[0])!;
+    expect(hit.atMs).toBe(firstSeg.startedMs);
   });
 
   it("re-ingesting the same text within 5 minutes skips the model (usage null) and errors for unknown ids", async () => {

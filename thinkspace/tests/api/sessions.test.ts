@@ -118,6 +118,19 @@ describe("sessions API", () => {
     expect(evj.events.map((e: SessionEvent) => e.seq)).toEqual([3, 4]);
   });
 
+  it("GET /api/sessions returns per-session counts", async () => {
+    const a = await createTestSession("Counts A");
+    const b = await createTestSession("Counts B");
+    await appendTestSegments(a.id, ["one", "two", "three"]);
+    const res = await sessions.GET(jsonRequest("GET", "/api/sessions?q=Counts"));
+    const { sessions: list } = await res.json();
+    const ra = list.find((x: { id: string }) => x.id === a.id);
+    const rb = list.find((x: { id: string }) => x.id === b.id);
+    expect(ra.counts).toEqual({ segments: 3, thoughts: 0, concepts: 0, actions: 0 });
+    expect(rb.counts).toEqual({ segments: 0, thoughts: 0, concepts: 0, actions: 0 });
+    expect(list[0].id).toBe(a.id); // most recently updated first
+  });
+
   it("snapshot validates against the SessionSnapshot contract", async () => {
     const s = await createTestSession("Snapshot");
     await appendTestSegments(s.id, ["one", "two"]);

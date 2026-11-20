@@ -7,7 +7,7 @@
  */
 import "server-only";
 import { and, asc, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
-import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
+import type { AnyPgColumn, PgDatabase, PgQueryResultHKT, PgTable } from "drizzle-orm/pg-core";
 import { getDb, schema, type Db } from "./client";
 import { newId, nowIso } from "@/lib/ids";
 import type {
@@ -272,13 +272,41 @@ export async function createSession(input: {
   return mapSession(row);
 }
 
-export async function listSessions(ownerId: string, q?: string): Promise<Session[]> {
+export type SessionCounts = { segments: number; thoughts: number; concepts: number; actions: number };
+export type SessionWithCounts = Session & { counts: SessionCounts };
+
+/** Sessions of an owner (optionally title-filtered), newest first, each with per-table row counts. */
+export async function listSessions(ownerId: string, q?: string): Promise<SessionWithCounts[]> {
   const db = await getDb();
   const where = q?.trim()
     ? and(eq(schema.sessions.ownerId, ownerId), sql`${schema.sessions.title} ilike ${"%" + q.trim() + "%"}`)
     : eq(schema.sessions.ownerId, ownerId);
   const rows = await db.select().from(schema.sessions).where(where).orderBy(desc(schema.sessions.updatedAt));
-  return rows.map(mapSession);
+  if (rows.length === 0) return [];
+  const ids = rows.map((r) => r.id);
+  const countBy = async (table: PgTable, col: AnyPgColumn) => {
+    const out = await db
+      .select({ sessionId: col, n: sql<number>`count(*)::int` })
+      .from(table)
+      .where(inArray(col, ids))
+      .groupBy(col);
+    return new Map(out.map((r) => [String(r.sessionId), Number(r.n)]));
+  };
+  const [segments, thoughts, concepts, actions] = await Promise.all([
+    countBy(schema.transcriptSegments, schema.transcriptSegments.sessionId),
+    countBy(schema.thoughts, schema.thoughts.sessionId),
+    countBy(schema.concepts, schema.concepts.sessionId),
+    countBy(schema.actionItems, schema.actionItems.sessionId),
+  ]);
+  return rows.map((r) => ({
+    ...mapSession(r),
+    counts: {
+      segments: segments.get(r.id) ?? 0,
+      thoughts: thoughts.get(r.id) ?? 0,
+      concepts: concepts.get(r.id) ?? 0,
+      actions: actions.get(r.id) ?? 0,
+    },
+  }));
 }
 
 /** Returns null when the session does not exist or belongs to a different owner. */
@@ -974,6 +1002,7 @@ export async function searchAll(ownerId: string, q: string, limit = 50): Promise
         sessionId: schema.thoughts.sessionId,
         sessionTitle: schema.sessions.title,
         text: schema.thoughts.text,
+        sourceSegmentIds: schema.thoughts.sourceSegmentIds,
         createdAt: schema.thoughts.createdAt,
       })
       .from(schema.thoughts)
@@ -987,6 +1016,7 @@ export async function searchAll(ownerId: string, q: string, limit = 50): Promise
         sessionId: schema.concepts.sessionId,
         sessionTitle: schema.sessions.title,
         text: schema.concepts.label,
+        sourceSegmentIds: schema.concepts.sourceSegmentIds,
         createdAt: schema.concepts.createdAt,
       })
       .from(schema.concepts)
@@ -1000,6 +1030,7 @@ export async function searchAll(ownerId: string, q: string, limit = 50): Promise
         sessionId: schema.actionItems.sessionId,
         sessionTitle: schema.sessions.title,
         text: schema.actionItems.text,
+        sourceSegmentIds: schema.actionItems.sourceSegmentIds,
         createdAt: schema.actionItems.createdAt,
       })
       .from(schema.actionItems)
@@ -1009,12 +1040,28 @@ export async function searchAll(ownerId: string, q: string, limit = 50): Promise
       .limit(limit),
   ]);
 
+  // Deep-link position for derived items: the first source segment's startedMs (one extra query).
+  const firstSeg = (ids: string[]) => ids[0] ?? null;
+  const wantedSegIds = [...thoughtsHit, ...conceptsHit, ...actionsHit].map((r) => firstSeg(r.sourceSegmentIds)).filter((x): x is string => !!x);
+  const segStart = new Map<string, number>();
+  if (wantedSegIds.length) {
+    const segs = await db
+      .select({ id: schema.transcriptSegments.id, startedMs: schema.transcriptSegments.startedMs })
+      .from(schema.transcriptSegments)
+      .where(inArray(schema.transcriptSegments.id, [...new Set(wantedSegIds)]));
+    for (const sg of segs) segStart.set(sg.id, sg.startedMs);
+  }
+  const atFor = (ids: string[]): number | null => {
+    const id = firstSeg(ids);
+    return id ? segStart.get(id) ?? null : null;
+  };
+
   const results: SearchResult[] = [
     ...sessionsHit.map((r) => ({ kind: "session" as const, id: r.id, sessionId: r.id, sessionTitle: r.title, text: r.title, atMs: null, createdAt: iso(r.createdAt) })),
     ...segmentsHit.map((r) => ({ kind: "segment" as const, id: r.id, sessionId: r.sessionId, sessionTitle: r.sessionTitle, text: r.cleaned ?? r.text, atMs: r.atMs, createdAt: iso(r.createdAt) })),
-    ...thoughtsHit.map((r) => ({ kind: "thought" as const, id: r.id, sessionId: r.sessionId, sessionTitle: r.sessionTitle, text: r.text, atMs: null, createdAt: iso(r.createdAt) })),
-    ...conceptsHit.map((r) => ({ kind: "concept" as const, id: r.id, sessionId: r.sessionId, sessionTitle: r.sessionTitle, text: r.text, atMs: null, createdAt: iso(r.createdAt) })),
-    ...actionsHit.map((r) => ({ kind: "action" as const, id: r.id, sessionId: r.sessionId, sessionTitle: r.sessionTitle, text: r.text, atMs: null, createdAt: iso(r.createdAt) })),
+    ...thoughtsHit.map((r) => ({ kind: "thought" as const, id: r.id, sessionId: r.sessionId, sessionTitle: r.sessionTitle, text: r.text, atMs: atFor(r.sourceSegmentIds), createdAt: iso(r.createdAt) })),
+    ...conceptsHit.map((r) => ({ kind: "concept" as const, id: r.id, sessionId: r.sessionId, sessionTitle: r.sessionTitle, text: r.text, atMs: atFor(r.sourceSegmentIds), createdAt: iso(r.createdAt) })),
+    ...actionsHit.map((r) => ({ kind: "action" as const, id: r.id, sessionId: r.sessionId, sessionTitle: r.sessionTitle, text: r.text, atMs: atFor(r.sourceSegmentIds), createdAt: iso(r.createdAt) })),
   ];
   results.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
   return results.slice(0, limit);

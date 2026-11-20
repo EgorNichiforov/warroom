@@ -80,3 +80,9 @@ Agent C requests (contract notes, no shared file changed):
 - `GET /api/sessions`: optional `counts: {segments, thoughts, concepts, actions}` per session would make history cards richer (UI already renders them when present).
 - `GET /api/search`: `atMs` is only set for transcript hits; thoughts/actions/concepts could carry the atMs of their first source segment so result links can deep-link with `?t=`.
 - PGlite client: `mkdir -p` of `THINKSPACE_PGLITE_DIR`'s parent would avoid a 500 on first run with a fresh directory (hit once with `.data/pglite-b`).
+
+### Agent C — follow-ups for the frontend (same day)
+- `GET /api/sessions` now returns each session with an extra `counts: { segments, thoughts, concepts, actions }` property (type `SessionWithCounts` in `src/lib/db/repo.ts`; four grouped `count(*)` queries over the listed ids, no N+1). Not added to the lead-owned `Session` zod type; the UI reads it when present.
+- `GET /api/search`: thought / concept / action hits now carry `atMs` = `startedMs` of their first source segment (one extra `IN (...)` query), so results deep-link with `?t=`. Sessions stay `null`.
+- `src/lib/db/client.ts` (lead-owned, edited with permission): `fs.mkdirSync(dir, { recursive: true })` before `new PGlite(dir)` — a fresh `THINKSPACE_PGLITE_DIR` no longer produces a 500.
+- Tests: new "returns per-session counts" case in `tests/api/sessions.test.ts`; counts + search `atMs` assertions added to the ingest test. `pnpm test` 35/35, `tsc --noEmit` clean, eslint clean on owned files + `src/lib/db`.

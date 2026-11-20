@@ -46,7 +46,7 @@ const GROUPS: { id: Group; label: string; tone: PillTone }[] = [
 ];
 const toneOf = (g: Group) => GROUPS.find((x) => x.id === g)!.tone;
 
-function describe(e: SessionEvent): string {
+function describe(e: SessionEvent, label: (id: string) => string): string {
   switch (e.type) {
     case "session.updated":
       return `Session ${e.payload.status} · "${e.payload.title}"`;
@@ -67,9 +67,9 @@ function describe(e: SessionEvent): string {
     case "concept.updated":
       return `Concept ${e.payload.status}: ${e.payload.label}`;
     case "relation.added":
-      return `Relation: ${e.payload.type.replace(/_/g, " ")}`;
+      return `Relation: ${label(e.payload.fromId)} ${e.payload.type.replace(/_/g, " ")} ${label(e.payload.toId)}`;
     case "relation.updated":
-      return `Relation ${e.payload.status}: ${e.payload.type.replace(/_/g, " ")}`;
+      return `Relation ${e.payload.status}: ${label(e.payload.fromId)} ${e.payload.type.replace(/_/g, " ")} ${label(e.payload.toId)}`;
     case "model.added":
       return `System model: ${e.payload.name}`;
     case "model.updated":
@@ -128,13 +128,28 @@ export function TimelineScrubber({ className }: { className?: string }) {
 
 export function Timeline() {
   const events = useSessionStore((s) => s.events);
+  const concepts = useSessionStore((s) => s.concepts);
+  const labelOf = (id: string) => concepts[id]?.label ?? "?";
   const cursor = useSessionStore((s) => s.timeCursor);
   const setCursor = useSessionStore((s) => s.setTimeCursor);
   const select = useSessionStore((s) => s.select);
   const [enabled, setEnabled] = useState<Set<Group>>(new Set(GROUPS.map((g) => g.id).filter((g) => g !== "engine" && g !== "session")));
 
   const rows = useMemo(() => {
-    const list = events.filter((e) => enabled.has(GROUP_OF[e.type]));
+    // One row per spoken segment: partial rows and engine annotations are noise on a timeline.
+    // Keep the first event that carries the final text, plus later user edits.
+    const seenFinal = new Set<string>();
+    const list = events
+      .filter((e) => enabled.has(GROUP_OF[e.type]))
+      .filter((e) => {
+        if (e.type !== "segment.added" && e.type !== "segment.updated") return true;
+        if (!e.payload.isFinal) return false;
+        if (e.payload.editedByUser) return true;
+        if (seenFinal.has(e.payload.id)) return false;
+        seenFinal.add(e.payload.id);
+        return true;
+      })
+      .sort((a, b) => a.atMs - b.atMs || a.seq - b.seq);
     return cursor === null ? list : list.filter((e) => e.atMs <= cursor);
   }, [events, enabled, cursor]);
 
@@ -185,7 +200,7 @@ export function Timeline() {
               {e.type.split(".")[0]}
             </Pill>
             <button type="button" onClick={() => onRowClick(e)} className="min-w-0 flex-1 text-left text-text-1 hover:text-text-0 ts-truncate-2">
-              {describe(e)}
+              {describe(e, labelOf)}
             </button>
           </li>
         ))}

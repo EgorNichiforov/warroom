@@ -148,7 +148,7 @@ function toEdge(e: GraphEdgeInput, layout: "radial" | "layered"): Edge {
     source: e.source,
     target: e.target,
     label: edgeLabel(e.type, e.label),
-    type: layout === "radial" ? "floating" : "smoothstep",
+    type: "floating",
     animated: false,
     style: {
       stroke,
@@ -286,7 +286,7 @@ function FlowGraphInner({
         preventScrolling={interactive}
         onNodeClick={(_, n) => onSelect?.(n.id)}
         onPaneClick={() => onSelect?.(null)}
-        defaultEdgeOptions={{ type: "smoothstep" }}
+        defaultEdgeOptions={{ type: "floating" }}
       >
         <Background gap={24} size={1} color="var(--color-border)" />
         {showControls && interactive && <Controls showInteractive={false} position="bottom-right" />}

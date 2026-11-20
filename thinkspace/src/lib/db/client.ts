@@ -3,6 +3,7 @@
  * One instance per process; migrations run on first access.
  */
 import "server-only";
+import fs from "node:fs";
 import path from "node:path";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 import { drizzle as drizzlePg, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
@@ -31,7 +32,8 @@ function create(): Holder {
     const ready = migratePg(db, { migrationsFolder: migrationsFolder() });
     return { db, kind: "postgres", ready, close: () => sql.end() };
   }
-  const dir = config.pgliteDir === ":memory:" ? undefined : path.resolve(process.cwd(), config.pgliteDir);
+  const dir = config.pgliteDir === ":memory:" ? undefined : path.resolve(/*turbopackIgnore: true*/ process.cwd(), config.pgliteDir);
+  if (dir) fs.mkdirSync(dir, { recursive: true }); // PGlite does not create a missing data directory
   const client = new PGlite(dir);
   const db = drizzlePglite(client, { schema });
   const ready = migratePglite(db, { migrationsFolder: migrationsFolder() });
