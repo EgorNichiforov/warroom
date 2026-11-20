@@ -50,9 +50,19 @@ function create(): Holder {
 }
 
 export async function getDb(): Promise<Db> {
-  if (!g.__thinkspaceDb) g.__thinkspaceDb = create();
-  await g.__thinkspaceDb.ready;
-  return g.__thinkspaceDb.db;
+  if (!g.__thinkspaceDb) {
+    const holder = create();
+    // A failed startup (connection or migration) must not be cached for the life of the process.
+    holder.ready = holder.ready.catch(async (err) => {
+      if (g.__thinkspaceDb === holder) g.__thinkspaceDb = undefined;
+      await holder.close().catch(() => undefined);
+      throw err;
+    });
+    g.__thinkspaceDb = holder;
+  }
+  const holder = g.__thinkspaceDb;
+  await holder.ready;
+  return holder.db;
 }
 
 export function getDbKind(): DbKind {
