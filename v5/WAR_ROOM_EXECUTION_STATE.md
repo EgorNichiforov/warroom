@@ -142,3 +142,8 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - claims.js live (ck*, no store). Backlog items 2 and 3 partly done (see backlog file). NEXT: Communication levels 4–6 + review of corrected habits; then backlog 4 (what changed since last week) and 5 (hypotheses as records).
 - Gate addition: a new finder id must be unique (ux.js already had `kinds`).
+
+## 20 Nov 22:25 · after 13.61.0
+
+- Communication increments 1–4 live (speak.js … speak4.js; tests 1354, 1357, 1359, 1361). Left in that brief: kept audio (5.2), more scenario families (Part 10), real microphone and phone tests, quality on his main model.
+- Second brief: backlog 1 done, 2 and 3 partly. NEXT: 4 (what changed since last week), 5 (hypotheses as records tied to experiments), 6 (tested cross-domain links, 20 paired days minimum).

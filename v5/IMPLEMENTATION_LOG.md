@@ -489,3 +489,12 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - `CK` the eight kinds; `CK_SC` kind per scorecard row (15 rows); `scRows` wrapped to set `r[8]` and prefix `r[5]`; Dials becomes "Observed + your report" when the week holds an outside report or counter-only presses; `scOpen` wrapped to add one button (as `.fn-inline`, never a second `.actions`); `ckToday` splits today's dials (records = logged minus outside report, outside report, counter-only), BAC minutes, weight, money; `ckLate` counts day records whose `_u` is a day or more after the day ended; `ckOpen` page. Stores nothing.
 - Test `test_1360` (14 checks). Found while testing: the finder id `kinds` was already used by `ux.js`, so the new entry was silently skipped; renamed `numkinds`. **Release gate addition: a new finder id must not exist already** (`grep -c "\['<id>'," *.js`).
 - Backlog item 2: scorecard and the page done; chips inside the day header, money screen and Mission Control NOT done. Item 3: late day-record changes are counted and shown; per-entry "happened at / recorded at" for calls and money is NOT built, and nothing is excluded on lateness.
+
+
+## 13.61.0 · 20 Nov 2026, 22:20 · Communication, increment 4 (`speak4.js`); a correction to 13.60
+
+- Fifteen exercises pushed into `SPK_EX` (levels 4–6 × five domains); `SPK_TOP = 6`; `spkReach(dom, lang)`; speak.js level cap and "of 6" read `SPK_TOP`; speak3 `spdPick` uses the reached level.
+- `sph*` habits: `sphSync` makes one card per language and dimension from `fb.priority` (newest wording, count kept), intervals 2/5/12/30, kept after four holds; `sphGo` opens a fresh exercise with the tip on screen; `spkShow` wrapped so a coached attempt made for a card marks it (`hmark` on the attempt, `auto` on the card).
+- Test `test_1361` (23 checks); `test_1354` now expects thirty exercises and six levels.
+- **Correction:** on Egor's real data `ckLate` said 13 of 14 day records were "changed on a later day". True, and useless as a statement about him: the hourly Sheet sync and the nightly review also stamp past days. The screen now says exactly that. Real "happened at / recorded at" needs a time on each entry when he types it; not built (backlog item 3 stays mostly open).
+- Communication brief, still open: 5.2 kept audio and playback; Part 10's remaining scenario families; a real microphone test; anything on the phone; quality on his main model.

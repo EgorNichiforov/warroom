@@ -16,7 +16,7 @@ with sync_playwright() as p:
     ev = pg.evaluate; ev("CP_NOLATE=1; OD_OFF=1; SL_OFF=1; TOUR_OFF=1; 0"); pg.wait_for_timeout(600)
     t = "document.getElementById('modal').textContent"; fits = "document.getElementById('modal').scrollWidth<=document.getElementById('modal').clientWidth+2"
     check('version 13.54.0 or later', ev("APP_VERSION.localeCompare('13.54.0',undefined,{numeric:true})>=0"), ev("APP_VERSION"))
-    check('fifteen exercises, five domains, three levels, each in Romanian with diacritics and in English', ev("SPK_EX.length===15&&['A','B','C','D','E'].every(d=>[1,2,3].every(s=>SPK_EX.some(e=>e[1]===d&&e[2]===s)))&&SPK_EX.every(e=>e[3].length>20&&e[4].length>20)&&SPK_EX.filter(e=>/[ăâîșț]/.test(e[3])).length>=14"))
+    check('thirty exercises, five domains, six levels, each in Romanian with diacritics and in English', ev("SPK_EX.length===30&&['A','B','C','D','E'].every(d=>[1,2,3,4,5,6].every(s=>SPK_EX.filter(e=>e[1]===d&&e[2]===s).length===1))&&SPK_EX.every(e=>e[3].length>20&&e[4].length>20)&&SPK_EX.filter(e=>/[ăâîșț]/.test(e[3])).length>=28"))
     check('new names and store do not collide with anything older', ev("Object.keys(S.boot||{}).filter(k=>k.indexOf('spk:')===0).length===0"))
     ev("aiCfg=()=>({}); spkOpen(); 0"); pg.wait_for_timeout(200)
     check('opens in Romanian by default, says plainly there is no coach without a key, fits the phone', ev(f"/Next · Română/.test({t})&&/No AI key on this device/.test({t})&&{fits}"), ev(t)[:200])
