@@ -73,9 +73,9 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| 1 Central content command center | Exists (not re-checked line by line) | content.js |  |
-| 2 Every lesson has the best teaching resource | Partly | clips.js, lib/sources.json | You asked for a video of the person teaching on every lesson. I have not counted how many lessons still have none. |
-| 4 Personal daily content queue | Exists (not re-checked line by line) | content.js |  |
+| 1 Central content command center | Exists (not re-checked line by line) | content.js | CHECKED LINE BY LINE 21 Nov: all fourteen sections you listed exist under the names you gave them. |
+| 2 Every lesson has the best teaching resource | Partly | lib/cards.json, research.js | CHECKED LINE BY LINE 21 Nov: counted from the data. All 250 lessons have a video. For 139 the content was inspected; for 40 only the title was matched; for 71 the link exists and its fit was not confirmed. 7 are a video on the topic, not by the named teacher. The verification screen already showed this honestly; 13.72 adds the last count and puts the screen in the finder. Best available resource for every lesson is therefore not proven for 111 of 250. |
+| 3-4 I have X minutes, and a daily queue | Exists (not re-checked line by line) | learnx.js, content.js | CHECKED LINE BY LINE 21 Nov: the nine durations you listed (5 to 120 minutes) are the options, with watch, listen or read, and the queue says: Do not consume, go execute, when the work comes first. |
 | 5-6 Continuous research and library updates | Exists (not re-checked line by line) | daily content scan, monthly curriculum review | Run as scheduled Claude tasks, not by the app. |
 | 7 Email as a discovery source | Exists (not re-checked line by line) | daily content scan |  |
 | 8 Universal intake pipeline | Exists (not re-checked line by line) | kpipe.js |  |
@@ -90,8 +90,8 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| 1 Understand direction before searching | Exists (not re-checked line by line) | research.js |  |
-| 2 Cadence: daily, weekly, on an event, monthly | Partly | daily scan, monthly review, learning requests | An event does not trigger a search at once: a request waits for the next daily run. Server research is off (no search quota). |
+| 1 Understand direction before searching | Exists (not re-checked line by line) | research.js | Read in full 21 Nov. Research needs are generated from your stage, your weak capabilities, lessons without a confirmed video and what you learned but have not applied. |
+| 2 Cadence: daily, weekly, on an event, monthly | Partly | daily scan, monthly review, learning requests | Read in full 21 Nov; unchanged. Daily and monthly run as Claude tasks. An event does not trigger a search at once: the request waits for the next daily run. Research on the server is off because no search service is paid for; that is your decision to make. |
 | 3-4 Exact resources, all areas of life | Exists (not re-checked line by line) | research.js, content.js |  |
 | 5 Research queue | Exists (not re-checked line by line) | S.research |  |
 | 6 Improves the Bootcamp | Exists (not re-checked line by line) | kpipe.js |  |

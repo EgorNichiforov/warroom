@@ -46,9 +46,9 @@ brief('P04', 'War Room 13.24.3 execution brief', 'before 19 Nov', [
  ('7 UX requirements', 'E', 'ux.js, wayfind.js', ''),
  ('1, 2, 6, 8, 9 Rules, method, report', 'X', '', 'Followed. Section 6 (no security changes) was later lifted by you.')])
 brief('P05', 'Content intelligence, multimedia learning, knowledge to execution (sent twice)', 'before 19 Nov', [
- ('1 Central content command center', 'E', 'content.js', ''),
- ('2 Every lesson has the best teaching resource', 'P', 'clips.js, lib/sources.json', 'You asked for a video of the person teaching on every lesson. I have not counted how many lessons still have none.'),
- ('4 Personal daily content queue', 'E', 'content.js', ''),
+ ('1 Central content command center', 'E', 'content.js', 'CHECKED LINE BY LINE 21 Nov: all fourteen sections you listed exist under the names you gave them.'),
+ ('2 Every lesson has the best teaching resource', 'P', 'lib/cards.json, research.js', 'CHECKED LINE BY LINE 21 Nov: counted from the data. All 250 lessons have a video. For 139 the content was inspected; for 40 only the title was matched; for 71 the link exists and its fit was not confirmed. 7 are a video on the topic, not by the named teacher. The verification screen already showed this honestly; 13.72 adds the last count and puts the screen in the finder. Best available resource for every lesson is therefore not proven for 111 of 250.', 'rsVidAudit'),
+ ('3-4 I have X minutes, and a daily queue', 'E', 'learnx.js, content.js', 'CHECKED LINE BY LINE 21 Nov: the nine durations you listed (5 to 120 minutes) are the options, with watch, listen or read, and the queue says: Do not consume, go execute, when the work comes first.'),
  ('5-6 Continuous research and library updates', 'E', 'daily content scan, monthly curriculum review', 'Run as scheduled Claude tasks, not by the app.'),
  ('7 Email as a discovery source', 'E', 'daily content scan', ''),
  ('8 Universal intake pipeline', 'E', 'kpipe.js', ''),
@@ -59,8 +59,8 @@ brief('P05', 'Content intelligence, multimedia learning, knowledge to execution 
  ('14 Learning analytics', 'E', 'content.js, proof.js', ''),
  ('15 Knowledge and content roadmap', 'E', 'research.js', '')])
 brief('P06', 'Continuous personalised research', 'before 19 Nov', [
- ('1 Understand direction before searching', 'E', 'research.js', ''),
- ('2 Cadence: daily, weekly, on an event, monthly', 'P', 'daily scan, monthly review, learning requests', 'An event does not trigger a search at once: a request waits for the next daily run. Server research is off (no search quota).'),
+ ('1 Understand direction before searching', 'E', 'research.js', 'Read in full 21 Nov. Research needs are generated from your stage, your weak capabilities, lessons without a confirmed video and what you learned but have not applied.'),
+ ('2 Cadence: daily, weekly, on an event, monthly', 'P', 'daily scan, monthly review, learning requests', 'Read in full 21 Nov; unchanged. Daily and monthly run as Claude tasks. An event does not trigger a search at once: the request waits for the next daily run. Research on the server is off because no search service is paid for; that is your decision to make.'),
  ('3-4 Exact resources, all areas of life', 'E', 'research.js, content.js', ''),
  ('5 Research queue', 'E', 'S.research', ''),
  ('6 Improves the Bootcamp', 'E', 'kpipe.js', ''),

@@ -584,3 +584,14 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Correction: 13.70 texts said 23 emails feed a lesson; that is the library file. Laptop: 47 of 58, 265 sources.
 - Next: P05 (`a1c1f604`, 839 lines).
 - Second legacy check updated for the same reason: in "BAC 13.24" the scenario's Romanian mocks were 7 and 7.5, flagged as below a target of 8. Under the floor of 7 they are no longer below target, so the scenario now uses 6 and 6.5 and checks the same behaviour (average passes, Romanian flagged, next study is Romanian).
+
+
+## 13.72.0 · 21 Nov 2026, 01:10 · P05 and P06 read and settled
+
+- Read: P05 (`a1c1f604`, 839 lines), P06 (`fd126a52`, 283 lines).
+- Counted from `lib/cards.json`: 250 cards, every one with at least one clip; `clipV` content 139, title 40, link 71; `clipKind` topic 7, official 69, features-person 35, course 13, unset 126. The 135 pages in `lib/acq_*.json` are course notes, not lesson cards.
+- Settled in the code: `CC_SEC` (14 sections), `LX_MIN` (9 durations), the gate line in `ccTab`, `rsNeeds` keys (gap, novid, os), `rsVidAudit` (research.js).
+- **Changed:** one more row in `rsVidAudit` (a video on the topic, not the named teacher); finder entry `vidcheck` in claims.js. Test `test_1372` (12 checks).
+- No fault found in P05 or P06 beyond that. The cadence gap in P06 section 2 stands (server research off; a need waits for the daily run).
+- 13.71.0 and 13.72.0 are not checked on the laptop: the Chrome extension was not connected (01:25 and later).
+- Next: P07 (`b5fd8906`, 208 lines), P08 (`6a3a7bc8`, 247), P09 (`ba256a43`, 219) can share one run.
