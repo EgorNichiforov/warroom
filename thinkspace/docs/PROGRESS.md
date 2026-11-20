@@ -167,3 +167,9 @@ All 11 items from the lead's list addressed; `pnpm test:e2e` 12/12 green (2.7 mi
 11. **Mobile**: under 640 px the two provider pills collapse into one "simulated" pill; bottom tab labels 11 px.
 Also: local `segment.added` events now use `endedMs` as `atMs`, matching the server, so timeline visibility is identical live and after reload (Agent D finding 2).
 Not mine: `/icon.svg` auth gating in `src/proxy.ts` (Agent D finding 3) and a demo line that states "research controls execution" (finding 4).
+
+## Lead — final verification (2026-11-20)
+- Reconciled segment event timestamps (server and client both stamp `startedMs`).
+- Demo now produces an over-eager inferred `controls` relation in scenario 1 so the scenario 3 correction performs a real retraction (unit tests updated accordingly).
+- Final run: typecheck clean, lint clean, Vitest 35/35, Playwright 12/12 (2.8 min), production build green. Full demo on the final build: auto-titled session, 1 model with 4 versions, aligned Compare (red `controls` removed, green `advises` added), illustration scene rendered (simulated), 1 decision, 2 actions, summary.
+- Delivery report: docs/FINAL_REPORT.md.
