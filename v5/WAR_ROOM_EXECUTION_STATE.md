@@ -96,7 +96,7 @@ NEXT, with Egor present (one confirmation in Supabase): migration adding `warroo
 
 ## 20 Nov 13:00 · where things stand
 
-- App 13.50.0 live. Device key storage slot is `wr-devkey` (NOT `wr-device`, which belongs to `devices.js`).
+- App 13.54.0 live. Device key storage slot is `wr-devkey` (NOT `wr-device`, which belongs to `devices.js`).
 - Laptop ("Windows laptop") enrolled and verified from his real Chrome via Claude in Chrome. Phone not enrolled: only he can tap it, and only on 13.50.0 or later. Lock off until then.
 - `warroom_owner()` is live. Use `(select warroom_owner())` for the owner's room in every new task and query. Three tasks switched (Sheet sync, Dial Guard, Acvila attendance); eleven to go (list in IMPLEMENTATION_LOG).
 - Vault: left off on purpose. A passphrase Claude chooses would have to be passed to him in chat, which his own rule forbids, and he must type it on the phone anyway.
@@ -109,3 +109,12 @@ Egor: "first continue and build everything out there [the earlier briefs], then 
 2. `/mnt/user-data/uploads/356a7c9c-attachment.txt` = "BILINGUAL COMMUNICATION, ARTICULATION & VERBAL INTELLIGENCE SYSTEM" (Romanian + English first-class; 5 domains A–E; 4 language modes; voice-first with fallback; feedback engine with 10 dimensions, never judge audio from text; profile per language; adaptive selection + spaced repetition; 6 stages by demonstrated competence; real-world capture; Overview/Train/Vocabulary/Progress/History; tests listed in Part 14; definition of done in Part 15).
 Plan: (a) 13.52.0 = the three "Me" items (fidelity/origin map, source contradictions, AI use) → (b) communication system as its own module `speak.js`, in increments, end-to-end loop first → (c) addendum Stage 0 baseline + backlog mapped onto what exists, then stages in order.
 Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (timed out twice-asked-once; do not run another way).
+
+
+## 20 Nov 16:00 · state after 13.54.0
+
+- Live: 13.54.0. `fidelity.js` (fdm*/sdx*/au*, store `sdx:`) and `speak.js` (spk*, store `spk:`) are the two newest files, loaded last, in `index.html` by hand and in `sw.js` SHELL.
+- RELEASE ORDER (learned the hard way at 13.52): tests → duplicate-name check must print exactly `cmOpen endSession renderStats startSession` → grep new boot-key prefixes against other files → commit → push.
+- Communication brief: increment 1 done (see IMPLEMENTATION_LOG 13.54.0 for the exact open list). NEXT increments, in order: (2) conversation partner that answers what he said (5.3) + "explain it differently" five steps (5.4); (3) daily session of five blocks with short/long options (5.1) + modes 3 and 4 (4.1); (4) progress view per language with history search and attempt comparison (Part 11); (5) levels 4–6 and grammar-pattern review; (6) audio recording with explicit consent and retention controls, only if the phone supports it.
+- Addendum brief (`413c63df`, Personal Reality / World Intelligence / Future Lab): NOT started beyond what already exists (reality.js, entity.js, model.js, fidelity.js = its 4.2 and part of 15; agents.js; decisions; experiments; content; server jobs). FIRST ACTIONS it requires: `WAR_ROOM_INTELLIGENCE_BASELINE.md` (gap analysis mapped to existing modules) and `WAR_ROOM_INTELLIGENCE_IMPLEMENTATION_BACKLOG.md`, then Stage 1 (claim types: observed / reported / external / derived / inference / hypothesis / forecast / recommendation on records; event time vs recorded time), Stage 9 prediction register is the cheapest high-value piece. No purchases, no hardware.
+- Supabase migration `warroom_server_v1_closed`: asked three times in all, every time the confirmation went unanswered (120 s). Not applied. Retry only when Egor says he is looking at the screen.
