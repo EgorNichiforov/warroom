@@ -165,3 +165,10 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - Built from the audit: 13.64 campaign fields + milestone evidence fix; 13.65 `rtReality`, `MC_OPS`/`mcModeOps`, eight capabilities (92).
 - NEXT: P01 lines 1220–2354 (sections 11–19), same method; then P13, then the rest oldest first.
 - Invariant learned: `cmGaps().length===0` (every capability must link at least one existing card); a capability whose own lesson is missing says so in its knowledge line.
+
+
+## Resume note · 20 Nov 2026, late evening (after 13.68.0)
+
+- P01 read in full (2,354 lines) and settled or recorded section by section in the ledger. Built from it: 13.64 (campaign fields), 13.65/13.66 (reality check, day modes in practice, eight capabilities), 13.68 (error notebook, AAR learned line, review to procedure).
+- Open from P01, in order of value: (1) resource planner: no-recovery-week check and estimates from actual durations; (2) knowledge quality fields limitations / last checked + upkeep list; (3) Life score decision (his); (4) sections 15 and 17 item-by-item check; (5) lessons of their own for the eight new capabilities.
+- NEXT PROMPT: P13 (`3c99950f-WAR_ROOM_UNIFIED_IMPLEMENTATION_PROMPT.md`), same method: read in chunks, settle in the code, build small gaps with a test, record large ones, correct the ledger, release through the full gate.

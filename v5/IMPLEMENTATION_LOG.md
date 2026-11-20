@@ -543,3 +543,11 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 ## 13.67.0 · 20 Nov 2026, 23:25 · dates corrected
 
 - The entries for 13.64–13.66 carried 21 Nov and invented clock times: I assumed the time instead of reading it. Read from the clock tool at 23:18 on 20 Nov and corrected here, in the changelog and in the ledger. Rule: read the time before writing a date.
+
+
+## 13.68.0 · 20 Nov 2026, late evening · P01 sections 11–24 read; P01 finished
+
+- Read: P01 lines 1220–2354. Settled in the code: 13 (FM_CONT_SEED twelve plans, FM_C eight fields, FM_READY five checks), 14 (MC_LENS biz/bac/body/life in mission.js + money in expand.js; Recovery in MC_MODES; the earlier ledger note was wrong), 24 (system overhead in reality.js; rtReality from 13.65/13.66).
+- **Missing, built:** error notebook fields q, why, mis, rsn in `lfErrModal`/`lfErrSave`, shown in `lfReview` with the next review date (life.js). `cp-a7` / `lrn` in the after-action review (capability.js). `fmFromAar(k)` in defense.js, offered in `cpAarList` only when `ev === 'keep'`. Test `test_1368` (17 checks).
+- **Recorded, not built:** section 12 (no check for a week with no recovery time; no estimates from actual durations; support and equipment are not modelled), section 9 (no limitations / last-checked field), section 18 (weekly Life score conflicts with "avoid a single grand score": his decision), sections 15, 17 found but not checked item by item; official BAC sources not re-verified in this pass.
+- P01 is now read in full. Next: P13 (`3c99950f`), then the rest oldest first.

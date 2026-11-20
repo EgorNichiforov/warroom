@@ -244,7 +244,7 @@ function cpAar(id, capId) {
   openModal(`<div class="ms-h"><span>After-action review</span><span>observe → diagnose → experiment</span></div><div class="ms-t">What just happened?</div>
     ${typeof cmSel === 'function' ? cmSel('cp-acap', pre) : ''}
     <select class="aq-in" id="cp-ai"><option value="">Which idea was in play? (optional)</option>${L.map((x) => `<option value="${x}" ${x === id ? 'selected' : ''}>${esc(XC.byId[x].t)}</option>`).join('')}</select>
-    ${[['cp-a2', 'What was supposed to happen?'], ['cp-a1', 'What actually happened? (the facts)'], ['cp-a5', 'What did I attempt?'], ['cp-a6', 'What worked?'], ['cp-a3', 'What did not work, and why (the real cause)?'], ['cp-a4', 'The change: what exactly will I do differently next time?']].map(([k, p]) => `<textarea class="aq-in cp-aq" id="${k}" placeholder="${p}"></textarea>`).join('')}
+    ${[['cp-a2', 'What was supposed to happen?'], ['cp-a1', 'What actually happened? (the facts)'], ['cp-a5', 'What did I attempt?'], ['cp-a6', 'What worked?'], ['cp-a3', 'What did not work, and why (the real cause)?'], ['cp-a7', 'What did I learn?'], ['cp-a4', 'The change: what exactly will I do differently next time?']].map(([k, p]) => `<textarea class="aq-in cp-aq" id="${k}" placeholder="${p}"></textarea>`).join('')}
     ${typeof cmJudgeHtml === 'function' ? cmJudgeHtml() : ''}
     <div class="actions"><button class="btn primary" onclick="cpAarSave()">Save the lesson</button></div>`);
 }
@@ -252,7 +252,7 @@ function cpAar(id, capId) {
    the skill was performed to standard WITH written evidence. A logged event alone never moves the ladder. */
 function cpAarSave() {
   const g = (k) => (($(k) || {}).value || '').trim(), j = typeof cmJudgeRead === 'function' ? cmJudgeRead() : { eff: '', out: '', comp: '', ev: '' };
-  const r = { at: cpToday(), id: g('cp-ai') || null, cap: g('cp-acap') || null, hap: g('cp-a1'), exp: g('cp-a2'), tried: g('cp-a5'), worked: g('cp-a6'), cause: g('cp-a3'), chg: g('cp-a4'), eff: j.eff, out: j.out, comp: j.comp, proof: j.ev, ev: null };
+  const r = { at: cpToday(), id: g('cp-ai') || null, cap: g('cp-acap') || null, hap: g('cp-a1'), exp: g('cp-a2'), tried: g('cp-a5'), worked: g('cp-a6'), cause: g('cp-a3'), lrn: g('cp-a7'), chg: g('cp-a4'), eff: j.eff, out: j.out, comp: j.comp, proof: j.ev, ev: null };
   if (!r.hap || !r.chg) { toast('Write what happened and what you will change'); return; }
   if (r.comp === 'yes' && (r.proof || '').length < 3) { toast('"Skill to standard: Yes" needs evidence. Write it, or choose Partly.'); return; }
   bcW('aar', (bcV('aar', []) || []).concat([r]).slice(-80));
@@ -266,8 +266,8 @@ function cpAarSave() {
 function cpAarEval(k, v) { const a = (bcV('aar', []) || []).slice(); if (!a[k]) return; a[k] = Object.assign({}, a[k], { ev: v, evAt: cpToday() }); bcW('aar', a); toast(v === 'keep' ? 'Kept: it is now part of how you work' : v === 'mod' ? 'Modify it: write a new AAR with the tweak' : 'Dropped. Good: you tested it instead of guessing.'); if (v === 'mod') cpAar(a[k].id); else render(); }
 function cpAarList() {
   const a = bcV('aar', []) || []; if (!a.length) return `<div class="bcx-empty">After a call that went wrong (or right), write a 60-second review. The change you choose becomes an experiment you test next time.</div>`;
-  return a.map((r, k) => [r, k]).reverse().slice(0, 8).map(([r, k]) => `<div class="cp-aar ${r.ev || 'open'}"><em>${esc(r.at)}${r.id && XC.byId[r.id] ? ' · ' + esc(XC.byId[r.id].t) : ''}</em><b>${esc(r.hap)}</b>${r.cause ? `<span>Cause: ${esc(r.cause)}</span>` : ''}<span class="chg">Experiment: ${esc(r.chg)}</span>
-    ${r.ev ? `<i>${r.ev === 'keep' ? '✓ worked · kept' : r.ev === 'mod' ? '↻ modified' : '✗ dropped'}</i>` : `<div class="bc-grade"><button class="btn sm primary" onclick="cpAarEval(${k},'keep')">It worked</button><button class="btn sm" onclick="cpAarEval(${k},'mod')">Partly · modify</button><button class="btn sm" onclick="cpAarEval(${k},'drop')">Didn't work</button></div>`}</div>`).join('');
+  return a.map((r, k) => [r, k]).reverse().slice(0, 8).map(([r, k]) => `<div class="cp-aar ${r.ev || 'open'}"><em>${esc(r.at)}${r.id && XC.byId[r.id] ? ' · ' + esc(XC.byId[r.id].t) : ''}</em><b>${esc(r.hap)}</b>${r.cause ? `<span>Cause: ${esc(r.cause)}</span>` : ''}${r.lrn ? `<span>Learned: ${esc(r.lrn)}</span>` : ''}<span class="chg">Experiment: ${esc(r.chg)}</span>
+    ${r.ev ? `<i>${r.ev === 'keep' ? '✓ worked · kept' : r.ev === 'mod' ? '↻ modified' : '✗ dropped'}</i>${r.ev === 'keep' && typeof fmFromAar === 'function' ? `<div class="bc-grade"><button class="btn sm" onclick="fmFromAar(${k})">Make it a procedure</button></div>` : ''}` : `<div class="bc-grade"><button class="btn sm primary" onclick="cpAarEval(${k},'keep')">It worked</button><button class="btn sm" onclick="cpAarEval(${k},'mod')">Partly · modify</button><button class="btn sm" onclick="cpAarEval(${k},'drop')">Didn't work</button></div>`}</div>`).join('');
 }
 
 /* 13.25.3 · COURSE STATES. Watched (a video position saved on this device, or the lesson opened) is not Learned

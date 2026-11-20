@@ -6,9 +6,9 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Status | Sections |
 |---|---|
-| Built, with a test | 44 |
-| Exists (not re-checked line by line) | 80 |
-| Partly | 48 |
+| Built, with a test | 45 |
+| Exists (not re-checked line by line) | 77 |
+| Partly | 50 |
 | Not built | 3 |
 | Needs you | 2 |
 | A rule of work | 3 |
@@ -26,14 +26,14 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 8 Personal field manual | Exists (not re-checked line by line) | defense.js, ops.js | CHECKED LINE BY LINE 20 Nov: all thirteen fields, the six kinds of source, turning a lesson into an entry and flagging old or doubtful entries are in the code. |
 | 9 Connected personal knowledge system | Partly | capmap.js, entity.js, finish.js (link kinds), kpipe.js | Read 20 Nov, not settled line by line: links, search, source and verification status exist; I did not find a field for limitations or for the date last checked, and the upkeep list (duplicates, outdated, never used) was only partly found. |
 | 10 The complete Bootcamp, nine areas | Partly | capmap.js, bootcamp.js, mastery.js, blueprint.js | CHECKED LINE BY LINE 20 Nov: nine areas, six ways of training and the six-step ladder are there. Of about 130 capabilities you listed, ten had no home in the map; 13.65 adds eight entries for them (92 in all). Each is linked to the nearest existing lessons; its own lesson is still missing, and the map says so. Review scheduling and course states were found but not checked line by line. |
-| 11 Real-world experience and after-action | Exists (not re-checked line by line) | journal.js, capmap.js |  |
-| 12 Personal resource planner | Exists (not re-checked line by line) | reality.js, money modules |  |
-| 13 Contingency and readiness center | Exists (not re-checked line by line) | defense.js |  |
-| 14 Contextual operating modes | Partly | adapt.js, stage.js | The day bends to what happened; a set of named modes you switch between was not found. |
-| 15 Complete BAC preparation | Exists (not re-checked line by line) | bac.js |  |
+| 11 Real-world experience and after-action | Built, with a test | capability.js (reviews), journal.js, capmap.js, defense.js | CHECKED LINE BY LINE 20 Nov: the review had six of your seven questions; What did I learn is added in 13.68. A review whose change was tested and kept can now become a Field Manual procedure, filed as a personal experiment. The timeline exists; filtering by period was not checked. |
+| 12 Personal resource planner | Partly | reality.js (capacity), money modules | Read 20 Nov: time against commitments, the over-full week with a proposed fix, and money from the Money hub are there. Not found: a check for a week with no recovery time, estimates corrected from how long things really took, and support or equipment as resources. |
+| 13 Contingency and readiness center | Exists (not re-checked line by line) | defense.js | CHECKED LINE BY LINE 20 Nov: all eleven plans you listed plus a medical one, the eight parts of a plan with its review date, and the five readiness checks are in the code. Contacts are left for you to fill in; none are invented. |
+| 14 Contextual operating modes | Exists (not re-checked line by line) | mission.js (lens and day mode), expand.js (money lens) | CHECKED LINE BY LINE 20 Nov: my earlier note was wrong. All six exist: Business, Study, Training, Money and Life as a lens for the day, and Recovery as a day mode. Fixed commitments stay visible in every one. |
+| 15 Complete BAC preparation | Partly | bac.js, life.js (error notebook), expand.js (diagnostic) | CHECKED LINE BY LINE 20 Nov: the error notebook kept four of your eight fields; 13.68 adds the question, why I was wrong, the misunderstanding underneath and the correct reasoning, and shows the next review date. The topic map, the diagnostic and the board were found but not checked line by line, and the official sources were not re-verified in this pass. |
 | 16 Practical life competence program | Partly | bootcamp.js, blueprint.js | Same gap as section 10. |
-| 17 Weekly review and personal board meeting | Exists (not re-checked line by line) | ops.js, strategy.js, the Sunday audit task, agents.js |  |
-| 18 Development metrics | Exists (not re-checked line by line) | reality.js, depth.js (scorecard) |  |
+| 17 Weekly review and personal board meeting | Exists (not re-checked line by line) | engine.js (12-minute board meeting), strategy.js, the Sunday audit task | Read 20 Nov, found, not checked question by question against your eight areas. |
+| 18 Development metrics | Partly | reality.js, depth.js (scorecard), life.js | Read 20 Nov: the indicators exist and system overhead is measured against logged work. One conflict for you to decide: this prompt says to avoid a single grand score, and the Study tab still shows one weekly Life score from an earlier build. I left it in place. |
 | 19 All systems work together | Built, with a test | cohere.js, entity.js, mission.js as the one recommender |  |
 | 1, 20, 23, 25 Mission, rules, deliverables, standard | A rule of work |  | Followed as rules of work. |
 
