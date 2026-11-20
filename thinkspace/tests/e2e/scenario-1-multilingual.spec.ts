@@ -25,17 +25,26 @@ test.describe("Scenario 1 — multilingual thinking", () => {
     test.setTimeout(120_000);
     const log = trackConsole(page);
     const id = await createSessionViaUi(page);
-    await startThinking(page);
 
-    // ---- performance: first final → first thought (tight polling) ----
-    const t0 = Date.now();
+    // ---- performance probe: a MutationObserver stamps the first final segment row and the first thought card ----
+    await page.evaluate(() => {
+      const w = window as unknown as { __perf: Record<string, number> };
+      w.__perf = { start: performance.now() };
+      const obs = new MutationObserver(() => {
+        if (w.__perf.firstFinal === undefined && document.querySelector('[data-testid="segment-row"]')) w.__perf.firstFinal = performance.now();
+        if (w.__perf.firstThought === undefined && document.querySelector('[data-testid="thought-card"]')) w.__perf.firstThought = performance.now();
+        if (w.__perf.firstFinal !== undefined && w.__perf.firstThought !== undefined) obs.disconnect();
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    });
+    await startThinking(page);
     await waitForFinals(page, 1, 30_000);
-    const tFirstFinal = Date.now();
     await expect.poll(async () => thoughtCards(page).count(), { timeout: 30_000 }).toBeGreaterThanOrEqual(1);
-    const tFirstThought = Date.now();
-    const firstThoughtMs = tFirstThought - tFirstFinal;
-    test.info().annotations.push({ type: "perf", description: `first final at +${tFirstFinal - t0} ms; first thought ${firstThoughtMs} ms after first final` });
-    console.log(`[perf] first final → first thought: ${firstThoughtMs} ms (first final appeared ${tFirstFinal - t0} ms after Start)`);
+    const perf = await page.evaluate(() => (window as unknown as { __perf: Record<string, number> }).__perf);
+    const firstThoughtMs = Math.round(perf.firstThought - perf.firstFinal);
+    const firstFinalMs = Math.round(perf.firstFinal - perf.start);
+    test.info().annotations.push({ type: "perf", description: `first final rendered ${firstFinalMs} ms after Start; first thought rendered ${firstThoughtMs} ms after the first final` });
+    console.log(`[perf] first final → first thought: ${firstThoughtMs} ms (first final rendered ${firstFinalMs} ms after Start)`);
 
     await waitForFinals(page, 2, 30_000);
     const snap = await waitForIngested(request, id, [line(0), line(1)]);

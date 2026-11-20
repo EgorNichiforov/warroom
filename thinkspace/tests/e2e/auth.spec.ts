@@ -13,7 +13,9 @@ import os from "node:os";
 import path from "node:path";
 
 const PORT = 3124;
-const BASE = `http://127.0.0.1:${PORT}`;
+// "localhost", not 127.0.0.1: next dev blocks its own dev resources (HMR, chunks) for any other host name
+// unless `allowedDevOrigins` is configured, and the page never hydrates.
+const BASE = `http://localhost:${PORT}`;
 const PASSPHRASE = "test-pass";
 const SECRET = "0123456789abcdef0123456789abcdef"; // 32 chars
 const ROOT = path.resolve(__dirname, "..", "..");
@@ -54,6 +56,26 @@ async function waitForHealth(timeoutMs: number): Promise<void> {
     await new Promise((r) => setTimeout(r, 1_000));
   }
   throw new Error(`auth server not healthy after ${timeoutMs} ms: ${lastError}\n${serverLog}`);
+}
+
+/**
+ * On a cold dev server the login page is served long before its client bundle hydrates; a value
+ * filled into the (controlled) input before hydration is reset to "" by React. Fill until the form
+ * reacts (the Sign in button enables), which proves hydration happened.
+ */
+async function fillWhenHydrated(page: import("@playwright/test").Page, value: string) {
+  const input = page.getByTestId("passphrase-input");
+  const button = page.getByRole("button", { name: "Sign in" });
+  await expect
+    .poll(
+      async () => {
+        await input.fill(value);
+        await page.waitForTimeout(300);
+        return (await input.inputValue()) === value && (await button.isEnabled());
+      },
+      { timeout: 90_000, message: "login form hydrated and accepting input" },
+    )
+    .toBe(true);
 }
 
 test.describe("Passphrase auth (separate server on :3124)", () => {
@@ -120,12 +142,13 @@ test.describe("Passphrase auth (separate server on :3124)", () => {
       await page.goto("/sessions", { timeout: 90_000 });
       await page.waitForURL(/\/login\?next=%2Fsessions/, { timeout: 60_000 });
       const input = page.getByTestId("passphrase-input");
-      await expect(input).toBeVisible();
+      // the login form is behind a Suspense boundary (useSearchParams): it appears once the client bundle loads
+      await expect(input).toBeVisible({ timeout: 90_000 });
 
-      await input.fill("definitely-wrong");
-      await expect(input).toHaveValue("definitely-wrong");
+      await fillWhenHydrated(page, "definitely-wrong");
       await page.getByRole("button", { name: "Sign in" }).click();
-      await expect(page.getByRole("alert")).toHaveText("That passphrase is not right.", { timeout: 60_000 });
+      // scoped to the form: Next's route announcer is also role=alert
+      await expect(page.locator("form").getByRole("alert")).toHaveText("That passphrase is not right.", { timeout: 60_000 });
       expect(page.url()).toContain("/login");
 
       await input.fill(PASSPHRASE);
@@ -140,6 +163,9 @@ test.describe("Passphrase auth (separate server on :3124)", () => {
       // the signed-in browser can use the API
       const listed = await page.request.get("/api/sessions");
       expect(listed.status()).toBe(200);
+    } catch (e) {
+      test.info().attachments.push({ name: "auth-server-log", contentType: "text/plain", body: Buffer.from(serverLog.slice(-8000)) });
+      throw e;
     } finally {
       await context.close();
     }

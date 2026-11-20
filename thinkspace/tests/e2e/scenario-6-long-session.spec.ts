@@ -155,9 +155,11 @@ test.describe.serial("Scenario 6 — long session", () => {
   test("History lists the session, search finds it, export downloads Markdown, delete removes it", async ({ page, request }) => {
     const log = trackConsole(page);
     await page.goto("/sessions");
-    const card = page.getByTestId("session-card").filter({ hasText: sessionTitle });
+    // by id: other specs create sessions with the same default (minute-resolution) title
+    const card = page.getByTestId("session-card").filter({ has: page.locator(`a[href="/s/${sessionId}"]`) });
     await expect(card).toHaveCount(1);
-    await expect(card).toContainText("Ended");
+    await expect(card).toContainText(sessionTitle);
+    await expect(card).toContainText(/ended/i);
     await shot(page, "scenario6-history");
 
     // search (case-insensitive) → result link opens the session
