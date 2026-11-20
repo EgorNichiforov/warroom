@@ -27,3 +27,28 @@ Notes for integrators:
 - Model names: the mock creates "Departments model"; the summary's `systemsToChange` names models with `vN → vM`.
 
 Agent A requests: none (no contract changes needed).
+
+## Agent C — done (Backend & Infrastructure)
+Files (all new):
+- `src/lib/auth.ts` — passphrase login (SHA-256 both sides, constant-time XOR compare), HS256 cookie via `jose` (`SignJWT`/`jwtVerify`), secret derived from the passphrase with a fixed salt + console warning when `THINKSPACE_SECRET` is empty, OPEN mode when the passphrase is empty, `getOwnerId()`, `requireOwner(req)` (throws a 401 JSON `Response`), cookie header builders.
+- `src/proxy.ts` — Next 16 proxy (named `proxy` export + literal matcher excluding `/login`, `/api/auth/*`, `/api/health`, `/_next/*`, favicon, manifest, `/icons/*`). API → 401 JSON, pages → `/login?next=…`, OPEN mode passes everything.
+- `src/lib/db/repo.ts` — all persistence: sessions CRUD, `appendSegments` (upsert by client id, partial rows upgradable, final rows immutable, per-session seq), `updateSegment`, `getSnapshot`, `listEvents`, `emitEvents` (seq allocated by a single atomic `UPDATE … RETURNING` on `sessions.last_event_seq`), `persistApplyResult`, `updateAction`/`updateThought`, scenes (`getScene`/`insertScene`/`updateScene`), assets (`insertAsset`/`getAsset`/`countAssets`), `logUsage`, `searchAll` (ILIKE across sessions/segments/thoughts/concepts/actions, limit 50), `deleteSessionsOlderThan`. `Executor` = common Drizzle type for db + tx; `withTx(db, fn)`. All timestamps normalised to ISO.
+- `src/lib/server/{ingest,render,summary,stream,http,export,speech-token,retention}.ts` — pipelines and helpers (per-session promise-chain mutex, 5-minute batch dedupe, 60 s extract timeout via `AbortSignal.any`, persisted `engine.error` on failure; image cap; deterministic summary fallback; NDJSON streaming with `stream.end`/`stream.error`; Markdown export; speech token minting; startup + retention).
+- `src/lib/providers/image/{mock,gemini,index}.ts` — deterministic SVG mock (hash-seeded shapes, "SIMULATED IMAGE" label, `MOCK_IMAGE_FAIL=1`), Gemini via `@google/genai` (`responseModalities: ['TEXT','IMAGE']`, `imageConfig.aspectRatio: '16:9'`, first `inlineData` part, edit = `[{text}, {inlineData}]`, 429/5xx retryable, 400/403 not, cost estimate 0.039 USD/image), factory with mock fallback when the key is missing.
+- `src/app/api/**` — 18 route files: health, auth login/logout, sessions (list/create/get/patch/delete), snapshot, events, segments (+ patch), ingest / render / summary (NDJSON), actions, thoughts, export (json|md), assets, search, speech/token. Every handler: `runtime = 'nodejs'`, `requireOwner`/`requireSession`, zod validation, `{error, code}` JSON errors, goes through `handle()` which also runs `ensureStartup()`.
+- `tests/api/{helpers,sessions,ingest,render,summary,auth,health}.test.ts` — 14 tests.
+
+How to run: `pnpm test` (34/34 green incl. Agent A's 20 unit tests), `pnpm exec tsc --noEmit` (clean, whole project), `pnpm exec eslint src/lib/auth.ts src/proxy.ts src/lib/db/repo.ts src/lib/server src/lib/providers/image src/app/api tests/api` (clean; `pnpm lint` still reports errors in `src/components/**` and `src/lib/speech/controller.ts`, not mine).
+
+Verified behaviours (tests): default title "Thinking session — …"; PATCH returns `{session, events}` and `status:'ended'` stamps `endedAt`; delete cascades; idempotent segment re-POST; `editedByUser` + cleared `cleanedText`; snapshot validates with `SessionSnapshot`; ingest stream `ingest.started … ingest.finished` with monotonic seqs and thoughts persisted (Agent A's mock, no skips needed); dedupe path emits `usage: null`; render yields `scene.updated → asset.added → scene.updated`, child scene uses `edit()` (`metadata.continuity: 'edit'`), cap → non-retryable `engine.error`, provider failure → scene `failed` + retryable error; `/api/assets/:id` serves bytes with immutable private cache; export md has title/transcript timestamps; search hits segments and sessions; auth 401/204/cookie/token verify + proxy redirect/401; health matches `HealthResponse`.
+
+Not testable here / stubbed:
+- Gemini image provider and Soniox/Deepgram token endpoints are written against the official docs and the SDK typings; the network policy blocks the speech hosts and there is no `GEMINI_API_KEY`, so neither was exercised live (see comments in `gemini.ts` and `speech-token.ts`).
+- No temporary stubs were created: Agent A's `digest`, `apply`, `summary` and `createLlmProvider` landed before I finished, and my code compiles against them unchanged.
+
+Agent C requests (contract notes, no shared file changed):
+- Search result shape is not in `src/lib/contracts`; it is exported from `src/lib/db/repo.ts` as `SearchResult = { kind: 'session'|'segment'|'thought'|'concept'|'action', id, sessionId, sessionTitle, text, atMs: number|null, createdAt }` and `GET /api/search` returns `{ results: SearchResult[], q }`. Lead may want to move it into `contracts/api.ts`.
+- `POST /api/speech/token` returns `{ provider, token, expiresAt }` (ISO). 501 `{error:'provider not configured', code:'not_configured'}` without a key.
+- Mock image assets are stored with `kind: 'image'` (mime `image/svg+xml`, `simulated: true`) so the per-session image cap counts them like real images; `kind: 'svg'` is left for structured renders.
+- `GET /api/sessions/:id/export` filename: `thinkspace-<YYYY-MM-DD>-<slug>.<md|json>`.
+- Agent B: the `/login` page is not implemented by me (frontend); it should `POST /api/auth/login {passphrase}` and then navigate to `?next`.
