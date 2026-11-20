@@ -267,6 +267,10 @@ const RULES: Rule[] = [
       const exec = b.concept("Execuție", "component", seg.id, EXEC);
       const ops = b.concept("Operațiuni", "component", seg.id, OPS);
       const rels = [research, exec, ops].map((d) => b.relation(d, ci, "reports_to", seg.id, "reports to"));
+      // A deliberately over-eager inference (research "controls" execution) that the user corrects in scenario 3.
+      const controls = b.relation(research, exec, "controls", seg.id, "controls");
+      b.out.relations[b.out.relations.length - 1].provenance = "inferred";
+      rels.push(controls);
       b.thought("observation", "The departments are research, execution and operations; each reports to central intelligence", seg.id, {
         confidence: 0.85,
         conceptRefs: [research, exec, ops, ci],

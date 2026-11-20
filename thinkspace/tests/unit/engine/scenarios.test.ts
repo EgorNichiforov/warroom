@@ -23,7 +23,7 @@ describe("demo script through mock provider → applyExtraction", () => {
     expect(model.currentVersion).toBe(2);
     const v2 = snapshot.versions.find((v) => v.modelId === model.id && v.version === 2)!;
     expect(v2.snapshot.conceptIds).toEqual(expect.arrayContaining([research.id, ci.id, conceptByLabel(snapshot, "Execuție")!.id, conceptByLabel(snapshot, "Operațiuni")!.id]));
-    expect(v2.snapshot.relationIds).toHaveLength(4);
+    expect(v2.snapshot.relationIds).toHaveLength(5); // 3 reports_to + connects_to + the inferred "controls" (corrected in scenario 3)
     expect(snapshot.scenes.filter((s) => s.kind === "diagram" && s.status === "ready")).toHaveLength(1);
     expect(snapshot.segments.map((s) => s.language)).toEqual(["mixed", "ro"]);
     expect(snapshot.segments.every((s) => s.cleanedText && s.rawText === DEMO_SCRIPT[s.seq - 1].text)).toBe(true);
@@ -88,7 +88,7 @@ describe("demo script through mock provider → applyExtraction", () => {
     const correction = snapshot.changes.filter((c) => c.kind === "correction");
     expect(correction).toHaveLength(1);
     expect(correction[0].modelId).toBe(snapshot.models[0].id);
-    expect(correction[0].diff.removedRelationIds).toEqual([]); // the seeded relation was never in a version
+    expect(correction[0].diff.removedRelationIds).toHaveLength(1); // the inferred "controls" relation left the model; the seeded one was never in a version
     expect(correction[0].diff.addedRelationIds).toHaveLength(1);
     expect(snapshot.models[0].currentVersion).toBe(3);
     expect(steps[0].result.events.map((e) => e.type)).toContain("relation.updated");

@@ -26,7 +26,7 @@ Format: ID · decision · why · consequences. Dates are 2026-11-20 unless noted
 
 **D-12 · Authentication = single-owner passphrase + signed cookie (jose HS256).** `THINKSPACE_PASSPHRASE` + `THINKSPACE_SECRET`. Enforced by `proxy.ts` for every page and API route. If the passphrase is unset in development, the app runs in open mode and shows a banner. Supabase Auth is a later option; the data layer already scopes everything by `owner_id`.
 
-**D-13 · Cost controls.** Final segments are batched (≥ 2 segments or 4 s window) before an LLM call; identical batch text is deduplicated; the context sent to the model is a compact session digest, not the full transcript; image generation only fires on an explicit `scene_directive` from the extractor, is debounced per scene and capped per session (`THINKSPACE_MAX_IMAGES_PER_SESSION`, default 12); all provider calls log tokens and estimated cost to `usage_log`.
+**D-13 · Cost controls.** Final segments are batched (≥ 2 segments or a 2.5 s window; typed thoughts, pause and stop flush immediately) before an LLM call; identical batch text is deduplicated; the context sent to the model is a compact session digest, not the full transcript; image generation only fires on an explicit `scene_directive` from the extractor, is debounced per scene and capped per session (`THINKSPACE_MAX_IMAGES_PER_SESSION`, default 12); all provider calls log tokens and estimated cost to `usage_log`.
 
 **D-14 · Privacy.** No raw audio is stored. Recording starts only on explicit user action and is always indicated. Sessions can be deleted (hard delete, cascading) and exported (JSON, Markdown). API keys exist only on the server.
 

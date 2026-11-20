@@ -274,7 +274,7 @@ export async function createSession(input: {
 }
 
 export type SessionCounts = { segments: number; thoughts: number; concepts: number; actions: number };
-export type SessionWithCounts = Session & { counts: SessionCounts };
+export type SessionWithCounts = Session & { counts: SessionCounts; focus: string };
 
 /** Sessions of an owner (optionally title-filtered), newest first, each with per-table row counts. */
 export async function listSessions(ownerId: string, q?: string): Promise<SessionWithCounts[]> {
@@ -301,6 +301,7 @@ export async function listSessions(ownerId: string, q?: string): Promise<Session
   ]);
   return rows.map((r) => ({
     ...mapSession(r),
+    focus: r.focus ?? "",
     counts: {
       segments: segments.get(r.id) ?? 0,
       thoughts: thoughts.get(r.id) ?? 0,
@@ -464,7 +465,7 @@ export async function appendSegments(
           .returning();
         const seg = mapSegment(row);
         segments.push(seg);
-        pending.push({ type: "segment.updated", sessionId, atMs: seg.endedMs, payload: seg });
+        pending.push({ type: "segment.updated", sessionId, atMs: seg.startedMs, payload: seg });
       } else {
         const [row] = await tx
           .insert(schema.transcriptSegments)
@@ -484,7 +485,7 @@ export async function appendSegments(
           .returning();
         const seg = mapSegment(row);
         segments.push(seg);
-        pending.push({ type: "segment.added", sessionId, atMs: seg.endedMs, payload: seg });
+        pending.push({ type: "segment.added", sessionId, atMs: seg.startedMs, payload: seg });
       }
       atMs = Math.max(atMs, s.endedMs);
     }
