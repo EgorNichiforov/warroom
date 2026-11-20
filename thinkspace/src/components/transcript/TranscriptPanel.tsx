@@ -4,11 +4,11 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Check, Keyboard, Languages, Loader2, Pencil, Search, X } from "lucide-react";
 import { ApiError, api } from "@/lib/api";
 import type { TranscriptSegment } from "@/lib/contracts";
-import { Button, Pill, Toggle, cn } from "@/components/ui";
+import { Button, Pill, Toggle, cn, type PillTone } from "@/components/ui";
 import { langTag, useController, useVisible } from "@/components/workspace/hooks";
 import { formatClock, selectSegmentsOrdered, useSessionStore } from "@/store/session-store";
 
-const langTone = (l: string) => (l === "ro" ? "accent" : l === "en" ? "ok" : l === "mixed" ? "warn" : "muted") as const;
+const langTone = (l: string): PillTone => (l === "ro" ? "accent" : l === "en" ? "ok" : l === "mixed" ? "warn" : "muted");
 
 export function TranscriptPanel({ compact }: { compact?: boolean }) {
   const segments = useSessionStore((s) => s.segments);
@@ -170,13 +170,9 @@ function SegmentRow({
   const upsert = useSessionStore((s) => s.upsertSegment);
   const applyEvents = useSessionStore((s) => s.applyEvents);
   const pushError = useSessionStore((s) => s.pushError);
-  const [text, setText] = useState(seg.rawText);
   const [saving, setSaving] = useState(false);
-  useEffect(() => {
-    if (editing) setText(seg.rawText);
-  }, [editing, seg.rawText]);
 
-  const save = async () => {
+  const save = async (text: string) => {
     const t = text.trim();
     if (!t || t === seg.rawText) return onDoneEdit();
     setSaving(true);
@@ -210,31 +206,7 @@ function SegmentRow({
       </button>
       <div className="min-w-0 flex-1">
         {editing ? (
-          <div className="flex flex-col gap-1">
-            <textarea
-              autoFocus
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") onDoneEdit();
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  void save();
-                }
-              }}
-              rows={Math.min(6, Math.max(2, Math.ceil(text.length / 60)))}
-              className="w-full rounded-sm border border-accent bg-bg-0 px-2 py-1 text-sm outline-none"
-              aria-label="Edit segment text"
-            />
-            <div className="flex gap-1">
-              <Button size="sm" variant="primary" onClick={() => void save()} loading={saving} icon={<Check size={12} />}>
-                Save
-              </Button>
-              <Button size="sm" variant="ghost" onClick={onDoneEdit} icon={<X size={12} />}>
-                Cancel
-              </Button>
-            </div>
-          </div>
+          <SegmentEditor key={seg.id} initial={seg.rawText} saving={saving} onSave={(t) => void save(t)} onCancel={onDoneEdit} />
         ) : (
           <>
             <p className="whitespace-pre-wrap break-words text-text-0" onDoubleClick={onEdit}>
@@ -275,5 +247,36 @@ function SegmentRow({
         )}
       </div>
     </li>
+  );
+}
+
+function SegmentEditor({ initial, saving, onSave, onCancel }: { initial: string; saving: boolean; onSave: (text: string) => void; onCancel: () => void }) {
+  const [text, setText] = useState(initial);
+  return (
+    <div className="flex flex-col gap-1">
+      <textarea
+        autoFocus
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") onCancel();
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            onSave(text);
+          }
+        }}
+        rows={Math.min(6, Math.max(2, Math.ceil(text.length / 60)))}
+        className="w-full rounded-sm border border-accent bg-bg-0 px-2 py-1 text-sm outline-none"
+        aria-label="Edit segment text"
+      />
+      <div className="flex gap-1">
+        <Button size="sm" variant="primary" onClick={() => onSave(text)} loading={saving} icon={<Check size={12} />}>
+          Save
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onCancel} icon={<X size={12} />}>
+          Cancel
+        </Button>
+      </div>
+    </div>
   );
 }

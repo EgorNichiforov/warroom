@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Clock, FileJson, FileText, Mic, Moon, Search, Sun, Trash2, X } from "lucide-react";
@@ -33,55 +33,53 @@ export default function SessionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[] | null>(null);
-  const [searching, setSearching] = useState(false);
+  const [searchState, setSearchState] = useState<{ q: string; results: SearchResult[] } | null>(null);
+  const q = query.trim();
+  const searchActive = q.length >= 2;
+  const results = searchActive && searchState?.q === q ? searchState.results : searchActive ? null : null;
+  const searching = searchActive && searchState?.q !== q;
   const [toDelete, setToDelete] = useState<Session | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await api.sessions.list();
-      setSessions(res.sessions as SessionWithCounts[]);
-      setError(null);
-    } catch (e) {
-      if (e instanceof ApiError && e.isUnauthorized) return redirectToLogin();
-      setError(e instanceof Error ? e.message : "Could not load sessions");
-      setSessions([]);
-    }
-  }, []);
-
   useEffect(() => {
-    void load();
-  }, [load]);
+    const ac = new AbortController();
+    api.sessions
+      .list(undefined, ac.signal)
+      .then((res) => {
+        setSessions(res.sessions as SessionWithCounts[]);
+        setError(null);
+      })
+      .catch((e: unknown) => {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        if (e instanceof ApiError && e.isUnauthorized) return redirectToLogin();
+        setError(e instanceof Error ? e.message : "Could not load sessions");
+        setSessions([]);
+      });
+    return () => ac.abort();
+  }, []);
 
   // debounced search
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
-      setResults(null);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
+    if (!searchActive) return;
     const ac = new AbortController();
     const t = setTimeout(() => {
       api
         .search(q, ac.signal)
-        .then((r) => setResults(r.results))
+        .then((r) => setSearchState({ q, results: r.results }))
         .catch((e: unknown) => {
           if (e instanceof DOMException && e.name === "AbortError") return;
-          setResults([]);
-        })
-        .finally(() => setSearching(false));
+          setSearchState({ q, results: [] });
+        });
     }, 300);
     return () => {
       clearTimeout(t);
       ac.abort();
     };
-  }, [query]);
+  }, [q, searchActive]);
 
   const grouped = useMemo(() => {
-    if (!results) return null;
+    if (!searchActive) return null;
+    if (!results) return [] as [string, { title: string; items: SearchResult[] }][];
     const map = new Map<string, { title: string; items: SearchResult[] }>();
     for (const r of results) {
       const g = map.get(r.sessionId) ?? { title: r.sessionTitle, items: [] };
@@ -89,7 +87,7 @@ export default function SessionsPage() {
       map.set(r.sessionId, g);
     }
     return Array.from(map.entries());
-  }, [results]);
+  }, [results, searchActive]);
 
   const startThinking = async () => {
     setCreating(true);

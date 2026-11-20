@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, Moon, Pencil, Sun } from "lucide-react";
 import { api } from "@/lib/api";
@@ -17,10 +17,6 @@ export function TopBar({ health, compact }: { health: HealthResponse | null; com
   const [theme, setTheme] = useTheme();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-
-  useEffect(() => {
-    if (!editing) setDraft(session?.title ?? "");
-  }, [session?.title, editing]);
 
   const commit = async () => {
     setEditing(false);
@@ -64,7 +60,10 @@ export function TopBar({ health, compact }: { health: HealthResponse | null; com
         ) : (
           <button
             type="button"
-            onClick={() => setEditing(true)}
+            onClick={() => {
+              setDraft(session?.title ?? "");
+              setEditing(true);
+            }}
             className={cn("group flex min-w-0 flex-1 items-center gap-1.5 text-left", !session && "opacity-50")}
             title="Rename session"
             data-testid="session-title"

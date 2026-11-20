@@ -122,11 +122,13 @@ export function radialLayout(nodes: LayoutNode[], edges: LayoutEdge[], opts: { r
     pos[id] = d === 0 ? { x: 0, y: 0 } : { x: Math.cos(mid) * radius[d], y: Math.sin(mid) * radius[d] };
     const kids = children.get(id) ?? [];
     if (!kids.length) return;
-    const total = kids.reduce((s, k) => s + (leaves.get(k) ?? 1), 0);
+    // sqrt-compressed subtree weights: big subtrees get more room without squeezing leaves off the ring
+    const weight = (k: string) => Math.sqrt(leaves.get(k) ?? 1);
+    const total = kids.reduce((s, k) => s + weight(k), 0);
     // children of a non-root node stay within the parent's sector; root spans the full circle
     let a = start;
     for (const k of kids) {
-      const span = ((end - start) * (leaves.get(k) ?? 1)) / total;
+      const span = ((end - start) * weight(k)) / total;
       place(k, a, a + span);
       a += span;
     }

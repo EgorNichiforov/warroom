@@ -1,35 +1,76 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { api } from "@/lib/api";
 import type { HealthResponse } from "@/lib/contracts/api";
 import type { ThinkingController } from "@/lib/speech/controller";
 import { makeVisible, useSessionStore } from "@/store/session-store";
 
+// ---------- Local storage backed values (hydration-safe via useSyncExternalStore) ----------
+type LocalStore<T> = { get: () => T; set: (v: T) => void; subscribe: (fn: () => void) => () => void; server: T };
+const localStores = new Map<string, LocalStore<unknown>>();
+
+export function createLocalStore<T>(key: string, fallback: T, parse: (raw: string) => T | undefined, serialize: (v: T) => string): LocalStore<T> {
+  const existing = localStores.get(key);
+  if (existing) return existing as LocalStore<T>;
+  const listeners = new Set<() => void>();
+  let cached: T | undefined;
+  const store: LocalStore<T> = {
+    server: fallback,
+    get: () => {
+      if (cached !== undefined) return cached;
+      try {
+        const raw = localStorage.getItem(key);
+        cached = raw === null ? fallback : (parse(raw) ?? fallback);
+      } catch {
+        cached = fallback;
+      }
+      return cached;
+    },
+    set: (v) => {
+      cached = v;
+      try {
+        localStorage.setItem(key, serialize(v));
+      } catch {
+        /* ignore */
+      }
+      for (const l of listeners) l();
+    },
+    subscribe: (fn) => {
+      listeners.add(fn);
+      return () => {
+        listeners.delete(fn);
+      };
+    },
+  };
+  localStores.set(key, store as LocalStore<unknown>);
+  return store;
+}
+
+export function useLocalValue<T>(store: LocalStore<T>): [T, (v: T) => void] {
+  const value = useSyncExternalStore(store.subscribe, store.get, () => store.server);
+  return [value, store.set];
+}
+
 // ---------- Theme ----------
 export type Theme = "dark" | "light";
-const THEME_KEY = "thinkspace.theme";
+const themeStore = createLocalStore<Theme>(
+  "thinkspace.theme",
+  "dark",
+  (raw) => (raw === "light" || raw === "dark" ? raw : undefined),
+  (v) => v,
+);
 
 export function useTheme(): [Theme, (t: Theme) => void] {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(THEME_KEY);
-      if (saved === "light" || saved === "dark") setThemeState(saved);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-  const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
-    try {
-      localStorage.setItem(THEME_KEY, t);
-    } catch {
-      /* ignore */
-    }
-    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
-    else document.documentElement.removeAttribute("data-theme");
-  }, []);
+  const [theme, set] = useLocalValue(themeStore);
+  const setTheme = useCallback(
+    (t: Theme) => {
+      set(t);
+      if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+      else document.documentElement.removeAttribute("data-theme");
+    },
+    [set],
+  );
   return [theme, setTheme];
 }
 
@@ -85,26 +126,10 @@ export function useMediaQuery(query: string, initial = false) {
 
 // ---------- Local storage flag ----------
 export function useLocalFlag(key: string): [boolean | null, (v: boolean) => void] {
-  const [value, setValue] = useState<boolean | null>(null);
-  useEffect(() => {
-    try {
-      setValue(localStorage.getItem(key) === "1");
-    } catch {
-      setValue(false);
-    }
-  }, [key]);
-  const set = useCallback(
-    (v: boolean) => {
-      setValue(v);
-      try {
-        localStorage.setItem(key, v ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-    },
-    [key],
-  );
-  return [value, set];
+  const store = createLocalStore<boolean | null>(key, false, (raw) => raw === "1", (v) => (v ? "1" : "0"));
+  // server snapshot is null (unknown) so the UI does not flash before hydration
+  const value = useSyncExternalStore(store.subscribe, store.get, () => null);
+  return [value, store.set];
 }
 
 // ---------- Formatting ----------

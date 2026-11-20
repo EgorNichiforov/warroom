@@ -52,3 +52,31 @@ Agent C requests (contract notes, no shared file changed):
 - Mock image assets are stored with `kind: 'image'` (mime `image/svg+xml`, `simulated: true`) so the per-session image cap counts them like real images; `kind: 'svg'` is left for structured renders.
 - `GET /api/sessions/:id/export` filename: `thinkspace-<YYYY-MM-DD>-<slug>.<md|json>`.
 - Agent B: the `/login` page is not implemented by me (frontend); it should `POST /api/auth/login {passphrase}` and then navigate to `?next`.
+
+## Agent B — done (Visual Product & Frontend)
+
+### Files
+- `src/lib/api.ts` — typed fetch client (ApiError with status/code, `readNdjson` with abort support, `runStream`, connectivity listener).
+- `src/store/session-store.ts` — zustand store: snapshot-shaped state, `applyEvent` reducer for every event type, `loadSnapshot(snapshot, events)`, derived selectors, thinking state machine, mic level, speech/connection/save status, session clock (ticks while listening), time-cursor helper.
+- `src/lib/speech/providers/{base,browser,mock,soniox,deepgram}.ts`, `src/lib/speech/pcm-capture.ts`, `src/lib/speech/index.ts` (`createSpeechProvider`, `SPEECH_PROVIDER_INFO`, `usableProviders`). Soniox uses model `stt-rt-v5`; Deepgram auths via `["bearer", token]` subprotocol with a one-time `access_token` query fallback. Both carry the "implemented against docs, not exercised here" comment.
+- `src/lib/speech/controller.ts` — `ThinkingController`: provider lifecycle (start/pause/resume/stop/switchProvider), partial → live row, finals → save queue (≤10 per POST, 800 ms flush, backoff while offline, never dropped), ingest scheduling per D-13 (≥2 finals or 4 s, or on pause/stop), sequential scene rendering for planned photo/illustration/metaphor scenes, `retryIngest`, `retryRender`, `typeThought`, `runSummary`, durationMs PATCH every 15 s and on pause/stop, StrictMode-safe `attach()`.
+- Pages: `src/app/layout.tsx`, `globals.css` (Tailwind v4 tokens + light theme), `page.tsx` (→ /sessions), `login/page.tsx`, `manifest.ts`, `public/icon.svg`, `sessions/page.tsx` (history + search + delete + export), `s/[id]/page.tsx`.
+- Components: `ui/*` (Button, Pill, Select, Toggle, Dialog/ConfirmDialog), `workspace/*` (Workspace, TopBar, SessionControls, StatusPills, ViewTabs, PanelFrame, ResizableColumns, Banners, hooks), `transcript/TranscriptPanel`, `thoughts/ThoughtsPanel`, `mindmap/{layout,FlowGraph,MindMap}`, `systems/SystemsPanel`, `canvas/Canvas`, `actions/ExecutionPanel`, `timeline/Timeline`.
+
+### Verified in Chromium (Playwright, mock speech + mock LLM + mock image, open auth)
+- /sessions → Start thinking → /s/:id loads; privacy note shown once; RECORDING indicator + mic pill; live partial row then finals; segments saved ("saved" pill); ingest runs and thoughts/concepts/relations/model versions/scenes/actions stream into every panel; "Type a thought" posts a typed segment and triggers ingest.
+- Pause/Resume, Stop → confirm → PATCH ended → summary stream rendered in Decisions & Actions (confirmed vs suggestions, "simulated" badge); reload restores the snapshot (12 thoughts / 8 segments) and offers "Continue thinking", which restarts the clock from durationMs.
+- All seven tabs render and keep `?view=` in the URL; Systems shows version slider, Compare (before/after with added/removed colouring) and change log; Mind map radial layout with floating edges; Canvas shows the simulated image with SIMULATED ribbon, scene strip and version chips.
+- Timeline scrubber + `?t=` deep link filter every panel ("Viewing the past" bar); inline segment edit (edited badge); action checkbox PATCH; search on /sessions (grouped results, kind badges); light theme; mobile layout (390px) with bottom tab bar.
+- `pnpm exec tsc --noEmit` and `pnpm lint` clean. Zero console errors/warnings during the smoke run.
+
+### Not verified / open issues
+- Browser (Web Speech), Soniox and Deepgram adapters are not exercised here (no mic, hosts blocked); code follows the official docs.
+- `pnpm build` not run by Agent B (dev server was running in the same tree); `useSearchParams` users are wrapped in Suspense.
+- The engine.error → Retry toast path is implemented but was not triggered by the mock engine in the smoke run.
+- Session list cards show counts only if the API adds `counts` to Session rows (currently absent, so they are hidden).
+
+### Agent B requests
+- `GET /api/sessions`: optional `counts: {segments, thoughts, concepts, actions}` per session would make history cards richer (UI already renders them when present).
+- `GET /api/search`: `atMs` is only set for transcript hits; thoughts/actions/concepts could carry the atMs of their first source segment so result links can deep-link with `?t=`.
+- PGlite client: `mkdir -p` of `THINKSPACE_PGLITE_DIR`'s parent would avoid a 500 on first run with a fresh directory (hit once with `.data/pglite-b`).

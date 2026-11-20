@@ -79,8 +79,11 @@ export class ThinkingController {
 
   // ---------------- lifecycle ----------------
 
-  /** Attach connectivity listeners; returns dispose. */
+  /** Attach connectivity listeners; returns dispose. Re-attachable (React StrictMode runs effects twice). */
   attach() {
+    this.disposed = false;
+    for (const u of this.offlineListeners) u();
+    this.offlineListeners = [];
     if (typeof window !== "undefined") {
       const on = () => {
         this.store.setConnection("online");
@@ -375,7 +378,7 @@ export class ThinkingController {
     try {
       const res = await api.segments.append(
         this.sessionId,
-        batch.map(({ urgent: _u, ...seg }) => seg),
+        batch.map((b) => ({ id: b.id, startedMs: b.startedMs, endedMs: b.endedMs, rawText: b.rawText, language: b.language, isFinal: b.isFinal, provider: b.provider, confidence: b.confidence })),
       );
       this.unsent = this.unsent.filter((x) => !batch.some((b) => b.id === x.id));
       this.saveBackoff = 0;
@@ -614,5 +617,7 @@ export class ThinkingController {
 export function redirectToLogin() {
   if (typeof window === "undefined") return;
   const next = encodeURIComponent(window.location.pathname + window.location.search);
-  if (!window.location.pathname.startsWith("/login")) window.location.assign(`/login?next=${next}`);
+  // Hard navigation on purpose: this runs outside React (fetch queue), and the login page must reset client state.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  if (!window.location.pathname.startsWith("/login")) window.location.href = `/login?next=${next}`;
 }
