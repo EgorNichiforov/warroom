@@ -2,7 +2,7 @@
 
 ## 1. Where it is
 - Branch `claude/thinkspace-build-2rggbo`, draft PR #3 on `EgorNichiforov/warroom`. Everything lives in `thinkspace/`; no other file in the repository was touched.
-- Not deployed. Deployment needs an authorization and two things that do not exist yet: a Postgres `DATABASE_URL` (a Supabase project, or a dedicated schema) and the API keys below. The app is Vercel-ready (root directory `thinkspace`).
+- Deployed on the owner's Vercel account: https://thinkspace-delta.vercel.app (project `thinkspace`, root directory `thinkspace`, built from this branch, functions in `iad1`). Database: an isolated `thinkspace` schema inside the existing free Supabase project `egorflow` (the free plan's two-active-project limit ruled out a new project). The live site waits for `DATABASE_PASSWORD` (the egorflow database password) and the API keys, which only the owner can supply; see §7.
 
 ## 2. Launch locally
 ```bash
@@ -63,7 +63,7 @@ Measured with the simulated providers: first thought card ~2.5–3 s after a lon
 1. `ANTHROPIC_API_KEY` — turns on real understanding. Set `THINKSPACE_LLM_MODEL` to `claude-sonnet-5-5` or `claude-haiku-5-5` to lower cost (default `claude-opus-5-5`).
 2. `GEMINI_API_KEY` — turns on real scene images.
 3. `SONIOX_API_KEY` (recommended) or `DEEPGRAM_API_KEY` — server-grade streaming with Romanian–English code-switching. Without either, the browser recognizer works with one language selected at a time.
-4. Deployment authorization plus a Postgres `DATABASE_URL` (a new Supabase project would be the clean option; creating one may carry a cost on a paid Supabase plan, so it was not created) and `THINKSPACE_PASSPHRASE` / `THINKSPACE_SECRET`.
+4. `DATABASE_PASSWORD` on the Vercel project — the password of the Supabase project `egorflow` (reset it in Supabase → Project Settings → Database if unknown). `DATABASE_URL` is already set with a `__PASSWORD__` placeholder; `THINKSPACE_PASSPHRASE` and `THINKSPACE_SECRET` are set.
 
 ## 8. Known limitations
 - The browser recognizer transcribes in one language at a time; mixed sentences are best served by Soniox.

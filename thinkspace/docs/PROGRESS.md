@@ -173,3 +173,8 @@ Not mine: `/icon.svg` auth gating in `src/proxy.ts` (Agent D finding 3) and a de
 - Demo now produces an over-eager inferred `controls` relation in scenario 1 so the scenario 3 correction performs a real retraction (unit tests updated accordingly).
 - Final run: typecheck clean, lint clean, Vitest 35/35, Playwright 12/12 (2.8 min), production build green. Full demo on the final build: auto-titled session, 1 model with 4 versions, aligned Compare (red `controls` removed, green `advises` added), illustration scene rendered (simulated), 1 decision, 2 actions, summary.
 - Delivery report: docs/FINAL_REPORT.md.
+
+## Lead — deployment (2026-11-20)
+- Vercel project `thinkspace` created from the repo (root `thinkspace`, Next.js, Node 22, region iad1, Vercel Authentication off); production deployed from the branch; URL https://thinkspace-delta.vercel.app.
+- Supabase: free plan at its 2-active-project limit, so no new project. Created the `thinkspace` schema in `egorflow`; the app now hardcodes that schema for every table and the migrations ledger. A custom `thinkspace` role was tried but Supabase's shared pooler only accepts the `postgres` user ("tenant/user not found"); the role was dropped and the schema reassigned to `postgres`.
+- `DATABASE_URL` is set on Vercel with a `__PASSWORD__` placeholder that the app fills from `DATABASE_PASSWORD`; the owner supplies that password plus the API keys (secrets of other Vercel projects are blocked for this session; the owner's computer is not connected).
