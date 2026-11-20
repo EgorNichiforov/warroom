@@ -192,7 +192,7 @@ export function Workspace({ sessionId }: { sessionId: string }) {
         <AmbiguityBanner />
         {wide && <ViewTabs view={view} onChange={setView} counts={tabCounts} />}
         {timeCursor !== null && view !== "timeline" && (
-          <div className="flex items-center gap-3 border-b border-warn/40 bg-warn-soft px-3 py-1 text-xs text-text-0">
+          <div className="flex items-center gap-3 border-b border-warn/40 bg-warn-soft px-3 py-1 text-xs text-text-0" data-testid="viewing-past">
             <span className="font-medium text-warn">Viewing the past</span>
             <TimelineScrubber className="min-w-0 flex-1" />
             <Button size="sm" variant="ghost" onClick={() => router.push(`/s/${sessionId}?view=timeline`)}>

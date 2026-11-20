@@ -86,3 +86,10 @@ Agent C requests (contract notes, no shared file changed):
 - `GET /api/search`: thought / concept / action hits now carry `atMs` = `startedMs` of their first source segment (one extra `IN (...)` query), so results deep-link with `?t=`. Sessions stay `null`.
 - `src/lib/db/client.ts` (lead-owned, edited with permission): `fs.mkdirSync(dir, { recursive: true })` before `new PGlite(dir)` — a fresh `THINKSPACE_PGLITE_DIR` no longer produces a 500.
 - Tests: new "returns per-session counts" case in `tests/api/sessions.test.ts`; counts + search `atMs` assertions added to the ingest test. `pnpm test` 35/35, `tsc --noEmit` clean, eslint clean on owned files + `src/lib/db`.
+
+## Lead — integration pass (2026-11-20, after A/B/C)
+- Verified independently: `pnpm typecheck` clean, `pnpm lint` clean, `pnpm test` 35/35, `pnpm build` green (23 routes, proxy).
+- Drove the app in Chromium with the scripted demo: 6 segments → 11 thoughts, 11 concepts, 10 relations, 1 model with 4 versions, 4 change events, 2 scenes, 2 actions, summary; correction (scenario 3) left one active `advises` relation and no `controls`; brainstorm (scenario 4) produced alternatives + a question and no decision; scenario 5 produced exactly one decision and two undated actions.
+- Fixed from the visual review: layered system diagrams used step edges that looped around the top for upward relations → straight floating edges with arrows everywhere; the timeline listed partial/final/annotation events as separate "Said" rows and in a mixed order → one row per spoken segment, sorted chronologically; relation rows now name both endpoints.
+- The Next.js dev "1 issue" badge seen during screenshots is a hydration warning caused by Playwright's screenshot caret-hiding style; a plain page load reports zero console errors or warnings.
+- Build warning about dynamic `path.resolve` for the PGlite directory silenced with `turbopackIgnore`.

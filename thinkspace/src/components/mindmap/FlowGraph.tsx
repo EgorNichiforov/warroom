@@ -62,6 +62,9 @@ const ConceptNodeView = memo(function ConceptNodeView({ data, selected }: NodePr
       )}
       style={{ width: NODE_W, height: NODE_H, borderLeftWidth: 3, borderLeftColor: color }}
       title={data.title ?? `${data.label} · ${data.kind}${data.group ? ` · ${data.group}` : ""}`}
+      data-testid="graph-node"
+      data-label={data.label}
+      data-diff={data.diff}
     >
       <Handle type="target" position={Position.Top} />
       <span className="min-w-0 flex-1 truncate text-text-0">{data.label}</span>
@@ -139,7 +142,7 @@ function cachedLayout(key: string, layout: "radial" | "layered", nodes: LayoutNo
 const DIRECTIONAL = new Set(["advises", "controls", "reports_to", "contains", "depends_on", "feeds", "causes", "precedes", "part_of"]);
 const edgeLabel = (type: string, label?: string | null) => (label ? label : type.replace(/_/g, " "));
 
-function toEdge(e: GraphEdgeInput, layout: "radial" | "layered"): Edge {
+function toEdge(e: GraphEdgeInput): Edge {
   const danger = e.type === "contradicts";
   const dashed = e.type === "alternative_to";
   const stroke = e.diff === "added" ? "var(--color-ok)" : e.diff === "removed" ? "var(--color-danger)" : danger ? "var(--color-danger)" : "var(--color-border-strong)";
@@ -257,7 +260,7 @@ function FlowGraphInner({
       })),
     [nodes, positions, selectedId, interactive],
   );
-  const rfEdges = useMemo(() => mergeParallel(edges).map((e) => toEdge(e, layout)), [edges, layout]);
+  const rfEdges = useMemo(() => mergeParallel(edges).map((e) => toEdge(e)), [edges]);
   const signature = useMemo(() => `${layout}:${nodes.map((n) => n.id).join(",")}:${edges.length}`, [layout, nodes, edges.length]);
 
   if (!nodes.length) {

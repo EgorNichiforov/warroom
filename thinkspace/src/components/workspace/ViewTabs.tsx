@@ -27,7 +27,7 @@ export function ViewTabs({
 }) {
   if (variant === "bottom") {
     return (
-      <nav className="grid grid-cols-7 border-t border-border bg-bg-1 pb-[env(safe-area-inset-bottom)]" aria-label="Views">
+      <nav className="grid grid-cols-7 border-t border-border bg-bg-1 pb-[env(safe-area-inset-bottom)]" aria-label="Views" data-testid="view-tabs-bottom">
         {VIEWS.map((v) => {
           const Icon = v.icon;
           const active = v.id === view;
