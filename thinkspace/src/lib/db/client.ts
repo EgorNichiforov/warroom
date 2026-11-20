@@ -35,6 +35,17 @@ export function resolveDatabaseUrl(url: string): string {
   return url.replace("__PASSWORD__", encodeURIComponent(pw));
 }
 
+/** True when every migration in drizzle/meta/_journal.json is already recorded in the ledger. */
+async function migrationsUpToDate(sql: ReturnType<typeof postgres>): Promise<boolean> {
+  try {
+    const journal = JSON.parse(fs.readFileSync(path.join(migrationsFolder(), "meta", "_journal.json"), "utf8")) as { entries: unknown[] };
+    const rows = await sql.unsafe(`select count(*)::int as n from "${MIGRATIONS_SCHEMA}"."__drizzle_migrations"`);
+    return Number(rows[0]?.n ?? 0) >= journal.entries.length;
+  } catch {
+    return false; // ledger missing or unreadable: run the migrator
+  }
+}
+
 function migrationsFolder() {
   return path.join(process.cwd(), "drizzle");
 }
@@ -51,7 +62,12 @@ function create(): Holder {
       connect_timeout: 10,
     });
     const db = drizzlePg(sql, { schema });
-    const ready = migratePg(db, { migrationsFolder: migrationsFolder(), migrationsSchema: MIGRATIONS_SCHEMA });
+    // Run DDL only when the ledger is behind: concurrent serverless cold starts each re-running
+    // CREATE SCHEMA/TABLE IF NOT EXISTS block one another on Supabase's pooler.
+    const ready = (async () => {
+      if (await migrationsUpToDate(sql)) return;
+      await migratePg(db, { migrationsFolder: migrationsFolder(), migrationsSchema: MIGRATIONS_SCHEMA });
+    })();
     return { db, kind: "postgres", ready, close: () => sql.end() };
   }
   const dir = config.pgliteDir === ":memory:" ? undefined : path.resolve(/*turbopackIgnore: true*/ process.cwd(), config.pgliteDir);

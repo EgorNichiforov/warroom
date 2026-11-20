@@ -27,6 +27,7 @@ export async function GET(req?: Request) {
         const t0 = Date.now();
         const col = name === "sessions" ? (t as typeof schema.sessions).id : (t as typeof schema.thoughts).sessionId;
         const r = await Promise.race([
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (db as any).select().from(t).where(eq(col, probe)).then((rows: unknown[]) => `ok ${rows.length}`, (e: Error) => `err ${e.message.slice(0, 120)}`),
           new Promise<string>((res) => setTimeout(() => res("timeout"), 4000)),
         ]);
