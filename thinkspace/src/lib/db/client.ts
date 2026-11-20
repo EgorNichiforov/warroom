@@ -27,9 +27,18 @@ function migrationsFolder() {
 
 function create(): Holder {
   if (config.databaseUrl) {
-    const sql = postgres(config.databaseUrl, { max: 5, prepare: false });
+    // Optional dedicated schema (shared Postgres host): tables and the migrations table live there.
+    const dbSchema = process.env.THINKSPACE_DB_SCHEMA?.trim() || undefined;
+    const sql = postgres(config.databaseUrl, {
+      max: 5,
+      prepare: false,
+      ...(dbSchema ? { connection: { search_path: dbSchema } } : {}),
+    });
     const db = drizzlePg(sql, { schema });
-    const ready = migratePg(db, { migrationsFolder: migrationsFolder() });
+    const ready = migratePg(db, {
+      migrationsFolder: migrationsFolder(),
+      ...(dbSchema ? { migrationsSchema: dbSchema } : {}),
+    });
     return { db, kind: "postgres", ready, close: () => sql.end() };
   }
   const dir = config.pgliteDir === ":memory:" ? undefined : path.resolve(/*turbopackIgnore: true*/ process.cwd(), config.pgliteDir);
