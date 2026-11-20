@@ -146,7 +146,7 @@ function rtCheck(kind, id) {
   rtLast = { kind, id, title, F };
 }
 let rtLast = null;
-/* Reality check (first prompt, section 6). It speaks only when the records show repeated avoidance or far more planning than doing.
+/* Reality check (first prompt, section 6). It speaks only when the records show repeated avoidance or far more planning and system-building than doing (13.66: it also counts War Room versions released, from the changelog).
    It reads the one recommender for the task; it ranks nothing and adds no candidate. It reads records only, so it says "recorded". */
 function rtReality() {
   const t = new Date(), ev = []; let made = 0, target = 0, plan = 0, task = '';
@@ -155,9 +155,11 @@ function rtReality() {
   const sk = {}; for (let i = 0; i < 14; i++) { const o = S.days[dk(addDays(t, -i))]; ((o && o.mcSkip) || []).forEach((y) => { if (!y.done) sk[y.s] = (sk[y.s] || 0) + 1; }); } const ts = Object.entries(sk).sort((a, b) => b[1] - a[1])[0];
   if (ts && ts[1] >= 3) ev.push(`The "${ts[0]}" mission was skipped or missed ${ts[1]} times in 14 days.`);
   if (plan >= 5 && target >= 20 && made < target * 0.25) ev.push(`In the last 7 days you wrote or edited ${plan} plans, decisions, risks and experiments, and recorded ${made} of ${target} planned dials.`);
+  let ver = 0; try { const B = (PB_SEED.find((x) => x.id === 'changelog') || {}).body || '', MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], re = /^\| (\d{1,2}) ([A-Z][a-z]{2}) \| \*\*War Room \d/gm, from = dk(addDays(t, -6)), td = dk(t); let m; while ((m = re.exec(B))) { const mi = MO.indexOf(m[2]); if (mi < 0) continue; let d = new Date(t.getFullYear(), mi, Number(m[1])); if (dk(d) > td) d = new Date(t.getFullYear() - 1, mi, Number(m[1])); const k = dk(d); if (k >= from && k <= td) ver++; } } catch (e) { }
+  if (ver >= 5 && target >= 20 && made < target * 0.25) ev.push(`${ver} War Room versions were released in the last 7 days (built on your instructions), and you recorded ${made} of ${target} planned dials.`);
   if (!ev.length) return null;
   try { const M = mcBuild(); task = M && M.top ? (M.top.next || M.top.out || M.top.k || '') : ''; } catch (e) { }
-  return { t: 'Stop refining the system. Do the actual task now.', ev, task, made, target, plan };
+  return { t: 'Stop refining the system. Do the actual task now.', ev, task, made, target, plan, ver };
 }
 function rtRealityHtml() { const r = rtReality(); if (!r) return ''; return `<div class="mc-wl" id="rt-real"><span>Reality check</span><div><b>${esc(r.t)}</b></div>${r.ev.map((e) => `<div class="xs">• ${esc(e)}</div>`).join('')}${r.task ? `<div class="xs" style="margin-top:4px">The task Mission Control puts first: <b>${esc(r.task)}</b></div>` : ''}<div class="xs muted" style="margin-top:4px">This reads your records only. If you did the work and did not record it, record it and this goes away.</div></div>`; }
 function rtSave(kind, id) { if (!rtLast) return; const m = (($('rt-mind') || {}).value || '').trim(), bad = rtLast.F.filter((f) => f.st === 'bad' || f.st === 'warn'); S.journal = S.journal || {}; const jid = 'j' + uid(); S.journal[jid] = { id: jid, _u: now(), at: dk(new Date()), kind: 'redteam', dom: 'life', text: `Red Team: ${rtLast.title} · ${bad.length} findings`, lesson: bad.map((f) => f.q + ' ' + f.t).join(' | ').slice(0, 600) + (m ? ' | Would change my mind: ' + m : ''), ref: kind + ':' + id, imp: 1 }; save(); closeModal(); toast('Findings saved to the journal'); }

@@ -531,3 +531,10 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Test `test_1365` (21 checks).
 - **Not settled:** section 9 (no field found for limitations or date last checked; upkeep list partly found), 10D review scheduling and 10F course states found but not read line by line. P01 lines 1220–2354 (sections 11–19) not read yet.
 - The reality check is NOT in Mission Control (one recommender rule). It is on the Red Team screen only.
+
+
+## 13.66.0 · 21 Nov 2026, 02:40 · reality check counts versions released
+
+- Laptop check of 13.65.0 on real data: `rtReality()` returned null. Components: made 2, target 350, planning records touched 3 (2 risks, 1 experiment), no mission skipped 3 times. The rule could not see system-building done through Claude.
+- Added a third evidence line in `rtReality()`: changelog rows (`PB_SEED` page `changelog`) dated in the last 7 days; threshold 5 with the same dial condition. Returns `ver`.
+- `test_1365` now 23 checks.

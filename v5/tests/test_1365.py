@@ -15,7 +15,7 @@ with sync_playwright() as p:
     ev = pg.evaluate; ev("CP_NOLATE=1; OD_OFF=1; SL_OFF=1; TOUR_OFF=1; 0"); pg.wait_for_timeout(500)
     check('version 13.65.0 or later', ev("APP_VERSION.localeCompare('13.65.0',undefined,{numeric:true})>=0"), ev("APP_VERSION"))
     # --- reality check
-    ev("""(()=>{ensureIntel(); ['decisions','campaigns','risks','experiments'].forEach(k=>{S[k]=S[k]||{};Object.keys(S[k]).forEach(i=>delete S[k][i])}); for(let i=0;i<14;i++){const o=S.days[dk(addDays(new Date(),-i))]; if(o){o.mcSkip=[]; o.counters=o.counters||{}; o.counters.dials=0; o.targets={dials:0};}} })(); 0""")
+    ev("""(()=>{ensureIntel(); ['decisions','campaigns','risks','experiments'].forEach(k=>{S[k]=S[k]||{};Object.keys(S[k]).forEach(i=>delete S[k][i])}); for(let i=0;i<14;i++){const o=S.days[dk(addDays(new Date(),-i))]; if(o){o.mcSkip=[]; o.counters=o.counters||{}; o.counters.dials=0; o.targets={dials:0};}} for(let i=0;i<7;i++){const o=day(addDays(new Date(),-i)); o.targets={dials:0}; o.counters=o.counters||{}; o.counters.dials=0;} })(); 0""")
     check('with nothing in the records it says nothing', ev("rtReality()") is None)
     n0 = ev("mcBuild().C.length")
     ev("""(()=>{for(let i=0;i<5;i++){const id='d'+uid()+i; S.decisions[id]={id,_u:now(),title:'Plan '+i};} for(let i=0;i<7;i++){const o=day(addDays(new Date(),-i)); o.targets={dials:i?0:50}; o.counters=o.counters||{}; o.counters.dials=0; touch(o);} })(); 0""")
@@ -32,6 +32,11 @@ with sync_playwright() as p:
     r = ev("rtReality()")
     check('the same mission skipped three times in 14 days also triggers it', r and 'skipped or missed 3 times' in r['ev'][0], r)
     ev("(()=>{for(let i=1;i<=3;i++){S.days[dk(addDays(new Date(),-i))].mcSkip=[];}})(); closeModal(); 0")
+    ev("(()=>{Object.keys(S.decisions).forEach(i=>delete S.decisions[i]); const o=day(new Date()); o.counters.dials=0; touch(o);})(); 0")
+    r = ev("rtReality()")
+    check('13.66: many War Room versions released in a week with under a quarter of the planned dials recorded also triggers it, counted from the changelog', r and r['ver'] >= 5 and r['plan'] == 0 and len(r['ev']) == 1 and 'War Room versions were released' in r['ev'][0] and '0 of 50' in r['ev'][0], r)
+    ev("(()=>{const o=day(new Date()); o.counters.dials=20; touch(o);})(); 0")
+    check('and it goes quiet in the same way once the dials are recorded', ev("rtReality()") is None, ev("rtReality()"))
     # --- day modes in practice
     ev("mcModeOpen(); 0"); pg.wait_for_timeout(150)
     t = ev("document.getElementById('mc-ops').textContent")
