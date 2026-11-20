@@ -522,3 +522,12 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Missing, built:** campaign fields why, season, stage, next, bottleneck, lead, caps, res, deps (`recEdit` in intel.js; `recSave` is generic). Card shows stage / next / blocked by. Test `test_1364` (10 checks).
 - **Fault fixed:** `recSave` rebuilt milestones as `{t, done}` and dropped `ev`, which `campMsOk` needs. Now the old milestone object is kept.
 - **Not settled:** 3C campaign intelligence beyond Mission Control, 3D campaign-to-Bootcamp (`cxCamp` exists, not read), 3E campaign-to-calendar; section 4 onward (lines 360–2354) not read yet.
+
+
+## 13.65.0 · 21 Nov 2026, 01:30 · P01 sections 5–10 read and settled
+
+- Read: P01 lines 360–1220. Settled in the code: 5 (judge.js: `jlDecEdit` 14 fields, `jlPredEdit`, `JL_Q`, `JL_SC`, `jlScTransfer`), 6 (`rtCheck` ten questions, `rtRiskEdit` nine fields, `rtPremortem`), 7 (defense.js triggers, protocols with `dp-review`/`dp-src`, `dfLapse`, `dfProtoStats`; modes in mission.js `MC_MODES`), 8 (`FM_F` + name, quality, caps, card, rev; `fmFromCard`, `fmFlagged`).
+- **Missing, built:** `rtReality()` / `rtRealityHtml()` in judge.js (shown at the top of `rtOpen`; two triggers: a mission skipped >= 3 times in 14 days, or >= 5 planning records touched in 7 days with a 7-day dial target >= 20 and under 25% recorded; reads `mcBuild().top`, adds no candidate). `MC_OPS` + `mcModeOps()` in mission.js (from Playbook pages daily8 and cutorder; own restart condition in boot key `mode:restart`). Eight rows in `CM_CAPS` (92 capabilities), each linked to the nearest existing cards (the invariant `cmGaps().length===0` in test_1327 and test_1331 holds) and each saying its own lesson is missing.
+- Test `test_1365` (21 checks).
+- **Not settled:** section 9 (no field found for limitations or date last checked; upkeep list partly found), 10D review scheduling and 10F course states found but not read line by line. P01 lines 1220–2354 (sections 11–19) not read yet.
+- The reality check is NOT in Mission Control (one recommender rule). It is on the Red Team screen only.

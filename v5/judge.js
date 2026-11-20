@@ -108,7 +108,7 @@ function jlScTransfer(id) { const t = (($('jl-tr') || {}).value || '').trim(), r
 /* ── RED TEAM: rule-based checks on the real records ── */
 function rtOpen() {
   const C = typeof live === 'function' ? live(S.campaigns).filter((c) => !c.draft) : [], D = jlD().filter((x) => x.kind !== 'pred').slice(-5).reverse(), R = Object.values(S.risks || {}).filter((x) => x && !x._del && x.status !== 'closed').sort((a, b) => (b.p || 1) * (b.i || 1) - (a.p || 1) * (a.i || 1));
-  openModal(`<h2>Red Team</h2><div class="hint">Challenge a plan with your own records: what is assumed, what the numbers say, what could make it fail. Proportionate: it runs when you ask.</div>
+  openModal(`<h2>Red Team</h2><div class="hint">Challenge a plan with your own records: what is assumed, what the numbers say, what could make it fail. Proportionate: it runs when you ask.</div>${rtRealityHtml()}
     <div class="mc-wl"><span>Check a campaign</span>${C.map((c) => `<button class="mc-opt" onclick="rtCheck('camp','${c.id}')"><b>${esc(c.title)}</b><span>${campaignProgress(c)}% of milestones evidenced</span></button>`).join('') || '<div class="xs muted">No campaign yet.</div>'}</div>
     <button class="mc-opt" onclick="rtCheck('week','')"><b>This week's plan</b><span>capacity, skips, activity vs progress</span></button>
     ${D.length ? `<div class="mc-wl"><span>Check a decision</span>${D.map((x) => `<button class="mc-opt" onclick="rtCheck('dec','${x.id}')"><b>${esc(x.title)}</b></button>`).join('')}</div>` : ''}
@@ -146,6 +146,20 @@ function rtCheck(kind, id) {
   rtLast = { kind, id, title, F };
 }
 let rtLast = null;
+/* Reality check (first prompt, section 6). It speaks only when the records show repeated avoidance or far more planning than doing.
+   It reads the one recommender for the task; it ranks nothing and adds no candidate. It reads records only, so it says "recorded". */
+function rtReality() {
+  const t = new Date(), ev = []; let made = 0, target = 0, plan = 0, task = '';
+  try { const by = mcDialLog(); for (let i = 0; i < 7; i++) { const d = addDays(t, -i), E = mcDialEvidence(dk(d), by) || {}; made += (E.logged || 0) + (E.manual || 0); target += Number(dialTargetFor(d)) || 0; } } catch (e) { }
+  const since = now() - 7 * 864e5; ['decisions', 'campaigns', 'risks', 'experiments'].forEach((k) => Object.values(S[k] || {}).forEach((x) => { if (x && !x._del && !x.draft && Number(x._u || 0) >= since) plan++; }));
+  const sk = {}; for (let i = 0; i < 14; i++) { const o = S.days[dk(addDays(t, -i))]; ((o && o.mcSkip) || []).forEach((y) => { if (!y.done) sk[y.s] = (sk[y.s] || 0) + 1; }); } const ts = Object.entries(sk).sort((a, b) => b[1] - a[1])[0];
+  if (ts && ts[1] >= 3) ev.push(`The "${ts[0]}" mission was skipped or missed ${ts[1]} times in 14 days.`);
+  if (plan >= 5 && target >= 20 && made < target * 0.25) ev.push(`In the last 7 days you wrote or edited ${plan} plans, decisions, risks and experiments, and recorded ${made} of ${target} planned dials.`);
+  if (!ev.length) return null;
+  try { const M = mcBuild(); task = M && M.top ? (M.top.next || M.top.out || M.top.k || '') : ''; } catch (e) { }
+  return { t: 'Stop refining the system. Do the actual task now.', ev, task, made, target, plan };
+}
+function rtRealityHtml() { const r = rtReality(); if (!r) return ''; return `<div class="mc-wl" id="rt-real"><span>Reality check</span><div><b>${esc(r.t)}</b></div>${r.ev.map((e) => `<div class="xs">• ${esc(e)}</div>`).join('')}${r.task ? `<div class="xs" style="margin-top:4px">The task Mission Control puts first: <b>${esc(r.task)}</b></div>` : ''}<div class="xs muted" style="margin-top:4px">This reads your records only. If you did the work and did not record it, record it and this goes away.</div></div>`; }
 function rtSave(kind, id) { if (!rtLast) return; const m = (($('rt-mind') || {}).value || '').trim(), bad = rtLast.F.filter((f) => f.st === 'bad' || f.st === 'warn'); S.journal = S.journal || {}; const jid = 'j' + uid(); S.journal[jid] = { id: jid, _u: now(), at: dk(new Date()), kind: 'redteam', dom: 'life', text: `Red Team: ${rtLast.title} · ${bad.length} findings`, lesson: bad.map((f) => f.q + ' ' + f.t).join(' | ').slice(0, 600) + (m ? ' | Would change my mind: ' + m : ''), ref: kind + ':' + id, imp: 1 }; save(); closeModal(); toast('Findings saved to the journal'); }
 function rtRiskEdit(id, pre) {
   const x = (S.risks || {})[id] || Object.assign({ p: 2, i: 2, status: 'open', owner: 'me', review: dk(addDays(new Date(), 14)) }, pre || {}), lv = (k, v) => `<select class="aq-in" id="rr-${k}">${[[1, 'Low'], [2, 'Medium'], [3, 'High']].map(([n, l]) => `<option value="${n}" ${Number(v) === n ? 'selected' : ''}>${l}</option>`).join('')}</select>`, f = (k, ph) => `<textarea class="aq-in" id="rr-${k}" rows="2" placeholder="${ph}">${esc(x[k] || '')}</textarea>`;

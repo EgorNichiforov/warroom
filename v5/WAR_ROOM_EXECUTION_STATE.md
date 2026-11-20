@@ -157,3 +157,11 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - Line-by-line audit of P01 started (sections 1–4 read; see IMPLEMENTATION_LOG 13.63.0 for what is settled and what is not). Tools: /home/claude/work/audit/probe.py (opens screens and looks for words: its misses are questions, settle each in the code), gen.py (the ledger; copy at v5/tools/audit_gen.py). Finder gate: test_1333 requires every WF entry to have a purpose longer than 15 characters and a unique id; check duplicates in the running app, not by grep.
 - NEXT in the audit: P01 sections 2A, 2D, 2E, 3B–3E (settle in code), then read P01 lines 520–2354 in chunks of about 500 lines (grep -v blank lines), section by section; build what is truly missing; correct the ledger with tools/audit_gen.py and release. Then P13 (unified prompt), then the rest oldest first.
+
+
+## Resume note · 21 Nov 2026, 02:10 (after 13.65.0)
+
+- Line-by-line audit of P01 (`49b9b331`): lines 1–1220 read (sections 1–10). Settled in the code and recorded in the ledger (`/home/claude/work/audit/gen.py`, rows marked CHECKED LINE BY LINE): 2, 3, 5, 6, 7, 8, 10. Section 4 row not yet annotated. Section 9: read, not settled (no field found for limitations / last checked; upkeep list partly found). 10D and 10F found, not read line by line.
+- Built from the audit: 13.64 campaign fields + milestone evidence fix; 13.65 `rtReality`, `MC_OPS`/`mcModeOps`, eight capabilities (92).
+- NEXT: P01 lines 1220–2354 (sections 11–19), same method; then P13, then the rest oldest first.
+- Invariant learned: `cmGaps().length===0` (every capability must link at least one existing card); a capability whose own lesson is missing says so in its knowledge line.
