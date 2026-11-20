@@ -551,3 +551,14 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Missing, built:** error notebook fields q, why, mis, rsn in `lfErrModal`/`lfErrSave`, shown in `lfReview` with the next review date (life.js). `cp-a7` / `lrn` in the after-action review (capability.js). `fmFromAar(k)` in defense.js, offered in `cpAarList` only when `ev === 'keep'`. Test `test_1368` (17 checks).
 - **Recorded, not built:** section 12 (no check for a week with no recovery time; no estimates from actual durations; support and equipment are not modelled), section 9 (no limitations / last-checked field), section 18 (weekly Life score conflicts with "avoid a single grand score": his decision), sections 15, 17 found but not checked item by item; official BAC sources not re-verified in this pass.
 - P01 is now read in full. Next: P13 (`3c99950f`), then the rest oldest first.
+
+
+## 13.69.0 · released 21 Nov 2026 just after 00:00 (work done 20 Nov 23:40–23:59) · P13 read and settled
+
+- Read: P13 (`3c99950f`, 1,025 lines), all four parts.
+- Settled in the code: Part 1 stages via cohere.js / mission.js / learnx.js (`osNextStep`, Unprocessed list, N minutes, expected against actual; `lxBuild` the one timed planner); Part 3 `DM` (nine areas) in domain.js and the scorecard row shape in depth.js (name, this week, last week, target, leading or lagging, source, meaning, when low); goal fields in `gcEdit`/`gcSave` (domain.js).
+- **Found by asking the finder the user's own words** (`wfFind`): "record training" ranked the call screen first, "review money" ranked business performance first. Fixed by keywords in wayfind.js (`train`, `money` entries).
+- **Missing, built:** goal field `need` (gc-n). Test `test_1369` (14 checks) covers the nine questions and twelve tasks of Part 4.
+- Noted, not changed: core.js still carries the one-time 8 Nov goal rename ("BAC average 9+" to "pass with an 8+ average"); it only fires on a goal with the old title, the seed and every screen say "not lower than 7". Not touching goals without approval.
+- Not settled: Part 2 B (ten learning methods) item by item; Part 4.9 needs his phone.
+- Next: P02 (`b9339758`).

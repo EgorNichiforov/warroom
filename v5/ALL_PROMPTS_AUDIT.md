@@ -175,12 +175,12 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| Part 1 Coherence stages and the Acvila security item | Exists (not re-checked line by line) | cohere.js |  |
-| Part 2 Learning and Bootcamp architecture A to F | Partly | bootcamp.js, blueprint.js, learnx.js | Architecture yes; Bootcamp content not complete (P01 section 10). |
-| Part 3 One depth standard for every domain (2 to 12) | Partly | domain.js | Business, money, execution, body, focus, learning are deep. School beyond BAC, health and people are thin. |
-| Part 4 Redesign for clarity (1 to 8) | Partly | ux.js, wayfind.js, shell.js | One home per activity and a finder exist. A screen-by-screen redesign was not done; I advised against rewriting a working app. |
+| Part 1 Coherence stages and the Acvila security item | Exists (not re-checked line by line) | cohere.js, mission.js, learnx.js | CHECKED LINE BY LINE 20 Nov: the eight stages are in the code (Mission Control sees overdue tasks, waiting agencies, falling numbers, the next company step and energy; one learning planner; I have N minutes; expected against actual; one capture with an Unprocessed list). The attendance task no longer holds the sync id. Stage 7 stays a dry run: no goal or cloud row was merged or deleted. |
+| Part 2 Learning and Bootcamp architecture A to F | Partly | bootcamp.js, blueprint.js, learnx.js | Read 20 Nov. Architecture yes, and your weekly minutes for personal development are a setting you choose. Bootcamp content is not complete: lessons are still missing for some capabilities (first prompt, section 10). |
+| Part 3 One depth standard for every domain (2 to 12) | Partly | domain.js, depth.js | CHECKED LINE BY LINE 20 Nov: nine areas each have purpose, reality, where the work happens, measure, what happens when it slips and review; the scorecard states meaning, source, target, leading or lagging for every number. A goal kept ten of your eleven parts; what it needs from you (skills and resources) is added in 13.69. Still thin: caregiver supply and business economics have little real data behind them yet, and health and people are light on purpose. |
+| Part 4 Redesign for clarity (1 to 8) | Partly | ux.js, wayfind.js, shell.js | CHECKED LINE BY LINE 20 Nov: I asked the finder your nine questions in your own words. Seven went to the right place; record training sent you to the call screen and review money to business performance. Both fixed in 13.69 and now tested. One home per activity exists. A screen-by-screen redesign was not done. |
 | Part 4.9 Mobile-first testing | Needs you |  | Needs your phone. |
-| Part 4.10 Measurable usability criteria | Partly | tests/test_1348.py | Speed and offline are measured; taps-to-task only for a few journeys. |
+| Part 4.10 Measurable usability criteria | Partly | tests/test_1348.py, tests/test_1369.py | Speed and offline are measured, and from 13.69 all twelve of your tasks are checked to reach the right screen through the finder. Taps-to-task is still counted for only a few journeys. |
 
 ## P14 · The 100% vision (19 Nov)
 

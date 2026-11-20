@@ -172,3 +172,10 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - P01 read in full (2,354 lines) and settled or recorded section by section in the ledger. Built from it: 13.64 (campaign fields), 13.65/13.66 (reality check, day modes in practice, eight capabilities), 13.68 (error notebook, AAR learned line, review to procedure).
 - Open from P01, in order of value: (1) resource planner: no-recovery-week check and estimates from actual durations; (2) knowledge quality fields limitations / last checked + upkeep list; (3) Life score decision (his); (4) sections 15 and 17 item-by-item check; (5) lessons of their own for the eight new capabilities.
 - NEXT PROMPT: P13 (`3c99950f-WAR_ROOM_UNIFIED_IMPLEMENTATION_PROMPT.md`), same method: read in chunks, settle in the code, build small gaps with a test, record large ones, correct the ledger, release through the full gate.
+
+
+## Resume note · 21 Nov 2026, 00:05 (after 13.69.0)
+
+- Audit done: P01 (full), P13 (full). Next, oldest first: P02 `b9339758`, P03 `78bd318d`, P04 `8f4f0baf`, P05 `a1c1f604`, P06 `fd126a52`, P07 `b5fd8906`, P08 `6a3a7bc8`, P09 `ba256a43`, P10 `3d6afeda`, P11 `c0fd84f7`, P12 `7997f1ef`, P14 `decf8883`, P15 `413c63df`, P16 `356a7c9c`.
+- Technique that found real faults: ask the app the user's own words (finder), and compare each listed field with the form's actual inputs.
+- Rule: read the clock tool BEFORE writing any date (two date errors on 20 Nov).
