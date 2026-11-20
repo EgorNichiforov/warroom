@@ -64,6 +64,12 @@ A stage listed for a later release than the current `APP_VERSION` is NOT built y
 
 No literal row id anywhere. Six use a looser main-row lookup that is safe only because `staging-`/`share-` rows carry a 2000-01-01 stamp. Three still coach from the old offer and the old BAC target, and there are two overlapping morning briefs. Table in `IMPLEMENTATION_LOG.md`. Prompt edits were refused by the scheduler on 19 Nov; ask Egor before trying again. The server's own brief timer is OFF so it does not add a third brief.
 
+## Freeze (Egor, 20 Nov 2026, 08:20): IT STANDS
+
+No new War Room features and no new architecture mission until **1,000 dials or the first paying client** (the Playbook's rule). Allowed: fixes, verification, switching things on that are already built (device keys, vault). If asked to build, say this first and check the dial count.
+
+Scheduled tasks on 20 Nov: prompts corrected in Weekly review, Morning brief 06:00 (now paused), Nightly review, Bench Bulletin (no price line). Prompt edits were accepted once Egor approved them in the conversation. Server timers: backup on, weekly check on, brief off, research off.
+
 ## Before every release
 
 - Check for a function name defined twice: `grep -ohE "^(async )?function [A-Za-z0-9_]+" *.js | sed -E 's/^(async )?function //' | sort | uniq -d` must print only `cmOpen endSession renderStats startSession` (old, intended). On 20 Nov a new `bpOpen` silently replaced the Blueprint screen; the 13.31 suite caught it.
