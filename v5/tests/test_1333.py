@@ -14,7 +14,7 @@ with sync_playwright() as p:
     pg.route('**/rest/v1/**', lambda r: r.abort())
     pg.clock.install(time='2026-11-19T17:00:00+02:00'); pg.goto(URL); pg.wait_for_timeout(2500); pg.clock.run_for(4000)
     ev = pg.evaluate; ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); 0"); pg.wait_for_timeout(1800); pg.clock.run_for(2000)
-    check('version 13.69.0', ev("APP_VERSION==='13.69.0'"), ev("APP_VERSION"))
+    check('version 13.70.0', ev("APP_VERSION==='13.70.0'"), ev("APP_VERSION"))
     check('every destination has plain words, a place, a purpose and an action; ids are unique', ev("WF.length>=30&&new Set(WF.map(x=>x[0])).size===WF.length&&WF.every(x=>WF_DOM[x[1]]&&x[2].length>=4&&x[4].length>2&&x[5].length>15&&typeof x[6]==='function')"))
     check('no internal names in what the user reads', ev("!WF.some(x=>/mcBuild|lxBuild|\\.js|S\\.|localStorage/.test(x[2]+x[4]+x[5]))&&!Object.values(WF_SCREEN).some(s=>/mcBuild|lxBuild|\\.js\\b/.test(s.join(' ')))"))
     ev("arcShow(); if(typeof mcOpenCard!=='undefined'&&!mcOpenCard)mcToggle(); 0"); pg.wait_for_timeout(300)

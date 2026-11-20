@@ -179,3 +179,10 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - Audit done: P01 (full), P13 (full). Next, oldest first: P02 `b9339758`, P03 `78bd318d`, P04 `8f4f0baf`, P05 `a1c1f604`, P06 `fd126a52`, P07 `b5fd8906`, P08 `6a3a7bc8`, P09 `ba256a43`, P10 `3d6afeda`, P11 `c0fd84f7`, P12 `7997f1ef`, P14 `decf8883`, P15 `413c63df`, P16 `356a7c9c`.
 - Technique that found real faults: ask the app the user's own words (finder), and compare each listed field with the form's actual inputs.
 - Rule: read the clock tool BEFORE writing any date (two date errors on 20 Nov).
+
+
+## Resume note · 21 Nov 2026, 00:25 (after 13.70.0)
+
+- Audit done: P01, P13, P02, P03. Next, oldest first: P04 `8f4f0baf`, P05 `a1c1f604`, P06 `fd126a52`, P07 `b5fd8906`, P08 `6a3a7bc8`, P09 `ba256a43`, P10 `3d6afeda`, P11 `c0fd84f7`, P12 `7997f1ef`, P14 `decf8883`, P15 `413c63df`, P16 `356a7c9c`.
+- A file that registers a finder entry must load after wayfind.js (index.html order); content.js does not.
+- `CC_MAIL_NOTE` in content.js is a dated estimate: update it whenever the mailbox is counted again.

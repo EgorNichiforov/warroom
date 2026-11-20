@@ -1,12 +1,12 @@
 # Every prompt, section by section
 
-Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 180 sections.
+Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 181 sections.
 
 **What this is:** a check at the level of sections. "Exists" means a module is there whose own note says it does this and whose tests pass; it does NOT mean I re-read every sentence of that prompt against the app today. A line-by-line check of about 17,000 lines has not been done.
 
 | Status | Sections |
 |---|---|
-| Built, with a test | 45 |
+| Built, with a test | 46 |
 | Exists (not re-checked line by line) | 77 |
 | Partly | 50 |
 | Not built | 3 |
@@ -41,17 +41,18 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| 2 Integrate everything | Exists (not re-checked line by line) | content.js, kpipe.js, the daily content scan (Gmail read-only) |  |
+| 1 Email archive and what could not be opened | Built, with a test | lib/sources.json, content.js | CHECKED LINE BY LINE 21 Nov: every email in the library carries subject, sender, date, link, topic, type, whether it was opened and which lessons it feeds. The list you asked for, of what was not really opened, did not exist; built in 13.70. What it shows today: 58 emails recorded, 23 feed a lesson, 56 were only partly opened (text read, linked video not). |
+| 2 Integrate everything | Exists (not re-checked line by line) | content.js, kpipe.js, the daily content scan (Gmail read-only) | Read 21 Nov. Lessons, the knowledge store, playbooks and the link to goals exist; not checked item by item. |
 | 3 Connections, not isolated content | Exists (not re-checked line by line) | kpipe.js, capmap.js |  |
-| 5 Final requirement: every email processed | Partly | daily scan | The backlog is worked off six emails a run. It is not finished. |
+| 5 Final requirement: every email processed | Partly | daily scan | Counted 20 Nov with a read-only Gmail search (Gmail estimates): about 204 emails from these senders, 58 in the library. About 114 are from before 1 Sep and none of those is in the library. The scan works off six a run, so at this rate the old ones take weeks. Not finished. |
 
 ## P03 · Complete Alex Hormozi library (before 19 Nov)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
 | 1 Deep research into the material | Exists (not re-checked line by line) | lib/sources.json, acq.js |  |
-| 2 ALL companion workbooks and bonus playbooks | Partly | lib/sources.json | I have not verified that every workbook that exists is in the library. |
-| 3 Resource inventory | Exists (not re-checked line by line) | lib/sources.json, content.js |  |
+| 2 ALL companion workbooks and bonus playbooks | Partly | lib/sources.json | CHECKED LINE BY LINE 21 Nov: the three workbooks (Offers, Leads, Money Models) and the playbook bundle are listed, but none was opened and none feeds a lesson. Lost Chapters has all 26 chapters listed and Gym Launch Secrets is partly opened. I did not search again for workbooks that may exist beyond these. |
+| 3 Resource inventory | Exists (not re-checked line by line) | lib/sources.json, content.js | CHECKED LINE BY LINE 21 Nov: 184 sources, each with title, author, programme, edition, type, official or not, link, how far it was opened, topics and overlap with what you already have. 181 are marked official, one each public, third-party and unverified. |
 | 4-5 Into the Bootcamp as learning experiences | Exists (not re-checked line by line) | bootcamp.js, explain.js, clips.js, acqviz.js |  |
 | 6 Connected to your business | Exists (not re-checked line by line) | opsys.js, blueprint.js |  |
 | 7 Mastery architecture kept | Exists (not re-checked line by line) | mastery.js, proof.js |  |

@@ -26,13 +26,14 @@ brief('P01', 'Complete personal operating system and human development', 'before
  ('19 All systems work together', 'B', 'cohere.js, entity.js, mission.js as the one recommender', ''),
  ('1, 20, 23, 25 Mission, rules, deliverables, standard', 'X', '', 'Followed as rules of work.')])
 brief('P02', 'Email intelligence and complete integration', 'before 19 Nov', [
- ('2 Integrate everything', 'E', 'content.js, kpipe.js, the daily content scan (Gmail read-only)', ''),
+ ('1 Email archive and what could not be opened', 'B', 'lib/sources.json, content.js', 'CHECKED LINE BY LINE 21 Nov: every email in the library carries subject, sender, date, link, topic, type, whether it was opened and which lessons it feeds. The list you asked for, of what was not really opened, did not exist; built in 13.70. What it shows today: 58 emails recorded, 23 feed a lesson, 56 were only partly opened (text read, linked video not).', 'ccAccessOpen'),
+ ('2 Integrate everything', 'E', 'content.js, kpipe.js, the daily content scan (Gmail read-only)', 'Read 21 Nov. Lessons, the knowledge store, playbooks and the link to goals exist; not checked item by item.'),
  ('3 Connections, not isolated content', 'E', 'kpipe.js, capmap.js', ''),
- ('5 Final requirement: every email processed', 'P', 'daily scan', 'The backlog is worked off six emails a run. It is not finished.')])
+ ('5 Final requirement: every email processed', 'P', 'daily scan', 'Counted 20 Nov with a read-only Gmail search (Gmail estimates): about 204 emails from these senders, 58 in the library. About 114 are from before 1 Sep and none of those is in the library. The scan works off six a run, so at this rate the old ones take weeks. Not finished.', 'ccAccessOpen')])
 brief('P03', 'Complete Alex Hormozi library', 'before 19 Nov', [
  ('1 Deep research into the material', 'E', 'lib/sources.json, acq.js', ''),
- ('2 ALL companion workbooks and bonus playbooks', 'P', 'lib/sources.json', 'I have not verified that every workbook that exists is in the library.'),
- ('3 Resource inventory', 'E', 'lib/sources.json, content.js', ''),
+ ('2 ALL companion workbooks and bonus playbooks', 'P', 'lib/sources.json', 'CHECKED LINE BY LINE 21 Nov: the three workbooks (Offers, Leads, Money Models) and the playbook bundle are listed, but none was opened and none feeds a lesson. Lost Chapters has all 26 chapters listed and Gym Launch Secrets is partly opened. I did not search again for workbooks that may exist beyond these.', 'ccAccessOpen'),
+ ('3 Resource inventory', 'E', 'lib/sources.json, content.js', 'CHECKED LINE BY LINE 21 Nov: 184 sources, each with title, author, programme, edition, type, official or not, link, how far it was opened, topics and overlap with what you already have. 181 are marked official, one each public, third-party and unverified.'),
  ('4-5 Into the Bootcamp as learning experiences', 'E', 'bootcamp.js, explain.js, clips.js, acqviz.js', ''),
  ('6 Connected to your business', 'E', 'opsys.js, blueprint.js', ''),
  ('7 Mastery architecture kept', 'E', 'mastery.js, proof.js', ''),

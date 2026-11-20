@@ -562,3 +562,13 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Noted, not changed: core.js still carries the one-time 8 Nov goal rename ("BAC average 9+" to "pass with an 8+ average"); it only fires on a goal with the old title, the seed and every screen say "not lower than 7". Not touching goals without approval.
 - Not settled: Part 2 B (ten learning methods) item by item; Part 4.9 needs his phone.
 - Next: P02 (`b9339758`).
+
+
+## 13.70.0 · 21 Nov 2026, 00:25 · P02 and P03 read and settled
+
+- Read: P02 (`b9339758`, 247 lines), P03 (`78bd318d`, 314 lines).
+- Evidence from `lib/sources.json`: 184 sources; type email 58 (all from value@acquisition.com, received 2026-09-01 to 2026-11-19), acc part 56 / full 2, 23 with cards. Workbooks x3 and the playbook bundle: acc none, 0 cards. Lost Chapters: 26 chapter entries. stat: official 181, public 1, third 1, unverified 1.
+- Evidence from Gmail (read-only search, IDs only, Gmail's `resultCountEstimate`): about 204 threads from acquisition.com / hormozi / gymlaunch.com in all; about 114 before 2026-09-01. No email was opened, changed or labelled.
+- **Missing, built:** `ccAccessRows()` / `ccAccessOpen(all)` in content.js (list of sources not opened in full, email counts from the library, the Gmail figure as a dated estimate in `CC_MAIL_NOTE`). Finder entry `srcaccess` registered in claims.js because content.js loads before wayfind.js. Test `test_1370` (16 checks).
+- **Recorded, not built:** the email backlog itself (about 114 older emails + those since September not yet recorded); opening the linked videos behind tracker links; the three workbooks; a fresh search for further companion material.
+- Next: P04 (`8f4f0baf`).
