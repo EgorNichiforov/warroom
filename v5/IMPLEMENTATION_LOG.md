@@ -420,3 +420,11 @@ Egor asked Claude to enrol his laptop itself. Done from his real Chrome (Claude 
 - `agents.js`: packs `bench` (counts by status and town, consent gaps, waiting applicants, agencies with a case), `know` (library by claim class and tier, finished against used, open requests, link kinds), `auto` (automation rows). Roles `recruit`, `curator`, `research`, `ops`. Routing words added after the existing ones, so earlier routes still win.
 - `test_1342`: twelve roles; packs exist; a planted name and phone number do not appear in a pack; new and old questions route correctly.
 - **Pending Egor's tap:** migration `warroom_server_v1_closed` (file in `supabase/`). It asked him to confirm in Supabase and timed out after 120 s. NOT applied, and not run any other way. It closes creation of new rooms once an owner room is named, which makes the "newest row" lookup safe for every scheduled task without rewriting eleven prompts.
+
+
+## 13.52.0 · 20 Nov 2026, 13:50 · fidelity map, source disagreements, AI use
+
+- New file `fidelity.js` (loaded last). `fmRows/fmNext/fmOpen`: seven domains from the records that exist, no overall percentage. `cxAll/cxOpen/cxSave/cxSet`: `S.boot['cx:<id>']`, statuses open / a / b / both; the Knowledge Curator's pack now carries the counts. `auLog/auAdd/auSum/auOpen`: wrapper on `aiText` (flag `_au`), `localStorage['wr-aiuse']`, 60 days kept, never synced; tokens are length divided by four and labelled as an estimate.
+- This is also the first piece of the addendum's "Personal Model Fidelity Map" (its section 4.2) and "Intelligence Gap Engine" (section 15): coverage, freshness, kind of evidence, resolution, unknowns, next best information. Not yet there: predictive validation per domain, consistency between sources, cost of obtaining each piece.
+- `tests/test_1352.py`: 21 checks.
+- `release.py` did not add the new script to `index.html` (it only handled `sw.js`); added by hand after `range.js`. Do the same for the next new file.

@@ -101,3 +101,11 @@ NEXT, with Egor present (one confirmation in Supabase): migration adding `warroo
 - `warroom_owner()` is live. Use `(select warroom_owner())` for the owner's room in every new task and query. Three tasks switched (Sheet sync, Dial Guard, Acvila attendance); eleven to go (list in IMPLEMENTATION_LOG).
 - Vault: left off on purpose. A passphrase Claude chooses would have to be passed to him in chat, which his own rule forbids, and he must type it on the phone anyway.
 - Real-device testing is now possible on the laptop: Claude in Chrome reaches his real War Room. Screenshots time out when the Chrome window is in the background; DOM reads and clicks by element still work.
+
+## 20 Nov 13:21 · TWO NEW BRIEFS RECEIVED (read in full) · order of work set by Egor
+
+Egor: "first continue and build everything out there [the earlier briefs], then go to these two".
+1. `/mnt/user-data/uploads/413c63df-attachment.txt` = "PERSONAL REALITY, WORLD INTELLIGENCE & FUTURE LAB" addendum to the 100% vision (26 sections, 13 stages 0–12, 13 required documents, hardware strategy doc; no purchases; no custom hardware until a gap is proven; never claim accuracy without outcomes).
+2. `/mnt/user-data/uploads/356a7c9c-attachment.txt` = "BILINGUAL COMMUNICATION, ARTICULATION & VERBAL INTELLIGENCE SYSTEM" (Romanian + English first-class; 5 domains A–E; 4 language modes; voice-first with fallback; feedback engine with 10 dimensions, never judge audio from text; profile per language; adaptive selection + spaced repetition; 6 stages by demonstrated competence; real-world capture; Overview/Train/Vocabulary/Progress/History; tests listed in Part 14; definition of done in Part 15).
+Plan: (a) 13.52.0 = the three "Me" items (fidelity/origin map, source contradictions, AI use) → (b) communication system as its own module `speak.js`, in increments, end-to-end loop first → (c) addendum Stage 0 baseline + backlog mapped onto what exists, then stages in order.
+Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (timed out twice-asked-once; do not run another way).
