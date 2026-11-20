@@ -12,6 +12,7 @@
  *
  * Survives provider switching mid-session: queues are independent of the provider instance.
  */
+import { isBrowserSpeechSupported } from "@/lib/speech/providers/browser";
 import { ApiError, api, isAbortError, onApiConnectivity, runStream } from "@/lib/api";
 import type { SegmentInput } from "@/lib/api";
 import type { Language, Scene, SessionEvent, TranscriptSegment } from "@/lib/contracts";
@@ -259,6 +260,13 @@ export class ThinkingController {
       provider.on("error", (message, recoverable) => {
         if (this.provider !== provider) return;
         s.pushError({ stage: "extract", message: `Speech: ${message}`, retryable: recoverable });
+        if (!recoverable && this.store.thinking === "listening" && provider.name !== "browser" && provider.name !== "mock" && isBrowserSpeechSupported()) {
+          // A paid provider failed for good (no credit, bad key, not configured): keep listening
+          // with the free built-in recognizer instead of leaving the user talking to nothing.
+          s.pushError({ stage: "extract", message: `Switched to the built-in browser recognizer because ${provider.name} is unavailable.`, retryable: false });
+          void this.switchProvider("browser", this.language === "auto" ? "ro-RO" : this.language);
+          return;
+        }
         if (!recoverable && this.store.thinking === "listening") {
           // mic lost: keep the session, drop to paused so the user can switch provider
           this.store.setThinking("paused");

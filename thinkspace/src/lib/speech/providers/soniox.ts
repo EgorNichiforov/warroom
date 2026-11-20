@@ -139,6 +139,24 @@ export class SonioxSpeechProvider extends SpeechEmitter implements SpeechProvide
         return;
       }
       if (msg.error_code) {
+        const code = Number(msg.error_code);
+        if (code === 401 || code === 402 || code === 403) {
+          // Account problems will not fix themselves: stop instead of reconnecting forever.
+          const why =
+            code === 402
+              ? "Soniox account has no credit left (balance exhausted). Add funds at console.soniox.com."
+              : `Soniox rejected the API key (${code}: ${msg.error_message ?? "unauthorized"}).`;
+          this.listening = false;
+          this.ws = null;
+          try {
+            ws.close();
+          } catch {
+            /* ignore */
+          }
+          this.setStatus("error", why);
+          this.emit("error", why, false);
+          return;
+        }
         this.emit("error", `Soniox error ${msg.error_code}: ${msg.error_message ?? ""}`.trim(), true);
         return;
       }
