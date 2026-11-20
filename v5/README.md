@@ -1,9 +1,9 @@
-# War Room (branch `main`, folder `v5/` · app 13.46.0)
+# War Room (branch `main`, folder `v5/` · app 13.47.0)
 
 Egor's personal operating system. Plain-JavaScript PWA, no build step, offline-first, synced through Supabase.
 Live: https://egornichiforov.github.io/warroom/v5/ · Android shell (Capacitor) in `native/`, APK in `main:download/WarRoom.apk`.
 
-**Read first:** `BUILD_GATE.md` (when building is allowed), then `WAR_ROOM_MASTER_ARCHITECTURE.md` (the one current map). `ARCHITECTURE.md` is the runbook and history.
+**Read first:** `BUILD_GATE.md` (the old build gate is retired: War Room development is not tied to dials), then `WAR_ROOM_MASTER_ARCHITECTURE.md` (the one current map). `ARCHITECTURE.md` is the runbook and history.
 GitHub Pages deploys from `main`; the `v5` branch is a mirror and is not deployed. The latest audit (19 Nov 2026) is the Claude doc "War Room 13.31.1 · whole-system coherence audit".
 
 ## Shape

@@ -116,7 +116,7 @@ with sync_playwright() as p:
     check('automation screen renders without overflow', ev("document.querySelectorAll('#modal .st-o').length>=10&&document.getElementById('modal').scrollWidth<=390"))
     ev("closeModal(); 0")
     check('BAC wording: the Day reason no longer promises an 8+ average', ev("!mcBuild().C.some(c=>/8\\+/.test(c.why+c.out))") and ev("fetch('./mission.js').then(r=>r.text()).then(t=>!/8\\+ average/.test(t))"))
-    check('the Build Gate file is back in the app folder with its original rules', ev("fetch('./BUILD_GATE.md').then(r=>r.ok?r.text():'').then(t=>/20 dials × weekdays so far/.test(t)&&/override the gate/.test(t))"))
+    check('the Build Gate file is in the app folder and says the gate is retired for War Room development (his decision of 20 Nov)', ev("fetch('./BUILD_GATE.md').then(r=>r.ok?r.text():'').then(t=>/RETIRED for War Room development/.test(t)&&/Do not check the dial count before building/.test(t)&&/two separate projects/.test(t))"))
 
     # ── H · persistence
     ev("coCapNew('persist me','')+''; S.settings.learn={persMin:45}; save(true); 0"); pg.wait_for_timeout(500)

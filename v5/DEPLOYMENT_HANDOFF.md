@@ -128,6 +128,6 @@ Phone tests for you (about 10 minutes):
 | Apply the text fixes to the four tasks | **Done, each re-read after the edit.** Weekly review: Model v3 ladder, BAC "average not lower than 7", "First Hire Free trials started". Morning brief 06:00: same ladder and BAC wording. Nightly review: BAC wording only. Nothing else in any prompt was changed |
 | Bench Bulletin: delete the price line | **Done.** The task now says no price, fee or trial terms anywhere. Its subject example and its reference to the old template were left as they were (not part of the decision) |
 | Keep 05:03, pause 06:00 | **Done.** 06:00 is paused, not deleted, with its text corrected in case it is resumed |
-| Freeze rule | **It stands.** No new War Room mission until 1,000 dials or the first paying client. Fixes and verification only |
+| Freeze rule | **Withdrawn (his correction at 08:27).** War Room and Caregiver Bench are separate projects; War Room development is not tied to dials or a first client. The Playbook, the Build Gate file and the scheduled reviews were updated |
 
 Still open: the six looser row lookups; "weekly" wording in the content scan; the Bulletin's subject example and template reference; device enrolment; the phone tests.

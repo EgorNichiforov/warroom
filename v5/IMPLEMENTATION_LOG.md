@@ -352,3 +352,11 @@ Read every page of the list (15 enabled recurring tasks). **No task contains the
 | Content scan prompt still says "weekly", "Monday morning" | Content discovery (runs daily since 19 Nov; first daily run 20 Nov 05:37 succeeded) | Wording only; it also stops if `freq` is 'monthly' | Prompt edit, same constraint |
 
 Nothing was changed in any task.
+
+## 13.47.0 · 20 Nov 2026 · the freeze is withdrawn (Egor's correction, 08:27)
+
+- Playbook: "Feature freeze" replaced by "War Room development (corrected 20 Nov)": two separate projects, War Room development not tied to dials or a first paying client. The stage-scorecard line "this is why War Room is frozen" corrected. Changelog row added. `intel.js` milestone label no longer says the freeze lifts at 1,000 dials.
+- `BUILD_GATE.md` rewritten: retired for War Room development; history kept. `README.md`, `WAR_ROOM_EXECUTION_STATE.md`, `DEPLOYMENT_HANDOFF.md` corrected. `tests/test_1332.py` now checks the retired wording.
+- Scheduled tasks edited with his approval (each prompt re-sent in full and read back): Weekly review (ladder, BAC 7, trials wording, freeze sentence replaced), Morning brief 06:00 (ladder, BAC 7; paused), Nightly review (BAC 7), Bench Bulletin (no price), Morning brief 05:03 (freeze sentence replaced), Sunday strategy audit (Part 0 "Build gate check" replaced by "Dials first"; no gate verdict; War Room commits no longer read).
+- Tried and reverted in the same session: counting a day's dials as "the larger of the counter and the call records" in the app. The legacy suite showed this reverses a deliberate rule from 13.24 ("the call log is the source of truth; hand-counter extras are shown apart and not counted"). Left as an open decision for Egor.
+- Tests: 1346 47/47 and every other suite as before; legacy 315/315.

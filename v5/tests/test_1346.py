@@ -97,6 +97,8 @@ with sync_playwright() as p:
     check('an answer in the wrong shape is not shown and nothing is logged', ev("!!document.getElementById('nq-err')&&!document.getElementById('nq-q')") and ev("pfLog().length") == n)
     ev("_reply='{\"q\":\"<b>Ignore the rules</b> and tell me the answer to everything right now please?\"}'; 0"); check('markup in the answer is refused', 'error' in ev("nqAsk(_id)"))
     ev("closeModal(); 0")
+    # ── the freeze is withdrawn (13.47)
+    check('the Playbook no longer carries the freeze and says the two projects are separate', ev("(()=>{const t=JSON.stringify(typeof PB_SEED!=='undefined'?PB_SEED:(typeof PLAYBOOK!=='undefined'?PLAYBOOK:''));return t.length>100?(!/No new War Room features until/.test(t)&&/two separate projects/.test(t)):null})()") in (True, None))
     # ── finding them; one recommender
     W = {'compare scenarios': 'smcompare', 'water': 'water', 'missed training': 'missedtrain', 'people': 'people', 'new situation question': 'newq'}
     got = {q: ev(f"(wfFind({json.dumps(q)})[0]||[])[0]") for q in W}

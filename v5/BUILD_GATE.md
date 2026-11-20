@@ -1,18 +1,12 @@
-# ⛔ BUILD GATE (system audit, 18 Nov 2026) — read before changing anything
+# Build Gate: RETIRED for War Room development (Egor, 20 Nov 2026, 08:27)
 
-Evidence: since the 22 Oct commitment (225, then 350 dials/week) War Room logged 3 dials and 0 owner
-conversations, while the app went 13.0 → 13.20 and 25+ plan documents were written. The constraint is
-execution, not tools. Every Claude session that builds War Room, plans, or writes study material must:
+His words: "War Room and Caregiver Bench are two separate projects. Caregiver Bench is my primary business focus during the day. War Room is a separate project. Continue developing it autonomously while I work on the business. The 1,000-dial / first-paying-client condition is NOT a prerequisite for War Room development. Do not wait for my Caregiver Bench dial count before executing War Room architecture and development missions."
 
-1. **Check the number first** (Supabase, SELECT only): dials logged this week (Mon..today) in the main row
-   (days.<date>.counters.dials, or :queue log entries).
-2. **If the week is under its floor** (floor = 20 dials × weekdays so far, Mon–Sat): say so plainly, in one
-   line with the number, and ask Egor to do the next dial block first. Do not start building until he has
-   either dialled or explicitly overridden the gate *in that message* ("override the gate").
-3. **Allowed regardless:** critical bug fixes that block dialling, logging or data integrity; calendar/tasks
-   housekeeping he asks for; tennis-coaching admin.
-4. **Earned builds:** one feature/plan change per 100 dials logged. Keep a line in the changelog: "built X ·
-   dials at the time: N".
+What this means for any Claude session working on War Room:
 
-The aim (Egor's own principle, 15 Nov): "War Room exists to improve my life outside War Room."
+- **Do not check the dial count before building, and do not ask him to dial first.** Build.
+- Do not add "dials at the time" to changelog rows any more.
+- What still holds: preserve his data, security and system stability; no destructive change without his approval; report genuine blockers instead of waiting; never count a dial that was not dialled; never print the sync code.
+- His own time is a different matter from Claude's: if HE asks to spend his day on planning, studying or building instead of selling, his coaching rules (memory, mentor-coach) still apply to him.
 
+History: the gate was written on 18 Nov 2026 after an audit found 3 dials logged against 20 app versions. It asked every session to check dials first and to build one feature per 100 dials. He overrode it in writing on 19 Nov (twice) and 20 Nov, then withdrew it for War Room development on 20 Nov.

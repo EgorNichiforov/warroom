@@ -39,7 +39,7 @@
 | 9 Agent orchestration | Built, bounded (13.42); never run against a live model by the build | `agents.js` |
 | 10 Personal domains | Existed + 13.34 to 13.39 | `depth.js`, `domain.js` |
 | 11 Evolution | Built (13.42); needs weeks of real use to say anything | `agents.js` |
-| 12 Final integration and release | 13.46.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
+| 12 Final integration and release | 13.47.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
@@ -64,11 +64,13 @@ A stage listed for a later release than the current `APP_VERSION` is NOT built y
 
 No literal row id anywhere. Six use a looser main-row lookup that is safe only because `staging-`/`share-` rows carry a 2000-01-01 stamp. Three still coach from the old offer and the old BAC target, and there are two overlapping morning briefs. Table in `IMPLEMENTATION_LOG.md`. Prompt edits were refused by the scheduler on 19 Nov; ask Egor before trying again. The server's own brief timer is OFF so it does not add a third brief.
 
-## Freeze (Egor, 20 Nov 2026, 08:20): IT STANDS
+## No freeze, no build gate (Egor, 20 Nov 2026, 08:27)
 
-No new War Room features and no new architecture mission until **1,000 dials or the first paying client** (the Playbook's rule). Allowed: fixes, verification, switching things on that are already built (device keys, vault). If asked to build, say this first and check the dial count.
+War Room and Caregiver Bench are separate projects. **War Room development is not gated on dials or on a first paying client.** Do not check the dial count before building and do not ask him to dial first. (At 08:20 he tapped "It stands" on a question about the freeze; at 08:27 he wrote that this was recorded wrongly and withdrew the freeze. The written message is the decision.) See `BUILD_GATE.md`.
 
-Scheduled tasks on 20 Nov: prompts corrected in Weekly review, Morning brief 06:00 (now paused), Nightly review, Bench Bulletin (no price line). Prompt edits were accepted once Egor approved them in the conversation. Server timers: backup on, weekly check on, brief off, research off.
+Scheduled tasks on 20 Nov: prompts corrected in Weekly review, Morning brief 06:00 (now paused), Nightly review, Bench Bulletin (no price line); the freeze and the build-gate check removed from Weekly review, Morning brief 05:03 and the Sunday audit (see `IMPLEMENTATION_LOG.md` for which of these went through). Server timers: backup on, weekly check on, brief off, research off.
+
+OPEN DECISION (asked 20 Nov): what counts as a day's dials. App since 13.24 (tested in the legacy suite): call records + outside reports; hand-counter extras shown apart, not counted. Scheduled reviews and the server worker: the larger of counter and call records. A first attempt to switch the app to "larger of" was reverted because it reverses a deliberate, tested rule. Do not change either side until Egor chooses.
 
 ## Before every release
 
@@ -78,6 +80,6 @@ Scheduled tasks on 20 Nov: prompts corrected in Weekly review, Morning brief 06:
 
 ## Next action
 
-1. Everything listed in the two briefs has a built counterpart as of 13.46.0. What remains is use and verification, not building.
+1. Everything listed in the two briefs has a built counterpart as of 13.47.0. What remains is use and verification, not building.
 2. Egor presses the phone checklist and reports what breaks.
 3. After two weeks of use, open "Is War Room working?" and fold away what was never opened.
