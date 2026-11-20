@@ -367,3 +367,12 @@ Nothing was changed in any task.
 - `tests/test_1348.py` (12): real service worker, network cut with `set_offline`, reload from cache, work offline; speed budgets with ordinary data and with two years of synthetic heavy use.
 - Screenshots (`/home/claude/work/shots.py`, not in the repo) of the new sheets at 390×844, dark and graphite. Found: a row of buttons inside a sheet's content must not use `.actions` (that class is the sticky bar at the bottom of a sheet and covers what follows). New class `.fn-inline` in `monolith.css`; inner rows in `server.js`, `vault.js`, `finish.js` moved to it. Rule for new screens: exactly one `.actions` per sheet, the last row.
 - `finish.js` section 8: the scorecard's Dials row names counter-only presses. The two counting rules (app: call records; reviews: larger of counter and records) are both left as they are and both now say what they include.
+
+## 20 Nov 2026, 09:00 · scheduled tasks, second pass (Egor: "work through it all")
+
+- War Room app ⇄ Google Sheet sync (hourly, the one that writes days into the row it finds): main-row lookup tightened to exclude `staging-`/`share-` rows and to require `data ? 'days'`.
+- Monday Bench Bulletin draft: same lookup; subject now follows the Playbook's E7 template; the old template in the egorflow repo is named as retired.
+- Left as they are, on purpose: System check, Weekly review, Close the day and the paused 06:00 brief still use the lookup that excludes only `staging-`. They are safe today (the `share-` row carries the 2000-01-01 stamp) and each edit means re-sending a 5,000 to 7,000 character prompt; do them the next time one of those prompts is edited for another reason. Same for the word "weekly" in the daily content scan (cosmetic; it runs daily).
+- Not changed: the dial definition in the reviews (larger of counter and call records) and in the app (call records; counter extras shown apart). Both now say what they include. Still Egor's decision.
+- A note "what needs you (10 minutes)" was left in the app inbox with the phone checks, the enrolment steps and that decision.
+- Worker: unchanged since version 3. Pending for the next deploy: show counter-only dials apart in the brief line, the way the app does.
