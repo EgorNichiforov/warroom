@@ -21,31 +21,36 @@ type Holder = { db: Db; kind: DbKind; ready: Promise<void>; close: () => Promise
 
 const g = globalThis as unknown as { __thinkspaceDb?: Holder };
 
+/** All tables and the migrations ledger live in the "thinkspace" schema (see schema.ts). */
+const MIGRATIONS_SCHEMA = "thinkspace";
+
+/**
+ * DATABASE_URL may carry the literal placeholder __PASSWORD__; it is replaced with
+ * DATABASE_PASSWORD so the password can be managed as its own secret.
+ */
+export function resolveDatabaseUrl(url: string): string {
+  if (!url.includes("__PASSWORD__")) return url;
+  const pw = process.env.DATABASE_PASSWORD ?? "";
+  if (!pw) throw new Error("DATABASE_URL contains __PASSWORD__ but DATABASE_PASSWORD is not set");
+  return url.replace("__PASSWORD__", encodeURIComponent(pw));
+}
+
 function migrationsFolder() {
   return path.join(process.cwd(), "drizzle");
 }
 
 function create(): Holder {
   if (config.databaseUrl) {
-    // Optional dedicated schema (shared Postgres host): tables and the migrations table live there.
-    const dbSchema = process.env.THINKSPACE_DB_SCHEMA?.trim() || undefined;
-    const sql = postgres(config.databaseUrl, {
-      max: 5,
-      prepare: false,
-      ...(dbSchema ? { connection: { search_path: dbSchema } } : {}),
-    });
+    const sql = postgres(resolveDatabaseUrl(config.databaseUrl), { max: 5, prepare: false });
     const db = drizzlePg(sql, { schema });
-    const ready = migratePg(db, {
-      migrationsFolder: migrationsFolder(),
-      ...(dbSchema ? { migrationsSchema: dbSchema } : {}),
-    });
+    const ready = migratePg(db, { migrationsFolder: migrationsFolder(), migrationsSchema: MIGRATIONS_SCHEMA });
     return { db, kind: "postgres", ready, close: () => sql.end() };
   }
   const dir = config.pgliteDir === ":memory:" ? undefined : path.resolve(/*turbopackIgnore: true*/ process.cwd(), config.pgliteDir);
   if (dir) fs.mkdirSync(dir, { recursive: true }); // PGlite does not create a missing data directory
   const client = new PGlite(dir);
   const db = drizzlePglite(client, { schema });
-  const ready = migratePglite(db, { migrationsFolder: migrationsFolder() });
+  const ready = migratePglite(db, { migrationsFolder: migrationsFolder(), migrationsSchema: MIGRATIONS_SCHEMA });
   return { db, kind: "pglite", ready, close: () => client.close() };
 }
 

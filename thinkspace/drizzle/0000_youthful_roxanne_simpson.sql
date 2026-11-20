@@ -1,4 +1,6 @@
-CREATE TABLE "action_items" (
+CREATE SCHEMA IF NOT EXISTS "thinkspace";
+--> statement-breakpoint
+CREATE TABLE "thinkspace"."action_items" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"text" text NOT NULL,
@@ -13,7 +15,7 @@ CREATE TABLE "action_items" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "assets" (
+CREATE TABLE "thinkspace"."assets" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"kind" text DEFAULT 'image' NOT NULL,
@@ -26,7 +28,7 @@ CREATE TABLE "assets" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "change_events" (
+CREATE TABLE "thinkspace"."change_events" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"model_id" text,
@@ -41,7 +43,7 @@ CREATE TABLE "change_events" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "concepts" (
+CREATE TABLE "thinkspace"."concepts" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"label" text NOT NULL,
@@ -55,7 +57,7 @@ CREATE TABLE "concepts" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "events" (
+CREATE TABLE "thinkspace"."events" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"seq" integer NOT NULL,
@@ -65,7 +67,7 @@ CREATE TABLE "events" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "model_versions" (
+CREATE TABLE "thinkspace"."model_versions" (
 	"id" text PRIMARY KEY NOT NULL,
 	"model_id" text NOT NULL,
 	"session_id" text NOT NULL,
@@ -75,7 +77,7 @@ CREATE TABLE "model_versions" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "relations" (
+CREATE TABLE "thinkspace"."relations" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"from_id" text NOT NULL,
@@ -89,7 +91,7 @@ CREATE TABLE "relations" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "scenes" (
+CREATE TABLE "thinkspace"."scenes" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"title" text NOT NULL,
@@ -108,7 +110,7 @@ CREATE TABLE "scenes" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "sessions" (
+CREATE TABLE "thinkspace"."sessions" (
 	"id" text PRIMARY KEY NOT NULL,
 	"owner_id" text NOT NULL,
 	"title" text NOT NULL,
@@ -125,7 +127,7 @@ CREATE TABLE "sessions" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "system_models" (
+CREATE TABLE "thinkspace"."system_models" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"name" text NOT NULL,
@@ -136,7 +138,7 @@ CREATE TABLE "system_models" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "thoughts" (
+CREATE TABLE "thinkspace"."thoughts" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"type" text NOT NULL,
@@ -152,7 +154,7 @@ CREATE TABLE "thoughts" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "transcript_segments" (
+CREATE TABLE "thinkspace"."transcript_segments" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text NOT NULL,
 	"seq" integer NOT NULL,
@@ -170,7 +172,7 @@ CREATE TABLE "transcript_segments" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "usage_log" (
+CREATE TABLE "thinkspace"."usage_log" (
 	"id" text PRIMARY KEY NOT NULL,
 	"session_id" text,
 	"provider" text NOT NULL,
@@ -183,26 +185,26 @@ CREATE TABLE "usage_log" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "action_items" ADD CONSTRAINT "action_items_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "assets" ADD CONSTRAINT "assets_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "change_events" ADD CONSTRAINT "change_events_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "concepts" ADD CONSTRAINT "concepts_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "events" ADD CONSTRAINT "events_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "model_versions" ADD CONSTRAINT "model_versions_model_id_system_models_id_fk" FOREIGN KEY ("model_id") REFERENCES "public"."system_models"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "model_versions" ADD CONSTRAINT "model_versions_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "relations" ADD CONSTRAINT "relations_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "scenes" ADD CONSTRAINT "scenes_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "system_models" ADD CONSTRAINT "system_models_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "thoughts" ADD CONSTRAINT "thoughts_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "transcript_segments" ADD CONSTRAINT "transcript_segments_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "usage_log" ADD CONSTRAINT "usage_log_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "actions_session_idx" ON "action_items" USING btree ("session_id","created_at");--> statement-breakpoint
-CREATE INDEX "changes_session_idx" ON "change_events" USING btree ("session_id","created_at");--> statement-breakpoint
-CREATE INDEX "concepts_session_idx" ON "concepts" USING btree ("session_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "events_session_seq_idx" ON "events" USING btree ("session_id","seq");--> statement-breakpoint
-CREATE UNIQUE INDEX "model_versions_idx" ON "model_versions" USING btree ("model_id","version");--> statement-breakpoint
-CREATE INDEX "relations_session_idx" ON "relations" USING btree ("session_id");--> statement-breakpoint
-CREATE INDEX "scenes_session_idx" ON "scenes" USING btree ("session_id","created_at");--> statement-breakpoint
-CREATE INDEX "sessions_owner_idx" ON "sessions" USING btree ("owner_id","updated_at");--> statement-breakpoint
-CREATE INDEX "thoughts_session_idx" ON "thoughts" USING btree ("session_id","created_at");--> statement-breakpoint
-CREATE UNIQUE INDEX "segments_session_seq_idx" ON "transcript_segments" USING btree ("session_id","seq");
+ALTER TABLE "thinkspace"."action_items" ADD CONSTRAINT "action_items_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."assets" ADD CONSTRAINT "assets_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."change_events" ADD CONSTRAINT "change_events_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."concepts" ADD CONSTRAINT "concepts_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."events" ADD CONSTRAINT "events_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."model_versions" ADD CONSTRAINT "model_versions_model_id_system_models_id_fk" FOREIGN KEY ("model_id") REFERENCES "thinkspace"."system_models"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."model_versions" ADD CONSTRAINT "model_versions_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."relations" ADD CONSTRAINT "relations_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."scenes" ADD CONSTRAINT "scenes_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."system_models" ADD CONSTRAINT "system_models_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."thoughts" ADD CONSTRAINT "thoughts_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."transcript_segments" ADD CONSTRAINT "transcript_segments_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "thinkspace"."usage_log" ADD CONSTRAINT "usage_log_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "thinkspace"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "actions_session_idx" ON "thinkspace"."action_items" USING btree ("session_id","created_at");--> statement-breakpoint
+CREATE INDEX "changes_session_idx" ON "thinkspace"."change_events" USING btree ("session_id","created_at");--> statement-breakpoint
+CREATE INDEX "concepts_session_idx" ON "thinkspace"."concepts" USING btree ("session_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "events_session_seq_idx" ON "thinkspace"."events" USING btree ("session_id","seq");--> statement-breakpoint
+CREATE UNIQUE INDEX "model_versions_idx" ON "thinkspace"."model_versions" USING btree ("model_id","version");--> statement-breakpoint
+CREATE INDEX "relations_session_idx" ON "thinkspace"."relations" USING btree ("session_id");--> statement-breakpoint
+CREATE INDEX "scenes_session_idx" ON "thinkspace"."scenes" USING btree ("session_id","created_at");--> statement-breakpoint
+CREATE INDEX "sessions_owner_idx" ON "thinkspace"."sessions" USING btree ("owner_id","updated_at");--> statement-breakpoint
+CREATE INDEX "thoughts_session_idx" ON "thinkspace"."thoughts" USING btree ("session_id","created_at");--> statement-breakpoint
+CREATE UNIQUE INDEX "segments_session_seq_idx" ON "thinkspace"."transcript_segments" USING btree ("session_id","seq");

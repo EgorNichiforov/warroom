@@ -8,12 +8,16 @@ import {
   index,
   integer,
   jsonb,
-  pgTable,
+  pgSchema,
   real,
   text,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+
+/** Every THINKSPACE table lives in its own schema so the app can share a Postgres host safely. */
+export const thinkspaceSchema = pgSchema("thinkspace");
+const pgTable = thinkspaceSchema.table;
 
 const bytea = customType<{ data: Uint8Array; driverData: Uint8Array }>({
   dataType: () => "bytea",

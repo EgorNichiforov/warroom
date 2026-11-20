@@ -1,12 +1,12 @@
 {
-  "id": "10e3bf5e-5b4b-478a-aa94-8ff1fcc57db4",
+  "id": "f1e6dc26-f3d5-4fc0-8ba2-bbd67ecb23b5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.action_items": {
+    "thinkspace.action_items": {
       "name": "action_items",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -115,6 +115,7 @@
           "name": "action_items_session_id_sessions_id_fk",
           "tableFrom": "action_items",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -131,9 +132,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.assets": {
+    "thinkspace.assets": {
       "name": "assets",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -205,6 +206,7 @@
           "name": "assets_session_id_sessions_id_fk",
           "tableFrom": "assets",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -221,9 +223,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.change_events": {
+    "thinkspace.change_events": {
       "name": "change_events",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -331,6 +333,7 @@
           "name": "change_events_session_id_sessions_id_fk",
           "tableFrom": "change_events",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -347,9 +350,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.concepts": {
+    "thinkspace.concepts": {
       "name": "concepts",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -447,6 +450,7 @@
           "name": "concepts_session_id_sessions_id_fk",
           "tableFrom": "concepts",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -463,9 +467,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.events": {
+    "thinkspace.events": {
       "name": "events",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -540,6 +544,7 @@
           "name": "events_session_id_sessions_id_fk",
           "tableFrom": "events",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -556,9 +561,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.model_versions": {
+    "thinkspace.model_versions": {
       "name": "model_versions",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -632,6 +637,7 @@
           "name": "model_versions_model_id_system_models_id_fk",
           "tableFrom": "model_versions",
           "tableTo": "system_models",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "model_id"
           ],
@@ -645,6 +651,7 @@
           "name": "model_versions_session_id_sessions_id_fk",
           "tableFrom": "model_versions",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -661,9 +668,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.relations": {
+    "thinkspace.relations": {
       "name": "relations",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -760,6 +767,7 @@
           "name": "relations_session_id_sessions_id_fk",
           "tableFrom": "relations",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -776,9 +784,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.scenes": {
+    "thinkspace.scenes": {
       "name": "scenes",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -914,6 +922,7 @@
           "name": "scenes_session_id_sessions_id_fk",
           "tableFrom": "scenes",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -930,9 +939,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.sessions": {
+    "thinkspace.sessions": {
       "name": "sessions",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -1057,9 +1066,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.system_models": {
+    "thinkspace.system_models": {
       "name": "system_models",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -1120,6 +1129,7 @@
           "name": "system_models_session_id_sessions_id_fk",
           "tableFrom": "system_models",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -1136,9 +1146,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.thoughts": {
+    "thinkspace.thoughts": {
       "name": "thoughts",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -1255,6 +1265,7 @@
           "name": "thoughts_session_id_sessions_id_fk",
           "tableFrom": "thoughts",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -1271,9 +1282,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.transcript_segments": {
+    "thinkspace.transcript_segments": {
       "name": "transcript_segments",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -1399,6 +1410,7 @@
           "name": "transcript_segments_session_id_sessions_id_fk",
           "tableFrom": "transcript_segments",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -1415,9 +1427,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.usage_log": {
+    "thinkspace.usage_log": {
       "name": "usage_log",
-      "schema": "",
+      "schema": "thinkspace",
       "columns": {
         "id": {
           "name": "id",
@@ -1491,6 +1503,7 @@
           "name": "usage_log_session_id_sessions_id_fk",
           "tableFrom": "usage_log",
           "tableTo": "sessions",
+          "schemaTo": "thinkspace",
           "columnsFrom": [
             "session_id"
           ],
@@ -1509,7 +1522,9 @@
     }
   },
   "enums": {},
-  "schemas": {},
+  "schemas": {
+    "thinkspace": "thinkspace"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},
