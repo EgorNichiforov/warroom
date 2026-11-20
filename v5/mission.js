@@ -71,7 +71,7 @@ function mcCallbacks(k) { try { return qItems().filter((x) => x.status === 'call
 /* ── campaigns (intel.js owns the records): at most three active; the mission names the one it advances ── */
 function mcCampDom(c) { if (c.dom) return c.dom; const t = ((c.title || '') + ' ' + (c.objective || '')).toLowerCase(); return /bac|exam|study|school/.test(t) ? 'bac' : /physical|kg|body|train|fit/.test(t) ? 'body' : /client|agency|dial|business|caregiver|revenue|mrr/.test(t) ? 'biz' : 'life'; }
 function mcCampaigns() { try { return (typeof campActive === 'function' ? campActive() : []).sort((a, b) => ((a.deadline || '9') < (b.deadline || '9') ? -1 : 1)).slice(0, 3); } catch (e) { return []; } }
-function mcCampFor(dom) { const cp = mcCampaigns().find((c) => mcCampDom(c) === dom); if (!cp) return null; const ms = cp.milestones || [], nx = ms.find((m) => !campMsOk(m)); return { id: cp.id, title: cp.title, why: cp.objective || '', criteria: cp.criteria || '', next: nx ? nx.t : 'every milestone has evidence', pct: campaignProgress(cp), ms: ms.map((m) => { const a = campMsAuto(m); return { t: m.t, ok: campMsOk(m), ev: a ? a.ev : m.ev || (m.done ? 'ticked without evidence: not counted' : '') }; }) }; }
+function mcCampFor(dom) { const cp = mcCampaigns().find((c) => mcCampDom(c) === dom); if (!cp) return null; const ms = cp.milestones || [], nx = ms.find((m) => !campMsOk(m)); return { id: cp.id, title: cp.title, why: cp.why || cp.objective || '', criteria: cp.criteria || '', next: nx ? nx.t : 'every milestone has evidence', pct: campaignProgress(cp), ms: ms.map((m) => { const a = campMsAuto(m); return { t: m.t, ok: campMsOk(m), ev: a ? a.ev : m.ev || (m.done ? 'ticked without evidence: not counted' : '') }; }) }; }
 
 /* ── the engine ── */
 function mcBuild() {

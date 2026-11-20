@@ -186,3 +186,10 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - Audit done: P01, P13, P02, P03. Next, oldest first: P04 `8f4f0baf`, P05 `a1c1f604`, P06 `fd126a52`, P07 `b5fd8906`, P08 `6a3a7bc8`, P09 `ba256a43`, P10 `3d6afeda`, P11 `c0fd84f7`, P12 `7997f1ef`, P14 `decf8883`, P15 `413c63df`, P16 `356a7c9c`.
 - A file that registers a finder entry must load after wayfind.js (index.html order); content.js does not.
 - `CC_MAIL_NOTE` in content.js is a dated estimate: update it whenever the mailbox is counted again.
+
+
+## Resume note · 21 Nov 2026, 00:45 (after 13.71.0)
+
+- Audit done: P01, P13, P02, P03, P04. Next: P05 `a1c1f604` (839 lines; sent twice as `45da420e`), then P06 `fd126a52`, P07 `b5fd8906`, P08 `6a3a7bc8`, P09 `ba256a43`, P10 `3d6afeda`, P11 `c0fd84f7`, P12 `7997f1ef`, P14 `decf8883`, P15 `413c63df`, P16 `356a7c9c`.
+- Third technique that found real faults: read his real settings on the laptop and compare them with what the screen would say (BAC target unset, so the fallback showed).
+- Watch for `S.settings.x = { ... }` assignments that replace a whole settings object another file also writes to.

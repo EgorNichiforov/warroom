@@ -572,3 +572,15 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Missing, built:** `ccAccessRows()` / `ccAccessOpen(all)` in content.js (list of sources not opened in full, email counts from the library, the Gmail figure as a dated estimate in `CC_MAIL_NOTE`). Finder entry `srcaccess` registered in claims.js because content.js loads before wayfind.js. Test `test_1370` (16 checks).
 - **Recorded, not built:** the email backlog itself (about 114 older emails + those since September not yet recorded); opening the linked videos behind tracker links; the three workbooks; a fresh search for further companion material.
 - Next: P04 (`8f4f0baf`).
+
+
+## 13.71.0 · 21 Nov 2026, 00:45 · P04 read and settled
+
+- Read: P04 (`8f4f0baf`, 542 lines).
+- Settled in the code: A1 one recommender; A2 `mcCampFor` (mission.js), `campToggle` cap, `campMsOk` evidence; A3 engine.js controlled replanning (KEEP / MOVE / DROP, `replanLog`); 4 `lib/bac.json` (`src`, `checked` 2026-11-19, `verify` list of four), `bacTrack()` refuses a verdict when a subject has no mock.
+- **Found on the laptop (read-only):** `S.settings.bac.target` unset, so `bacTrack`, `bacTargetsOpen` and the board fell back to 8, and `bacApply` gave exam subjects 8; his goal reads "BAC: pass, average not lower than 7".
+- **Fixed:** `BAC_FLOOR = 7` in bac.js replaces the four fallbacks of 8; the board hint states the floor in words. `bacTargetsSave` now merges into `S.settings.bac` instead of replacing it (it dropped `profile`, `profileOk`, `certOk`). `mcCampFor` uses `cp.why || cp.objective`.
+- Legacy test updated on purpose, not weakened: `tests/run.py` "BAC 13.24.1" now expects the default 7 (his decision of 19 Nov replaced the 8 Nov one). New `test_1371`.
+- Correction: 13.70 texts said 23 emails feed a lesson; that is the library file. Laptop: 47 of 58, 265 sources.
+- Next: P05 (`a1c1f604`, 839 lines).
+- Second legacy check updated for the same reason: in "BAC 13.24" the scenario's Romanian mocks were 7 and 7.5, flagged as below a target of 8. Under the floor of 7 they are no longer below target, so the scenario now uses 6 and 6.5 and checks the same behaviour (average passes, Romanian flagged, next study is Romanian).

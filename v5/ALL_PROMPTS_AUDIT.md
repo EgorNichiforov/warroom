@@ -6,8 +6,8 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Status | Sections |
 |---|---|
-| Built, with a test | 46 |
-| Exists (not re-checked line by line) | 77 |
+| Built, with a test | 47 |
+| Exists (not re-checked line by line) | 76 |
 | Partly | 50 |
 | Not built | 3 |
 | Needs you | 2 |
@@ -41,7 +41,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| 1 Email archive and what could not be opened | Built, with a test | lib/sources.json, content.js | CHECKED LINE BY LINE 21 Nov: every email in the library carries subject, sender, date, link, topic, type, whether it was opened and which lessons it feeds. The list you asked for, of what was not really opened, did not exist; built in 13.70. What it shows today: 58 emails recorded, 23 feed a lesson, 56 were only partly opened (text read, linked video not). |
+| 1 Email archive and what could not be opened | Built, with a test | lib/sources.json, content.js | CHECKED LINE BY LINE 21 Nov: every email in the library carries subject, sender, date, link, topic, type, whether it was opened and which lessons it feeds. The list you asked for, of what was not really opened, did not exist; built in 13.70. What it shows: 58 emails recorded, 56 only partly opened (text read, linked video not). Emails that feed a lesson: 23 in the library file alone, 47 on your laptop, where your own records add links (265 sources there in all). |
 | 2 Integrate everything | Exists (not re-checked line by line) | content.js, kpipe.js, the daily content scan (Gmail read-only) | Read 21 Nov. Lessons, the knowledge store, playbooks and the link to goals exist; not checked item by item. |
 | 3 Connections, not isolated content | Exists (not re-checked line by line) | kpipe.js, capmap.js |  |
 | 5 Final requirement: every email processed | Partly | daily scan | Counted 20 Nov with a read-only Gmail search (Gmail estimates): about 204 emails from these senders, 58 in the library. About 114 are from before 1 Sep and none of those is in the library. The scan works off six a run, so at this rate the old ones take weeks. Not finished. |
@@ -62,10 +62,10 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| Phase A Unify the daily execution system | Exists (not re-checked line by line) | mission.js, guide.js |  |
+| Phase A Unify the daily execution system | Exists (not re-checked line by line) | mission.js, engine.js, intel.js | CHECKED LINE BY LINE 21 Nov: one recommender, campaigns capped at three with progress counted only from evidence, and replanning that proposes keep, move or drop and waits for your yes are in the code. The mission card showed the campaign objective as its why; from 13.71 it shows the why-it-matters line you write on the campaign. |
 | 3 Complete the Bootcamp | Partly | bootcamp.js, blueprint.js | See P01 section 10. |
-| 4 Finish the BAC system | Exists (not re-checked line by line) | bac.js |  |
-| 5 One real-life learning journal | Exists (not re-checked line by line) | journal.js |  |
+| 4 Finish the BAC system | Built, with a test | bac.js, lib/bac.json, expand.js | CHECKED LINE BY LINE 21 Nov: sources are the 2027 timetable and programme orders on ance.gov.md (checked 19 Nov), four points are listed as still to verify, and on track is refused without mock scores. Two faults found on your laptop and fixed in 13.71: the board said target 8+ and gave Romanian and History a target of 8 while your goal says not lower than 7; and saving targets wiped your confirmed profile. |
+| 5 One real-life learning journal | Exists (not re-checked line by line) | journal.js, capability.js, defense.js | Read 21 Nov. One entry flow, links to campaigns, capabilities and decisions, and a lesson can become a protocol or (from 13.68) a procedure. Not checked field by field. |
 | 7 UX requirements | Exists (not re-checked line by line) | ux.js, wayfind.js |  |
 | 1, 2, 6, 8, 9 Rules, method, report | A rule of work |  | Followed. Section 6 (no security changes) was later lifted by you. |
 
