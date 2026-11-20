@@ -41,7 +41,15 @@ function migrationsFolder() {
 
 function create(): Holder {
   if (config.databaseUrl) {
-    const sql = postgres(resolveDatabaseUrl(config.databaseUrl), { max: 5, prepare: false });
+    // Serverless instances share Supabase's pooler: one connection per instance avoids
+    // stalls when several queries run in parallel (they simply queue on the one connection).
+    const poolMax = Number(process.env.THINKSPACE_DB_POOL) || (process.env.VERCEL ? 1 : 5);
+    const sql = postgres(resolveDatabaseUrl(config.databaseUrl), {
+      max: poolMax,
+      prepare: false,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    });
     const db = drizzlePg(sql, { schema });
     const ready = migratePg(db, { migrationsFolder: migrationsFolder(), migrationsSchema: MIGRATIONS_SCHEMA });
     return { db, kind: "postgres", ready, close: () => sql.end() };
