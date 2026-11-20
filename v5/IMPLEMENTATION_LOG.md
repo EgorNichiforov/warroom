@@ -474,3 +474,11 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - `WAR_ROOM_INTELLIGENCE_BASELINE.md`: section-by-section map of the brief against existing files, dependencies, hardware note.
 - `WAR_ROOM_INTELLIGENCE_IMPLEMENTATION_BACKLOG.md`: twelve items with the test that closes each. Item 1 done; 2 and 3 next.
 - Not done from the brief's "first actions": re-reading 84621 line by line (worked from the execution state and coverage table instead); a separate execution branch (work continues on `main` with the test gate, as before).
+
+
+## 13.59.0 · 20 Nov 2026, 21:25 · Communication, increment 3 (`speak3.js`)
+
+- `spd*` today's session: five blocks (3+5+3+7+5 = 23 min); `spdPlan` reads today's attempts (`blk` tag added to attempts in speak.js and speak2.js) so a block is done only when something was said; C is a word review when a word is due, else a precise-word exercise; D is a conversation with an AI key, else the exercise the record points to; E reuses "say it again" on today's first attempt that got a priority. `spkOpen` is wrapped so leaving a block returns to the session.
+- `spp*` progress and history: per language `sppStats` (attempts per week × 8, per-dimension last-5 against first scores, "may have slipped" only with ten scores and a drop of 1.5, the coach's repeated priorities, words, real-life moments, days practised in 14), `sppFind` search, `sppCmp` first against second.
+- Test `test_1359` (22 checks). Brief parts now covered: 5.1, Part 11 A–E (as text and a small week bar; no charts library), 8.10 regression note, 12 historical comparison.
+- **Still open in the Communication brief:** 5.2 kept audio and playback; Part 9 levels 4–6 exercises; spaced repetition for grammar patterns and corrected habits; Part 10's eleven scenario families (eight situations exist); a real microphone test; anything on the phone; coach and partner quality on his main model.

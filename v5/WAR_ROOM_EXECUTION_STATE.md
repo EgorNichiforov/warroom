@@ -132,3 +132,8 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - Newest files in load order: fidelity.js, speak.js, speak2.js, forecast.js (index.html by hand + sw.js SHELL).
 
 - RELEASE GATE, in this order: every v5/*.js parses under node → suites → duplicate-name check → new store prefixes not used elsewhere → commit → push. (13.58: a changelog row with backticks broke playbook.js; caught by the suites before the commit.) Never put backticks in a Playbook changelog row.
+
+## 20 Nov 21:30 · after 13.59.0
+
+- Communication increments 1–3 live (speak.js, speak2.js, speak3.js; tests 1354, 1357, 1359). Open list is in IMPLEMENTATION_LOG 13.59.0. NEXT for it: levels 4–6 exercises + review of corrected habits; audio only with consent and phone support.
+- Second brief: backlog item 1 done; NEXT items 2 and 3 (kind of claim on main numbers; happened-at against recorded-at).
