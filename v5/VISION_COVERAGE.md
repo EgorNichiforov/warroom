@@ -40,3 +40,14 @@ Status words: **Built** = code exists and a test in `tests/` exercises it. **Exi
 - Personal model, observed vs stated, correctable (13.45.0): **live**.
 - Not built: see the list at the end of `IMPLEMENTATION_LOG.md` → 13.45.0.
 - 13.46.0: server ON (live); link kinds, scenario comparison, water, missed training, folding, people and commitments, AI new-situation questions: **live**. Server research: **not working** (no search quota on the AI key).
+
+## Corrections to the table above (20 Nov, 13.48.0)
+
+| Row | Now |
+|---|---|
+| V Personal model | Built: `model.js` (said beside shown, evidence counts, corrections) |
+| X Knowledge | Links between ideas carry a kind, including "contradicts" (`finish.js`). Still no contradiction records between outside sources |
+| XIX Technical | A backend the app controls exists and is live: job queue, timers, worker (`supabase/`). AI calls are counted per job and capped per day; money cost is not tracked |
+| XX Security | Device keys, optional lock and an audit list are live on the server (no device enrolled yet). Vault for the private stores is live, off until a passphrase is set |
+| XXV Testing | Offline and speed are now tested (`tests/test_1348.py`). Still no physical-device test; AI output quality still judged with a stand-in |
+| XVIII Visual | New sheets looked at by eye in dark and graphite at phone size; one overlap found and fixed |

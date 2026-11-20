@@ -360,3 +360,10 @@ Nothing was changed in any task.
 - Scheduled tasks edited with his approval (each prompt re-sent in full and read back): Weekly review (ladder, BAC 7, trials wording, freeze sentence replaced), Morning brief 06:00 (ladder, BAC 7; paused), Nightly review (BAC 7), Bench Bulletin (no price), Morning brief 05:03 (freeze sentence replaced), Sunday strategy audit (Part 0 "Build gate check" replaced by "Dials first"; no gate verdict; War Room commits no longer read).
 - Tried and reverted in the same session: counting a day's dials as "the larger of the counter and the call records" in the app. The legacy suite showed this reverses a deliberate rule from 13.24 ("the call log is the source of truth; hand-counter extras are shown apart and not counted"). Left as an open decision for Egor.
 - Tests: 1346 47/47 and every other suite as before; legacy 315/315.
+
+
+## 13.48.0 · 20 Nov 2026 · offline and speed proven, screens looked at
+
+- `tests/test_1348.py` (12): real service worker, network cut with `set_offline`, reload from cache, work offline; speed budgets with ordinary data and with two years of synthetic heavy use.
+- Screenshots (`/home/claude/work/shots.py`, not in the repo) of the new sheets at 390×844, dark and graphite. Found: a row of buttons inside a sheet's content must not use `.actions` (that class is the sticky bar at the bottom of a sheet and covers what follows). New class `.fn-inline` in `monolith.css`; inner rows in `server.js`, `vault.js`, `finish.js` moved to it. Rule for new screens: exactly one `.actions` per sheet, the last row.
+- `finish.js` section 8: the scorecard's Dials row names counter-only presses. The two counting rules (app: call records; reviews: larger of counter and records) are both left as they are and both now say what they include.

@@ -288,3 +288,6 @@ html[data-look="graphite"]{
   --scrim:rgba(5,8,12,.6);
   color-scheme:dark;
 }
+
+/* 13.48.0: a row of buttons inside a sheet's content. The sticky bar at the bottom of a sheet (.actions) is only for the last row. */
+.fn-inline{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.fn-inline .btn{flex:1 1 140px}

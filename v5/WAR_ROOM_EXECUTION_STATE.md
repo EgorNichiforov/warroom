@@ -39,7 +39,7 @@
 | 9 Agent orchestration | Built, bounded (13.42); never run against a live model by the build | `agents.js` |
 | 10 Personal domains | Existed + 13.34 to 13.39 | `depth.js`, `domain.js` |
 | 11 Evolution | Built (13.42); needs weeks of real use to say anything | `agents.js` |
-| 12 Final integration and release | 13.47.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
+| 12 Final integration and release | 13.48.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
@@ -80,6 +80,6 @@ OPEN DECISION (asked 20 Nov): what counts as a day's dials. App since 13.24 (tes
 
 ## Next action
 
-1. Everything listed in the two briefs has a built counterpart as of 13.47.0. What remains is use and verification, not building.
+1. Everything listed in the two briefs has a built counterpart as of 13.48.0. What remains is use and verification, not building.
 2. Egor presses the phone checklist and reports what breaks.
 3. After two weeks of use, open "Is War Room working?" and fold away what was never opened.
