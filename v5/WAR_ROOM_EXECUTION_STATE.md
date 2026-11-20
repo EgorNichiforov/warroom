@@ -60,6 +60,10 @@ A stage listed for a later release than the current `APP_VERSION` is NOT built y
 - Vault (13.44.0): built and live in the app, off. Only Egor can switch it on (it needs a passphrase only he knows). Rule learned: any on-device change to `settings` must call `touch(S.settings)` or other devices ignore it.
 - A morning-brief Claude scheduled task was refused by the scheduler's permission system; the server brief replaces it.
 
+## Claude's scheduled tasks (all 15 read on 20 Nov)
+
+No literal row id anywhere. Six use a looser main-row lookup that is safe only because `staging-`/`share-` rows carry a 2000-01-01 stamp. Three still coach from the old offer and the old BAC target, and there are two overlapping morning briefs. Table in `IMPLEMENTATION_LOG.md`. Prompt edits were refused by the scheduler on 19 Nov; ask Egor before trying again. The server's own brief timer is OFF so it does not add a third brief.
+
 ## Before every release
 
 - Check for a function name defined twice: `grep -ohE "^(async )?function [A-Za-z0-9_]+" *.js | sed -E 's/^(async )?function //' | sort | uniq -d` must print only `cmOpen endSession renderStats startSession` (old, intended). On 20 Nov a new `bpOpen` silently replaced the Blueprint screen; the 13.31 suite caught it.

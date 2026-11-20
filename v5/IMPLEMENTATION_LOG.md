@@ -337,3 +337,18 @@ Egor confirmed in Supabase. Three migrations applied, worker deployed three time
 Honest limits: (7) was tested with a stand-in for the AI, so the plumbing and the limits are proven, not the quality of the questions. (4) decides nothing about load or recovery. (5) will fold most of the list for someone who uses five screens; that is the point, and "now" is never folded.
 
 Of the list above, one item is left: reading the later pages of Claude's scheduled-task list for literal ids (see the next entry if it was done).
+
+
+## 20 Nov 2026 · all 15 of Claude's scheduled tasks read (the last open item)
+
+Read every page of the list (15 enabled recurring tasks). **No task contains the sync row id.** All find the main row by a subquery.
+
+| Finding | Tasks | Risk today | Fix |
+|---|---|---|---|
+| Lookup is only `id not like '%:%' … order by updated_at desc limit 1` | Monday Bench Bulletin draft; War Room app ⇄ Google Sheet sync (hourly, **writes**) | None today: the two `staging-` rows and the `share-` row all carry the 2000-01-01 stamp the app gives them on purpose, so the main row is always newest | Add `and id not like 'staging-%' and id not like 'share-%' and data ? 'days'` to both prompts |
+| Lookup excludes `staging-` but not `share-`, no `data ? 'days'` | System check 04:41; Weekly review; Close the day; Morning brief 06:00 | Same: none today | Same clause |
+| Two morning briefs already existed | "Morning brief · numbers + one move" 05:03 and "Morning brief" 06:00 | Duplicate notes every morning | Egor picks one. The server brief timer was therefore switched OFF (it would have been a third); "Run one now" still works |
+| Old business facts in prompts | Weekly review, Close the day, Morning brief 06:00 ("Founding Offer $500 per caregiver after 5 shifts", "15 screened caregivers by 30 Nov", BAC "8+"); Bench Bulletin (price line $750 / $1,200); Morning brief 05:03 ("app is frozen") | They coach against a plan that Playbook v5 / Model v3 replaced, and against a BAC target he changed to "not lower than 7" on 19 Nov | Prompt edits. The scheduler's permission system refused prompt edits twice on 19 Nov; needs Egor's explicit go-ahead and may need him to edit in the task's settings |
+| Content scan prompt still says "weekly", "Monday morning" | Content discovery (runs daily since 19 Nov; first daily run 20 Nov 05:37 succeeded) | Wording only; it also stops if `freq` is 'monthly' | Prompt edit, same constraint |
+
+Nothing was changed in any task.
