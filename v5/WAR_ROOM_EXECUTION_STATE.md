@@ -39,7 +39,7 @@
 | 9 Agent orchestration | Built, bounded (13.42); never run against a live model by the build | `agents.js` |
 | 10 Personal domains | Existed + 13.34 to 13.39 | `depth.js`, `domain.js` |
 | 11 Evolution | Built (13.42); needs weeks of real use to say anything | `agents.js` |
-| 12 Final integration and release | 13.49.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
+| 12 Final integration and release | 13.50.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
@@ -70,7 +70,7 @@ War Room and Caregiver Bench are separate projects. **War Room development is no
 
 Scheduled tasks on 20 Nov: prompts corrected in Weekly review, Morning brief 06:00 (now paused), Nightly review, Bench Bulletin (no price line); the freeze and the build-gate check removed from Weekly review, Morning brief 05:03 and the Sunday audit (see `IMPLEMENTATION_LOG.md` for which of these went through). Server timers: backup on, weekly check on, brief off, research off.
 
-Dials, settled 20 Nov (13.49.0, worker v4): dials MADE = per day max(call records + outside reports, day counter), compared with the 350 target (scorecard, server brief, his reviews). Dials WITH AN OUTCOME = call records + outside reports, used for conversion (Mission Control evidence, funnel, bottleneck). Do not merge the two.
+Dials, settled 20 Nov (13.50.0, worker v4): dials MADE = per day max(call records + outside reports, day counter), compared with the 350 target (scorecard, server brief, his reviews). Dials WITH AN OUTCOME = call records + outside reports, used for conversion (Mission Control evidence, funnel, bottleneck). Do not merge the two.
 
 NEVER create a non-`staging-` room row on the live project without renaming it at once (see `supabase/tests/live_http.sh`): every scheduled task takes the newest row that has `days`.
 
@@ -82,7 +82,7 @@ NEVER create a non-`staging-` room row on the live project without renaming it a
 
 ## Next action
 
-1. Everything listed in the two briefs has a built counterpart as of 13.49.0. What remains is use and verification, not building.
+1. Everything listed in the two briefs has a built counterpart as of 13.50.0. What remains is use and verification, not building.
 2. Egor presses the phone checklist and reports what breaks.
 3. After two weeks of use, open "Is War Room working?" and fold away what was never opened.
 
@@ -92,3 +92,12 @@ NEVER create a non-`staging-` room row on the live project without renaming it a
 Edited today: Nightly review, Sunday audit, Morning brief 05:03, Bench Bulletin, Sheet sync, Weekly review (facts), Content discovery (daily wording, de-dup against the app's sources), System check (strict lookup, check 7 one War Room, check 8 server jobs and 03:00 backup). Paused: Morning brief 06:00. Still on the looser lookup (same row today): Weekly review, Close the day, paused 06:00 brief.
 
 NEXT, with Egor present (one confirmation in Supabase): migration adding `warroom_owner()` (returns the owner's room id from `warroom_config`), then replace the lookup in all fifteen task prompts with it. `update_trigger` needs each whole prompt re-sent; `list_triggers` returns about four tasks per page.
+
+
+## 20 Nov 13:00 · where things stand
+
+- App 13.50.0 live. Device key storage slot is `wr-devkey` (NOT `wr-device`, which belongs to `devices.js`).
+- Laptop ("Windows laptop") enrolled and verified from his real Chrome via Claude in Chrome. Phone not enrolled: only he can tap it, and only on 13.50.0 or later. Lock off until then.
+- `warroom_owner()` is live. Use `(select warroom_owner())` for the owner's room in every new task and query. Three tasks switched (Sheet sync, Dial Guard, Acvila attendance); eleven to go (list in IMPLEMENTATION_LOG).
+- Vault: left off on purpose. A passphrase Claude chooses would have to be passed to him in chat, which his own rule forbids, and he must type it on the phone anyway.
+- Real-device testing is now possible on the laptop: Claude in Chrome reaches his real War Room. Screenshots time out when the Chrome window is in the background; DOM reads and clicks by element still work.

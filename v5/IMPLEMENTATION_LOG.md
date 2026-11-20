@@ -404,3 +404,12 @@ Egor asked Claude to enrol his laptop itself. Done from his real Chrome (Claude 
 - **Why no test saw it:** `test_1343` enrolled against a fake server and never called `devStamp()` afterwards; the live HTTP proof used curl, which has no `devices.js`.
 - **Fix:** the key lives in `wr-devkey`. New check in `test_1343`: enrol, sync-stamp, both the key and the same identity are still there.
 - **Clean-up on his laptop:** identity put back to the earlier id, the two-minute-old duplicate entry marked deleted, the orphaned server key revoked through the app's own revoke call. Lock was never on.
+
+### 20 Nov, 12:35–13:00 · first real device, owner function, three tasks switched
+
+- **Laptop enrolled for real** (his Chrome, 13.50.0, his data): the key survives a sync stamp, the app's requests carry it, a read with the device key alone returns his 10 rows, a broken key 0, no header 0. A backup job queued from the laptop's own screen ran (12:53). The lock is still off: the phone is not enrolled.
+- **Checked on the same real device:** 16 screens (water, people, missed training, compare scenarios, about me, vault, new-situation question, scorecard, evolution, proof, server, inbox, where-do-I, and four more) open on his real data with no error and no "undefined / NaN" text. His error log holds one entry, a failed service-worker update fetch on 13.47.0.
+- **Migration `warroom_server_v1_owner` applied** (file in `supabase/`): `warroom_config.owner_room` + `warroom_owner()`. Closed to the browser roles (HTTP call with the public key: 401, permission denied).
+- **Tasks now using `warroom_owner()`:** Sheet sync (the only one that copies data INTO the room), Dial Guard, Acvila attendance. **Still on "newest row":** Morning brief 05:03, Nightly review, Sunday audit, Bench Bulletin, Content discovery, Curriculum review, System check (it has the one-War-Room tripwire), Weekly review, Close the day, Monthly archive, paused 06:00 brief. Each needs its whole text re-sent; do them a few at a time.
+- **Acvila attendance task:** it is tied to his computer. After the text change the reply showed it switched off with the reason "device absent"; switching it on again worked and the reason cleared. Its last recorded run (19 Nov 20:10) is "abandoned". Worth watching tonight.
+- If the sync code is ever changed on purpose: `update warroom_config set v = <new id> where k = 'owner_room'`.

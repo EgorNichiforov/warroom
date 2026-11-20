@@ -51,3 +51,6 @@ Status words: **Built** = code exists and a test in `tests/` exercises it. **Exi
 | XX Security | Device keys, optional lock and an audit list are live on the server (no device enrolled yet). Vault for the private stores is live, off until a passphrase is set |
 | XXV Testing | Offline and speed are now tested (`tests/test_1348.py`). Still no physical-device test; AI output quality still judged with a stand-in |
 | XVIII Visual | New sheets looked at by eye in dark and graphite at phone size; one overlap found and fixed |
+
+| XX Security (13.50.0) | One real device (laptop) enrolled and verified; a storage clash that destroyed the key on real devices found and fixed; owner-room function on the server |
+| XXV Testing (13.50.0) | First test on a real device with real data: 16 screens open clean on the laptop. Phone still untested |
