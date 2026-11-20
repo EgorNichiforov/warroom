@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, CheckCircle2, FileText, HelpCircle, Lightbulb, Pencil, Scale, Sparkles, Wrench, X } from "lucide-react";
 import { ApiError, api } from "@/lib/api";
 import type { ActionItem, Priority, Thought } from "@/lib/contracts";
@@ -25,6 +25,13 @@ export function ExecutionPanel({ mini }: { mini?: boolean }) {
   const thinking = useSessionStore((s) => s.thinking);
   const visible = useVisible();
   const controller = useController();
+  const summaryRef = useRef<HTMLElement>(null);
+  const generatedAt = summary?.generatedAt;
+  // a fresh summary is the thing the Stop dialog promised: bring it into view
+  useEffect(() => {
+    if (generatedAt) summaryRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [generatedAt]);
+  const summaryFirst = thinking === "ended" || !!summary || summaryRunning;
 
   const decisions = useMemo(() => selectDecisions(thoughts).filter((t) => visible(t.id)), [thoughts, visible]);
   const questions = useMemo(() => selectOpenQuestions(thoughts).filter((t) => visible(t.id)), [thoughts, visible]);
@@ -34,6 +41,29 @@ export function ExecutionPanel({ mini }: { mini?: boolean }) {
   const actionList = useMemo(() => selectActions(actions).filter((a) => visible(a.id)), [actions, visible]);
   const openActions = actionList.filter((a) => a.status === "open").length;
 
+  const summarySection = !mini && (
+          <section ref={summaryRef} className="mt-2 mb-3 rounded-lg border border-border bg-bg-1" data-testid="summary-section">
+            <header className="flex items-center gap-2 border-b border-border px-3 py-2">
+              <FileText size={14} className="text-text-2" />
+              <h3 className="text-sm font-medium">End-of-session summary</h3>
+              {summary?.simulated && <Pill tone="warn">simulated</Pill>}
+              <span className="flex-1" />
+              <Button size="sm" variant={summary ? "secondary" : "primary"} loading={summaryRunning} onClick={() => void controller.runSummary()} icon={<Sparkles size={12} />} data-testid="generate-summary">
+                {summary ? "Regenerate" : "Generate summary"}
+              </Button>
+            </header>
+            <div className="p-3 text-sm">
+              {!summary && !summaryRunning && (
+                <p className="text-text-2">
+                  {thinking === "ended" ? "No summary yet." : "Generated automatically when you stop the session. You can also generate one now."}
+                </p>
+              )}
+              {summaryRunning && !summary && <p className="text-text-2">Summarizing…</p>}
+              {summary && <SummaryView />}
+            </div>
+          </section>
+        );
+
   const empty = !decisions.length && !questions.length && !conclusions.length && !ideas.length && !systemChanges.length && !actionList.length && !summary;
 
   return (
@@ -42,6 +72,7 @@ export function ExecutionPanel({ mini }: { mini?: boolean }) {
         {empty && (
           <p className="px-2 py-6 text-center text-sm text-text-2">Decisions, actions and open questions are collected here as you think. Brainstorming stays brainstorming until you commit.</p>
         )}
+        {summaryFirst && summarySection}
 
         <Section title="Decisions" icon={<CheckCircle2 size={12} className="text-ok" />} count={decisions.length} testId="decisions">
           {decisions.map((t) => (
@@ -79,28 +110,7 @@ export function ExecutionPanel({ mini }: { mini?: boolean }) {
           ))}
         </Section>
 
-        {!mini && (
-          <section className="mt-2 rounded-lg border border-border bg-bg-1" data-testid="summary-section">
-            <header className="flex items-center gap-2 border-b border-border px-3 py-2">
-              <FileText size={14} className="text-text-2" />
-              <h3 className="text-sm font-medium">End-of-session summary</h3>
-              {summary?.simulated && <Pill tone="warn">simulated</Pill>}
-              <span className="flex-1" />
-              <Button size="sm" variant={summary ? "secondary" : "primary"} loading={summaryRunning} onClick={() => void controller.runSummary()} icon={<Sparkles size={12} />} data-testid="generate-summary">
-                {summary ? "Regenerate" : "Generate summary"}
-              </Button>
-            </header>
-            <div className="p-3 text-sm">
-              {!summary && !summaryRunning && (
-                <p className="text-text-2">
-                  {thinking === "ended" ? "No summary yet." : "Generated automatically when you stop the session. You can also generate one now."}
-                </p>
-              )}
-              {summaryRunning && !summary && <p className="text-text-2">Summarizing…</p>}
-              {summary && <SummaryView />}
-            </div>
-          </section>
-        )}
+        {!summaryFirst && summarySection}
       </div>
     </div>
   );

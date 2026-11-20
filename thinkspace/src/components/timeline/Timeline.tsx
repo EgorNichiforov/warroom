@@ -97,7 +97,7 @@ function describe(e: SessionEvent, label: (id: string) => string): string {
   }
 }
 
-export function TimelineScrubber({ className }: { className?: string }) {
+export function TimelineScrubber({ className, showLive = true }: { className?: string; showLive?: boolean }) {
   const durationMs = useSessionStore((s) => s.durationMs);
   const cursor = useSessionStore((s) => s.timeCursor);
   const setCursor = useSessionStore((s) => s.setTimeCursor);
@@ -119,9 +119,11 @@ export function TimelineScrubber({ className }: { className?: string }) {
         aria-label="Time cursor"
       />
       <span className="font-mono text-text-2 tabular-nums">{formatClock(durationMs)}</span>
-      <Button size="sm" variant={cursor === null ? "ghost" : "primary"} disabled={cursor === null} onClick={() => setCursor(null)} icon={<Radio size={12} />} data-testid="jump-to-live">
-        Live
-      </Button>
+      {showLive && (
+        <Button size="sm" variant={cursor === null ? "ghost" : "primary"} disabled={cursor === null} onClick={() => setCursor(null)} icon={<Radio size={12} />} data-testid="jump-to-live">
+          Jump to live
+        </Button>
+      )}
     </div>
   );
 }

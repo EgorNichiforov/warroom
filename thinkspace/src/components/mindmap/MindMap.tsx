@@ -43,8 +43,22 @@ export function MindMap({ mini }: { mini?: boolean }) {
     return set;
   }, [selectedConceptId, selectedThoughtId, thoughts]);
 
+  const atMsById = useSessionStore((s) => s.atMsById);
+  const MINI_LIMIT = 12;
+
   const { nodes, edges, clustered } = useMemo(() => {
-    const g = selectGraph(concepts, relations, { includeRevised: showRevised, visible });
+    const full = selectGraph(concepts, relations, { includeRevised: showRevised, visible });
+    let g = full;
+    if (mini && full.nodes.length > MINI_LIMIT) {
+      // mini panel: the most recently added concepts (plus the selection), kept readable
+      const recent = full.nodes
+        .slice()
+        .sort((a, b) => (atMsById[b.id] ?? 0) - (atMsById[a.id] ?? 0) || b.createdAt.localeCompare(a.createdAt))
+        .slice(0, MINI_LIMIT);
+      const keep = new Set(recent.map((n) => n.id));
+      for (const id of highlight) if (concepts[id]) keep.add(id);
+      g = { nodes: full.nodes.filter((n) => keep.has(n.id)), edges: full.edges.filter((e) => keep.has(e.fromId) && keep.has(e.toId)) };
+    }
     const mkNode = (c: (typeof g.nodes)[number]): GraphNodeInput => ({
       id: c.id,
       label: c.label,
@@ -97,7 +111,7 @@ export function MindMap({ mini }: { mini?: boolean }) {
       if (!seen.has(key)) seen.set(key, { id: key, source: s, target: t, type: r.type, label: r.label });
     }
     return { clustered: true, nodes: nodeOut, edges: Array.from(seen.values()) };
-  }, [concepts, relations, showRevised, visible, groupOf, highlight, expandedKinds]);
+  }, [concepts, relations, showRevised, visible, groupOf, highlight, expandedKinds, mini, atMsById]);
 
   const onSelect = useCallback(
     (id: string | null) => {
@@ -119,7 +133,7 @@ export function MindMap({ mini }: { mini?: boolean }) {
   const kinds = useMemo(() => Array.from(new Set(Object.values(concepts).map((c) => c.kind))).sort(), [concepts]);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col" data-testid="mindmap">
+    <div className="relative flex h-full min-h-0 flex-col" data-testid="mindmap" data-mini={mini ? "1" : undefined}>
       {!mini && (
         <div className="flex flex-wrap items-center gap-3 border-b border-border px-3 py-1.5 text-xs text-text-2">
           <span>
@@ -138,12 +152,18 @@ export function MindMap({ mini }: { mini?: boolean }) {
           onSelect={onSelect}
           selectedId={selectedConceptId}
           interactive={!mini}
+          pannable
           showControls={!mini}
+          minZoom={mini ? 0.65 : 0.1}
+          maxZoom={mini ? 1 : 1.2}
           emptyMessage="The mind map builds itself as you speak. Concepts appear as nodes, relations as edges."
         />
+        {mini && Object.keys(concepts).length > MINI_LIMIT && (
+          <p className="pointer-events-none absolute bottom-1 right-2 text-[10px] text-text-2">latest {Math.min(MINI_LIMIT, nodes.length)} of {Object.values(concepts).filter((c) => c.status === "active").length} concepts</p>
+        )}
       </div>
       {!mini && kinds.length > 0 && (
-        <div className="pointer-events-none absolute bottom-2 left-2 flex flex-wrap gap-2 rounded-md border border-border bg-bg-1/90 px-2 py-1 text-[10px] text-text-1">
+        <div className="pointer-events-none absolute left-2 top-10 flex flex-wrap gap-2 rounded-md border border-border bg-bg-1/90 px-2 py-1 text-[10px] text-text-1">
           {kinds.map((k) => (
             <span key={k} className={cn("inline-flex items-center gap-1")}>
               <span className="inline-block size-2 rounded-sm" style={{ background: kindColor(k) }} />

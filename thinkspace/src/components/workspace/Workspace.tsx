@@ -64,6 +64,7 @@ export function Workspace({ sessionId }: { sessionId: string }) {
         }
         if (cancelled) return;
         useSessionStore.getState().loadSnapshot(snap, events);
+        controller.resumePendingWork();
         if (isView(initialView)) useSessionStore.getState().setView(initialView);
         if (initialT !== null) {
           const t = Number(initialT);
@@ -194,11 +195,11 @@ export function Workspace({ sessionId }: { sessionId: string }) {
         {timeCursor !== null && view !== "timeline" && (
           <div className="flex items-center gap-3 border-b border-warn/40 bg-warn-soft px-3 py-1 text-xs text-text-0" data-testid="viewing-past">
             <span className="font-medium text-warn">Viewing the past</span>
-            <TimelineScrubber className="min-w-0 flex-1" />
+            <TimelineScrubber className="min-w-0 flex-1" showLive={false} />
             <Button size="sm" variant="ghost" onClick={() => router.push(`/s/${sessionId}?view=timeline`)}>
               Open timeline
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setTimeCursor(null)}>
+            <Button size="sm" variant="primary" onClick={() => setTimeCursor(null)}>
               Jump to live
             </Button>
           </div>

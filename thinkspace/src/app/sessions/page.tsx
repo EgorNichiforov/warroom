@@ -11,7 +11,7 @@ import { formatClock } from "@/store/session-store";
 import { Button, ConfirmDialog, Pill, cn } from "@/components/ui";
 import { formatDate, useHealth, useTheme } from "@/components/workspace/hooks";
 
-type SessionWithCounts = Session & { counts?: Partial<Record<string, number>> };
+type SessionWithCounts = Session & { counts?: Partial<Record<string, number>>; focus?: string | null };
 
 const statusTone = { active: "ok", paused: "warn", ended: "muted" } as const;
 const kindLabel: Record<string, string> = {
@@ -239,6 +239,9 @@ export default function SessionsPage() {
   );
 }
 
+/** Focus and auto-title differ only by punctuation/case when the title was derived from the focus. */
+const norm = (v: string) => v.trim().replace(/[.!?…]+$/, "").toLowerCase();
+
 function SessionCard({ session, onDelete }: { session: SessionWithCounts; onDelete: () => void }) {
   const counts = session.counts ?? {};
   const countEntries = (["segments", "thoughts", "concepts", "actions"] as const).filter((k) => typeof counts[k] === "number");
@@ -247,6 +250,11 @@ function SessionCard({ session, onDelete }: { session: SessionWithCounts; onDele
       <div className="flex items-start justify-between gap-3">
         <Link href={`/s/${session.id}`} className="min-w-0 flex-1">
           <h3 className="truncate text-base font-medium text-text-0 group-hover:text-accent">{session.title || "Untitled session"}</h3>
+          {session.focus && norm(session.focus) !== norm(session.title) && (
+            <p className="mt-0.5 text-xs text-text-1 ts-truncate-2" data-testid="session-focus">
+              {session.focus}
+            </p>
+          )}
           <p className="mt-0.5 text-xs text-text-2">{formatDate(session.startedAt)}</p>
         </Link>
         <Pill tone={statusTone[session.status]} className="shrink-0 capitalize">

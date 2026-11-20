@@ -4,24 +4,26 @@
  *  speech partial  → store.livePartial (one live row)
  *  speech final    → store.addLocalSegment + save queue (POST segments; batch ≤10, flush every 800 ms,
  *                    retried with backoff while offline, never dropped)
- *  saved finals    → ingest scheduling (D-13): POST ingest when ≥2 finals are pending, or 4 s after the
- *                    first pending final, or on pause/stop. One ingest at a time; events applied as streamed.
+ *  saved finals    → ingest scheduling (D-13): POST ingest when ≥2 finals are pending, or 2.5 s after the
+ *                    first pending final, or on pause/stop (typed thoughts: immediately). One ingest at a
+ *                    time; events applied as streamed. Ingests that fail for network reasons are re-queued
+ *                    automatically when connectivity returns.
  *  after ingest    → request renders for planned photo/illustration/metaphor scenes (1 at a time).
  *
  * Survives provider switching mid-session: queues are independent of the provider instance.
  */
-import { ApiError, api, isAbortError, runStream } from "@/lib/api";
+import { ApiError, api, isAbortError, onApiConnectivity, runStream } from "@/lib/api";
 import type { SegmentInput } from "@/lib/api";
 import type { Language, Scene, SessionEvent, TranscriptSegment } from "@/lib/contracts";
 import { newId } from "@/lib/ids";
-import { useSessionStore } from "@/store/session-store";
+import { formatClock, useSessionStore } from "@/store/session-store";
 import { createSpeechProvider } from "./index";
 import type { FinalTranscript, PartialTranscript, SpeechProvider, SpeechProviderName, SpeechStartOptions } from "./types";
 
 const FLUSH_MS = 800;
 const BATCH_MAX = 10;
 const INGEST_MIN_SEGMENTS = 2;
-const INGEST_WINDOW_MS = 4000;
+const INGEST_WINDOW_MS = 2500;
 const DURATION_PATCH_MS = 15000;
 const RENDERABLE_KINDS = new Set<Scene["kind"]>(["photo", "illustration", "metaphor"]);
 
@@ -59,6 +61,10 @@ export class ThinkingController {
   private ingesting = false;
   private ingestAbort: AbortController | null = null;
 
+  // segment ids whose ingest failed because of the network; re-queued on reconnect
+  private networkFailedIngest = new Set<string>();
+  private autoTitled = false;
+
   // render
   private renderRequested = new Set<string>();
   private rendering = false;
@@ -85,18 +91,43 @@ export class ThinkingController {
     for (const u of this.offlineListeners) u();
     this.offlineListeners = [];
     if (typeof window !== "undefined") {
-      const on = () => {
-        this.store.setConnection("online");
-        this.saveBackoff = 0;
-        this.scheduleFlush(0);
-      };
+      const on = () => this.onReconnect();
       const off = () => this.store.setConnection("offline");
       window.addEventListener("online", on);
       window.addEventListener("offline", off);
       if (!navigator.onLine) off();
-      this.offlineListeners.push(() => window.removeEventListener("online", on), () => window.removeEventListener("offline", off));
+      this.offlineListeners.push(
+        () => window.removeEventListener("online", on),
+        () => window.removeEventListener("offline", off),
+        onApiConnectivity((err) => {
+          if (err) this.store.setConnection("offline");
+          else if (this.store.connection === "offline") this.onReconnect();
+        }),
+      );
     }
     return () => this.dispose();
+  }
+
+  /** Connectivity is back: flush unsaved segments and re-ingest everything that failed while offline. */
+  private onReconnect() {
+    this.store.setConnection("online");
+    this.saveBackoff = 0;
+    this.scheduleFlush(0);
+    this.reingestFailed();
+  }
+
+  /** Re-queue every final segment whose ingest failed for network reasons (and any saved-but-never-ingested one). */
+  private reingestFailed() {
+    const ids = new Set(this.networkFailedIngest);
+    this.networkFailedIngest.clear();
+    const s = this.store;
+    for (const seg of Object.values(s.segments)) {
+      if (seg.isFinal && seg.ingestedAt === null && seg.seq > 0 && !this.unsent.some((u) => u.id === seg.id) && !this.pendingIngest.includes(seg.id)) {
+        // only segments we know were never processed and are not waiting on an engine.error retry
+        if (ids.has(seg.id) || !s.errors.some((e) => !e.dismissed && e.segmentIds?.includes(seg.id))) ids.add(seg.id);
+      }
+    }
+    if (ids.size) this.queueIngest(Array.from(ids), true);
   }
 
   async dispose() {
@@ -318,9 +349,17 @@ export class ThinkingController {
   typeThought(text: string, language: Language = "unknown") {
     const t = text.trim();
     if (!t) return;
-    const now = this.store.durationMs;
+    const s = this.store;
+    // session clock: while idle the clock is stopped, so typed thoughts advance it by a reading-time estimate
+    const lastEnd = Object.values(s.segments).reduce((m, x) => Math.max(m, x.endedMs), 0);
+    const startedMs = Math.max(s.durationMs, s.clockRunning ? 0 : lastEnd);
+    const endedMs = s.clockRunning ? startedMs : startedMs + Math.max(1000, Math.min(15000, t.length * 50));
+    if (!s.clockRunning) {
+      s.setDuration(endedMs);
+      void this.patchSession({ durationMs: endedMs });
+    }
     this.pushSegment(
-      { id: newId("seg"), startedMs: now, endedMs: now, rawText: t, language, isFinal: true, provider: "typed", confidence: null },
+      { id: newId("seg"), startedMs, endedMs, rawText: t, language, isFinal: true, provider: "typed", confidence: null },
       { urgent: true },
     );
   }
@@ -381,7 +420,9 @@ export class ThinkingController {
         batch.map((b) => ({ id: b.id, startedMs: b.startedMs, endedMs: b.endedMs, rawText: b.rawText, language: b.language, isFinal: b.isFinal, provider: b.provider, confidence: b.confidence })),
       );
       this.unsent = this.unsent.filter((x) => !batch.some((b) => b.id === x.id));
+      const wasRetrying = this.saveBackoff > 0;
       this.saveBackoff = 0;
+      if (this.store.connection === "offline") this.store.setConnection("online");
       for (const seg of res.segments) this.store.upsertSegment(seg);
       this.applyEvents(res.events);
       const saved = res.segments.length ? res.segments.map((x) => x.id) : batch.map((b) => b.id);
@@ -390,6 +431,7 @@ export class ThinkingController {
       this.store.setSaveStatus(this.unsent.length ? "unsaved" : "saved", this.unsent.length);
       this.flushing = false;
       if (this.unsent.length) this.scheduleFlush(0);
+      else if (wasRetrying) this.reingestFailed();
     } catch (e) {
       this.flushing = false;
       if (e instanceof ApiError && e.status >= 400 && e.status < 500 && e.status !== 429 && e.status !== 408) {
@@ -494,8 +536,17 @@ export class ThinkingController {
       );
     } catch (e) {
       if (!isAbortError(e)) {
-        const message = e instanceof ApiError ? e.message : "Ingest failed";
-        if (!sawError) s.pushError({ stage: "extract", message, retryable: true, segmentIds });
+        const network = (e instanceof ApiError && e.isNetwork) || (e instanceof TypeError && /fetch/i.test(e.message));
+        if (network || this.store.connection === "offline") {
+          // offline: no toast (the connection banner explains); re-ingested automatically on reconnect
+          for (const id of segmentIds) this.networkFailedIngest.add(id);
+          this.store.setConnection("offline");
+        } else if (!sawError) {
+          const first = segmentIds.map((id) => this.store.segments[id]).find(Boolean);
+          const where = first ? ` for what you said at ${formatClock(first.startedMs)}` : "";
+          const detail = e instanceof ApiError ? e.message : "the engine did not respond";
+          s.pushError({ stage: "extract", message: `Understanding failed${where}: ${detail}`, retryable: true, segmentIds });
+        }
         if (e instanceof ApiError && e.isUnauthorized) redirectToLogin();
       }
     } finally {
@@ -608,6 +659,28 @@ export class ThinkingController {
 
   private applyEvent(e: SessionEvent) {
     this.store.applyEvent(e);
+    if (e.type === "ingest.finished") this.maybeAutoTitle(e.payload.focus);
+  }
+
+  /** Give default-titled sessions a meaningful name from the first non-empty focus. */
+  private maybeAutoTitle(focus: string) {
+    if (this.autoTitled) return;
+    const f = focus.trim();
+    const current = this.store.session?.title ?? "";
+    if (!f || !current.startsWith("Thinking session —")) return;
+    this.autoTitled = true;
+    let title = f.replace(/[.!?…]+$/, "");
+    if (title.length > 80) {
+      const cut = title.slice(0, 80);
+      const sp = cut.lastIndexOf(" ");
+      title = (sp > 40 ? cut.slice(0, sp) : cut).replace(/[,;:\s]+$/, "") + "…";
+    }
+    void this.patchSession({ title: title.slice(0, 80) });
+  }
+
+  /** Called after the snapshot is loaded: finish renders that were left planned (e.g. after a reload). */
+  resumePendingWork() {
+    void this.renderPlannedScenes();
   }
   private applyEvents(events: SessionEvent[]) {
     for (const e of events) this.applyEvent(e);

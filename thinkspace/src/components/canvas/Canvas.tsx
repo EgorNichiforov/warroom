@@ -51,9 +51,9 @@ export function Canvas({ mini }: { mini?: boolean }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-2 p-2" data-testid="canvas">
-      <div className="min-h-0 flex-1">{focused && <SceneCard chain={focused} large={!mini} />}</div>
+      <div className="relative min-h-0 flex-1">{focused && <SceneCard chain={focused} large={!mini} />}</div>
       {others.length > 0 && (
-        <div className="flex shrink-0 gap-2 overflow-x-auto pb-1" data-testid="scene-strip">
+        <div className="flex shrink-0 gap-2 overflow-x-auto pb-2" data-testid="scene-strip">
           {others.map((c) => (
             <button
               key={c.id}
@@ -119,7 +119,7 @@ function SceneCard({ chain, large }: { chain: Chain; large: boolean }) {
   };
 
   return (
-    <article className="flex h-full min-h-0 flex-col rounded-lg border border-border bg-bg-2" data-testid="scene-card" data-scene-status={scene.status}>
+    <article className="absolute inset-0 flex min-h-0 flex-col rounded-lg border border-border bg-bg-2" data-testid="scene-card" data-scene-status={scene.status}>
       <header className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
         <h3 className="min-w-0 flex-1 truncate text-sm font-medium text-text-0">{scene.title}</h3>
         <Pill tone="muted">{scene.kind}</Pill>
@@ -142,11 +142,13 @@ function SceneCard({ chain, large }: { chain: Chain; large: boolean }) {
         {scene.status === "superseded" && <Pill tone="muted">superseded</Pill>}
       </header>
 
-      <div className={cn("relative min-h-0 flex-1", large ? "min-h-48" : "min-h-32")}>
+      <div className="relative min-h-0 flex-1">
         {isStructured ? (
-          <FlowGraph nodes={subgraph.nodes} edges={subgraph.edges} layout="layered" interactive={large} showControls={false} emptyMessage="No concepts linked to this scene yet." />
+          <div className="absolute inset-0">
+            <FlowGraph nodes={subgraph.nodes} edges={subgraph.edges} layout="layered" interactive={large} showControls={false} emptyMessage="No concepts linked to this scene yet." />
+          </div>
         ) : asset ? (
-          <div className="relative flex h-full items-center justify-center bg-bg-0 p-2">
+          <div className="absolute inset-0 flex items-center justify-center bg-bg-0 p-2">
             {/* eslint-disable-next-line @next/next/no-img-element -- API-served asset bytes */}
             <img src={asset.url} alt={scene.description} className="max-h-full max-w-full rounded-md object-contain" data-testid="scene-image" />
             {asset.simulated && (
@@ -156,10 +158,11 @@ function SceneCard({ chain, large }: { chain: Chain; large: boolean }) {
             )}
           </div>
         ) : (
-          <div className={cn("flex h-full flex-col items-center justify-center gap-2 p-4 text-center", scene.status === "generating" && "ts-shimmer")}>
+          <div className={cn("absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center", (scene.status === "generating" || scene.status === "planned") && "ts-shimmer")}>
             <ImageIcon size={24} className="text-text-2" />
             <p className="max-w-md text-sm text-text-1">{scene.description}</p>
-            {scene.status === "planned" && <p className="text-xs text-text-2">Queued for rendering…</p>}
+            {scene.status === "planned" && <p className="text-xs text-text-2">Rendering queued — the image is generated after the current batch is understood…</p>}
+            {scene.status === "generating" && <p className="text-xs text-accent">Generating image…</p>}
             {scene.status === "failed" && (
               <div className="flex flex-col items-center gap-1">
                 {scene.error && <p className="text-xs text-danger">{scene.error}</p>}

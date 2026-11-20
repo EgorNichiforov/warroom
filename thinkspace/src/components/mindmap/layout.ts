@@ -12,8 +12,8 @@ export type LayoutEdge = { id: string; source: string; target: string; type: str
 export type Point = { x: number; y: number };
 export type Positions = Record<string, Point>;
 
-export const NODE_W = 168;
-export const NODE_H = 40;
+export const NODE_W = 200;
+export const NODE_H = 48;
 
 const byLabel = (a: LayoutNode, b: LayoutNode) =>
   (a.group ?? "~").localeCompare(b.group ?? "~") || a.label.localeCompare(b.label) || a.id.localeCompare(b.id);

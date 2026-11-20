@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { GitCompare, History } from "lucide-react";
 import type { ChangeEvent, ModelSnapshot, ModelVersion } from "@/lib/contracts";
 import { Button, Pill, cn } from "@/components/ui";
-import { FlowGraph, type GraphEdgeInput, type GraphNodeInput } from "@/components/mindmap/FlowGraph";
+import { FlowGraph, type DiffState, type GraphEdgeInput, type GraphNodeInput } from "@/components/mindmap/FlowGraph";
+import { NODE_H, NODE_W, layeredLayout } from "@/components/mindmap/layout";
 import { useVisible } from "@/components/workspace/hooks";
 import { formatClock, selectModelVersions, useSessionStore } from "@/store/session-store";
 
@@ -29,7 +30,10 @@ function snapshotGraph(snap: ModelSnapshot, diff?: { added: Set<string>; removed
   return { nodes, edges };
 }
 
-/** Union graph of two versions: removed items from `before`, added items from `after`. */
+/**
+ * Union graph of two versions laid out ONCE so both panes line up: the left pane shows `before`
+ * (removed items red, added ones invisible), the right pane shows `after` (added green, removed invisible).
+ */
 function compareGraphs(before: ModelSnapshot, after: ModelSnapshot) {
   const beforeC = new Set(before.conceptIds);
   const afterC = new Set(after.conceptIds);
@@ -37,9 +41,29 @@ function compareGraphs(before: ModelSnapshot, after: ModelSnapshot) {
   const afterR = new Set(after.relationIds);
   const added = new Set([...afterC].filter((id) => !beforeC.has(id)).concat([...afterR].filter((id) => !beforeR.has(id))));
   const removed = new Set([...beforeC].filter((id) => !afterC.has(id)).concat([...beforeR].filter((id) => !afterR.has(id))));
-  const left = snapshotGraph(before, { added: new Set(), removed });
-  const right = snapshotGraph(after, { added, removed: new Set() });
-  return { left, right, added, removed };
+  const unionSnap: ModelSnapshot = {
+    conceptIds: Array.from(new Set([...before.conceptIds, ...after.conceptIds])),
+    relationIds: Array.from(new Set([...before.relationIds, ...after.relationIds])),
+    concepts: [...after.concepts, ...before.concepts.filter((c) => !afterC.has(c.id))],
+    relations: [...after.relations, ...before.relations.filter((r) => !afterR.has(r.id))],
+  };
+  const union = snapshotGraph(unionSnap, { added, removed });
+  const positions = layeredLayout(union.nodes, union.edges);
+  const pts = Object.values(positions);
+  const minX = Math.min(...pts.map((p) => p.x), 0);
+  const minY = Math.min(...pts.map((p) => p.y), 0);
+  const maxX = Math.max(...pts.map((p) => p.x + NODE_W), NODE_W);
+  const maxY = Math.max(...pts.map((p) => p.y + NODE_H), NODE_H);
+  const fitRect = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  const left = {
+    nodes: union.nodes.map((n) => ({ ...n, diff: (removed.has(n.id) ? "removed" : "unchanged") as DiffState, hidden: added.has(n.id) })),
+    edges: union.edges.map((e) => ({ ...e, diff: (removed.has(e.id) ? "removed" : "unchanged") as DiffState, hidden: added.has(e.id) || added.has(e.source) || added.has(e.target) })),
+  };
+  const right = {
+    nodes: union.nodes.map((n) => ({ ...n, diff: (added.has(n.id) ? "added" : "unchanged") as DiffState, hidden: removed.has(n.id) })),
+    edges: union.edges.map((e) => ({ ...e, diff: (added.has(e.id) ? "added" : "unchanged") as DiffState, hidden: removed.has(e.id) || removed.has(e.source) || removed.has(e.target) })),
+  };
+  return { left, right, added, removed, positions, fitRect };
 }
 
 export function SystemsPanel({ mini }: { mini?: boolean }) {
@@ -181,19 +205,19 @@ export function SystemsPanel({ mini }: { mini?: boolean }) {
                         ))}
                     </select>
                   )}
-                  <span className="text-danger">{cmp.removed.size} removed</span>
+                  <span className={cmp.removed.size ? "text-danger" : "text-text-2"}>{cmp.removed.size} removed</span>
                 </div>
                 <div className="min-h-0 flex-1">
-                  <FlowGraph nodes={cmp.left.nodes} edges={cmp.left.edges} layout="layered" interactive={!mini} showControls={false} />
+                  <FlowGraph nodes={cmp.left.nodes} edges={cmp.left.edges} layout="layered" positions={cmp.positions} fitRect={cmp.fitRect} interactive={!mini} showControls={false} />
                 </div>
               </div>
               <div className="flex min-h-0 flex-col">
                 <div className="flex items-center gap-2 px-3 py-1 text-xs text-text-2">
                   After · <span className="font-mono">v{current.version}</span>
-                  <span className="text-ok">{cmp.added.size} added</span>
+                  <span className={cmp.added.size ? "text-ok" : "text-text-2"}>{cmp.added.size} added</span>
                 </div>
                 <div className="min-h-0 flex-1">
-                  <FlowGraph nodes={cmp.right.nodes} edges={cmp.right.edges} layout="layered" interactive={!mini} showControls={false} />
+                  <FlowGraph nodes={cmp.right.nodes} edges={cmp.right.edges} layout="layered" positions={cmp.positions} fitRect={cmp.fitRect} interactive={!mini} showControls={false} />
                 </div>
               </div>
             </>

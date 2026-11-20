@@ -94,13 +94,23 @@ export function StatusPills({ health }: { health: HealthResponse | null }) {
         </Pill>
       )}
       {health && !health.providers.llm.real && (
-        <Pill tone="warn" icon={<Cpu size={12} />} title={`LLM provider: ${health.providers.llm.name} (${health.providers.llm.model})`}>
+        <Pill tone="warn" icon={<Cpu size={12} />} className="max-sm:hidden" title={`LLM provider: ${health.providers.llm.name} (${health.providers.llm.model})`}>
           LLM simulated
         </Pill>
       )}
       {health && !health.providers.image.real && (
-        <Pill tone="warn" icon={<ImageIcon size={12} />} title={`Image provider: ${health.providers.image.name}`}>
+        <Pill tone="warn" icon={<ImageIcon size={12} />} className="max-sm:hidden" title={`Image provider: ${health.providers.image.name}`}>
           images simulated
+        </Pill>
+      )}
+      {health && (!health.providers.llm.real || !health.providers.image.real) && (
+        <Pill
+          tone="warn"
+          icon={<Cpu size={12} />}
+          className="sm:hidden"
+          title={`Simulated: ${[!health.providers.llm.real && "LLM", !health.providers.image.real && "images"].filter(Boolean).join(", ")}`}
+        >
+          simulated
         </Pill>
       )}
       <span className="font-mono text-sm tabular-nums text-text-0" data-testid="clock" aria-label="Session duration">

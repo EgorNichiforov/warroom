@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useEffect, useMemo, useRef } from "react";
-import type { Positions } from "./layout";
 import {
   Background,
   BaseEdge,
@@ -20,7 +19,7 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import { cn } from "@/components/ui";
-import { NODE_H, NODE_W, kindColor, layeredLayout, radialLayout, type LayoutEdge, type LayoutNode } from "./layout";
+import { NODE_H, NODE_W, kindColor, layeredLayout, radialLayout, type LayoutEdge, type LayoutNode, type Positions } from "./layout";
 
 export type DiffState = "added" | "removed" | "unchanged";
 
@@ -32,8 +31,10 @@ export type GraphNodeInput = LayoutNode & {
   diff?: DiffState;
   count?: number; // for cluster/group nodes
   title?: string;
+  /** keeps the node in the layout/bounds but invisible (used by Compare to align both panes) */
+  hidden?: boolean;
 };
-export type GraphEdgeInput = LayoutEdge & { label?: string | null; faded?: boolean; diff?: DiffState };
+export type GraphEdgeInput = LayoutEdge & { label?: string | null; faded?: boolean; diff?: DiffState; hidden?: boolean };
 
 type ConceptData = {
   label: string;
@@ -44,6 +45,7 @@ type ConceptData = {
   count?: number;
   title?: string;
   group?: string | null;
+  hidden?: boolean;
 };
 type ConceptNode = Node<ConceptData, "concept">;
 
@@ -59,6 +61,7 @@ const ConceptNodeView = memo(function ConceptNodeView({ data, selected }: NodePr
         selected && "ring-2 ring-accent",
         data.highlighted && !selected && "ring-1 ring-accent/60",
         data.faded && "opacity-40",
+        data.hidden && "invisible",
       )}
       style={{ width: NODE_W, height: NODE_H, borderLeftWidth: 3, borderLeftColor: color }}
       title={data.title ?? `${data.label} · ${data.kind}${data.group ? ` · ${data.group}` : ""}`}
@@ -67,7 +70,7 @@ const ConceptNodeView = memo(function ConceptNodeView({ data, selected }: NodePr
       data-diff={data.diff}
     >
       <Handle type="target" position={Position.Top} />
-      <span className="min-w-0 flex-1 truncate text-text-0">{data.label}</span>
+      <span className="ts-truncate-2 min-w-0 flex-1 text-xs leading-[14px] text-text-0">{data.label}</span>
       {data.count !== undefined ? (
         <span className="rounded-sm bg-bg-3 px-1 text-xs text-text-1">{data.count}</span>
       ) : (
@@ -163,6 +166,7 @@ function toEdge(e: GraphEdgeInput): Edge {
     labelBgStyle: { fill: "var(--color-bg-1)", fillOpacity: 0.9 },
     labelBgPadding: [4, 2],
     labelBgBorderRadius: 3,
+    hidden: e.hidden,
     markerEnd: DIRECTIONAL.has(e.type) ? { type: MarkerType.ArrowClosed, width: 16, height: 16, color: stroke } : undefined,
   };
 }
@@ -182,21 +186,36 @@ function mergeParallel(edges: GraphEdgeInput[]): GraphEdgeInput[] {
     }
     const primary = list.find((e) => DIRECTIONAL.has(e.type)) ?? list[0];
     const labels = Array.from(new Set(list.map((e) => edgeLabel(e.type, e.label))));
-    out.push({ ...primary, id: list.map((e) => e.id).join("+"), label: labels.join(" · "), faded: list.every((e) => e.faded) });
+    const label = labels.length > 1 ? `${labels[0]} +${labels.length - 1}` : labels[0];
+    out.push({ ...primary, id: list.map((e) => e.id).join("+"), label, faded: list.every((e) => e.faded), type: primary.type });
   }
   return out;
 }
 
-function FitOnChange({ signature }: { signature: string }) {
-  const { fitView } = useReactFlow();
+function FitOnChange({
+  signature,
+  minZoom,
+  maxZoom,
+  fitRect,
+}: {
+  signature: string;
+  minZoom: number;
+  maxZoom: number;
+  fitRect?: FlowGraphProps["fitRect"];
+}) {
+  const { fitView, fitBounds } = useReactFlow();
   const first = useRef(true);
+  const rectKey = fitRect ? `${fitRect.x},${fitRect.y},${fitRect.width},${fitRect.height}` : "";
   useEffect(() => {
     const t = setTimeout(() => {
-      void fitView({ padding: 0.2, duration: first.current ? 0 : 250, maxZoom: 1.2 });
+      const duration = first.current ? 0 : 250;
+      if (fitRect) void fitBounds(fitRect, { padding: 0.15, duration });
+      else void fitView({ padding: 0.15, duration, minZoom, maxZoom });
       first.current = false;
     }, 30);
     return () => clearTimeout(t);
-  }, [signature, fitView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature, rectKey, fitView, fitBounds, minZoom, maxZoom]);
   return null;
 }
 
@@ -210,6 +229,15 @@ export type FlowGraphProps = {
   showControls?: boolean;
   className?: string;
   emptyMessage?: string;
+  /** precomputed positions (e.g. a shared layout across Compare panes); falls back to the built-in layout */
+  positions?: Positions;
+  /** fit-view limits; mini panels use a higher minZoom so labels stay readable (with panning) */
+  minZoom?: number;
+  maxZoom?: number;
+  /** allow panning even when not fully interactive (mini mode) */
+  pannable?: boolean;
+  /** fit this rectangle instead of the rendered nodes (Compare panes share one rect so they line up) */
+  fitRect?: { x: number; y: number; width: number; height: number };
 };
 
 export function FlowGraph(props: FlowGraphProps) {
@@ -230,15 +258,21 @@ function FlowGraphInner({
   showControls = true,
   className,
   emptyMessage = "Nothing to show yet.",
+  positions: positionsProp,
+  minZoom = 0.1,
+  maxZoom = 1.2,
+  pannable,
+  fitRect,
 }: FlowGraphProps) {
   // positions depend only on structure (ids/labels/groups/edges), not on visual state → cached by key
   const structureKey =
     layout + "@" + nodes.map((n) => `${n.id}:${n.label}:${n.group ?? ""}`).join("|") + "#" + edges.map((e) => `${e.id}:${e.source}:${e.target}:${e.type}`).join("|");
-  const positions = useMemo(() => cachedLayout(structureKey, layout, nodes, edges), [structureKey, layout, nodes, edges]);
+  const computed = useMemo(() => cachedLayout(structureKey, layout, nodes, edges), [structureKey, layout, nodes, edges]);
+  const positions = positionsProp ?? computed;
 
   const rfNodes = useMemo<ConceptNode[]>(
     () =>
-      nodes.map((n) => ({
+      nodes.filter((n) => !n.hidden).map((n) => ({
         id: n.id,
         type: "concept",
         position: positions[n.id] ?? { x: 0, y: 0 },
@@ -251,6 +285,7 @@ function FlowGraphInner({
           count: n.count,
           title: n.title,
           group: n.group,
+          hidden: n.hidden,
         },
         selected: n.id === selectedId,
         draggable: interactive,
@@ -260,7 +295,7 @@ function FlowGraphInner({
       })),
     [nodes, positions, selectedId, interactive],
   );
-  const rfEdges = useMemo(() => mergeParallel(edges).map((e) => toEdge(e)), [edges]);
+  const rfEdges = useMemo(() => mergeParallel(edges.filter((e) => !e.hidden)).map((e) => toEdge(e)), [edges]);
   const signature = useMemo(() => `${layout}:${nodes.map((n) => n.id).join(",")}:${edges.length}`, [layout, nodes, edges.length]);
 
   if (!nodes.length) {
@@ -277,13 +312,13 @@ function FlowGraphInner({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
-        fitViewOptions={{ padding: 0.2, maxZoom: 1.2 }}
-        minZoom={0.1}
+        fitViewOptions={{ padding: 0.15, minZoom, maxZoom }}
+        minZoom={Math.min(minZoom, 0.1)}
         maxZoom={2}
         nodesConnectable={false}
         elementsSelectable
         nodesDraggable={interactive}
-        panOnDrag={interactive}
+        panOnDrag={interactive || !!pannable}
         zoomOnScroll={interactive}
         zoomOnDoubleClick={false}
         preventScrolling={interactive}
@@ -293,7 +328,7 @@ function FlowGraphInner({
       >
         <Background gap={24} size={1} color="var(--color-border)" />
         {showControls && interactive && <Controls showInteractive={false} position="bottom-right" />}
-        <FitOnChange signature={signature} />
+        <FitOnChange signature={signature} minZoom={minZoom} maxZoom={maxZoom} fitRect={fitRect} />
       </ReactFlow>
     </div>
   );

@@ -37,7 +37,7 @@ export function ViewTabs({
               type="button"
               onClick={() => onChange(v.id)}
               aria-current={active ? "page" : undefined}
-              className={cn("flex h-14 flex-col items-center justify-center gap-1 text-[10px]", active ? "text-accent" : "text-text-2")}
+              className={cn("flex h-14 flex-col items-center justify-center gap-1 text-[11px] leading-none", active ? "text-accent" : "text-text-2")}
             >
               <Icon size={18} />
               {v.short}

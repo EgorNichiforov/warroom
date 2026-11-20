@@ -151,3 +151,19 @@ Scenarios 3/4/5 use the "Type a thought" input: it goes through the same save �
 - **First thought card rendered 6.3–6.6 s after the first final** (three runs: 6309 / 6639 / 6.6 s). Breakdown: ≈0.8 s save flush + 4.0 s ingest window (D-13, only one pending final) + ≈0.25 s ingest (mock 150 ms + persist) + stream/render. With two finals pending, ingest starts immediately after the save.
 - Ingest round-trip on the server: ~230 ms per batch (mock LLM); scene render (mock SVG) ~1.6 s cold / ~0.3 s warm; snapshot GET ~90 ms for a full session.
 - Suite runtime: 2.9 min for 12 tests (auth server boot ≈10 s with hard-linked node_modules).
+
+## Agent B — QA fix round (after Agent D's report)
+All 11 items from the lead's list addressed; `pnpm test:e2e` 12/12 green (2.7 min), `tsc --noEmit` + `pnpm lint` clean. Scenario 7b now logs `offline ingests auto-recovered after reconnect: true`.
+1. **Offline ingest recovery** (`controller.ts`): network-failed ingests are remembered and re-queued on reconnect (window `online` event, API connectivity signal, or the first successful save flush after a backoff); any saved final with `ingestedAt: null` that is not waiting on an engine.error Retry is re-ingested too. While offline no toast is shown; the banner reads "Connection lost — saving and understanding resume automatically when you're back online." Other ingest failures read "Understanding failed for what you said at mm:ss: …" and the toast links the affected segment(s) by time. The `error-toasts` container is always mounted.
+2. **Typed thoughts while idle** get `startedMs` from the session clock and advance it by a reading-time estimate (PATCH durationMs), so keyboard-only sessions have monotonic timestamps.
+3. **Ingest window 2.5 s** (was 4 s); typed thoughts and pause/stop still ingest immediately.
+4. **Viewing-the-past bar**: single "Jump to live" button (scrubber `showLive={false}` there).
+5. **Live mini mind map**: shows the latest 12 concepts (plus the selection) at `minZoom 0.65`, pannable, with a "latest N of M concepts" note.
+6. **Mind map nodes** 200×48 with two-line labels; merged parallel edges show "first label +N"; legend moved out from under the dev badge.
+7. **Systems Compare**: one layered layout over the union of both versions, both panes fit the same rectangle (`fitBounds`), added/removed items hidden on the other side; "0 removed/added" rendered neutral.
+8. **Decisions & Actions**: the summary section renders first when the session is ended / a summary exists, and scrolls into view when `summary.ready` arrives.
+9. **Canvas**: scene card is absolutely positioned inside its slot (no more intrinsic-size overflow), strip has bottom padding; planned scenes show shimmer + "Rendering queued…", generating shows "Generating image…"; `controller.resumePendingWork()` renders planned scenes left over after a reload. Verified with the full demo script: the illustration scene reaches `ready` with an asset.
+10. **History cards** show `focus` as subtitle (hidden when it only differs from the title by punctuation) and the counts the API now returns; after the first `ingest.finished` with a non-empty focus a default "Thinking session —" title is PATCHed to the focus (≤80 chars, cut at a word boundary).
+11. **Mobile**: under 640 px the two provider pills collapse into one "simulated" pill; bottom tab labels 11 px.
+Also: local `segment.added` events now use `endedMs` as `atMs`, matching the server, so timeline visibility is identical live and after reload (Agent D finding 2).
+Not mine: `/icon.svg` auth gating in `src/proxy.ts` (Agent D finding 3) and a demo line that states "research controls execution" (finding 4).
