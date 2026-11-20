@@ -152,3 +152,8 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - audit.js + ALL_PROMPTS_AUDIT.md: every prompt, 180 sections (generator: v5/tools/audit_gen.py; rerun it after any status changes, then release). NEXT AUDIT STEP: line-by-line pass, one prompt per run, oldest first (P01 = /mnt/user-data/uploads/49b9b331-attachment.txt, 2,354 lines): read it in chunks, check each requirement against the code (not the header note), correct the ledger, build what is missing.
 - test_1358 made independent of background day-record creation.
+
+## 20 Nov 23:45 · after 13.63.0
+
+- Line-by-line audit of P01 started (sections 1–4 read; see IMPLEMENTATION_LOG 13.63.0 for what is settled and what is not). Tools: /home/claude/work/audit/probe.py (opens screens and looks for words: its misses are questions, settle each in the code), gen.py (the ledger; copy at v5/tools/audit_gen.py). Finder gate: test_1333 requires every WF entry to have a purpose longer than 15 characters and a unique id; check duplicates in the running app, not by grep.
+- NEXT in the audit: P01 sections 2A, 2D, 2E, 3B–3E (settle in code), then read P01 lines 520–2354 in chunks of about 500 lines (grep -v blank lines), section by section; build what is truly missing; correct the ledger with tools/audit_gen.py and release. Then P13 (unified prompt), then the rest oldest first.

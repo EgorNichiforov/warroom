@@ -31,6 +31,10 @@ with sync_playwright() as p:
     k = ev("(()=>{const b=[...document.querySelectorAll('#modal button')].find(x=>x.textContent==='Open it'); if(!b) return 'none'; b.click(); return document.getElementById('modal').querySelector('h2').textContent})()")
     check('"Open it" opens the real screen', k not in ('none', 'Everything you asked for'), k)
     check('found by asking in plain words', ev("(wfFind('everything i asked for')[0]||[])[0]") == 'allprompts')
+    Q = [['judgment lab','judgmentlab','JUDGMENT LAB'],['operating patterns','mypatterns','OPERATING PATTERNS'],['attention defense','attention','ATTENTION DEFENSE'],['field manual','fieldmanual','FIELD MANUAL'],['contingency','contingency','CONTINGENCY'],['personal reality','reality','PERSONAL REALITY'],['life direction','direction','LIFE DIRECTION'],['capability map','capmap','CAPABILITY MAP'],['development blueprint','devblueprint','DEVELOPMENT BLUEPRINT'],['knowledge to execution','k2e','KNOWLEDGE'],['owner discovery','ownerq','OWNER DISCOVERY'],['strategic review','stratreview','STRATEGIC REVIEW']]
+    got = [[q, ev(f"(wfFind('{q}')[0]||[])[0]"), ev(f"(async()=>{{try{{closeModal()}}catch(e){{}}; const x=wfFind('{q}')[0]; x[6](); await new Promise(r=>setTimeout(r,250)); const h=document.querySelector('#modal h2,#modal h3'); return h?h.innerText.toUpperCase():''}})()")] for q, _, _ in Q]
+    check('twelve older systems are now found by the names the prompts use, and each opens its own screen (13.63)', all(g[1] == q[1] and q[2] in g[2] for g, q in zip(got, Q)), [g for g, q in zip(got, Q) if not (g[1] == q[1] and q[2] in g[2])])
+    check('the ledger rows of the older prompts now have Open buttons too', ev("AUD.filter(b=>['P01','P07','P09'].includes(b.k)).flatMap(b=>b.rows).filter(r=>r.o&&typeof window[r.o]==='function').length") >= 15)
     check('still one recommender; this stores nothing', ev("(()=>{const M=mcBuild();return M.top===(M.C[0]||null)})()") and ev("Object.keys(S.boot||{}).filter(k=>k.indexOf('aud')===0).length") == 0)
     check('no page errors', not errs, errs[:3]); b.close()
 bad = [r for r in RES if not r[1]]

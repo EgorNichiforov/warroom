@@ -173,6 +173,11 @@ brief('P16', 'Bilingual communication, articulation and verbal intelligence', '2
  ('13 Coach quality', 'P', 'rules and checks', 'Not evaluated beyond two real answers.'),
  ('14 Quality assurance', 'P', 'tests 1354, 1357, 1359, 1361', 'Microphone refusal and recognition failure are handled in code, not tested with a real microphone. Android not tested.'),
  ('15 Definition of done', 'P', '', 'Every step exists. Speaking by voice on your devices is unverified.')])
+OPN = {('P01','2 Personal reality'):'rlOpen', ('P01','3 Life strategy'):'stOpen', ('P01','5 Judgment'):'jlOpen', ('P01','6 Red team'):'rtOpen', ('P01','7 Attention'):'dfOpen', ('P01','8 Personal field manual'):'fmOpen', ('P01','9 Connected'):'cmOpen', ('P01','10 The complete Bootcamp'):'bpOpen', ('P01','12 Personal resource'):'rlCapOpen', ('P01','13 Contingency'):'fmContOpen', ('P01','15 Complete BAC'):'bacOpen', ('P01','16 Practical life'):'bpOpen', ('P03','6 Connected to your business'):'kxOpen', ('P04','4 Finish the BAC'):'bacOpen', ('P05','8 Universal intake'):'kpOpen', ('P05','15 Knowledge and content roadmap'):'rsOpen', ('P06','5 Research queue'):'rsOpen', ('P06','7 Adaptive research'):'rsOpen', ('P07','2 The operating playbook'):'osOpen', ('P07','6 An increasingly'):'stOpen', ('P08','7 Knowledge-to-execution'):'kxOpen', ('P09','System 1'):'bpOpen', ('P09','System 5'):'pfOpen', ('P09','System 6'):'cmOpen', ('P09','System 8'):'kxOpen', ('P09','System 9'):'stOpen', ('P10','Part 1 Blueprint'):'bpOpen', ('P10','9 Market'):'mktOpen', ('P11','1-2 One Learn'):'lxPlanOpen', ('P13','Part 3 One depth'):'dmOpen'}
+for b in L:
+    for r in b['rows']:
+        for (k, pre), fn in OPN.items():
+            if b['k'] == k and r['s'].startswith(pre) and not r['o']: r['o'] = fn
 NAME = {'B': 'Built, with a test', 'E': 'Exists (not re-checked line by line)', 'P': 'Partly', 'N': 'Not built', 'Y': 'Needs you', 'X': 'A rule of work'}
 tot = {k: 0 for k in NAME}
 for b in L:
@@ -190,6 +195,28 @@ tail = r"""
 function audCount(st) { let n = 0; AUD.forEach((b) => b.rows.forEach((r) => { if (!st || r.st === st) n++; })); return n; }
 function audOpen(f) { f = f || ''; const chip = (k, label) => `<button class="btn${f === k ? ' on' : ''}" onclick="audOpen('${k}')">${label} ${audCount(k)}</button>`, mark = { B: '✓', E: '✓', P: '◐', N: '✗', Y: '→ you', X: '·' }; openModal(`<h2>Everything you asked for</h2><div class="hint">Seventeen prompts, ${audCount('')} sections, each with where it lives and what is missing. This is a check section by section. "Exists" means a part of the app is there whose own notes say it does this and whose tests pass; it does not mean every sentence of that prompt was re-read against the app. That line-by-line check has not been done.</div><div class="fn-inline">${chip('', 'All')}${chip('P', 'Partly')}${chip('N', 'Not built')}${chip('Y', 'Needs you')}</div>${AUD.map((b) => { const R = b.rows.filter((r) => !f || r.st === f); if (!R.length) return ''; const done = b.rows.filter((r) => r.st === 'B' || r.st === 'E').length, real = b.rows.filter((r) => r.st !== 'X').length; return `<details class="mc-wl"${f ? ' open' : ''}><summary><b>${esc(b.t)}</b><div class="xs">${done} of ${real} sections in place · sent ${esc(b.sent)}</div></summary>${R.map((r) => `<div class="xs" style="padding:5px 0">${mark[r.st]} <b>${esc(r.s)}</b> · ${esc(AUD_NAME[r.st])}${r.w ? '<div style="margin-left:14px">In: ' + esc(r.w) + '</div>' : ''}${r.n ? '<div style="margin-left:14px">' + esc(r.n) + '</div>' : ''}${r.o && typeof window[r.o] === 'function' ? `<div style="margin-left:14px"><button class="btn" onclick="${r.o}()">Open it</button></div>` : ''}</div>`).join('')}</details>`; }).join('')}<div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`, true); }
 try { if (typeof WF !== 'undefined') { const add = (x) => { if (!WF.some((y) => y[0] === x[0])) WF.push(x); };
+  [['judgmentlab', 'Judgment lab: decisions and predictions', 'judgment lab decision record prediction calibration options assumptions review a decision', 'jlOpen'],
+   ['redteam', 'Red team: argue against my own plan', 'red team reality check argue against challenge my plan devil advocate', 'rtOpen'],
+   ['attention', 'Attention defense: triggers and if-then protocols', 'attention defense distraction trigger protocol self regulation urge phone scrolling', 'dfOpen'],
+   ['fieldmanual', 'Field manual', 'field manual what to do when procedure situation playbook for life', 'fmOpen'],
+   ['contingency', 'Contingency and readiness', 'contingency readiness emergency backup plan what if something breaks', 'fmContOpen'],
+   ['reality', 'Personal reality: facts about my life and how sure each is', 'personal reality facts about me circumstances confirmed assumption unknown', 'rlOpen'],
+   ['direction', 'Life direction', 'life direction who i am becoming trade offs what matters long term', 'rlDirOpen'],
+   ['capacity', 'Capacity, resources and constraints for the next 7 days', 'capacity resources constraints hours available overloaded resource planner', 'rlCapOpen'],
+   ['mypatterns', 'My operating patterns', 'operating patterns when i work best what i postpone avoid interruptions', 'rlPatternsOpen'],
+   ['indicators', 'Development indicators', 'development indicators metrics personal development progress', 'lxMetricsOpen'],
+   ['strategy', 'Strategy: the company, assets and opportunities', 'strategy company assets opportunities models long game', 'stOpen'],
+   ['stratreview', 'Strategic review', 'strategic review quarterly review of strategy', 'stReviewOpen'],
+   ['capmap', 'Capability map', 'capability map skills evidence what i can do real world', 'cmOpen'],
+   ['devblueprint', 'Personal Development Blueprint', 'development blueprint ten areas competencies curriculum what is missing', 'bpOpen'],
+   ['ownerq', 'Owner discovery: questions for agency owners', 'owner discovery market questions ask owners', 'odOpen'],
+   ['k2e', 'Knowledge to execution', 'knowledge to execution principles from books applied to caregiver bench', 'kxOpen'],
+   ['kpipeline', 'Knowledge pipeline', 'knowledge pipeline discover capture process classify sources', 'kpOpen'],
+   ['rightknow', 'Right knowledge at the right time (research)', 'research queue learning requests now next later what to learn', 'rsOpen'],
+   ['whoelse', 'Competitors: who else sells to these owners', 'competitors who else sells competition by type', 'mkCompOpen'],
+   ['weakspots', 'Weak spots in what I learned', 'weak spots recall mistakes what i keep getting wrong proof', 'pfOpen'],
+   ['winning', 'What winning agencies look like', 'winning agencies why owners said no patterns segment', 'dmOpen']
+  ].forEach((e) => { if (typeof window[e[3]] === 'function') add([e[0], 'dir', e[1], e[2], 'Where do I…? → ' + e[1].split(':')[0].toLowerCase(), 'Opens the ' + e[1].split(':')[0] + ' screen, built earlier.', () => window[e[3]]()]); });
   add(['allprompts', 'dir', 'Everything you asked for, and where it stands', 'everything i asked for all prompts audit what is built what is missing not built done status coverage 100 percent', 'Where do I…? → everything you asked for', 'Every prompt you sent, section by section: built, partly, not built, or waiting on you.', () => audOpen()]);
 } } catch (e) { }
 """
