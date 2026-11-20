@@ -124,3 +124,11 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - Communication increments 1 and 2 are live (`speak.js`, `speak2.js`; tests 1354, 1357). NEXT for it: (3) daily session of five blocks + progress view per language with history search and attempt comparison; (4) levels 4–6 + grammar-pattern review + regression note; (5) audio, only with consent and only if the phone supports it.
 - Supabase `warroom_server_v1_closed`: Egor wrote "Approved" in chat at 19:56; the tool's own confirmation still timed out (4th time). The card probably does not appear in the phone app. NOT applied, not run another way. Ask him to answer it from the computer, or to say explicitly how he wants it run.
+
+
+## 20 Nov 20:50 · after 13.58.0
+
+- Second brief (addendum): baseline + backlog written; backlog item 1 done (`forecast.js`). NEXT: item 2 (kind of claim on the main numbers) and item 3 (happened-at against recorded-at). Do not start simulation (item 10) before forecasts have real marked weeks.
+- Newest files in load order: fidelity.js, speak.js, speak2.js, forecast.js (index.html by hand + sw.js SHELL).
+
+- RELEASE GATE, in this order: every v5/*.js parses under node → suites → duplicate-name check → new store prefixes not used elsewhere → commit → push. (13.58: a changelog row with backticks broke playbook.js; caught by the suites before the commit.) Never put backticks in a Playbook changelog row.
