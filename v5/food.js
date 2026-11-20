@@ -32,13 +32,17 @@ function dataUrlBlob(u) { const [h, b] = u.split(','), bin = atob(b), a = new Ui
    A key kept "on this device only" stays in this device's localStorage and is used directly. */
 const AI_SERVER = '__server__';
 function aiCfg() { let c = {}; try { c = JSON.parse(localStorage.getItem(FOOD_AI_KEY) || '{}'); } catch (e) { } if (c.key) return c; const sa = S && S.secrets && S.secrets.ai; if (sa && sa.provider && (sa.server || sa.key)) return { provider: sa.provider, model: sa.model, alts: sa.alts || [], key: AI_SERVER, shared: true, server: true }; return c; }
-async function aiProxy(payload) { if (!syncReady()) throw new Error('Link this device first (More → Devices & sync): the shared AI key lives on the War Room server'); const s = S.settings.sync; return fetch(`${s.url}/functions/v1/warroom-ai`, { method: 'POST', headers: hdr(), body: JSON.stringify(payload), signal: payload.signal }); }
+/* 13.55.0: calls to the warroom-ai function must NOT carry the device key. That function only accepts the headers it
+   knows; an extra one fails the browser's pre-flight and every AI call dies with "Failed to fetch". Found on Egor's
+   laptop: enrolling it (13.50) silently broke the AI on that device for three hours. */
+function fnHdr() { const h = hdr(); delete h['x-warroom-device']; return h; }
+async function aiProxy(payload) { if (!syncReady()) throw new Error('Link this device first (More → Devices & sync): the shared AI key lives on the War Room server'); const s = S.settings.sync; return fetch(`${s.url}/functions/v1/warroom-ai`, { method: 'POST', headers: fnHdr(), body: JSON.stringify(payload), signal: payload.signal }); }
 /* every AI request goes through here: with the server key it is relayed by the warroom-ai function, otherwise sent directly */
 function aiNet(url, opt) {
   opt = opt || {}; const h = Object.assign({}, opt.headers || {}); const k = h['x-goog-api-key'] || h['x-api-key'];
   if (k !== AI_SERVER) return fetch(url, opt);
   delete h['x-goog-api-key']; delete h['x-api-key']; delete h['anthropic-dangerous-direct-browser-access'];
-  const s = S.settings.sync; return fetch(`${s.url}/functions/v1/warroom-ai`, { method: 'POST', headers: hdr(), signal: opt.signal, body: JSON.stringify({ op: 'call', url, method: opt.method || 'GET', headers: h, body: opt.body == null ? null : String(opt.body) }) });
+  const s = S.settings.sync; return fetch(`${s.url}/functions/v1/warroom-ai`, { method: 'POST', headers: fnHdr(), signal: opt.signal, body: JSON.stringify({ op: 'call', url, method: opt.method || 'GET', headers: h, body: opt.body == null ? null : String(opt.body) }) });
 }
 async function aiShare(cfg, on) {
   if (on) {

@@ -444,3 +444,10 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Speech:** the browser's `SpeechRecognition` (`ro-RO` / `en-US`), started and stopped by tap, state always shown, consent screen first (in Chrome the audio goes to Google; War Room gets text only). No recogniser → typing. **Not tested with a real microphone anywhere.** Whether the Android shell's WebView offers `SpeechRecognition` is NOT known; if it does not, the keyboard's own microphone is the fallback.
 - **Not built (parts of the brief still open):** 5.3 conversation simulation; 5.4 "explain it differently" as its own five-step exercise (d3 is a one-shot version); audio recording, playback and retention (5.2); levels 4–6 (Part 9); bilingual-switching and cross-language as session MODES (4.1 has four modes; two languages plus the "how do I say it" helper exist); the 20–25 minute five-block daily session (5.1); progress charts and searchable history (Part 11 D/E: there is a recent list and per-dimension averages); regression detection (8.10); grammar-pattern spaced repetition (only words and expressions); real coach quality with a real key (untested).
 - Rule kept: it ranks nothing and adds no candidate to Mission Control.
+
+
+## 13.55.0 · 20 Nov 2026, 16:25 · enrolling a device had broken its AI
+
+- Found by running a real coach call on Egor's laptop (his key lives on the server: `aiCfg().server`). `aiNet` and `aiProxy` (food.js) sent `hdr()` to `/functions/v1/warroom-ai`; since 13.43 `hdr()` adds `x-warroom-device` on an enrolled device; the function's CORS list does not include it → pre-flight fails → "Failed to fetch". Dead from 12:53 (enrolment) to this release.
+- Fix: `fnHdr()` = `hdr()` without the device key, used for both function calls. Check added to `test_1343`.
+- **Before the lock is ever switched on:** read the `warroom-ai` function (its source is not in this repo) and see how it authorises a room. If it reads `warroom_sync` with the sync code under row security, the lock would shut the AI out; it would then need to accept the device key (and list the header in its CORS reply).
