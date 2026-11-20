@@ -595,3 +595,13 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - No fault found in P05 or P06 beyond that. The cadence gap in P06 section 2 stands (server research off; a need waits for the daily run).
 - 13.71.0 and 13.72.0 are not checked on the laptop: the Chrome extension was not connected (01:25 and later).
 - Next: P07 (`b5fd8906`, 208 lines), P08 (`6a3a7bc8`, 247), P09 (`ba256a43`, 219) can share one run.
+
+
+## 13.73.0 · 21 Nov 2026, 01:40 · P07 to P12 read and settled
+
+- Read: P07 (`b5fd8906`), P08 (`6a3a7bc8`), P09 (`ba256a43`), P10 (`3d6afeda`), P11 (`c0fd84f7`), P12 (`7997f1ef`, the same eight stages as P13 Part 1).
+- Counts taken from code and data: `OS` in opsys.js = 31 steps (sales 12, rec 9, team 10), none missing page, lessons, metric, why or test; `bpAudit()` = total 115, lessons 92, noLesson 20, kwOnly 3, exercise 95, assess 58, complete 32; `lib/market.json` = 18 entries, all with src, url, date (cls official 5, reported 9, vendor 4); books by `pdfinfo`: 161, 24, 430 pages; `hz-lost` and `hz-gls` notes state what was read.
+- **Found by typing the prompt's own words into `bfSearch`:** negotiation, cooking, contracts, humour gave no result. `bfSearch` (brief.js) covers Go, Agency, Money, Playbook, Task and the finder; the record search (`enFind`, entity.js) was a separate screen.
+- **Built:** `bfLearnRows(q)` and a `bfSearch` wrapper (`_en`) in claims.js: up to three records from `enFind` and up to three lesson titles from `XC.cards`, de-duplicated by title; `BF_SPELL` maps four US spellings. Test `test_1373` (15 checks).
+- Laptop: 13.71.0 and 13.72.0 confirmed read-only at 01:30 (BAC floor 7, subjects 7, saved profile intact, video counts, finder). Seen there: no active campaign; 0 videos reviewed by him.
+- Next: P14 (`decf8883`, 3,425 lines), then P15, then P16, one per run.

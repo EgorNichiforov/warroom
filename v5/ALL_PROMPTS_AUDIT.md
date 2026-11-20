@@ -1,14 +1,14 @@
 # Every prompt, section by section
 
-Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 181 sections.
+Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 182 sections.
 
 **What this is:** a check at the level of sections. "Exists" means a module is there whose own note says it does this and whose tests pass; it does NOT mean I re-read every sentence of that prompt against the app today. A line-by-line check of about 17,000 lines has not been done.
 
 | Status | Sections |
 |---|---|
 | Built, with a test | 47 |
-| Exists (not re-checked line by line) | 76 |
-| Partly | 50 |
+| Exists (not re-checked line by line) | 78 |
+| Partly | 49 |
 | Not built | 3 |
 | Needs you | 2 |
 | A rule of work | 3 |
@@ -105,22 +105,22 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | Section | Status | Where | What is missing |
 |---|---|---|---|
 | 1 Audit and use the whole library | Exists (not re-checked line by line) | opsys.js, blueprint.js |  |
-| 2 The operating playbook: recruiting, sales, team | Exists (not re-checked line by line) | opsys.js, playbook.js |  |
+| 2 The operating playbook: recruiting, sales, team | Exists (not re-checked line by line) | opsys.js, playbook.js | CHECKED LINE BY LINE 21 Nov: counted from the code. 31 operating steps: sales 12, caregiver recruitment 9, team 10. Every one has its procedure page, its lessons, a measure, a reason and a way to test it. Split by timing: 9 do now, 11 improve with evidence, 11 prepare for later. All are marked v0, untested, until run and measured. |
 | 3 Knowledge into implementation | Exists (not re-checked line by line) | opsys.js |  |
 | 4 Continuous improvement | Exists (not re-checked line by line) | opsys.js, lab.js |  |
-| 5 Bootcamp tied to real execution | Exists (not re-checked line by line) | capmap.js |  |
+| 5 Bootcamp tied to real execution | Exists (not re-checked line by line) | opsys.js, capmap.js | CHECKED LINE BY LINE 21 Nov: the seven stages you named, Learned to Delegated, are the stages each step moves through. |
 | 6 An increasingly valuable company | Exists (not re-checked line by line) | strategy.js |  |
 
 ## P08 · New source material (the three books) (before 19 Nov)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| 1 Inspect every file | Partly | earlier session | Done in an earlier session; I did not re-read the three books today. |
+| 1 Inspect every file | Partly | lib/sources.json | Counted 21 Nov from the files and the library record. Lost Chapters, 161 pages: three parts read in full and one in part; Section A (promotions) and Section C (offer stacking) were not read; 5 lessons. Gym Launch Secrets, 430 pages: four chapters read in excerpts; 2 lessons. The 2 Bonus Chapters, 24 pages: the same material as Lost Chapters Section A, so not read either. Most of these three books is still unread. |
 | 2-4 Extract, connect, turn into lessons | Exists (not re-checked line by line) | kpipe.js, bootcamp.js |  |
 | 5-6 Apply to Caregiver Bench; adapt Gym Launch | Exists (not re-checked line by line) | blueprint.js (knowledge to execution) |  |
 | 7 Knowledge-to-execution map | Exists (not re-checked line by line) | blueprint.js |  |
 | 8-9 Update priorities and library | Exists (not re-checked line by line) | research.js, lib/sources.json |  |
-| 10 Verify the result | Partly |  | Not re-verified today. |
+| 10 Verify the result | Partly | lib/sources.json, lib/cards.json | Verified 21 Nov by count: 7 lessons trace back to these books (5 and 2), and the library record states what was and was not read. The remaining chapters are not turned into lessons. |
 
 ## P09 · Implementation specification: nine systems (before 19 Nov)
 
@@ -135,16 +135,17 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | System 7 Personal development planner | Exists (not re-checked line by line) | research.js, learnx.js |  |
 | System 8 Business knowledge to execution | Exists (not re-checked line by line) | opsys.js, blueprint.js |  |
 | System 9 Strategic intelligence | Exists (not re-checked line by line) | strategy.js, intel.js |  |
+| 5 Acceptance: test records cannot reach real recommendations | Exists (not re-checked line by line) | tests run in a throwaway browser with the network blocked; the System check task watches for a second War Room | Read in full 21 Nov. Met by keeping tests away from your data, not by a flag on each record. |
 
 ## P10 · Complete personal development, knowledge and strategic intelligence (before 19 Nov)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| Part 1 Blueprint and curriculum, ten areas A to J | Partly | blueprint.js | The ten areas exist. The content under each is not complete; the Blueprint shows which. |
+| Part 1 Blueprint and curriculum, ten areas A to J | Partly | blueprint.js | CHECKED LINE BY LINE 21 Nov: counted by the Blueprint itself. 115 competencies: 92 have a lesson, 20 have none and 3 only a keyword match; 95 have an exercise, 58 an assessment; 32 are complete. Found by typing your own words: the main search returned nothing for negotiation, cooking, contracts or humour although the Blueprint has each. Fixed in 13.73: search now answers with capabilities, competences and lessons, and reads humor as humour. |
 | Part 2 Roadmap; assess capability, not content | Exists (not re-checked line by line) | capability.js |  |
 | Part 3 Intelligent research and one library | Exists (not re-checked line by line) | research.js, content.js |  |
-| 9 Market intelligence | Exists (not re-checked line by line) | blueprint.js, the Sunday brief |  |
-| 10 Synthetic test data | Partly |  | Not re-checked today. |
+| 9 Market intelligence | Exists (not re-checked line by line) | lib/market.json, the Sunday brief | CHECKED LINE BY LINE 21 Nov: 18 entries, every one with a source, a link and a date (checked 19 Nov): 5 official, 9 reported, 4 from vendors. |
+| 10 Synthetic test data | Exists (not re-checked line by line) | entity.js, tests/ | Read in full 21 Nov. Starter records are marked as starter in the record search, and tests run in a throwaway browser with the network blocked, so no test record reaches your data. There is no separate flag on each record. |
 | 11 Email backlog | Partly | daily scan | Six a run; not finished. |
 | 12 Five missing capabilities | Exists (not re-checked line by line) | expand.js |  |
 | 13 Content quality review | Partly | monthly curriculum review | First monthly run is 1 Dec. |
@@ -156,7 +157,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| 1-2 One Learn place, time-aware Learn Now | Exists (not re-checked line by line) | learnx.js |  |
+| 1-2 One Learn place, time-aware Learn Now | Exists (not re-checked line by line) | learnx.js | CHECKED LINE BY LINE 21 Nov: opened in a browser. The Learn screen shows the eight things you listed: what is next and why, how long, your paths, reviews due, what to practise, missions, and what you can actually do. The nine durations are yours. |
 | 3 Roadmap, paths, courses, lessons, library, practice, missions, review, mastery connected | Exists (not re-checked line by line) | learnx.js, learn.js, mastery.js |  |
 | 4-5 The workflow and one learning session | Exists (not re-checked line by line) | learnx.js |  |
 | 6 One recommendation engine | Exists (not re-checked line by line) | learnx.js for learning, mission.js for everything |  |
@@ -168,7 +169,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| Stages 1 to 8 | Exists (not re-checked line by line) | cohere.js and others | Stage 7 was investigation only, as instructed. |
+| Stages 1 to 8 | Exists (not re-checked line by line) | cohere.js and others | Read in full 21 Nov: the same eight stages as the unified prompt, checked there. Stage 7 was investigation only, as instructed. |
 | 1 Build Gate | A rule of work |  | Withdrawn by you on 20 Nov. |
 | 4 Security item: investigate only | Exists (not re-checked line by line) |  |  |
 

@@ -199,3 +199,9 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - Audit done: P01, P13, P02, P03, P04, P05, P06. Next: P07 `b5fd8906` (208 lines), P08 `6a3a7bc8` (247), P09 `ba256a43` (219) in one run; then P10 `3d6afeda` (661), P11 `c0fd84f7` (397), P12 `7997f1ef` (213); then the three long ones P14 `decf8883` (3,425), P15 `413c63df` (2,070), P16 `356a7c9c` (1,162).
 - Laptop checks pending for 13.71.0 and 13.72.0 (extension not connected).
+
+
+## Resume note · 21 Nov 2026, 01:40 (after 13.73.0)
+
+- Audit done: P01 to P13 (all but the three long ones). Remaining: P14 `decf8883` (3,425 lines; ledger rows are generated from VISION_COVERAGE.md), P15 `413c63df` (2,070), P16 `356a7c9c` (1,162).
+- Fifth technique that found a fault: type the prompt's own topic words into the main search (`bfSearch`), not only the finder.

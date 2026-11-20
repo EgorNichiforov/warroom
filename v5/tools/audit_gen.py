@@ -70,18 +70,18 @@ brief('P06', 'Continuous personalised research', 'before 19 Nov', [
  ('10 Technical implementation', 'P', 'scheduled tasks', 'It lives in Claude tasks; inside the app and server only the queue and the import exist.')])
 brief('P07', 'Business knowledge base as the operating system', 'before 19 Nov', [
  ('1 Audit and use the whole library', 'E', 'opsys.js, blueprint.js', ''),
- ('2 The operating playbook: recruiting, sales, team', 'E', 'opsys.js, playbook.js', ''),
+ ('2 The operating playbook: recruiting, sales, team', 'E', 'opsys.js, playbook.js', 'CHECKED LINE BY LINE 21 Nov: counted from the code. 31 operating steps: sales 12, caregiver recruitment 9, team 10. Every one has its procedure page, its lessons, a measure, a reason and a way to test it. Split by timing: 9 do now, 11 improve with evidence, 11 prepare for later. All are marked v0, untested, until run and measured.', 'osOpen'),
  ('3 Knowledge into implementation', 'E', 'opsys.js', ''),
  ('4 Continuous improvement', 'E', 'opsys.js, lab.js', ''),
- ('5 Bootcamp tied to real execution', 'E', 'capmap.js', ''),
+ ('5 Bootcamp tied to real execution', 'E', 'opsys.js, capmap.js', 'CHECKED LINE BY LINE 21 Nov: the seven stages you named, Learned to Delegated, are the stages each step moves through.'),
  ('6 An increasingly valuable company', 'E', 'strategy.js', '')])
 brief('P08', 'New source material (the three books)', 'before 19 Nov', [
- ('1 Inspect every file', 'P', 'earlier session', 'Done in an earlier session; I did not re-read the three books today.'),
+ ('1 Inspect every file', 'P', 'lib/sources.json', 'Counted 21 Nov from the files and the library record. Lost Chapters, 161 pages: three parts read in full and one in part; Section A (promotions) and Section C (offer stacking) were not read; 5 lessons. Gym Launch Secrets, 430 pages: four chapters read in excerpts; 2 lessons. The 2 Bonus Chapters, 24 pages: the same material as Lost Chapters Section A, so not read either. Most of these three books is still unread.', 'ccAccessOpen'),
  ('2-4 Extract, connect, turn into lessons', 'E', 'kpipe.js, bootcamp.js', ''),
  ('5-6 Apply to Caregiver Bench; adapt Gym Launch', 'E', 'blueprint.js (knowledge to execution)', ''),
  ('7 Knowledge-to-execution map', 'E', 'blueprint.js', ''),
  ('8-9 Update priorities and library', 'E', 'research.js, lib/sources.json', ''),
- ('10 Verify the result', 'P', '', 'Not re-verified today.')])
+ ('10 Verify the result', 'P', 'lib/sources.json, lib/cards.json', 'Verified 21 Nov by count: 7 lessons trace back to these books (5 and 2), and the library record states what was and was not read. The remaining chapters are not turned into lessons.')])
 brief('P09', 'Implementation specification: nine systems', 'before 19 Nov', [
  ('System 1 Personal Development Blueprint', 'E', 'blueprint.js', ''),
  ('System 2 Adaptive learning engine', 'E', 'learnx.js, capability.js', ''),
@@ -91,13 +91,14 @@ brief('P09', 'Implementation specification: nine systems', 'before 19 Nov', [
  ('System 6 Practical capability', 'E', 'capability.js, capmap.js', ''),
  ('System 7 Personal development planner', 'E', 'research.js, learnx.js', ''),
  ('System 8 Business knowledge to execution', 'E', 'opsys.js, blueprint.js', ''),
- ('System 9 Strategic intelligence', 'E', 'strategy.js, intel.js', '')])
+ ('System 9 Strategic intelligence', 'E', 'strategy.js, intel.js', ''),
+ ('5 Acceptance: test records cannot reach real recommendations', 'E', 'tests run in a throwaway browser with the network blocked; the System check task watches for a second War Room', 'Read in full 21 Nov. Met by keeping tests away from your data, not by a flag on each record.')])
 brief('P10', 'Complete personal development, knowledge and strategic intelligence', 'before 19 Nov', [
- ('Part 1 Blueprint and curriculum, ten areas A to J', 'P', 'blueprint.js', 'The ten areas exist. The content under each is not complete; the Blueprint shows which.'),
+ ('Part 1 Blueprint and curriculum, ten areas A to J', 'P', 'blueprint.js', 'CHECKED LINE BY LINE 21 Nov: counted by the Blueprint itself. 115 competencies: 92 have a lesson, 20 have none and 3 only a keyword match; 95 have an exercise, 58 an assessment; 32 are complete. Found by typing your own words: the main search returned nothing for negotiation, cooking, contracts or humour although the Blueprint has each. Fixed in 13.73: search now answers with capabilities, competences and lessons, and reads humor as humour.', 'bpOpen'),
  ('Part 2 Roadmap; assess capability, not content', 'E', 'capability.js', ''),
  ('Part 3 Intelligent research and one library', 'E', 'research.js, content.js', ''),
- ('9 Market intelligence', 'E', 'blueprint.js, the Sunday brief', ''),
- ('10 Synthetic test data', 'P', '', 'Not re-checked today.'),
+ ('9 Market intelligence', 'E', 'lib/market.json, the Sunday brief', 'CHECKED LINE BY LINE 21 Nov: 18 entries, every one with a source, a link and a date (checked 19 Nov): 5 official, 9 reported, 4 from vendors.'),
+ ('10 Synthetic test data', 'E', 'entity.js, tests/', 'Read in full 21 Nov. Starter records are marked as starter in the record search, and tests run in a throwaway browser with the network blocked, so no test record reaches your data. There is no separate flag on each record.'),
  ('11 Email backlog', 'P', 'daily scan', 'Six a run; not finished.'),
  ('12 Five missing capabilities', 'E', 'expand.js', ''),
  ('13 Content quality review', 'P', 'monthly curriculum review', 'First monthly run is 1 Dec.'),
@@ -105,7 +106,7 @@ brief('P10', 'Complete personal development, knowledge and strategic intelligenc
  ('15 Physical-device testing', 'Y', '', 'Laptop tested by me since 20 Nov. The phone has never been tested by anyone but you.'),
  ('Part 5 Coherence; protection against overwhelm', 'B', 'cohere.js, content.js, finish.js (folded finder)', '')])
 brief('P11', 'Unified learning experience and learning engine', 'before 19 Nov', [
- ('1-2 One Learn place, time-aware Learn Now', 'E', 'learnx.js', ''),
+ ('1-2 One Learn place, time-aware Learn Now', 'E', 'learnx.js', 'CHECKED LINE BY LINE 21 Nov: opened in a browser. The Learn screen shows the eight things you listed: what is next and why, how long, your paths, reviews due, what to practise, missions, and what you can actually do. The nine durations are yours.'),
  ('3 Roadmap, paths, courses, lessons, library, practice, missions, review, mastery connected', 'E', 'learnx.js, learn.js, mastery.js', ''),
  ('4-5 The workflow and one learning session', 'E', 'learnx.js', ''),
  ('6 One recommendation engine', 'E', 'learnx.js for learning, mission.js for everything', ''),
@@ -113,7 +114,7 @@ brief('P11', 'Unified learning experience and learning engine', 'before 19 Nov',
  ('9-10 Simpler experience; data architecture', 'E', '', ''),
  ('11 Acceptance tests', 'E', 'tests/', '')])
 brief('P12', 'Coherence plan 13.31.1', 'before 19 Nov', [
- ('Stages 1 to 8', 'E', 'cohere.js and others', 'Stage 7 was investigation only, as instructed.'),
+ ('Stages 1 to 8', 'E', 'cohere.js and others', 'Read in full 21 Nov: the same eight stages as the unified prompt, checked there. Stage 7 was investigation only, as instructed.'),
  ('1 Build Gate', 'X', '', 'Withdrawn by you on 20 Nov.'),
  ('4 Security item: investigate only', 'E', '', '')])
 brief('P13', 'Unified implementation prompt', '19 Nov', [
