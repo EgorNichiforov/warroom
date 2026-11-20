@@ -39,7 +39,7 @@
 | 9 Agent orchestration | Built, bounded (13.42); never run against a live model by the build | `agents.js` |
 | 10 Personal domains | Existed + 13.34 to 13.39 | `depth.js`, `domain.js` |
 | 11 Evolution | Built (13.42); needs weeks of real use to say anything | `agents.js` |
-| 12 Final integration and release | 13.48.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
+| 12 Final integration and release | 13.49.0 tested and deployed; acceptance report written, with what is not verified | `ACCEPTANCE_REPORT.md` |
 
 A stage listed for a later release than the current `APP_VERSION` is NOT built yet.
 
@@ -70,7 +70,9 @@ War Room and Caregiver Bench are separate projects. **War Room development is no
 
 Scheduled tasks on 20 Nov: prompts corrected in Weekly review, Morning brief 06:00 (now paused), Nightly review, Bench Bulletin (no price line); the freeze and the build-gate check removed from Weekly review, Morning brief 05:03 and the Sunday audit (see `IMPLEMENTATION_LOG.md` for which of these went through). Server timers: backup on, weekly check on, brief off, research off.
 
-OPEN DECISION (asked 20 Nov): what counts as a day's dials. App since 13.24 (tested in the legacy suite): call records + outside reports; hand-counter extras shown apart, not counted. Scheduled reviews and the server worker: the larger of counter and call records. A first attempt to switch the app to "larger of" was reverted because it reverses a deliberate, tested rule. Do not change either side until Egor chooses.
+Dials, settled 20 Nov (13.49.0, worker v4): dials MADE = per day max(call records + outside reports, day counter), compared with the 350 target (scorecard, server brief, his reviews). Dials WITH AN OUTCOME = call records + outside reports, used for conversion (Mission Control evidence, funnel, bottleneck). Do not merge the two.
+
+NEVER create a non-`staging-` room row on the live project without renaming it at once (see `supabase/tests/live_http.sh`): every scheduled task takes the newest row that has `days`.
 
 ## Before every release
 
@@ -80,6 +82,6 @@ OPEN DECISION (asked 20 Nov): what counts as a day's dials. App since 13.24 (tes
 
 ## Next action
 
-1. Everything listed in the two briefs has a built counterpart as of 13.48.0. What remains is use and verification, not building.
+1. Everything listed in the two briefs has a built counterpart as of 13.49.0. What remains is use and verification, not building.
 2. Egor presses the phone checklist and reports what breaks.
 3. After two weeks of use, open "Is War Room working?" and fold away what was never opened.

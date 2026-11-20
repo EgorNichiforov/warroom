@@ -18,11 +18,14 @@ const nice = (k) => { const d = new Date(k + 'T12:00:00Z'); return d.toLocaleDat
 // ── what the records say (deterministic) ──
 function facts(S, Q, tz) {
   const now = new Date(), today = dkey(now, tz), dayN = (n) => dkey(new Date(now.getTime() - n * 864e5), tz), by = {};
-  const add = (k, f, v) => { const r = by[k] = by[k] || { d: 0, c: 0, o: 0, ext: 0 }; r[f] += v; };
+  const add = (k, f, v) => { const r = by[k] = by[k] || { d: 0, c: 0, o: 0, ext: 0, rec: 0 }; r[f] += v; };
   for (const x of Object.values((Q && Q.items) || {})) for (const e of (x && x.log) || []) { const k = e.day || (e.at ? dkey(new Date(e.at), tz) : null); if (!k) continue; add(k, 'd', e.d && e.d.dials != null ? Number(e.d.dials) || 0 : 1); const own = (e.d && Number(e.d.owners)) || (/OWNER TALK/i.test(e.r || '') ? 1 : 0); if (own) add(k, 'o', own); if (own || /gatekeeper/i.test(e.r || '')) add(k, 'c', 1); }
-  // the day counter (the big dial button) and the per-agency call log can differ: take the larger of the two, then add calls reported from outside
-  for (const [k, o] of Object.entries(S.days || {})) { const c = (o && o.counters) || {}, cd = Number(c.dials) || 0, co = Number(c.owners) || 0; if (cd || co) { const r = by[k] = by[k] || { d: 0, c: 0, o: 0, ext: 0 }; if (cd > r.d) r.d = cd; if (co > r.o) r.o = co; if (r.o > r.c) r.c = r.o; } for (const e of (o && o.ext) || []) { if (!e || e.del) continue; add(k, 'd', Number(e.d) || 0); add(k, 'c', Number(e.c) || 0); add(k, 'o', Number(e.o) || 0); add(k, 'ext', Number(e.d) || 0); } }
-  const sum = (a, b) => { const t = { d: 0, c: 0, o: 0, ext: 0 }; for (let i = a; i < b; i++) { const r = by[dayN(i)]; if (r) for (const f in t) t[f] += r[f]; } return t; };
+  // calls reported from outside count like call records; then the day counter (the big dial button) can only RAISE a day's total, never add to it twice.
+  // rec = dials with a record behind them; d = dials made (what the 350-a-week target is compared with)
+  for (const [k, o] of Object.entries(S.days || {})) for (const e of (o && o.ext) || []) { if (!e || e.del) continue; add(k, 'd', Number(e.d) || 0); add(k, 'c', Number(e.c) || 0); add(k, 'o', Number(e.o) || 0); add(k, 'ext', Number(e.d) || 0); }
+  for (const r of Object.values(by)) r.rec = r.d;
+  for (const [k, o] of Object.entries(S.days || {})) { const c = (o && o.counters) || {}, cd = Number(c.dials) || 0, co = Number(c.owners) || 0; if (cd || co) { const r = by[k] = by[k] || { d: 0, c: 0, o: 0, ext: 0, rec: 0 }; if (cd > r.d) r.d = cd; if (co > r.o) r.o = co; if (r.o > r.c) r.c = r.o; } }
+  const sum = (a, b) => { const t = { d: 0, c: 0, o: 0, ext: 0, rec: 0 }; for (let i = a; i < b; i++) { const r = by[dayN(i)]; if (r) for (const f in t) t[f] += r[f]; } return t; };
   const Y = sum(1, 2), W = sum(0, 7), P = sum(7, 14), live = (m) => Object.values(m || {}).filter((x) => x && !x._del);
   const T = live(S.tasks).filter((t) => !t.done), over = T.filter((t) => t.due && String(t.due).slice(0, 10) < today).sort((a, b) => String(a.due).localeCompare(String(b.due)));
   const G = live(S.goals).filter((g) => !g.done), idle = G.filter((g) => g.horizon !== 'week' && g.prio !== 'later' && g.prio !== 'ignore' && !String(g.next || '').trim()), focus = G.filter((g) => g.prio === 'focus');
@@ -33,8 +36,9 @@ function facts(S, Q, tz) {
   const tgt = (((S.days || {})[today] || {}).targets || {}).dials, se = (S.settings || {}).season || {};
   const L = [];
   L.push(`Season priority (operator setting): ${se.primary || 'not set'}`);
-  L.push(`Yesterday (${nice(dayN(1))}): ${Y.d} dials, ${Y.c} answered, ${Y.o} owner conversations${Y.ext ? ` (${Y.ext} dials are the operator's own report, entered later)` : ''}`);
-  L.push(`Last 7 days: ${W.d} dials, ${W.c} answered, ${W.o} owner conversations. The 7 days before: ${P.d}, ${P.c}, ${P.o}`);
+  const only = (t) => t.d > t.rec ? ` (${t.d - t.rec} on the day counter only, no call record)` : '';
+  L.push(`Yesterday (${nice(dayN(1))}): ${Y.d} dials${only(Y)}, ${Y.c} answered, ${Y.o} owner conversations${Y.ext ? ` (${Y.ext} dials are the operator's own report, entered later)` : ''}`);
+  L.push(`Last 7 days: ${W.d} dials${only(W)}, ${W.c} answered, ${W.o} owner conversations. The 7 days before: ${P.d}, ${P.c}, ${P.o}`);
   if (tgt != null && tgt !== '') L.push(`Dial target set for today: ${tgt}`);
   if (dueToday.length) L.push(`Follow-ups due today: ${dueToday.slice(0, 4).map((x) => clean(x.agency, 40)).join('; ')}`);
   if (late.length) L.push(`Follow-ups past the date set: ${late.length} (${late.slice(0, 3).map((x) => clean(x.agency, 40)).join('; ')})`);

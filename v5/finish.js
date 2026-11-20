@@ -64,9 +64,12 @@ try { if (typeof WF !== 'undefined') { const add = (x) => { if (!WF.some((y) => 
   add(['missedtrain', 'body', 'Missed training: move it or let it go', 'missed training session workout skipped gym catch up carry over reschedule', 'Where do I…? → missed training', 'Sessions from the last three days that were neither done nor skipped, one decision each.', () => trmOpen()]);
   add(['people', 'cap', 'People and commitments', 'people person promise promised commitment owe owes owed who contact', 'Where do I…? → people', 'Who you owe what, and who owes you. Only what you type.', () => ppOpen()]);
   add(['newq', 'learn', 'A new-situation question (AI)', 'new situation question quiz test me harder apply transfer practice question ai', 'Where do I…? → new-situation question', 'One question written from a lesson you learned, harder or easier by how your last recalls went.', () => nqOpen()]); } } catch (e) { }
-/* ── 8. the scorecard says out loud what it leaves out (13.48.0) ──
-   Rule since 13.24: the funnel counts a dial only when there is a call record (or a report of calls made elsewhere).
-   Presses on the day counter with no record behind them are NOT added. Until now the scorecard did not mention them,
-   while the scheduled reviews count them, so the two looked like they disagreed. Now the Dials row names the extras. */
-function fnCounterExtras(days) { let n = 0; try { const by = mcDialLog(); for (let i = 0; i < (days || 7); i++) { const E = mcDialEvidence(dk(addDays(new Date(), -i)), by); if (E && E.manual > 0) n += E.manual; } } catch (e) { } return n; }
-if (typeof scRows === 'function' && !scRows._fn8) { const f = scRows; scRows = function () { const R = f.apply(this, arguments); try { const x = fnCounterExtras(7), r = R.find((y) => y && y[0] === 'Dials'); if (r && x > 0) r[5] = String(r[5] || '') + ` · plus ${x} on the day counter with no call record in the last 7 days: not counted here (your morning and evening reviews do count them)`; } catch (e) { } return R; }; Object.keys(f).forEach((k) => { scRows[k] = f[k]; }); scRows._fn8 = 1; }
+/* ── 8. two honest numbers for dials (13.49.0) ──
+   First principles: "how much did I dial" and "what do my dials convert to" are two different questions.
+   - Dials MADE (compared with the 350 a week): every dial with a call record, every call reported from outside, and
+     every press on the day counter. Per day: max(records + outside, counter), so nothing is counted twice.
+   - Dials WITH AN OUTCOME (what conversion is calculated from): call records and outside reports only. Mission
+     Control's evidence, the funnel and the bottleneck screen keep using this, unchanged since 13.24.
+   The scorecard's Dials row now shows dials made and says how many of them have no call record. */
+function fnCounterExtras(from, days) { let n = 0; try { const by = mcDialLog(), t = dk(new Date()); for (let i = 0; i < days; i++) { const k = dk(addDays(from, i)); if (k > t) break; const E = mcDialEvidence(k, by); if (E && E.manual > 0) n += E.manual; } } catch (e) { } return n; }
+if (typeof scRows === 'function' && !scRows._fn8) { const f = scRows; scRows = function () { const R = f.apply(this, arguments); try { const m = monday(new Date()), xW = fnCounterExtras(m, 7), xP = fnCounterExtras(addDays(m, -7), 7), r = R.find((y) => y && y[0] === 'Dials'); if (r && (xW || xP)) { if (typeof r[1] === 'number') r[1] += xW; if (typeof r[2] === 'number') r[2] += xP; r[5] = String(r[5] || '') + (xW ? ` + ${xW} on the day counter with no call record` : '') + '. Counter presses count as dials made; conversion is worked out from call records only'; } } catch (e) { } return R; }; Object.keys(f).forEach((k) => { scRows[k] = f[k]; }); scRows._fn8 = 1; }

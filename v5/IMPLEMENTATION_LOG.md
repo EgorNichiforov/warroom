@@ -376,3 +376,13 @@ Nothing was changed in any task.
 - Not changed: the dial definition in the reviews (larger of counter and call records) and in the app (call records; counter extras shown apart). Both now say what they include. Still Egor's decision.
 - A note "what needs you (10 minutes)" was left in the app inbox with the phone checks, the enrolment steps and that decision.
 - Worker: unchanged since version 3. Pending for the next deploy: show counter-only dials apart in the brief line, the way the app does.
+
+
+## 13.49.0 · 20 Nov 2026 · live HTTP proof, worker v4, dials made vs dials with an outcome
+
+- `supabase/tests/live_http.sh`: 24 checks with curl against the live project and a throwaway room: key and device-key access through the real gateway (the `x-warroom-device` header reaches the policies), enrol, queue → wake → worker → note (backup and brief ran in under 25 s), lock, unlock, revoke, audit, worker refusing a call with no secret. All passed.
+- **Mistake caught in the same run:** the throwaway room became the newest row that has `days`, which is exactly what every scheduled task looks for. It was renamed to `staging-…` with the 2000-01-01 stamp about three minutes later; no scheduled task fired in between (checked against their schedules). The script now carries the cleanup as a mandatory step. Left over and inert: one `staging-verify…` row, one revoked device, one `verify-scratch` backup row, a few job and audit rows for that room.
+- **Follow-up worth doing with Egor present:** a server function that returns the owner's room, so no task depends on "newest row". It needs a migration and then an edit to every task prompt.
+- Worker version 4 deployed: calls reported from outside are added first, then the day counter can only raise a day's total (max), so nothing is counted twice; the brief names counter-only presses.
+- App: `finish.js` section 8 rewritten. Scorecard Dials = dials made (records + outside + counter-only presses); Mission Control evidence, funnel and bottleneck still use records only (13.24 rule, legacy tests untouched). This closes the open question by purpose rather than by picking one rule: volume against the 350 target, records for conversion.
+- Real devices: both the phone and the laptop were seen on 13.47.0 after the server went live and have synced by sync code (4 audited writes). No device key enrolled yet.
