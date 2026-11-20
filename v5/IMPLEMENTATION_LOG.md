@@ -482,3 +482,10 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - `spp*` progress and history: per language `sppStats` (attempts per week × 8, per-dimension last-5 against first scores, "may have slipped" only with ten scores and a drop of 1.5, the coach's repeated priorities, words, real-life moments, days practised in 14), `sppFind` search, `sppCmp` first against second.
 - Test `test_1359` (22 checks). Brief parts now covered: 5.1, Part 11 A–E (as text and a small week bar; no charts library), 8.10 regression note, 12 historical comparison.
 - **Still open in the Communication brief:** 5.2 kept audio and playback; Part 9 levels 4–6 exercises; spaced repetition for grammar patterns and corrected habits; Part 10's eleven scenario families (eight situations exist); a real microphone test; anything on the phone; coach and partner quality on his main model.
+
+
+## 13.60.0 · 20 Nov 2026, 21:50 · kinds of number (`claims.js`); second-brief backlog items 2 and 3, in part
+
+- `CK` the eight kinds; `CK_SC` kind per scorecard row (15 rows); `scRows` wrapped to set `r[8]` and prefix `r[5]`; Dials becomes "Observed + your report" when the week holds an outside report or counter-only presses; `scOpen` wrapped to add one button (as `.fn-inline`, never a second `.actions`); `ckToday` splits today's dials (records = logged minus outside report, outside report, counter-only), BAC minutes, weight, money; `ckLate` counts day records whose `_u` is a day or more after the day ended; `ckOpen` page. Stores nothing.
+- Test `test_1360` (14 checks). Found while testing: the finder id `kinds` was already used by `ux.js`, so the new entry was silently skipped; renamed `numkinds`. **Release gate addition: a new finder id must not exist already** (`grep -c "\['<id>'," *.js`).
+- Backlog item 2: scorecard and the page done; chips inside the day header, money screen and Mission Control NOT done. Item 3: late day-record changes are counted and shown; per-entry "happened at / recorded at" for calls and money is NOT built, and nothing is excluded on lateness.

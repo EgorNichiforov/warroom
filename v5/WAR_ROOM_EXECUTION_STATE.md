@@ -137,3 +137,8 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - Communication increments 1–3 live (speak.js, speak2.js, speak3.js; tests 1354, 1357, 1359). Open list is in IMPLEMENTATION_LOG 13.59.0. NEXT for it: levels 4–6 exercises + review of corrected habits; audio only with consent and phone support.
 - Second brief: backlog item 1 done; NEXT items 2 and 3 (kind of claim on main numbers; happened-at against recorded-at).
+
+## 20 Nov 21:55 · after 13.60.0
+
+- claims.js live (ck*, no store). Backlog items 2 and 3 partly done (see backlog file). NEXT: Communication levels 4–6 + review of corrected habits; then backlog 4 (what changed since last week) and 5 (hypotheses as records).
+- Gate addition: a new finder id must be unique (ux.js already had `kinds`).
