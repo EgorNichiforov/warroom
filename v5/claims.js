@@ -151,3 +151,15 @@ if (typeof chgOpen === 'function' && !chgOpen._upk) { const f = chgOpen; chgOpen
 
 /* 15.2: on a decision or campaign page, whether the Money hub can cover its amount (reality.js rlmBlock) */
 if (typeof enOpen === 'function' && !enOpen._mc) { const f = enOpen; enOpen = function (ref) { const r = f.apply(this, arguments); try { if (/^(decision|project):/.test(String(ref)) && !$('en-rlm')) { const h = rlmBlock(ref), at = $('en-rel'); if (h) (at ? at.insertAdjacentHTML('beforebegin', h) : $('modal').insertAdjacentHTML('beforeend', h)); } } catch (e) { } return r; }; enOpen._mc = 1; }
+
+/* 15.4: the kind of each claim, shown where you decide: beside the facts in the open mission card and the key Money numbers.
+   Kinds come from where the line comes from; a line whose origin cannot be told gets no tag rather than a guessed one. */
+function ckKindOf(owner, text) { const o = String(owner || '').toLowerCase(), t = String(text || '').toLowerCase();
+  if (/check-in|your report|^me$|^egor$|typed|entered/.test(o) || /hand counter|you typed|you entered/.test(t)) return 'rep';
+  if (/source: logged calls|call log today|timer you ran/.test(t)) return 'obs';
+  if (/calendar|website|book|video|outside/.test(o)) return 'ext';
+  if (/forecast|projected|will reach|at this pace/.test(t)) return 'fct';
+  if (/stage\.js|engine\.js|reality\.js|strategy\.js/.test(o) || /average|widest|from the call log|last \d+ days|florida time/.test(t)) return 'der';
+  return ''; }
+function ckTag(k) { return k && CK[k] ? ` <em class="ck-tag ck-${k}" title="${esc(CK[k][1])}">${esc(CK[k][0])}</em>` : ''; }
+if (typeof mnOver === 'function' && !mnOver._ck) { const f = mnOver; mnOver = function () { let h = f.apply(this, arguments); try { if (typeof h === 'string') { h = h.replace('<span>Safe to spend today</span>', `<span>Safe to spend today${ckTag('der')}</span>`).replace('<span>Runway ›</span>', `<span>Runway ›${ckTag('der')}</span>`).replace('<span>Kept this month</span>', `<span>Kept this month${ckTag('der')}</span>`).replace('<span>Earned − spent this month</span>', `<span>Earned − spent this month${ckTag('der')}</span>`).replace('<span>Savings rate</span>', `<span>Savings rate${ckTag('der')}</span>`); } } catch (e) { } return h; }; mnOver._ck = 1; }

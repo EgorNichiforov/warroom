@@ -211,3 +211,5 @@ button, .btn, [role=button] { min-height: 40px !important; }
 .wf-i, .wf-x { min-width: 40px; }
 
 #upk-blk .fn-inline{flex-wrap:wrap}
+
+.ck-tag{font-style:normal;font-size:10.5px;border:1px solid var(--ln,#444);border-radius:6px;padding:0 5px;margin-left:4px;opacity:.75;white-space:nowrap}

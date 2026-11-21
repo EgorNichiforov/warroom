@@ -263,3 +263,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 15.1.0, energy and task difficulty.
 - 21 Nov 2026: 15.2.0, money commitments vs Money hub.
 - 21 Nov 2026: 15.3.0, agency versions.
+- 21 Nov 2026: 15.4.0, claim kinds in Mission and Money.

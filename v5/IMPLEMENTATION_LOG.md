@@ -791,3 +791,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 15.3.0 · 21 Nov 2026 · agency versions
 - entity.js VER_FT.agency, verAgency wrapping crmMove, crmSave, crmNote; crmOpen shows #ver-blk. test_1399.
+
+## 15.4.0 · 21 Nov 2026 · claim kinds in Mission and Money
+- claims.js ckKindOf, ckTag; mission.js Why this? lines tagged; mnOver wrapped to tag key numbers. test_1400.
