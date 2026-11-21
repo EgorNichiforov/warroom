@@ -755,3 +755,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.1.0 · 21 Nov 2026 · kept audio
 - speak.js: vk* (IndexedDB warroom-audio, 3 min / 50 MB, own delete with confirm, consent screen), button in spkTrain, Kept recordings in spkOpen. Not synced, no upload. First name audOpen collided with audit.js, renamed to vk*. test_1387. Ledger 5.2 and 12 updated.
+
+## 14.2.0 · 21 Nov 2026 · taps-to-task
+- ask.js capNorm/capDue/capGoals/capProj/capSug/capPick, CAPSEL; cohere.js adds #cap-sug to the + sheet and uses CAPSEL in coRoute task; todoist.js captureTask(text,k,proj,goal); core.js editTask Goal it serves. Names checked for collisions. test_1388 counts taps (4 vs 6, goal not possible before).

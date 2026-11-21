@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '14.1.0';
+const APP_VERSION = '14.2.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -498,10 +498,10 @@ function renderTasks() {
 function toggleTask(id) { const t = S.tasks[id]; t.done = !t.done; t.doneAt = t.done ? now() : null; t._u = now(); save(); taskHook(t.done ? 'close' : 'reopen', t); render(); }
 function editTask(id) {
   const t = S.tasks[id];
-  openModal(`<h2>Edit task</h2><div class="field"><label>Title</label><input id="m-title" value="${esc(t.title)}"></div><div class="field"><label>Due</label><input id="m-due" type="date" value="${esc(t.due || '')}"></div><div class="chips" style="margin:-6px 0 12px">${[['Today', 0], ['Tomorrow', 1], ['+3 days', 3], ['Next Mon', 'mon'], ['No date', null]].map(([l, n]) => `<span class="chip" onclick="document.getElementById('m-due').value='${n == null ? '' : n === 'mon' ? dk(addDays(monday(new Date()), 7)) : dk(addDays(new Date(), n))}'">${l}</span>`).join('')}</div><div class="field"><label>Note</label><textarea id="m-note">${esc(t.note || '')}</textarea></div>
+  openModal(`<h2>Edit task</h2><div class="field"><label>Title</label><input id="m-title" value="${esc(t.title)}"></div><div class="field"><label>Due</label><input id="m-due" type="date" value="${esc(t.due || '')}"></div><div class="chips" style="margin:-6px 0 12px">${[['Today', 0], ['Tomorrow', 1], ['+3 days', 3], ['Next Mon', 'mon'], ['No date', null]].map(([l, n]) => `<span class="chip" onclick="document.getElementById('m-due').value='${n == null ? '' : n === 'mon' ? dk(addDays(monday(new Date()), 7)) : dk(addDays(new Date(), n))}'">${l}</span>`).join('')}</div>${(() => { const G = Object.values(S.goals || {}).filter((g) => g && !g._del && (!g.done || g.id === t.goal)); return G.length ? `<div class="field"><label>Goal it serves</label><select id="m-goal"><option value="">None</option>${G.map((g) => `<option value="${esc(g.id)}"${g.id === t.goal ? ' selected' : ''}>${esc(String(g.title).slice(0, 60))}</option>`).join('')}</select></div>` : ''; })()}<div class="field"><label>Note</label><textarea id="m-note">${esc(t.note || '')}</textarea></div>
     <div class="actions"><button class="btn danger" onclick="delTask('${id}')">Delete</button><button class="btn primary" onclick="saveTask('${id}')">Save</button></div>`);
 }
-function saveTask(id) { const t = S.tasks[id]; t.title = $('m-title').value.trim() || t.title; t.due = $('m-due').value; t.note = $('m-note').value.trim(); t._u = now(); save(); taskHook('update', t); closeModal(); render(); }
+function saveTask(id) { const t = S.tasks[id]; t.title = $('m-title').value.trim() || t.title; t.due = $('m-due').value; t.note = $('m-note').value.trim(); const mg = $('m-goal'); if (mg && mg.value !== (t.goal || '')) { if (mg.value) t.goal = mg.value; else delete t.goal; } t._u = now(); save(); taskHook('update', t); closeModal(); render(); }
 function delTask(id) { S.tasks[id]._del = true; S.tasks[id]._u = now(); save(); taskHook('delete', S.tasks[id]); closeModal(); render(); }
 function taskHook(kind, t) { try { if (typeof tdOnChange === 'function') tdOnChange(kind, t); } catch (e) { console.error(e); } }
 

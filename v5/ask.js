@@ -103,7 +103,7 @@ function renderAsk() {
 function openCapture() {
   const B = (icn, t, d, fn) => `<button class="capopt" onclick="${fn}">${ic(icn, 22)}<span><b>${t}</b><i>${d}</i></span></button>`;
   openModal(`<h2>Add</h2>
-    <div class="field"><textarea id="cap-in" rows="2" placeholder="Type it here, then choose where it goes"></textarea></div>
+    <div class="field"><textarea id="cap-in" rows="2" placeholder="Type it here, then choose where it goes" oninput="capSug()"></textarea></div><div id="cap-sug" class="chips"></div>
     <div class="capgrid">
       ${B('check', 'Task', 'Todoist · dates like “fri 10am” work', "capDo('task')")}
       ${B('bolt', 'Idea', 'parked in Todoist “Later”, looked at on Sunday', "capDo('idea')")}
@@ -117,7 +117,31 @@ function openCapture() {
 }
 function capDo(kind) {
   const v = ($('cap-in') && $('cap-in').value || '').trim(); if (!v) { toast('Type it first'); return; }
-  if (kind === 'task') { closeModal(); captureTask(v, ''); return; }
+  if (kind === 'task') { const P = CAPSEL; closeModal(); captureTask(v, P.due || '', P.proj || null, P.goal || null); CAPSEL = {}; if (P.due && tdOn()) toast('Added. Todoist reads the date from your words.'); return; }
   if (kind === 'idea') { closeModal(); const later = Object.keys(tdProjects).find((id) => /^later$/i.test(tdProjects[id].name)); captureTask(v + (tdOn() ? ' #Later' : ''), '', null); return; }
   if (kind === 'note') { const p = pb('notes') || { title: 'Notes', body: '' }; const stamp = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); pbSave('notes', p.title || 'Notes', `- **${stamp}** ${v}\n` + (p.body || ''), 'mine'); closeModal(); toast('Saved in Playbook → My notes'); render(); }
 }
+
+/* 14.2: fewer taps from a thought to a task. While you type, the Add sheet suggests a due date (only when you wrote a
+   day word), a goal (only when the words match one of your goals) and a Todoist project (only when you wrote its name).
+   Nothing is applied until you tap it; tap again to undo. Nothing is invented and no existing record changes. */
+let CAPSEL = {};
+const CAP_DAYS = { sun: 0, sunday: 0, duminica: 0, mon: 1, monday: 1, luni: 1, tue: 2, tuesday: 2, marti: 2, wed: 3, wednesday: 3, miercuri: 3, thu: 4, thursday: 4, joi: 4, fri: 5, friday: 5, vineri: 5, sat: 6, saturday: 6, sambata: 6 };
+const CAP_STOP = new Set('the and for with this that from your have will call make need about into after before today tomorrow mâine maine pentru care este sunt'.split(' '));
+function capNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' '); }
+function capDue(text) { const w = capNorm(text).split(/\s+/), t = new Date(); t.setHours(0, 0, 0, 0);
+  if (w.includes('today') || w.includes('azi') || w.includes('astazi')) return [dk(t), 'Today'];
+  if (w.includes('tomorrow') || w.includes('maine')) return [dk(addDays(t, 1)), 'Tomorrow'];
+  for (const x of w) if (x in CAP_DAYS) { let n = (CAP_DAYS[x] - t.getDay() + 7) % 7; if (n === 0) n = 7; const d = addDays(t, n); return [dk(d), DAY_LONG[d.getDay()] + ' ' + fmtShort(d)]; }
+  return null; }
+function capGoals(text) { const W = new Set(capNorm(text).split(/\s+/).filter((x) => x.length >= 4 && !CAP_STOP.has(x))); if (!W.size) return [];
+  return Object.values(S.goals || {}).filter((g) => g && !g._del && !g.done && g.title).map((g) => { const gw = capNorm(g.title).split(/\s+/).filter((x) => x.length >= 4 && !CAP_STOP.has(x)), hit = gw.filter((x) => W.has(x) || [...W].some((y) => y.length >= 5 && x.length >= 5 && (x.startsWith(y.slice(0, 5)) || y.startsWith(x.slice(0, 5))))); return { g, n: new Set(hit).size, hit }; }).filter((x) => x.n >= 1).sort((a, b) => b.n - a.n).slice(0, 2); }
+function capProj(text) { if (typeof tdProjects !== 'object') return null; const n = ' ' + capNorm(text) + ' '; const id = Object.keys(tdProjects).find((i) => { const nm = capNorm(tdProjects[i].name).trim(); return nm.length >= 3 && !tdProjects[i].inbox && n.includes(' ' + nm + ' '); }); return id ? [id, tdProjects[id].name] : null; }
+function capSug() { const el = $('cap-sug'), v = ($('cap-in') || $('arc-in') || {}).value || ''; if (!el) return; const D = capDue(v), G = capGoals(v), P = capProj(v), out = [];
+  if (CAPSEL.due && (!D || D[0] !== CAPSEL.due)) delete CAPSEL.due; if (CAPSEL.goal && !G.some((x) => x.g.id === CAPSEL.goal)) delete CAPSEL.goal; if (CAPSEL.proj && (!P || P[0] !== CAPSEL.proj)) delete CAPSEL.proj;
+  if (D) out.push(`<span class="chip${CAPSEL.due === D[0] ? ' on' : ''}" data-cap="due" onclick="capPick('due','${D[0]}')">📅 ${esc(D[1])}</span>`);
+  G.forEach((x) => out.push(`<span class="chip${CAPSEL.goal === x.g.id ? ' on' : ''}" data-cap="goal" onclick="capPick('goal','${esc(x.g.id)}')" title="matches: ${esc(x.hit.join(', '))}">🎯 ${esc(String(x.g.title).slice(0, 40))}</span>`));
+  if (P) out.push(`<span class="chip${CAPSEL.proj === P[0] ? ' on' : ''}" data-cap="proj" onclick="capPick('proj','${esc(P[0])}')">📁 ${esc(P[1])}</span>`);
+  el.innerHTML = out.length ? out.join('') + '<span class="xs muted" style="align-self:center">For a task: tap to add, then Task</span>' : ''; }
+function capPick(k, v) { if (CAPSEL[k] === v) delete CAPSEL[k]; else CAPSEL[k] = v; capSug(); }
+if (typeof openCapture === 'function' && !openCapture._sug) { const f = openCapture; openCapture = function () { CAPSEL = {}; return f.apply(this, arguments); }; openCapture._sug = 1; }

@@ -125,9 +125,9 @@ function todayTasksCard(d) {
     <div class="row" style="margin-top:10px"><input id="quick-task" placeholder="+ task (e.g. Call Maria tomorrow 10am #Company)" onkeydown="if(event.key==='Enter')captureTask(this.value,'${k}')"></div></div>`;
 }
 /* one entry point for every new task: Todoist understands "tomorrow 5pm #Company p1" */
-function captureTask(text, k, proj) {
+function captureTask(text, k, proj, goal) {
   text = String(text || '').trim(); if (!text) return;
-  const t = { id: uid(), _u: now(), title: text, due: '', done: false, note: '' };
+  const t = { id: uid(), _u: now(), title: text, due: '', done: false, note: '' }; if (goal && S.goals && S.goals[goal]) t.goal = goal;
   if (tdOn()) { t.quick = true; if (proj) t.title = text + (/#\w/.test(text) ? '' : ' #' + proj); }
   else if (k) t.due = k;
   S.tasks[t.id] = t; save(); taskHook('create', t); const i = $('quick-task'); if (i) i.value = ''; render();
