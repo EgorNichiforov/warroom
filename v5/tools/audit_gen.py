@@ -162,7 +162,7 @@ brief('P16', 'Bilingual communication, articulation and verbal intelligence', '2
  ('4.3 Code-switching analysis', 'P', 'coach rules', 'Mixing is never marked as a mistake and both full versions are given; there is no separate breakdown of the mixed sentence.'),
  ('4.4-4.5 Romanian and English quality', 'P', 'coach instructions', 'Depends on the AI model. Two real answers checked, on the lighter model.'),
  ('5.1 Daily session', 'B', 'speak3.js', '', 'spdOpen'),
- ('5.2 Voice first', 'P', 'speak.js', 'Browser speech-to-text with editable text. No recording kept, no playback. Never tested with a real microphone.'),
+ ('5.2 Voice first', 'P', 'speak.js', 'Browser speech-to-text with editable text. Added 21 Nov in 14.1: in a Speak exercise you can keep a recording of yourself and play it back under Communication, Kept recordings: on this phone only (not synced, not sent anywhere), 3 minutes a clip, 50 MB in all, deleted only by you after a confirm. Nothing listens to or judges it. Tested only with the test browser fake microphone, never with a real one on your phone.'),
  ('5.3 Conversation simulation', 'B', 'speak2.js', 'CHECKED LINE BY LINE 21 Nov. You listed nine situations; eight existed. Explain an opinion is added in 13.78. One real reply was checked on your laptop.', 'spcOpen'),
  ('5.4 Explain it differently', 'B', 'speak2.js', '', 'spxOpen'),
  ('6 Feedback engine', 'B', 'speak.js', 'Seven parts; a point whose quote is not in what you said is dropped; nothing about pronunciation.'),
@@ -171,7 +171,7 @@ brief('P16', 'Bilingual communication, articulation and verbal intelligence', '2
  ('9 Six-stage curriculum', 'B', 'speak4.js', 'A level opens on scores, never on time.'),
  ('10 Real-world integration', 'P', 'speak.js, speak2.js', 'Capturing a moment: yes. Eight situations exist; the eleven scenario families are not all there.'),
  ('11 Overview, train, vocabulary, progress, history', 'B', 'speak.js, speak3.js', 'Text and a small weekly bar; no charts.', 'sppOpen'),
- ('12 Data architecture', 'B', 'synced records, no audio stored', ''),
+ ('12 Data architecture', 'B', 'synced records; recordings of your voice (14.1) stay on the device in IndexedDB and are never synced', ''),
  ('13 Coach quality', 'P', 'rules and checks', 'Not evaluated beyond two real answers.'),
  ('14 Quality assurance', 'P', 'tests 1354, 1357, 1359, 1361', 'Microphone refusal and recognition failure are handled in code, not tested with a real microphone. Android not tested.'),
  ('15 Definition of done', 'P', '', 'Every step exists. Speaking by voice on your devices is unverified.')])

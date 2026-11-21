@@ -2,8 +2,7 @@
    FIRST INCREMENT of the "Bilingual communication" brief: one working loop, end to end.
      pick a language → an exercise chosen for you → speak (or type) → feedback built only from your own words →
      say it again → it is remembered → the next exercise and the words to review follow from what happened.
-   What it is NOT yet (kept here so nobody reports it as done): no conversation partner that answers back, no audio kept or
-   analysed, no stage 4–6 exercises, no charts. Speech-to-text is the browser's own; where the browser has none, you type.
+   What it is NOT yet (kept here so nobody reports it as done): no conversation partner that answers back, no audio analysed (14.1: your own recordings can be kept on the phone to hear back), no stage 4–6 exercises, no charts. Speech-to-text is the browser's own; where the browser has none, you type.
    Honest limits built in: nothing here judges pronunciation, pace or intonation (it only ever sees text); a quote in the
    feedback must be found in what you said or the point is dropped; without an AI key there are facts but no scores.
    Storage: S.boot 'spk:a:<id>' attempts · 'spk:v:<id>' words · 'spk:o:<id>' real-life moments · 'spk:cfg'. Synced like every boot record.
@@ -89,3 +88,41 @@ function spkOpen() { const lang = spkCfg().lang, nx = spkNext(lang), due = spkDu
 try { if (typeof WF !== 'undefined') { const add = (x) => { if (!WF.some((y) => y[0] === x[0])) WF.push(x); };
   add(['speak', 'dir', 'Communication: speak (Romanian and English)', 'communication speak speaking articulate articulation vocabulary words romanian english romana vorbire exprimare fluency explain say it better cannot find the right word words did not come', 'Where do I…? → communication', 'Speak or type, see where it broke down in your own words, say it again. Romanian and English kept apart.', () => spkOpen()]);
 } } catch (e) { }
+
+/* 14.1: kept audio. You can keep a recording of yourself speaking, to hear it back later. It is stored only on this
+   device (IndexedDB 'warroom-audio'), never synced and never sent anywhere; nothing listens to it or judges it.
+   Limits: 3 minutes a clip, 50 MB in all. When full, it stops keeping new ones; only you delete old ones. Not for calls. */
+const VK_MAX_BYTES = 50 * 1024 * 1024, VK_MAX_MS = 180000;
+let _vkdb = null, VKS = { mr: null, chunks: [], t0: 0, timer: null, label: '' };
+function vkDb() { return _vkdb || (_vkdb = new Promise((res, rej) => { try { const r = indexedDB.open('warroom-audio', 1); r.onupgradeneeded = () => r.result.createObjectStore('a', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } })); }
+async function vkAll() { try { const db = await vkDb(); return await new Promise((res) => { const r = db.transaction('a').objectStore('a').getAll(); r.onsuccess = () => res((r.result || []).sort((a, b) => b.at - a.at)); r.onerror = () => res([]); }); } catch (e) { return []; } }
+async function vkUsed() { return (await vkAll()).reduce((s, x) => s + (x.size || 0), 0); }
+async function vkPut(rec) { const used = await vkUsed(); if (used + rec.size > VK_MAX_BYTES) return { ok: false, why: 'full' }; const db = await vkDb(); await new Promise((res, rej) => { const t = db.transaction('a', 'readwrite'); t.objectStore('a').put(rec); t.oncomplete = res; t.onerror = () => rej(t.error); }); return { ok: true }; }
+async function vkDel(id) { const db = await vkDb(); await new Promise((res) => { const t = db.transaction('a', 'readwrite'); t.objectStore('a').delete(id); t.oncomplete = res; t.onerror = res; }); }
+function vkMb(b) { return (b / 1048576).toFixed(1) + ' MB'; }
+function vkKeepOk() { return !!bcV('spk:audcfg', {}).ok; }
+function vkStart(label) {
+  if (!vkKeepOk()) { openModal(`<h2>Keep a recording of yourself</h2><div class="hint">This records your voice so you can hear yourself back. The sound stays on this phone only: it is not synced, not sent to any AI or website, and War Room does not listen to it or judge your pronunciation. Up to 3 minutes a clip and 50 MB in all. You delete them yourself. Never use this to record a call or another person.</div><div class="actions"><button class="btn" onclick="bcW('spk:audcfg',{ok:true});vkStart(${JSON.stringify(String(label || ''))})">I understand, record</button><button class="btn" onclick="(SPKS.back||spkTrain)()">Not now</button></div>`, true); return; }
+  if (VKS.mr) { vkStop(); return; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) { toast('This browser cannot record audio.'); return; }
+  if (SPKS.on && SPKS.rec) { try { SPKS.rec.stop(); } catch (e) { } }
+  navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } }).then((st) => {
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((m) => MediaRecorder.isTypeSupported(m)) || '';
+    const mr = new MediaRecorder(st, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : undefined);
+    VKS = { mr, chunks: [], t0: now(), label: String(label || ''), lang: spkCfg().lang, st, timer: setTimeout(() => vkStop(), VK_MAX_MS) };
+    mr.ondataavailable = (e) => { if (e.data && e.data.size) VKS.chunks.push(e.data); };
+    mr.onstop = () => vkSave(); mr.start(1000);
+    const b = $('vk-b'); if (b) b.textContent = '⏹ Stop recording'; const s = $('vk-s'); if (s) s.textContent = 'Recording your voice. It stops by itself at 3 minutes.';
+  }).catch((e) => toast(/denied|NotAllowed/i.test(String(e)) ? 'The microphone was refused.' : 'Could not start recording.'));
+}
+function vkStop() { if (!VKS.mr) return; clearTimeout(VKS.timer); try { VKS.mr.stop(); } catch (e) { } try { VKS.st.getTracks().forEach((t) => t.stop()); } catch (e) { } }
+async function vkSave() { const A = VKS; VKS = { mr: null, chunks: [], t0: 0, timer: null, label: '' }; const blob = new Blob(A.chunks, { type: (A.mr && A.mr.mimeType) || 'audio/webm' }); const b = $('vk-b'); if (b) b.textContent = '⏺ Keep a recording';
+  if (!blob.size) { toast('Nothing was recorded.'); return; }
+  const r = await vkPut({ id: 'vk' + now(), at: now(), ms: now() - A.t0, size: blob.size, mime: blob.type, lang: A.lang || '', label: A.label.slice(0, 120), blob });
+  const s = $('vk-s'); if (s) s.textContent = r.ok ? 'Kept on this phone. Communication → Kept recordings to hear it.' : 'Not kept: the 50 MB for recordings is full. Delete old ones in Kept recordings.'; toast(r.ok ? 'Recording kept' : 'Storage for recordings is full'); }
+let _vkUrl = [];
+async function vkOpen() { _vkUrl.forEach((u) => { try { URL.revokeObjectURL(u); } catch (e) { } }); _vkUrl = []; const L = await vkAll(), used = L.reduce((s, x) => s + (x.size || 0), 0);
+  openModal(`<h2>Kept recordings</h2><div class="hint">Your own voice, kept on this phone only. Not synced, not sent anywhere, and nothing here judges it: listen and decide for yourself. ${vkMb(used)} of ${vkMb(VK_MAX_BYTES)} used.</div><div id="vk-list">${L.length ? L.map((x) => { const u = URL.createObjectURL(x.blob); _vkUrl.push(u); return `<div class="mc-wl vk-row" data-id="${esc(x.id)}"><span>${esc(fmtShort(new Date(x.at)))} · ${Math.round((x.ms || 0) / 1000)} s · ${vkMb(x.size)}${x.lang ? ' · ' + esc((SPK_LANG || {})[x.lang] || x.lang) : ''}</span>${x.label ? `<div class="xs">${esc(x.label)}</div>` : ''}<audio controls preload="none" src="${u}" style="width:100%"></audio><div class="fn-inline"><button class="btn sm" onclick="vkAskDel('${esc(x.id)}')">Delete</button></div></div>`; }).join('') : '<div class="xs muted">No recordings kept yet. In a Speak exercise, tap Keep a recording.</div>'}</div><div class="actions"><button class="btn" onclick="spkOpen()">Back</button></div>`, true); }
+function vkAskDel(id) { openModal(`<h2>Delete this recording?</h2><div class="hint">It is removed from this phone and cannot be brought back. There is no other copy.</div><div class="actions"><button class="btn danger" onclick="vkDel('${esc(id)}').then(vkOpen)">Delete</button><button class="btn" onclick="vkOpen()">Keep it</button></div>`, true); }
+if (typeof spkTrain === 'function' && !spkTrain._vk) { const f0 = spkTrain; spkTrain = function () { const r = f0.apply(this, arguments); try { const m = $('spk-mic'); if (m && !$('vk-b') && window.MediaRecorder) { m.insertAdjacentHTML('afterend', `<div class="fn-inline"><button class="btn" id="vk-b" onclick="vkStart((SPKS.ex||{}).text||'')">${VKS.mr ? '⏹ Stop recording' : '⏺ Keep a recording'}</button></div><div class="xs" id="vk-s">Optional: keep your voice to hear it back. Stays on this phone. Some phones cannot record and turn speech into text at the same time, so record, then speak or type.</div>`); } } catch (e) { } return r; }; spkTrain._vk = 1; }
+if (typeof spkOpen === 'function' && !spkOpen._vk) { const f1 = spkOpen; spkOpen = function () { const r = f1.apply(this, arguments); try { const h = document.querySelector('#modal h2'); if (h && h.textContent === 'Communication' && !$('vk-open')) { const fi = document.querySelector('#modal .fn-inline'); if (fi) fi.insertAdjacentHTML('beforeend', '<button class="btn" id="vk-open" onclick="vkOpen()">Kept recordings</button>'); } } catch (e) { } return r; }; spkOpen._vk = 1; }

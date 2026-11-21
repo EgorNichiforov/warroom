@@ -752,3 +752,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.0.0 · 21 Nov 2026 · cross-domain links
 - drill.js XD (6 links), xdRun/xdText/xdAll/xdFor, min 5 days per side; metInsights adds non-sleep links on dials/BAC; claims.js ckOpen #ck-xd; entity.js enXd on related records. Read-only. test_1386. Ledger 4.1 N to P.
+
+## 14.1.0 · 21 Nov 2026 · kept audio
+- speak.js: vk* (IndexedDB warroom-audio, 3 min / 50 MB, own delete with confirm, consent screen), button in spkTrain, Kept recordings in spkOpen. Not synced, no upload. First name audOpen collided with audit.js, renamed to vk*. test_1387. Ledger 5.2 and 12 updated.

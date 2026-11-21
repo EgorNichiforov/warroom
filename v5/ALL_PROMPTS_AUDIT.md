@@ -267,7 +267,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 4.3 Code-switching analysis | Partly | coach rules | Mixing is never marked as a mistake and both full versions are given; there is no separate breakdown of the mixed sentence. |
 | 4.4-4.5 Romanian and English quality | Partly | coach instructions | Depends on the AI model. Two real answers checked, on the lighter model. |
 | 5.1 Daily session | Built, with a test | speak3.js |  |
-| 5.2 Voice first | Partly | speak.js | Browser speech-to-text with editable text. No recording kept, no playback. Never tested with a real microphone. |
+| 5.2 Voice first | Partly | speak.js | Browser speech-to-text with editable text. Added 21 Nov in 14.1: in a Speak exercise you can keep a recording of yourself and play it back under Communication, Kept recordings: on this phone only (not synced, not sent anywhere), 3 minutes a clip, 50 MB in all, deleted only by you after a confirm. Nothing listens to or judges it. Tested only with the test browser fake microphone, never with a real one on your phone. |
 | 5.3 Conversation simulation | Built, with a test | speak2.js | CHECKED LINE BY LINE 21 Nov. You listed nine situations; eight existed. Explain an opinion is added in 13.78. One real reply was checked on your laptop. |
 | 5.4 Explain it differently | Built, with a test | speak2.js |  |
 | 6 Feedback engine | Built, with a test | speak.js | Seven parts; a point whose quote is not in what you said is dropped; nothing about pronunciation. |
@@ -276,7 +276,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 9 Six-stage curriculum | Built, with a test | speak4.js | A level opens on scores, never on time. |
 | 10 Real-world integration | Partly | speak.js, speak2.js | Capturing a moment: yes. Eight situations exist; the eleven scenario families are not all there. |
 | 11 Overview, train, vocabulary, progress, history | Built, with a test | speak.js, speak3.js | Text and a small weekly bar; no charts. |
-| 12 Data architecture | Built, with a test | synced records, no audio stored |  |
+| 12 Data architecture | Built, with a test | synced records; recordings of your voice (14.1) stay on the device in IndexedDB and are never synced |  |
 | 13 Coach quality | Partly | rules and checks | Not evaluated beyond two real answers. |
 | 14 Quality assurance | Partly | tests 1354, 1357, 1359, 1361 | Microphone refusal and recognition failure are handled in code, not tested with a real microphone. Android not tested. |
 | 15 Definition of done | Partly |  | Every step exists. Speaking by voice on your devices is unverified. |
