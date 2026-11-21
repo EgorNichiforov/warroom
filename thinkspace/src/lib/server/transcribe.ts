@@ -34,17 +34,30 @@ export function transcribeFallbackModel() {
   return process.env.THINKSPACE_TRANSCRIBE_FALLBACK_MODEL?.trim() || "gemini-3.5-flash-lite";
 }
 
-/** Primary model, then the fallback model on any non-configuration failure. */
+/**
+ * Accurate model first; if it has not answered after HEDGE_MS (or fails), the fast model runs in
+ * parallel and the first good answer wins. Keeps phrases appearing within a few seconds.
+ */
+const HEDGE_MS = 4000;
 export async function transcribeWithFallback(audio: Uint8Array, mimeType: string): Promise<TranscribeResult> {
   if (process.env.MOCK_TRANSCRIBE === "1") {
     // test hook (local/e2e only): proves audio arrived without calling Gemini
     return { text: `Test transcript of ${Math.round(audio.byteLength / 1024)} KB of ${mimeType.split(";")[0]} audio.`, language: "en", model: "mock", ms: 1 };
   }
+  const primary = transcribeAudio(audio, mimeType, transcribeModel(), 15_000);
+  let startFast: () => void = () => undefined;
+  const fastGate = new Promise<void>((r) => {
+    startFast = r;
+    setTimeout(r, HEDGE_MS);
+  });
+  primary.catch(() => startFast());
+  const fast = fastGate.then(() => transcribeAudio(audio, mimeType, transcribeFallbackModel(), 20_000));
   try {
-    return await transcribeAudio(audio, mimeType, transcribeModel(), 15_000);
+    return await Promise.any([primary, fast]);
   } catch (e) {
-    if (e instanceof TranscribeError && e.status === 501) throw e;
-    return await transcribeAudio(audio, mimeType, transcribeFallbackModel(), 20_000);
+    const errs = e instanceof AggregateError ? e.errors : [e];
+    const configErr = errs.find((x) => x instanceof TranscribeError && x.status === 501);
+    throw configErr ?? errs[0];
   }
 }
 
