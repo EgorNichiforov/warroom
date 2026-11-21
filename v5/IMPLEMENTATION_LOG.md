@@ -794,3 +794,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 15.4.0 · 21 Nov 2026 · claim kinds in Mission and Money
 - claims.js ckKindOf, ckTag; mission.js Why this? lines tagged; mnOver wrapped to tag key numbers. test_1400.
+
+## 15.7.0 · 22 Nov 2026 · Focus mode (Musk's algorithm, step 2: delete)
+- focus.js (loaded last): FC_KEEP filters the hub lists through getters. Work = Dial, Pipeline (stage still decides), Playbook; You = Train, Settings; Money = Overview, Transactions. Day unchanged. Nothing deleted: raw lists stay in H._fcSegs / H._fcInner, hidden screens open from Settings → Focus mode. Lifts by itself at 1,000 logged dials or the first paid invoice; S.settings.focusOff switches it off by hand. Approved by Egor on 22 Nov 2026 ("go"). test_1401 (not yet run: the local test server was blocked in this session).
