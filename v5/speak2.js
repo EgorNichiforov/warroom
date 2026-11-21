@@ -10,6 +10,7 @@
    Not built: a partner with a voice, interruptions, or memory of earlier conversations. */
 /* [id, Romanian title, English title, who the partner is, partner's opening in Romanian, in English] */
 const SPC_SC = [
+  ['opinion', 'Explică o părere', 'Explain an opinion', 'a friendly listener who does not share his opinion yet and wants to understand it before judging', 'Am auzit că ai o părere fermă despre asta. Spune-mi ce crezi și de ce.', 'I hear you have a firm opinion on this. Tell me what you think and why.'],
   ['defend', 'Apără o decizie', 'Defend a decision', 'a sceptical friend who thinks his decision was a mistake', 'Sincer, nu înțeleg de ce ai ales asta. Explică-mi.', 'Honestly, I do not see why you chose that. Explain it to me.'],
   ['disagree', 'Nu ești de acord', 'Disagree with someone', 'a colleague who has just stated an opinion firmly and expects agreement', 'Eu zic că oamenii nu se schimbă niciodată. Tu ce crezi?', 'I say people never really change. What do you think?'],
   ['concept', 'Explică o idee necunoscută', 'Explain an unfamiliar idea', 'a curious person with no background in the subject, who asks "why?" and "what does that mean?"', 'Am auzit că lucrezi la ceva cu agenții de îngrijire. Ce faci, mai exact?', 'I heard you work on something with care agencies. What exactly do you do?'],

@@ -6,9 +6,9 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Status | Sections |
 |---|---|
-| Built, with a test | 53 |
-| Exists (not re-checked line by line) | 78 |
-| Partly | 49 |
+| Built, with a test | 55 |
+| Exists (not re-checked line by line) | 77 |
+| Partly | 48 |
 | Not built | 3 |
 | Needs you | 2 |
 | A rule of work | 3 |
@@ -248,8 +248,8 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 8 Knowledge graph and causal hypotheses | Partly | intel.js (experiments), entity.js, link kinds | CHECKED LINE BY LINE 21 Nov. An experiment kept baseline, hypothesis, the one change, the comparison, the result and the decision. Missing were other explanations, what else changed, how sure you are, and the follow-up; added in 13.77, and a conclusion without the first two is marked provisional. The app does not propose competing explanations itself. |
 | 9 Limits of its own knowledge | Partly | claims.js, minimum-evidence rules in model.js, fidelity.js, forecast.js | CHECKED LINE BY LINE 21 Nov. The six kinds of uncertainty are now named on the kinds-of-number page, each with what the app really does about it (13.77). They are not attached to each individual number. |
 | 10 Future Lab simulation | Partly | future.js, scenarios | No simulation with ranges. Deliberately waits until forecasts have a track record. |
-| 11 Prediction, backtesting, calibration | Built, with a test | judge.js, forecast.js | Three variables; first real marked week comes after Monday 23 Nov. |
-| 12 Decisions and experiments | Exists (not re-checked line by line) | judge.js, intel.js |  |
+| 11 Prediction, backtesting, calibration | Built, with a test | judge.js, forecast.js | Read in full 21 Nov. A forecast records the variable, the week, a range and a middle value, the method and its version, how many weeks it rests on, and the actual result. Three variables; the first real marked week comes after Monday 23 Nov. Scoring rules for probabilities are not used. |
+| 12 Decisions and experiments | Built, with a test | judge.js, intel.js | CHECKED LINE BY LINE 21 Nov. A decision kept twelve of the sixteen parts the addendum lists. Added in 13.78: which objective it serves, the constraints, what you give up by choosing it, and a trigger to revisit it sooner. The owner of every decision is you, so there is no field for it. Expected value and sensitivity are not calculated. |
 | 13 Specialist agents | Built, with a test | agents.js (12 roles), server worker (6) |  |
 | 15 Intelligence gap engine | Partly | fidelity.js | Does not yet weigh a gap by the decision it blocks. |
 | 16-17 Architecture, privacy, human authority | Built, with a test | server, device keys, vault, approvals | Lock and vault are off; lock untested on real devices. |
@@ -261,17 +261,17 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | Section | Status | Where | What is missing |
 |---|---|---|---|
 | 2 Philosophy: ability over information | Built, with a test | speak.js | Every exercise makes you produce something. |
-| 3 Five domains A to E | Partly | speak.js, speak4.js (30 exercises) | PREP, problem-cause-consequence-solution, claim-evidence-reasoning and situation-complication-resolution are exercises. MECE is not. |
+| 3 Five domains A to E | Built, with a test | speak.js, speak4.js (30 exercises and the MECE drill) | CHECKED LINE BY LINE 21 Nov. All five structures are now practised: MECE was missing and is a drill of its own from 13.78, with five questions in both languages. It needs no AI: you split, you check your own split against two questions, then you compare with one possible answer. |
 | 4.1 Four language modes | Built, with a test | speak.js, speak2.js | Romanian, English, switch mid-conversation, question in the other language. |
 | 4.2 Cross-language thought transfer | Built, with a test | speak.js ("The words did not come") | Needs an AI key. |
 | 4.3 Code-switching analysis | Partly | coach rules | Mixing is never marked as a mistake and both full versions are given; there is no separate breakdown of the mixed sentence. |
 | 4.4-4.5 Romanian and English quality | Partly | coach instructions | Depends on the AI model. Two real answers checked, on the lighter model. |
 | 5.1 Daily session | Built, with a test | speak3.js |  |
 | 5.2 Voice first | Partly | speak.js | Browser speech-to-text with editable text. No recording kept, no playback. Never tested with a real microphone. |
-| 5.3 Conversation simulation | Built, with a test | speak2.js | One real reply checked on your laptop. |
+| 5.3 Conversation simulation | Built, with a test | speak2.js | CHECKED LINE BY LINE 21 Nov. You listed nine situations; eight existed. Explain an opinion is added in 13.78. One real reply was checked on your laptop. |
 | 5.4 Explain it differently | Built, with a test | speak2.js |  |
 | 6 Feedback engine | Built, with a test | speak.js | Seven parts; a point whose quote is not in what you said is dropped; nothing about pronunciation. |
-| 7 Personal communication profile | Partly | speak3.js | Per language and per skill: yes. Fillers and repeated words are counted per attempt but not gathered into the profile; interference patterns are not tracked. |
+| 7 Personal communication profile | Partly | speak3.js, speak4.js | CHECKED LINE BY LINE 21 Nov. Per language and per skill: yes. From 13.78 the profile also totals your filler words per language and counts small words from the other language slipping in, from the text itself. Still not tracked: grammar problems, sentence-construction weaknesses and word-finding difficulty as their own lists; those appear only inside each coach answer. |
 | 8 Adaptive learning and spaced repetition | Partly | speak.js, speak4.js | Words, corrected habits, exercise choice, levels, a slip note: yes. Grammar patterns and sentence structures as their own review: no. |
 | 9 Six-stage curriculum | Built, with a test | speak4.js | A level opens on scores, never on time. |
 | 10 Real-world integration | Partly | speak.js, speak2.js | Capturing a moment: yes. Eight situations exist; the eleven scenario families are not all there. |

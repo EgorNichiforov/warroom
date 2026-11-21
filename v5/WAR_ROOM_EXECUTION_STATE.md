@@ -221,3 +221,10 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 ## Resume note · 21 Nov 2026, about 03:15 (after 13.77.0)
 
 - P15 run one done. Decide in the next run whether a second P15 pass is worth it: unread in this audit are sections 4 (domain models), 5 (learning without questionnaires), 6 (hardware), 7 (world intelligence), 10 to 22. Their ledger rows were written on 20 Nov when the addendum arrived. Then P16 `356a7c9c`, then the closing report.
+
+
+## Resume note · 21 Nov 2026, about 03:50 (after 13.78.0) · THE AUDIT OF ALL PROMPTS IS CLOSED
+
+- All sixteen prompts checked: P01 to P13 read in full and settled line by line or by count; P14 eight of 29 parts; P15 seven sections; P16 its headings and three parts. Versions 13.64 to 13.78 came out of it.
+- Open work is in the ledger (`audOpen`, ALL_PROMPTS_AUDIT.md) and in the closing report given to Egor in chat on 21 Nov.
+- No scheduled follow-up is pending for the audit.

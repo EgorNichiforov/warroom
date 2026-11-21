@@ -16,7 +16,7 @@ with sync_playwright() as p:
     ev = pg.evaluate; ev("CP_NOLATE=1; OD_OFF=1; SL_OFF=1; TOUR_OFF=1; 0"); pg.wait_for_timeout(600)
     t = "document.getElementById('modal').textContent"; fits = "document.getElementById('modal').scrollWidth<=document.getElementById('modal').clientWidth+2"
     check('version 13.57.0 or later', ev("APP_VERSION.localeCompare('13.57.0',undefined,{numeric:true})>=0"), ev("APP_VERSION"))
-    check('eight situations and five ideas, each in Romanian with diacritics and in English', ev("SPC_SC.length===8&&SPC_SC.every(s=>s[4].length>15&&s[5].length>15&&s[3].length>10)&&SPC_SC.filter(s=>/[ăâîșț]/.test(s[4])).length>=7&&SPX_IDEA.length===5&&SPX_STEP.length===5"))
+    check('nine situations (eight in 13.57, Explain an opinion added in 13.78) and five ideas, each in Romanian with diacritics and in English', ev("SPC_SC.length===9&&SPC_SC.every(s=>s[4].length>15&&s[5].length>15&&s[3].length>10)&&SPC_SC.filter(s=>/[ăâîșț]/.test(s[4])).length>=7&&SPX_IDEA.length===5&&SPX_STEP.length===5"))
     ev("aiCfg=()=>({}); spkOpen(); 0"); pg.wait_for_timeout(150)
     check('both are one tap from the communication screen, which still fits', ev(f"/Conversation/.test({t})&&/Explain it differently/.test({t})&&{fits}"))
     ev("spcOpen(); 0"); pg.wait_for_timeout(100)

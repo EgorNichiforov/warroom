@@ -640,3 +640,13 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Built:** experiment fields `rival`, `confound`, `conf`, `follow` and the provisional mark on the card (intel.js). `CK_UNC` (six kinds of uncertainty, each with what the code does) inside `ckOpen` (claims.js). `chgRows(days)` / `chgOpen(days)` and finder entry `whatchanged` (claims.js), read from `enAll()` time stamps. Test `test_1376` (20 checks, each new sheet measured at 390 and 1036 px).
 - Sweep: 36 sheets opened at 390 and 1036 px in a throwaway browser; 35 opened and none is wider than the screen (`auOpen` opened no sheet without data).
 - Not built, as recorded in the ledger: record versions and staleness rules (3.3), competing explanations proposed by the app (8.1), uncertainty attached to each number (9), cross-domain links (4.1: needs 20 paired days), simulation with ranges (10: waits for a forecast track record), hardware research (6: no purchase without approval), the other documents of section 20.
+
+
+## 13.78.0 · 21 Nov 2026, about 03:50 · P15 pass two and P16
+
+- Read: P15 sections 7.1, 11, 12, 15 with their lists; P16 (`356a7c9c`) numbered headings, 5.3, Part 7 and the structure list of Part 3. Not re-read: P15 sections 4, 5, 6, 10, 13, 14, 16 to 22; P16 Parts 4, 6, 8 to 12 (their ledger rows of 20 Nov stand).
+- Compared P15 section 12's sixteen decision parts with `jlDecEdit`/`jlDecSave`: objective, constraints, opportunity cost and a revisit trigger were absent. Added (`goal`, `cons`, `cost`, `trigger`) in judge.js.
+- Compared P16 5.3's nine situations with `SPC_SC` (eight): `opinion` added in speak2.js. Compared Part 3's structures with `SPK_EX`: MECE absent. Built `SPM_T`, `spmAll`, `spmOpen`, `spmCheck`, `spmSave` in speak4.js (store `spk:m:<id>`, no AI), a button on the Communication screen (`spkOpen` wrapper `_spm`), finder entry `mece`.
+- Part 7: `sppFill(lang)` / `sppFillHtml` and a `sppOpen` wrapper (`_fill`): filler totals and other-language small words, counted from kept text.
+- Tests: `test_1377` (24 checks; four sheets measured at 390 and 1036 px); `test_1357` updated to nine situations on purpose.
+- The exercise grid (30 = five domains by six levels) is unchanged: `spkNext` assumes one exercise per cell.
