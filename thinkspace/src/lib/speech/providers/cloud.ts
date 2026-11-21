@@ -44,7 +44,8 @@ export class CloudSpeechProvider extends SpeechEmitter implements SpeechProvider
   private analyser: AnalyserNode | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private recorder: MediaRecorder | null = null;
-  private chunks: Blob[] = [];
+  /** audio chunks of each recorder, kept apart so a late chunk never leaks into the next clip */
+  private chunksOf = new WeakMap<MediaRecorder, Blob[]>();
   private mime = "";
   private running = false;
   private paused = false;
@@ -98,13 +99,14 @@ export class CloudSpeechProvider extends SpeechEmitter implements SpeechProvider
 
   private startWindow() {
     if (!this.stream) return;
-    this.chunks = [];
     this.voicedMs = 0;
     this.utteranceStartAt = null;
     this.windowStartedAt = performance.now();
     const rec = this.mime ? new MediaRecorder(this.stream, { mimeType: this.mime }) : new MediaRecorder(this.stream);
+    const chunks: Blob[] = [];
+    this.chunksOf.set(rec, chunks);
     rec.ondataavailable = (ev) => {
-      if (ev.data && ev.data.size > 0) this.chunks.push(ev.data);
+      if (ev.data && ev.data.size > 0) chunks.push(ev.data);
     };
     rec.start(250);
     this.recorder = rec;
@@ -118,8 +120,9 @@ export class CloudSpeechProvider extends SpeechEmitter implements SpeechProvider
     const voiced = this.voicedMs;
     const startedAt = this.utteranceStartAt ?? this.windowStartedAt;
     const endedAt = performance.now();
-    const chunks = this.chunks;
+    const chunks = this.chunksOf.get(rec) ?? [];
     return new Promise((resolve) => {
+      // onstop fires after the final dataavailable, so `chunks` is complete here
       rec.onstop = () => {
         if (!send || voiced < MIN_VOICED_MS || !chunks.length) return resolve(null);
         const type = rec.mimeType || this.mime || "audio/webm";
