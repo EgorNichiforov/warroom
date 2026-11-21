@@ -26,22 +26,35 @@ function wrRangeCard() {
    Before it: rebuilt forward from where you started (default 0 on your first transaction, editable), adding what you
    logged; any gap to the first count is spread evenly over that time and marked estimated. ── */
 function wrStart() { const s = S.settings.mnStart; if (s && s.k) return { k: s.k, amt: Number(s.amt) || 0, set: true }; const f = wrFirstMoney(); return f ? { k: f, amt: 0, set: false } : null; }
+function wrFirstBal() { const L = [wrFirstMoney(), (S.settings.mnStart || {}).k].concat((typeof mn4Cfg === 'function' ? mn4Cfg().snaps || [] : []).map((x) => x && x.d)).filter(Boolean).sort(); return L[0] || null; }
+function wrRepMarks(P) { return P.map((p, i) => (p.rep ? { i, v: p.b, t: fmtShort(pd(p.k)) + ': you reported about ' + mnF(p.b) } : null)).filter(Boolean); }
 function wrHistory(n) {
   const T = mnTotal(), tx = mnTx(), byDay = {}; tx.forEach((t) => { const f = typeof mn2Flow === 'function' ? mn2Flow(t) : 0; byDay[t.date] = (byDay[t.date] || 0) + f; });
   const fc = tx.filter((t) => t.type === 'count').map((t) => t.date).sort()[0], st = wrStart(), today = new Date();
-  const N = Math.max(n, st ? wrDaysSince(st.k) : 0, fc ? wrDaysSince(fc) : 0), back = []; let b = T.t;
+  const N = Math.max(n, st ? wrDaysSince(st.k) : 0, fc ? wrDaysSince(fc) : 0, ...((typeof mn4Cfg === 'function' ? mn4Cfg().snaps || [] : []).filter((x) => x && x.d).map((x) => wrDaysSince(x.d)))), back = []; let b = T.t;
   for (let i = 0; i < N; i++) { const k = dk(addDays(today, -i)); back.unshift({ k, b }); b -= byDay[k] || 0; }
-  if (fc && st && st.k < fc) {
-    const ia = back.findIndex((p) => p.k >= st.k), ifc = back.findIndex((p) => p.k >= fc), ie = ifc - 1;
-    if (ia >= 0 && ie > ia) { let f = st.amt; const fwd = []; for (let i = ia; i <= ie; i++) { f += byDay[back[i].k] || 0; fwd.push(f); }
-      const D = back[ie].b - fwd[fwd.length - 1], span = ie - ia || 1;
-      for (let i = ia; i <= ie; i++) { back[i].b = fwd[i - ia] + (D * (i - ia)) / span; back[i].est = true; }
-      for (let i = 0; i < ia; i++) { back[i].b = st.amt; back[i].est = true; } }
+  /* anchors before the first count: where you started + every past balance you reported (Money → "+ add one").
+     Between two anchors the line follows what you logged, and the gap to the next anchor is spread evenly, so the
+     curve passes through every number you gave. All of it is marked estimated. */
+  const snaps = (typeof mn4Cfg === 'function' ? mn4Cfg().snaps || [] : []).filter((x) => x && x.d && Number(x.a) > 0 && (!fc || x.d < fc)).map((x) => ({ k: x.d, amt: Number(x.a), rep: true }));
+  const A = (st && (st.set || !snaps.length) ? [st] : []).concat(snaps).filter((a) => !fc || a.k < fc).sort((a, x) => (a.k < x.k ? -1 : 1)).filter((a, i, L) => !i || a.k !== L[i - 1].k);
+  if (fc && A.length) {
+    const ifc = back.findIndex((p) => p.k >= fc), ie = ifc - 1, idx = A.map((a) => back.findIndex((p) => p.k >= a.k));
+    if (ie >= 0 && idx[0] >= 0 && idx[0] <= ie) {
+      for (let s2 = 0; s2 < A.length; s2++) {
+        const ia = idx[s2]; if (ia < 0 || ia > ie) continue;
+        const nx = idx[s2 + 1], last = s2 === A.length - 1 || nx < 0 || nx > ie, ib = last ? ie : nx, target = last ? back[ie].b : A[s2 + 1].amt;
+        let f = A[s2].amt; const fwd = [f]; for (let i = ia + 1; i <= ib; i++) { f += byDay[back[i].k] || 0; fwd.push(f); }
+        const D = target - fwd[fwd.length - 1], span = ib - ia || 1, stop = last ? ib : ib - 1;
+        for (let i = ia; i <= stop; i++) { back[i].b = fwd[i - ia] + (D * (i - ia)) / span; back[i].est = true; if (i === ia && A[s2].rep) back[i].rep = true; }
+      }
+      for (let i = 0; i < idx[0]; i++) { back[i].b = A[0].amt; back[i].est = true; }
+    }
   } else if (fc) { const ifc = back.findIndex((p) => p.k >= fc); for (let i = 0; i < ifc; i++) back[i].est = true; }
   return { pts: back.slice(-n), firstCount: fc, start: st };
 }
 function wrStartModal() { const s = wrStart() || { k: dk(new Date()), amt: 0 }; openModal(`<h2>Where you started</h2><div class="small muted" style="margin-bottom:10px">Your balance before you began logging. Everything before your first count is rebuilt from this point plus what you logged, and marked estimated.</div><div class="g2"><div class="field"><label>Date</label><input id="ms-k" type="date" value="${s.k}"></div><div class="field"><label>You had (MDL)</label><input id="ms-a" type="number" inputmode="decimal" value="${s.amt}"></div></div><button class="btn primary block" onclick="S.settings.mnStart={k:$('ms-k').value,amt:Number($('ms-a').value)||0};S.settings._u=now();save();closeModal();render()">Save</button>`); }
-function wrHistNote(H) { const st = H.start; if (!H.firstCount) return 'Count once to anchor this to reality.'; return `Exact from your first count (${fmtShort(pd(H.firstCount))}).${st && st.k < H.firstCount ? ` Before it: rebuilt from ${mnF(st.amt)} on ${fmtShort(pd(st.k))}${st.set ? '' : ' (assumed)'} plus what you logged, estimated. <a href="#" onclick="wrStartModal();return false">Change the start</a>` : ''}`; }
+function wrHistNote(H) { const st = H.start; if (!H.firstCount) return 'Count once to anchor this to reality.'; const nr = (typeof mn4Cfg === 'function' ? mn4Cfg().snaps || [] : []).filter((x) => x && x.d < H.firstCount).length; if (nr) return `Exact from your first count (${fmtShort(pd(H.firstCount))}). Before it: drawn through ${nr} balance${nr === 1 ? '' : 's'} you reported (dots)${st && st.set ? ' and where you started' : ''}, following what you logged in between. Estimated. <a href="#" onclick="wrStartModal();return false">Change the start</a>`; return `Exact from your first count (${fmtShort(pd(H.firstCount))}).${st && st.k < H.firstCount ? ` Before it: rebuilt from ${mnF(st.amt)} on ${fmtShort(pd(st.k))}${st.set ? '' : ' (assumed)'} plus what you logged, estimated. <a href="#" onclick="wrStartModal();return false">Change the start</a>` : ''}`; }
 
 /* ── Money → Overview: "You have" over any range, with what changed ── */
 if (typeof mnOver === 'function' && !mnOver._rg) {
@@ -49,10 +62,10 @@ if (typeof mnOver === 'function' && !mnOver._rg) {
   mnOver = function () {
     const h = _f.apply(this, arguments); try {
       const T = mnTotal(); if (!T.any) return h;
-      const first = wrFirstMoney(), n = wrRangeDays('money', first), H = wrHistory(n), hv = H.pts.map((p) => p.b), start = hv[0], end = hv[hv.length - 1], ch = end - start;
+      const first = wrFirstBal(), n = wrRangeDays('money', first), H = wrHistory(n), hv = H.pts.map((p) => p.b), start = hv[0], end = hv[hv.length - 1], ch = end - start;
       const R = typeof wlRange === 'function' ? wlRange(H.pts[0].k, dk(new Date())) : null, lab = wrRangeLabel('money', first);
       const hero = `<div class="mn2-hero"><div class="rg-top"><span class="k">You have</span>${wrRangeBar('money')}</div><div class="v">${mcNum(T.t)}</div><div class="d ${ch >= 0 ? 'ok' : 'bad'}">${ch >= 0 ? '▲' : '▼'} ${mnF(Math.abs(ch))} ${lab}</div>
-        ${mcLine('nw', [{ v: hv, c: MC_ACC, area: true, name: 'Balance' }], { h: 130, labels: H.pts.map((p) => fmtShort(pd(p.k)) + (p.est ? ' (estimated)' : '')), fmt: (v) => mnF(v), xticks: [[0, fmtShort(pd(H.pts[0].k))], [hv.length - 1, 'today']] })}
+        ${mcLine('nw', [{ v: hv, c: MC_ACC, area: true, name: 'Balance' }], { h: 130, labels: H.pts.map((p) => fmtShort(pd(p.k)) + (p.est ? ' (estimated)' : '')), fmt: (v) => mnF(v), marks: wrRepMarks(H.pts), xticks: [[0, fmtShort(pd(H.pts[0].k))], [hv.length - 1, 'today']] })}
         <div class="rg-kv"><div><span>Start</span><b>${mnF(start)}</b></div><div><span>Now</span><b>${mnF(end)}</b></div><div><span>Came in</span><b class="ok">${R ? mnF(R.inn) : '–'}</b></div><div><span>Went out</span><b class="bad">${R ? mnF(R.out) : '–'}</b></div><div><span>Margin</span><b class="${R && R.m >= 0 ? 'ok' : 'bad'}">${R ? mnF(R.m, 'MDL', true) : '–'}</b></div></div><div class="xs muted" style="margin-top:6px">${wrHistNote(H)}</div></div>`;
       const i = h.indexOf('<div class="mn2-hero">'), j = h.indexOf('<div class="mn2-kpis">'); return i >= 0 && j > i ? h.slice(0, i) + hero + h.slice(j) : h;
     } catch (e) { console.warn('range', e); return h; }
@@ -63,11 +76,11 @@ if (typeof mnOver === 'function' && !mnOver._rg) {
 /* ── Money → Reports: months by range (3 / 6 / 12 / all) ── */
 if (typeof mnRepTab === 'function' && !mnRepTab._rg) {
   mnRepTab = function () {
-    const t = new Date(), first = wrFirstMoney(), nM = wrRangeMonths('report', first), M = []; for (let i = nM - 1; i >= 0; i--) M.push(mnMonth(mnYm(new Date(t.getFullYear(), t.getMonth() - i, 1))));
+    const t = new Date(), first = wrFirstBal(), nM = wrRangeMonths('report', first), M = []; for (let i = nM - 1; i >= 0; i--) M.push(mnMonth(mnYm(new Date(t.getFullYear(), t.getMonth() - i, 1))));
     const live = M.filter((m) => m.n), sel = M.find((m) => m.ym === mn2Sel) || M[M.length - 1], mx = Math.max(1, ...M.map((m) => Math.max(m.earned, m.spent)));
     const avgE = live.reduce((a, m) => a + m.earned, 0) / (live.length || 1), avgS = live.reduce((a, m) => a + m.spent, 0) / (live.length || 1), totE = M.reduce((a, m) => a + m.earned, 0), totS = M.reduce((a, m) => a + m.spent, 0);
     const sr = M.map((m) => (m.earned ? Math.round(((m.earned - m.spent) / m.earned) * 100) : null)), days = Math.max(31, wrDaysSince(dk(new Date(t.getFullYear(), t.getMonth() - nM + 1, 1))));
-    const H = wrHistory(days), step = Math.max(1, Math.round(days / 60)), nwPts = H.pts.filter((_, i) => i % step === 0 || i === H.pts.length - 1), best = live.slice().sort((a, b) => b.earned - b.spent - (a.earned - a.spent))[0];
+    const H = wrHistory(days), step = Math.max(1, Math.round(days / 60)), nwPts = H.pts.filter((p, i) => i % step === 0 || p.rep || i === H.pts.length - 1), best = live.slice().sort((a, b) => b.earned - b.spent - (a.earned - a.spent))[0];
     const span = nM === 1 ? 'this month' : `${nM} months`;
     return `<div class="sgrid st-g"><div class="card w2"><div class="card-h"><div class="card-t">Earned vs spent · ${span}</div><div class="card-r">${wrRangeBar('report', true)}</div></div>
       <div class="mn2-bars" style="${M.length > 14 ? 'overflow-x:auto' : ''}">${M.map((m, i) => `<button class="${m.ym === sel.ym ? 'sel' : ''}" style="${M.length > 14 ? 'min-width:34px' : ''}" onclick="mn2Sel='${m.ym}';render()"><div class="col"><i class="e" style="height:${(m.earned / mx) * 100}%;animation-delay:${i * 30}ms"></i><i class="s" style="height:${(m.spent / mx) * 100}%;animation-delay:${i * 30 + 15}ms"></i></div><b class="${m.earned - m.spent >= 0 ? 'ok' : 'bad'}">${m.n ? (m.earned - m.spent >= 0 ? '+' : '−') + fmt(Math.abs(Math.round((m.earned - m.spent) / 100) / 10)) + 'k' : ''}</b><span>${mnMonthName(m.ym).split(' ')[0]}</span></button>`).join('')}</div>
@@ -78,7 +91,7 @@ if (typeof mnRepTab === 'function' && !mnRepTab._rg) {
       <div class="card"><div class="card-h"><div class="card-t">Savings rate</div><div class="card-r">% of income kept</div></div>
         ${mcLine('sr', [{ v: sr, c: MC_GREEN, name: 'Kept %' }], { h: 150, min: 0, max: 100, labels: M.map((m) => mnMonthName(m.ym)), fmt: (v) => Math.round(v) + '%', xticks: [[0, mnMonthName(M[0].ym)], [M.length - 1, mnMonthName(M[M.length - 1].ym)]] })}
         <div class="sec-h" style="margin-top:12px">Balance over time · ${span}</div>
-        ${mcLine('nw2', [{ v: nwPts.map((p) => p.b), c: MC_ACC, area: true, name: 'Balance' }], { h: 130, labels: nwPts.map((p) => fmtShort(pd(p.k)) + (p.est ? ' (estimated)' : '')), fmt: (v) => mnF(v), xticks: [[0, fmtShort(pd(nwPts[0].k))], [nwPts.length - 1, 'today']] })}
+        ${mcLine('nw2', [{ v: nwPts.map((p) => p.b), c: MC_ACC, area: true, name: 'Balance' }], { h: 130, labels: nwPts.map((p) => fmtShort(pd(p.k)) + (p.est ? ' (estimated)' : '')), fmt: (v) => mnF(v), marks: wrRepMarks(nwPts), xticks: [[0, fmtShort(pd(nwPts[0].k))], [nwPts.length - 1, 'today']] })}
         <div class="xs muted">${wrHistNote(H)}</div></div></div>`;
   };
   mnRepTab._rg = 1;
