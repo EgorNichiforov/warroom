@@ -166,7 +166,7 @@ function mcCard() {
   const sec = M.C.filter((x) => x !== t).slice(0, 3), done = o.mcDone && o.mcDone.k === t.k;
   return `<div class="mc ${done ? 'done' : ''}">${chips}
     <div class="mc-k">${M.picked ? 'Your pick today' : "Today's mission"} · ${MC_TIER[t.tier]}${t.conf !== 'measured' ? ` · ${esc(t.conf)}` : ''}</div>
-    <div class="mc-out">${esc(t.out)}</div><div class="mc-why">${esc(t.why)}</div>${M.nudge ? `<div class="mc-nudge">${esc(M.nudge)}</div>` : ''}
+    <div class="mc-out">${esc(t.out)}</div><div class="mc-why">${esc(t.why)}</div>${M.nudge ? `<div class="mc-nudge">${esc(M.nudge)}</div>` : ''}${M.energy && M.energy.text ? `<div class="mc-en xs" id="mc-en">⚡ ${esc(M.energy.text)}</div>` : ''}
     ${t.camp ? `<div class="mc-camp">Campaign · <b>${esc(t.camp.title)}</b> · ${t.camp.pct}% evidenced → next milestone: ${esc(t.camp.next)}</div>` : ''}
     <div class="mc-meta">${t.min ? `<span>${t.min} min</span>` : ''}<span>Done when: ${esc(t.dod)}</span></div>
     ${t.go && t.next ? `<button class="btn primary block mc-go" onclick="mcGo('${t.k}')">${esc(t.next)} ›</button>` : ''}

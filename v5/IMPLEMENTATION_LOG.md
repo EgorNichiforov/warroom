@@ -782,3 +782,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 15.0.0 · 21 Nov 2026 · campaigns competing for hours
 - reality.js rlcDays/rlcWeek/rlcFix/rlcBlock; Capacity (rlCapOpen) section #rl-camp. Hours from calendar blocks linked to campaign tasks; no estimate otherwise; proposal only. test_1396.
+
+## 15.1.0 · 21 Nov 2026 · energy and task difficulty
+- expand.js EN_HARD, EN_EASY, enFit; exAugment wrapped to set M.energy only with a check-in today; mission.js card line #mc-en. No reordering. test_1397.

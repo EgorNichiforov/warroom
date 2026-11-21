@@ -260,3 +260,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 14.8.0, versions for decisions, risks, protocols, campaigns.
 - 21 Nov 2026: 14.9.0, upkeep list.
 - 21 Nov 2026: 15.0.0, campaigns competing for hours.
+- 21 Nov 2026: 15.1.0, energy and task difficulty.
