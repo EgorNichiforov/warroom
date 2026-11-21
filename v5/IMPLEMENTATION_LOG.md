@@ -675,3 +675,8 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Gmail read-only: 10 more Acquisition.com emails (12 May to 18 Aug) read in full as plain text and added to lib/sources.json, acc 'part' (links, roadmap PDFs and videos not opened). Lessons linked only where they fit (checked against lib/cards.json). 'last call' is a workshop advert, kept with its one useful line on offers.
 - CC_MAIL_NOTE.done 20; screen says about 94 left. Ledger P02 row 5 updated. test_1379 updated to 20 / 94.
 - The first Gmail result page (20 threads) is finished. Next batch: next page of "from:acquisition.com before:2026/09/01", or before:2026/05/12.
+
+## 13.83.0 · 21 Nov 2026, about 11:30 · older Hormozi emails, batch 3
+- Gmail read-only: 10 more Acquisition.com emails (10 Mar to 7 May) read in full as plain text and added, acc 'part'. Lessons linked only where they fit (checked). The $100M Roadmap email is marked as promotion.
+- Honest count: Gmail estimated about 114 pre-September emails on 20 Nov, but on 21 Nov the search before 12 May estimated about 60, so about 80 in all. CC_MAIL_NOTE now carries done 30 and left 50 (Gmail's rough estimate); the screen says so instead of computing 114 − 30. Ledger P02 row 5 updated. test_1379 updated.
+- Next batch: "from:acquisition.com before:2026/03/10".
