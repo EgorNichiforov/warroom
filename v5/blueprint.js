@@ -53,7 +53,7 @@ function bpAll() {
   const out = [], H = (() => { try { return rsHorizonCaps(); } catch (e) { return { now: [], next: [], later: [] }; } })();
   BP_AREAS.forEach(([a, , , doms]) => doms.forEach((d) => (CM_CAPS[d] || []).forEach((r) => { const c = cmCap(r[0]); out.push({ id: c.id, area: BP_MOVE[c.id] || a, n: c.n, beh: r[3], lv: /scale|delegat|strategy|invest/.test(c.id) ? 'a' : 'f', hz: H.now.includes(c.id) ? 'now' : H.next.includes(c.id) ? 'next' : 'later', cap: c.id, prac: r[5], as: r[7] }); })));
   const cards = typeof XC !== 'undefined' && XC && XC.cards ? XC.cards : [];
-  BP_EXTRA.forEach(([id, area, n, beh, lv, hz, kw]) => out.push({ id, area, n, beh, lv, hz, cap: '', kw, kwCards: cards.filter((c) => kw.test(c.t) || (c.m || []).some((m) => kw.test(m))).map((c) => c.id).slice(0, 6) }));
+  BP_EXTRA.forEach(([id, area, n, beh, lv, hz, kw]) => out.push({ id, area, n, beh, lv, hz, cap: '', kw, kwCards: cards.filter((c) => c.bp === id).map((c) => c.id).concat(cards.filter((c) => c.bp !== id && (kw.test(c.t) || (c.m || []).some((m) => kw.test(m)))).map((c) => c.id)).slice(0, 6) }));
   bpAll._c = out; bpAll._n = cards.length; return out;
 }
 function bpGet(id) { return bpAll().find((x) => x.id === id) || null; }
@@ -64,7 +64,7 @@ function bpRes(x) { try { const J = Object.values(S.research || {}).filter((r) =
 function bpHas(x) {
   const C = bpCards(x).map((id) => XC.byId[id]), R = bpRes(x);
   const scen = C.some((c) => typeof BC !== 'undefined' && BC && BC.cardMod && ((BC.sc || {})[BC.cardMod[c.id]] || []).some((s) => s.a === c.id || (s.o || []).includes(c.id)));
-  return { lessons: C.length, kwOnly: !x.cap && C.length > 0, quiz: C.length > 0, assess: C.filter((c) => (c.q || []).length >= 2).length, scen, exercise: C.filter((c) => String(c.move || '').length > 20).length, flow: !!x.cap,
+  return { lessons: C.length, kwOnly: !x.cap && C.length > 0 && !C.some((c) => c && c.bp === x.id), quiz: C.length > 0, assess: C.filter((c) => (c.q || []).length >= 2).length, scen, exercise: C.filter((c) => String(c.move || '').length > 20).length, flow: !!x.cap,
     vidInspected: C.filter((c) => c.clipV === 'content').length, vidTitle: C.filter((c) => c.clipV === 'title').length, vidLink: C.filter((c) => c.clipV === 'link' || ((c.clip || []).length && !c.clipV)).length, res: R.length, C, R };
 }
 function bpMissing(x) { const h = bpHas(x), M = []; if (!h.lessons) M.push('lesson'); else if (h.kwOnly) M.push('own lesson (only keyword matches)'); if (!h.assess) M.push(h.quiz ? 'written test questions (auto-generated quiz only)' : 'assessment'); if (!h.exercise) M.push('practical exercise'); if (!h.vidInspected) M.push(h.vidTitle || h.vidLink ? 'inspected resource (video not watched)' : 'resource'); return M; }
@@ -241,7 +241,7 @@ function emOpen() {
 }
 
 /* ───────── real-phone checklist: only you can run it ───────── */
-const PT = [['install', 'Add to Home Screen, open from the icon, version shows 13.93.0 in Settings'], ['offline', 'Airplane mode on: the app opens and today\'s plan is there'], ['learn', 'Work → Learn: choose 10 minutes, start, finish one step'], ['resume', 'Close the app mid-session, reopen: "Resume" shows the same step'], ['video', 'A lesson video plays inside the card with sound'], ['dial', 'Log one owner talk: the discovery questions appear after it'], ['sync', 'Change something on the phone; it appears on the laptop within a minute'], ['tap', 'Evening: open a course lesson and tap an idea: the panel opens (the bug fixed in 13.31)'], ['text', 'No screen needs sideways scrolling; buttons are reachable with a thumb']];
+const PT = [['install', 'Add to Home Screen, open from the icon, version shows 13.94.0 in Settings'], ['offline', 'Airplane mode on: the app opens and today\'s plan is there'], ['learn', 'Work → Learn: choose 10 minutes, start, finish one step'], ['resume', 'Close the app mid-session, reopen: "Resume" shows the same step'], ['video', 'A lesson video plays inside the card with sound'], ['dial', 'Log one owner talk: the discovery questions appear after it'], ['sync', 'Change something on the phone; it appears on the laptop within a minute'], ['tap', 'Evening: open a course lesson and tap an idea: the panel opens (the bug fixed in 13.31)'], ['text', 'No screen needs sideways scrolling; buttons are reachable with a thumb']];
 function ptOpen() { const R = bcV('pt:1331', {}); openModal(`<h2>Phone test · 13.31</h2><div class="hint">Automated tests ran in a desktop browser at phone size. That is not your phone. Tick what you checked yourself; a fail with one line helps most.</div>${PT.map(([k, t]) => `<div class="st-o"><em class="${R[k] === 'ok' ? 'ok' : R[k] === 'bad' ? 'bad' : ''}">${R[k] === 'ok' ? 'passed' : R[k] === 'bad' ? 'failed' : 'not tested'}</em><div>${esc(t)}</div><div class="actions"><button class="btn xs" onclick="ptSet('${k}','ok')">Pass</button><button class="btn xs" onclick="ptSet('${k}','bad')">Fail</button></div></div>`).join('')}<div class="xs muted">${Object.values(R).filter((v) => v === 'ok').length} of ${PT.length} passed on a real phone.</div><div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`, true); }
 function ptSet(k, v) { const R = Object.assign({}, bcV('pt:1331', {})); R[k] = v; bcW('pt:1331', R); ptOpen(); }
 

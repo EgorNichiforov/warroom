@@ -729,3 +729,8 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.93.0 · 21 Nov 2026 · April done, March started
 - 10 more pre-September Hormozi emails read in full (plain text) and added (1 Apr, 9 Mar). No adverts in this batch. CC_MAIL_NOTE done 105, left 9 (all March). Ledger P02 row 5 and test_1379 updated.
+
+## 13.94.0 · 21 Nov 2026 · five Blueprint gaps filled
+- New lessons bp-l-word, bp-l-repair, bp-l-write, bp-l-story, bp-l-speak (sources: Gneezy and Epley; Lewicki, Polin and Lount 2016; Rogers and Lasky-Fink 2023; Matthew Dicks; Chris Anderson). Videos title-checked only. In Bootcamp l7 and l11.
+- Cards can now declare the competency they teach (field bp); bpAll lists those first and bpHas no longer calls them keyword-only. Blueprint: 101 own lesson, 14 none, 4 keyword-only (was 96/20/3).
+- Counts: 264 lessons, rating list 125, ledger P05 and P10. test_1381 added.
