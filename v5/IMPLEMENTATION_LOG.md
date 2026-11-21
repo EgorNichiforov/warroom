@@ -701,3 +701,7 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Month-by-month Gmail listing (IDS_ONLY, one search per month, Jan to Aug 2026; none before 2026): exactly 114 threads. Compared with sources.json by thread-id suffix: 59 missing before this batch (Aug 17, Jul 7, Jun 5, May 5, Apr 7, Mar 18, Jan-Feb 0).
 - 10 August ones read in full (plain text) and added. 4-part persuasion of 27 Aug is an earlier send of the 1 Sep copy (tier extra). Three workshop adverts marked as promotion. 65 done, 49 left; the remaining ids are in /home/claude/work/missed_email_ids.txt (working file).
 - CC_MAIL_NOTE done 65, left 49; screen says a month-by-month listing counted 114. Ledger P02 row 5 and test_1379 updated.
+
+## 13.88.0 · 21 Nov 2026 · August done, July started
+- 10 more pre-September Hormozi emails read in full (plain text) and added (7 Aug, 3 Jul). Three are adverts (two abandoned-cart reminders for the $100M Offers hardcover, one sold-out notice), tier extra.
+- CC_MAIL_NOTE done 75, left 39 (Jul 4, Jun 5, May 5, Apr 7, Mar 18). Ledger P02 row 5 and test_1379 updated.

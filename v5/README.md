@@ -1,4 +1,4 @@
-# War Room (branch `main`, folder `v5/` · app 13.87.0)
+# War Room (branch `main`, folder `v5/` · app 13.88.0)
 
 Egor's personal operating system. Plain-JavaScript PWA, no build step, offline-first, synced through Supabase.
 Live: https://egornichiforov.github.io/warroom/v5/ · Android shell (Capacitor) in `native/`, APK in `main:download/WarRoom.apk`.
