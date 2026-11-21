@@ -235,3 +235,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 13.83.0, older Hormozi emails batch 3 (30 done, about 50 left by a fresh Gmail estimate). Next: before 10 Mar 2026.
 - 21 Nov 2026: 13.84.0, older Hormozi emails batch 4 (40 done, about 16 left). Next: before 27 Feb 2026.
 - 21 Nov 2026: 13.85.0, older Hormozi emails batch 5 (50 done, 5 left: 19c84c4d52e9abf4, 19c85a094873209d, 19c7272c94573669, 19be69b3abb8f09d, 19c51415dfb17872).
+- 21 Nov 2026: 13.86.0, Hormozi backlog 55 done; correction: about 59 still to read (dated searches skipped some). Next: month-by-month listing, starting Aug 2026.
