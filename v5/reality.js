@@ -89,6 +89,15 @@ function rlDay(d) {
   const ov = []; const S2 = L.slice().sort((a, b) => tmin(a.start) - tmin(b.start)); for (let i = 0; i < S2.length; i++) for (let j = i + 1; j < S2.length; j++) { if (tmin(S2[j].start) >= tmin(S2[i].end)) break; if (RL_CLASH.includes(S2[i].kind) && RL_CLASH.includes(S2[j].kind)) ov.push([S2[i], S2[j]]); }
   return { d, k: dk(d), L, fixed, flex, other, avail, free, win, ov, over: flex > Math.max(0, avail - fixed - other - 30) };
 }
+/* recovery: unscheduled waking minutes plus rest-type blocks. A day under 60 minutes, or a week with no 3-hour stretch of it, is flagged. */
+const RL_REST = ['rest', 'free', 'meal', 'family', 'walk', 'recovery'];
+function rlRecovery(x) { const rest = (x.L || []).filter((b) => RL_REST.includes(b.kind)).reduce((s, b) => s + Math.max(0, tmin(b.end) - tmin(b.start)), 0); return Math.max(0, x.free) + rest; }
+function rlRecoveryWeek(W) { const D = W.map((x) => ({ k: x.k, d: x.d, m: rlRecovery(x) })); return { D, low: D.filter((r) => r.m < 60), noLong: !D.some((r) => r.m >= 180) }; }
+/* support, skills and equipment: the user's own list, nothing invented */
+const RL_RK = { support: 'Support (people)', skill: 'Skill', equip: 'Equipment', other: 'Other' };
+function rlRes() { return ((S.settings || {}).resources || []).filter((r) => r && !r._del); }
+function rlResAdd() { const t = (($('rl-rt') || {}).value || '').trim(), k = (($('rl-rk') || {}).value || 'other'), n = (($('rl-rn') || {}).value || '').trim(); if (!t) return toast('Name it first'); S.settings.resources = (S.settings.resources || []).concat([{ id: uid(), t: t.slice(0, 80), k: RL_RK[k] ? k : 'other', n: n.slice(0, 160), at: dk(new Date()) }]); S.settings._u = now(); save(); rlCapOpen(); }
+function rlResDel(id) { S.settings.resources = (S.settings.resources || []).filter((r) => r.id !== id); S.settings._u = now(); save(); rlCapOpen(); }
 function rlWeek(n) { const out = []; for (let i = 0; i < (n || 7); i++) out.push(rlDay(addDays(new Date(), i))); return out; }
 function rlCapOpen() {
   const W = rlWeek(7), ovr = rlOverrun(), lbl = (b) => String(b.title || '').replace(/^[^\p{L}\p{N}]+/u, '');
@@ -96,6 +105,9 @@ function rlCapOpen() {
   openModal(`<h2>Capacity: next 7 days</h2><div class="hint">Waking hours minus fixed commitments, compared with planned flexible work. A day needs at least 30 minutes of buffer. ${ovr.n >= 3 ? `Your focus blocks take ${Math.round(ovr.r * 100)}% of the planned time (${ovr.n} contracts), so real load is shown with that factor.` : 'Real overrun is unknown until a few focus contracts are finished.'}</div>
     ${W.map((x) => { const real = Math.round(x.flex * ovr.r); return `<div class="rl-day ${x.over ? 'bad' : ''}"><b>${fmtShort(x.d)}</b><span>fixed ${x.fixed} · planned ${x.flex}${ovr.n >= 3 ? ` (≈${real} real)` : ''} · free ${x.free} min</span>${x.ov.length ? `<em>Overlap: ${esc(lbl(x.ov[0][0]))} and ${esc(lbl(x.ov[0][1]))}</em>` : ''}${x.over ? '<em>Plan exceeds the time available</em>' : ''}</div>`; }).join('')}
     <div class="mc-wl"><span>Money (from the Money hub)</span><div>${esc(money)}</div></div>
+    ${(() => { const R = rlRecoveryWeek(W); return `<div class="mc-wl" id="rl-rec"><span>Recovery</span><div class="xs">${R.low.length ? `<b>${R.low.length} day${R.low.length > 1 ? 's' : ''} with under an hour of unplanned or rest time:</b> ${R.low.map((r) => esc(fmtShort(r.d))).join(', ')}.` : 'Every day keeps at least an hour of unplanned or rest time.'} ${R.noLong ? '<b>No day this week has three free hours in it.</b> Plan one before adding work.' : ''} Counted from the calendar: unscheduled waking time plus rest, meal, family or walk blocks. It does not know how tired you are.</div></div>`; })()}
+    <div class="mc-wl" id="rl-res"><span>Support, skills and equipment</span><div class="xs">Only what you add here. Nothing is guessed.</div>${rlRes().length ? rlRes().map((r) => `<div class="mc-wr"><span><b>${esc(r.t)}</b> · ${esc(RL_RK[r.k] || 'Other')}${r.n ? ` · ${esc(r.n)}` : ''}</span><button class="btn sm" onclick="rlResDel('${r.id}')">Remove</button></div>`).join('') : '<div class="empty">Nothing listed yet. Examples of what belongs here: a person who checks your dial count, a working headset, a quiet room, a skill you can trade.</div>'}
+      <div class="row"><input class="aq-in" id="rl-rt" placeholder="Name"><select id="rl-rk">${Object.entries(RL_RK).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></div><input class="aq-in" id="rl-rn" placeholder="Note (optional)"><button class="btn sm" onclick="rlResAdd()">Add</button></div>
     <div class="actions">${W.some((x) => x.over) ? `<button class="btn primary" onclick="rlReplanWeek()">Propose a fix</button>` : ''}<button class="btn" onclick="closeModal()">Close</button></div>`, true);
 }
 function rlMoney() {

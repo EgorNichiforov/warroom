@@ -246,3 +246,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 13.94.0, 5 Blueprint lessons; 14 competencies still without a lesson.
 - 21 Nov 2026: 13.95.0, email backlog finished: 114 of 114.
 - 21 Nov 2026: 13.96.0, 5 more Blueprint lessons; 11 still without a lesson.
+- 21 Nov 2026: 13.97.0, resource planner recovery check and resources list.

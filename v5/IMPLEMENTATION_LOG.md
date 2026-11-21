@@ -740,3 +740,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.96.0 · 21 Nov 2026 · five more Blueprint gaps
 - Lessons bp-l-values, bp-l-digital, bp-l-read, bp-l-docs, bp-l-health (sources: McKeown; CISA Secure Our World; Adler and Van Doren; ASP and servicii.gov.md; CNAM via servicii.gov.md and Radio Moldova). No medical advice in the health lesson. Blueprint 106 own / 11 none / 2 keyword-only. Counts 269 lessons, rating list 130. test_1382 added.
+
+## 13.97.0 · 21 Nov 2026 · resource planner: recovery and resources
+- reality.js: rlRecovery / rlRecoveryWeek (unscheduled waking time + rest, meal, family, walk, recovery blocks; day < 60 min flagged; week with no 180-min day flagged), shown in rlCapOpen. S.settings.resources list (support, skill, equipment, other) with add/remove; starts empty. test_1383. Ledger P01 row 12 updated with what is still missing.
