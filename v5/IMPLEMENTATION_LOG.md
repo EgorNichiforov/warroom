@@ -773,3 +773,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.7.0 · 21 Nov 2026 · runway
 - money2.js mnRunway/mnRunwayTxt/mnRunwayOpen; the Money KPI now months with basis. Corrected ledger 4.1 (an older days runway existed). No money-day XD link: runway is a stock, not a per-day outcome. test_1393.
+
+## 14.8.0 · 21 Nov 2026 · versions beyond goals
+- entity.js VER_FT, verPickT, verAfterT, verWrap; wraps jlDecSave, rtRiskSave, dfProtoSave, enProtoSave, recSave (campaigns as project:, decisions). knBlock shows v._s. test_1394. Ledger 3.3 and P01-9.
