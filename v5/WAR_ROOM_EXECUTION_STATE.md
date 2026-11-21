@@ -244,3 +244,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 13.92.0, Lost Chapters all read; Gym Launch relevant chapters read; 3 lessons, 4 principles.
 - 21 Nov 2026: 13.93.0, Hormozi backlog 105 of 114; 9 left.
 - 21 Nov 2026: 13.94.0, 5 Blueprint lessons; 14 competencies still without a lesson.
+- 21 Nov 2026: 13.95.0, email backlog finished: 114 of 114.

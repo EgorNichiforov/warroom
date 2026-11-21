@@ -6,9 +6,9 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Status | Sections |
 |---|---|
-| Built, with a test | 55 |
+| Built, with a test | 56 |
 | Exists (not re-checked line by line) | 77 |
-| Partly | 48 |
+| Partly | 47 |
 | Not built | 3 |
 | Needs you | 2 |
 | A rule of work | 3 |
@@ -44,7 +44,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 1 Email archive and what could not be opened | Built, with a test | lib/sources.json, content.js | CHECKED LINE BY LINE 21 Nov: every email in the library carries subject, sender, date, link, topic, type, whether it was opened and which lessons it feeds. The list you asked for, of what was not really opened, did not exist; built in 13.70. What it shows: 58 emails recorded, 56 only partly opened (text read, linked video not). Emails that feed a lesson: 23 in the library file alone, 47 on your laptop, where your own records add links (265 sources there in all). |
 | 2 Integrate everything | Exists (not re-checked line by line) | content.js, kpipe.js, the daily content scan (Gmail read-only) | Read 21 Nov. Lessons, the knowledge store, playbooks and the link to goals exist; not checked item by item. |
 | 3 Connections, not isolated content | Exists (not re-checked line by line) | kpipe.js, capmap.js |  |
-| 5 Final requirement: every email processed | Partly | daily scan | Counted 20 Nov with a read-only Gmail search (Gmail estimates): about 204 emails from these senders, 58 in the library. About 114 are from before 1 Sep. A month-by-month Gmail listing on 21 Nov counted exactly 114 (Jan to Aug 2026). 105 are read in full as text and in the library; 9 are left (all from March), worked in batches of 10. Earlier date-only searches had skipped some because Gmail sorts by relevance. Not finished. |
+| 5 Final requirement: every email processed | Built, with a test | daily scan | Counted 20 Nov with a read-only Gmail search (Gmail estimates): about 204 emails from these senders, 58 in the library. About 114 are from before 1 Sep. A month-by-month Gmail listing on 21 Nov counted exactly 114 (Jan to Aug 2026). All 114 are read in full as text and in the library (17 of them adverts, marked as promotion). Earlier date-only searches had skipped some because Gmail sorts by relevance; the month-by-month listing fixed that. Finished 21 Nov in 13.95. Linked videos, PDFs and pages inside the emails were not opened. |
 
 ## P03 · Complete Alex Hormozi library (before 19 Nov)
 
