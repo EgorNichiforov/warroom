@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.97.0';
+const APP_VERSION = '13.98.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -654,9 +654,9 @@ function editGoal(id) {
 }
 function saveGoal(id) {
   const title = $('m-title').value.trim(); if (!title) { toast('Give the goal a title'); return; }
-  const g = id ? S.goals[id] : { id: uid(), current: null, done: false }; Object.assign(g, { _u: now(), title, horizon: $('m-h').value, deadline: $('m-dl').value, target: num($('m-target').value), unit: $('m-unit').value.trim(), source: $('m-src').value });
+  const g = id ? S.goals[id] : { id: uid(), current: null, done: false }; const _vb = id && typeof verPick === 'function' ? verPick(g) : null; Object.assign(g, { _u: now(), title, horizon: $('m-h').value, deadline: $('m-dl').value, target: num($('m-target').value), unit: $('m-unit').value.trim(), source: $('m-src').value });
   if ($('m-cur')) g.current = num($('m-cur').value); if ($('m-done')) g.done = $('m-done').checked; if (g.source === 'weight' && g.start == null) { const w = weightEntries(); if (w.length) g.start = w[0].w; }
-  S.goals[g.id] = g; save(); closeModal(); render();
+  S.goals[g.id] = g; if (_vb && typeof verAfter === 'function') verAfter('goal:' + g.id, _vb, g); save(); closeModal(); render();
 }
 function delGoal(id) { S.goals[id]._del = true; S.goals[id]._u = now(); save(); closeModal(); render(); }
 

@@ -51,6 +51,7 @@ function enOpen(ref) { const e = enGet(ref); if (!e) { toast('That record is not
   openModal(`<h2>${esc(e.title)}</h2><div class="hint">${esc(EN_TYPE[e.type])}${e.status ? ' · ' + esc(e.status) : ''}</div>
     <div class="st-o"><em>Where this comes from</em><div class="xs">${esc(EN_ORIGIN[e.origin] || e.origin)} · confidence: ${esc(EN_CONF[e.conf] || e.conf)}${e.at ? ' · created ' + esc(enWhen(e.at)) : ''}${e.upd ? ' · last changed ' + esc(enWhen(e.upd)) : ''}</div></div>
     ${lines.length ? `<div class="st-o"><em>What is recorded</em>${lines.map(([k, v]) => `<div class="xs"><b>${esc(LBL[k])}:</b> ${k === 'lostWhy' && typeof SL_WHY !== 'undefined' && SL_WHY[v] ? esc(SL_WHY[v]) : esc(v)}</div>`).join('')}</div>` : ''}
+    ${knBlock(ref, e)}
     <div class="mc-wl" id="en-rel"><span>Connected to (${R.length})</span>${R.slice(0, 12).map(enRow).join('') || '<div class="xs muted">Nothing is linked to this record yet.</div>'}</div>
     ${(() => { const H = evFor(ref); return H.length ? `<div class="mc-wl"><span>History</span>${H.slice(0, 6).map((h) => `<div class="xs">${esc(enWhen(h[0]))}: ${esc(h[3])}</div>`).join('')}</div>` : ''; })()}
     <div class="actions wrap"><button class="btn" onclick="enSearch()">Find another</button>${e.type === 'lesson' ? `<button class="btn primary" onclick="xcOpen('${esc(e.id)}')">Open the lesson</button>` : e.type === 'goal' && typeof gcEdit === 'function' ? `<button class="btn primary" onclick="gcEdit('${esc(e.id)}')">Edit this goal</button>` : e.home ? `<button class="btn primary" onclick="wfGo('${e.home}')">Open where it lives</button>` : '<button class="btn primary" onclick="closeModal()">Close</button>'}</div>`, true); }
@@ -164,3 +165,23 @@ try { if (typeof WF !== 'undefined' && !WF.some((x) => x[0] === 'year')) { const
 /* ───────── the tour opens by itself once, only on a device that holds your synced data ───────── */
 function uxTourAuto() { try { if (window.TOUR_OFF) return false; const sy = (S.settings || {}).sync || {}; if (!sy.code || localStorage.getItem('wr-tour')) return false; if ($('modal-bg').classList.contains('open')) return false; if (typeof wfTour !== 'function') return false; wfTour(); return true; } catch (e) { return false; } }
 setTimeout(uxTourAuto, 3500);
+
+/* ───────── record versions, limitations, last checked, stale rules (13.98) ─────────
+   Additive only: nothing in the original record changes. Versions are the earlier values of a goal, kept when you edit it.
+   Limitations and "last checked" are your own notes on any record. A record is stale when it has not been changed or
+   checked for longer than its kind allows. */
+const VER_F = ['title', 'horizon', 'deadline', 'target', 'unit', 'why', 'next', 'start', 'done'];
+function verPick(o) { const v = {}; VER_F.forEach((k) => { if (o && o[k] !== undefined && o[k] !== null && o[k] !== '') v[k] = o[k]; }); v.t = (o && o._u) || null; return v; }
+function verAfter(ref, before, after) { const a = verPick(after), changed = VER_F.filter((k) => String(before[k] ?? '') !== String(a[k] ?? '')); if (!changed.length) return false; const L = verFor(ref).slice(); L.push(Object.assign({}, before, { at: Date.now(), ch: changed })); bcW('ver:' + ref, L.slice(-10)); return true; }
+function verFor(ref) { const L = bcV('ver:' + ref, []); return Array.isArray(L) ? L : []; }
+const KN_STALE = { fact: 90, source: 180, agency: 60, goal: 30, risk: 30, decision: 60, opp: 60 }, KN_STALE_DEF = 120;
+function knGet(ref) { const v = bcV('kn:' + ref, null); return v && typeof v === 'object' ? v : {}; }
+function knSave(ref) { const lim = ((($('kn-lim') || {}).value) || '').trim().slice(0, 300), K = Object.assign({}, knGet(ref), { lim }); bcW('kn:' + ref, K); toast('Saved'); enOpen(ref); }
+function knChecked(ref) { bcW('kn:' + ref, Object.assign({}, knGet(ref), { chk: dk(new Date()) })); toast('Marked as checked today'); enOpen(ref); }
+function knStale(e) { if (!e) return null; const lim = KN_STALE[e.type] || KN_STALE_DEF, K = knGet(e.ref), last = Math.max(e.upd || 0, e.at || 0, K.chk ? Date.parse(K.chk) : 0); if (!last) return null; const days = Math.floor((Date.now() - last) / 864e5); return days > lim ? { days, lim } : null; }
+function knStaleList(max) { try { return enAll().filter((e) => ['fact', 'source', 'agency', 'goal', 'risk', 'decision', 'opp'].includes(e.type) && e.origin !== 'starter' && !/^(done|closed|lost|archived)$/i.test(e.status || '')).map((e) => ({ e, s: knStale(e) })).filter((x) => x.s).sort((a, b) => (b.s.days - b.s.lim) - (a.s.days - a.s.lim)).slice(0, max || 30); } catch (err) { return []; } }
+function knBlock(ref, e) { const K = knGet(ref), st = knStale(e), V = verFor(ref);
+  return `<div class="mc-wl" id="kn-blk"><span>How far to trust it</span><div class="xs">${K.chk ? `Last checked by you: ${esc(K.chk)}.` : 'Never marked as checked.'} ${st ? `<b>Stale:</b> not changed or checked for ${st.days} days (the limit for this kind is ${st.lim}).` : ''}</div>
+    <textarea class="aq-in" id="kn-lim" rows="2" placeholder="Limitations: what this record does not tell you, or why it may be wrong">${esc(K.lim || '')}</textarea>
+    <div class="actions wrap"><button class="btn sm" onclick="knSave('${esc(ref)}')">Save limitation</button><button class="btn sm" onclick="knChecked('${esc(ref)}')">Checked today</button></div></div>
+    ${V.length ? `<div class="mc-wl" id="ver-blk"><span>Earlier versions (${V.length})</span>${V.slice().reverse().map((v) => `<div class="xs">${esc(enWhen(v.at))}, before you changed ${esc((v.ch || []).join(', '))}: ${esc(v.title || '')}${v.target != null ? ' · target ' + esc(v.target) + (v.unit ? ' ' + esc(v.unit) : '') : ''}${v.deadline ? ' · by ' + esc(v.deadline) : ''}</div>`).join('')}</div>` : ''}`; }

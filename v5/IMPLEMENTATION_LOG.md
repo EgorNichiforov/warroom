@@ -743,3 +743,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.97.0 · 21 Nov 2026 · resource planner: recovery and resources
 - reality.js: rlRecovery / rlRecoveryWeek (unscheduled waking time + rest, meal, family, walk, recovery blocks; day < 60 min flagged; week with no 180-min day flagged), shown in rlCapOpen. S.settings.resources list (support, skill, equipment, other) with add/remove; starts empty. test_1383. Ledger P01 row 12 updated with what is still missing.
+
+## 13.98.0 · 21 Nov 2026 · record versions, limitations, last checked, stale
+- entity.js: verPick/verAfter/verFor (goal versions in S.boot ver:<ref>, max 10, only on real change), called from saveGoal (core.js) and gcSave (depth.js). knGet/knSave/knChecked (S.boot kn:<ref>, never inside the record), knStale with KN_STALE days per kind, knStaleList shown in chgOpen. knBlock shown in enOpen. test_1384. Ledger rows P01-9 and history 3.3 updated.
