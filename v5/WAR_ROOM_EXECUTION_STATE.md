@@ -228,3 +228,5 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - All sixteen prompts checked: P01 to P13 read in full and settled line by line or by count; P14 eight of 29 parts; P15 seven sections; P16 its headings and three parts. Versions 13.64 to 13.78 came out of it.
 - Open work is in the ledger (`audOpen`, ALL_PROMPTS_AUDIT.md) and in the closing report given to Egor in chat on 21 Nov.
 - No scheduled follow-up is pending for the audit.
+
+- 21 Nov 2026: all 13 War Room scheduled tasks read via warroom_owner() (verified in stored text). Next: Hormozi email backlog (unbuilt-work item 2).

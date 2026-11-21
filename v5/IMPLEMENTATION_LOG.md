@@ -661,3 +661,7 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - test_1331 'home is short' updated on purpose: the Learn screen now has three more rows (the doors), limit 6 to 9.
 - Released as 13.80.0: another session had released its own 13.79.0 (balance chart) at 09:51 while this one was in test. Rebuilt on top of it; nothing of it was overwritten.
 - The four version-pinned tests (1327, 1331, 1333, 1334) still said 13.78.0 after the other session's 13.79.0; set to 13.80.0.
+
+## Scheduled tasks on warroom_owner() · 21 Nov 2026, about 10:35 (docs only, no release)
+- Every live War Room scheduled task now finds Egor's row with (select warroom_owner()) instead of "newest row": Sheet sync, Dial Guard, Acvila attendance, Curriculum review, Content discovery, Nightly review, System check, Sunday strategy audit, Morning brief 05:03, Monday Bench Bulletin, Weekly review, Close the day, and the paused 06:00 brief (left paused). Checked in each task's stored text from a full listing, not from notes.
+- Monthly archive and the old disabled tasks never read the row; untouched.
