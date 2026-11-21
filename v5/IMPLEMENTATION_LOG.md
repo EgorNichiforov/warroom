@@ -685,3 +685,9 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Gmail read-only: 10 more Acquisition.com emails (27 Feb to 8 Mar) read in full as plain text and added, acc 'part'. Value equation, pricing, market, offer, fast pass, story, Stage 0 roadmap; two audiobook pointers (tier extra, no lesson) and a fintech request (promotion, no lesson).
 - Gmail estimated 26 before 10 Mar; 10 read, so CC_MAIL_NOTE left 16. Ledger P02 row 5 and test_1379 updated.
 - Next batch: "from:acquisition.com before:2026/02/27".
+
+## 13.85.0 · 21 Nov 2026, about 12:00 · older Hormozi emails, batch 5
+- Gmail read-only: 10 more Acquisition.com emails (27 Jan to 26 Feb) read in full as plain text and added, acc 'part'; linked to existing lessons (em-activate, em-talent, em-angry, sa-closer, sa-script, ld-hook, mm-continuity, mm-upsell, of-price, of-anchor). "#1 Predictor Of Throughput" carries the 19 Feb hooks body word for word: marked tier extra with a note.
+- The sales-script thread also holds Egor's own reply of 4 Feb (an older script for another business); its content was not copied into the library.
+- "Big Head, Long Tail" argues against starting with a trial. The offer (First Hire Free) is locked until the 8 Dec review; recorded in the email's action line only, nothing changed.
+- Gmail estimated 15 before 27 Feb; 10 read, 5 left (a welcome note, an application reply, two repeated Stage 0 roadmap deliveries, one "Only open if you own a business" promotion). CC_MAIL_NOTE done 50, left 5. Ledger and test_1379 updated.
