@@ -705,3 +705,7 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 ## 13.88.0 · 21 Nov 2026 · August done, July started
 - 10 more pre-September Hormozi emails read in full (plain text) and added (7 Aug, 3 Jul). Three are adverts (two abandoned-cart reminders for the $100M Offers hardcover, one sold-out notice), tier extra.
 - CC_MAIL_NOTE done 75, left 39 (Jul 4, Jun 5, May 5, Apr 7, Mar 18). Ledger P02 row 5 and test_1379 updated.
+
+## 13.89.0 · 21 Nov 2026 · July and June done
+- 10 more pre-September Hormozi emails read in full (plain text) and added (4 Jul, 5 Jun, 1 May). Three are adverts (Offers Workshop launch sent twice, Skool creator programme), tier extra.
+- CC_MAIL_NOTE done 85, left 29 (May 4, Apr 7, Mar 18). Ledger P02 row 5 and test_1379 updated.
