@@ -21,8 +21,17 @@ function toBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("base64");
 }
 
+/** A free-tier key has zero image quota: retrying cannot help, so say what to change instead. */
+function noImageQuota(message: string) {
+  return /limit:\s*0\b/.test(message) || /free[_ ]tier/i.test(message);
+}
+const NO_QUOTA_MESSAGE =
+  "Image generation is not available on this Gemini key (the free tier has no image quota). Enable billing for the key at aistudio.google.com to get pictures; diagrams keep working.";
+
 function mapError(err: unknown): ImageProviderError {
   if (err instanceof ImageProviderError) return err;
+  const raw = err instanceof Error ? err.message : String(err);
+  if (noImageQuota(raw)) return new ImageProviderError(NO_QUOTA_MESSAGE, false, err);
   if (err instanceof ApiError) {
     const status = err.status;
     const retryable = status === 429 || status === 408 || status >= 500;

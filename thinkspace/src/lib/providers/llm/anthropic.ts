@@ -4,10 +4,10 @@
  * Server-side refusal fallbacks are enabled; a refusal that survives them is non-retryable.
  */
 import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { z } from "zod";
 import type { BetaMessage } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { SessionSummary, type SessionSnapshot } from "@/lib/contracts/domain";
-import { Extraction, type ContextDigest, type SegmentInput } from "@/lib/contracts/extraction";
+import { Extraction, emptyExtraction, type ContextDigest, type SegmentInput } from "@/lib/contracts/extraction";
 import {
   EXTRACTION_SYSTEM_PROMPT,
   SUMMARY_SYSTEM_PROMPT,
@@ -99,50 +99,79 @@ export class AnthropicLlmProvider implements LlmProvider {
 
   async extract(digest: ContextDigest, segments: SegmentInput[], opts?: { signal?: AbortSignal }): Promise<ExtractResult> {
     const started = Date.now();
-    const message = await this.parse(this.model, this.liveEffort, EXTRACTION_SYSTEM_PROMPT, buildExtractionUserMessage(digest, segments), Extraction, opts?.signal);
-    const extraction = Extraction.parse(message.parsed_output);
-    return { extraction, usage: toUsage(message, this.model, Date.now() - started) };
+    const { value, message } = await this.callJson(this.model, this.liveEffort, EXTRACTION_SYSTEM_PROMPT, buildExtractionUserMessage(digest, segments), Extraction, (v) => ({ ...emptyExtraction(), ...(v as object) }), opts?.signal);
+    return { extraction: value, usage: toUsage(message, this.model, Date.now() - started) };
   }
 
   async summarize(snapshot: SessionSnapshot, opts?: { signal?: AbortSignal }): Promise<SummaryResult> {
     const started = Date.now();
-    const message = await this.parse(this.summaryModel, this.summaryEffort, SUMMARY_SYSTEM_PROMPT, buildSummaryUserMessage(snapshot), SummaryOutput, opts?.signal);
-    const summary: SessionSummary = { ...SummaryOutput.parse(message.parsed_output), generatedAt: new Date().toISOString(), simulated: false };
+    const { value, message } = await this.callJson(this.summaryModel, this.summaryEffort, SUMMARY_SYSTEM_PROMPT, buildSummaryUserMessage(snapshot), SummaryOutput, (v) => v, opts?.signal);
+    const summary: SessionSummary = { ...value, generatedAt: new Date().toISOString(), simulated: false };
     return { summary, usage: toUsage(message, this.summaryModel, Date.now() - started) };
   }
 
-  /** One structured-output call; returns the message with a non-null parsed_output or throws LlmProviderError. */
-  private async parse<S extends typeof Extraction | typeof SummaryOutput>(
+  /**
+   * Asks for one JSON object matching `schema` (described as JSON Schema in the system prompt,
+   * which stays stable so it is prompt-cached), validates it with zod and retries once with the
+   * validation errors. Constrained decoding is not used: the extraction schema is too large for it.
+   */
+  private async callJson<S extends z.ZodTypeAny>(
     model: string,
     effort: Effort,
     system: string,
     userMessage: string,
     schema: S,
+    normalize: (v: unknown) => unknown,
     signal?: AbortSignal,
-  ) {
-    try {
-      const message = await this.client.beta.messages.parse(
-        {
-          model,
-          max_tokens: 16000,
-          system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-          messages: [{ role: "user", content: userMessage }],
-          output_config: { effort, format: zodOutputFormat(schema) },
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
-        },
-        { signal },
-      );
+  ): Promise<{ value: z.infer<S>; message: BetaMessage }> {
+    const systemText = `${system}\n\nOUTPUT FORMAT: reply with exactly one JSON object and nothing else (no prose, no markdown fences). It must validate against this JSON Schema; use [] for empty lists and null for unknown optional values:\n${JSON.stringify(z.toJSONSchema(schema))}`;
+    const messages: { role: "user" | "assistant"; content: string }[] = [{ role: "user", content: userMessage }];
+    let last: BetaMessage | null = null;
+    let inTok = 0;
+    let outTok = 0;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      let message: BetaMessage;
+      try {
+        message = (await this.client.beta.messages.create(
+          {
+            model,
+            max_tokens: 16000,
+            system: [{ type: "text", text: systemText, cache_control: { type: "ephemeral" } }],
+            messages,
+            output_config: { effort },
+            betas: ["server-side-fallback-2026-07-01"],
+            fallbacks: "default",
+          },
+          { signal },
+        )) as BetaMessage;
+      } catch (err) {
+        throw mapSdkError(err);
+      }
+      last = message;
+      inTok += message.usage.input_tokens;
+      outTok += message.usage.output_tokens;
       if (message.stop_reason === "refusal") {
         throw new LlmProviderError(`LLM refused the request (${message.stop_details?.category ?? "unspecified"})`, false);
       }
-      if (message.parsed_output === null) {
-        const truncated = message.stop_reason === "max_tokens";
-        throw new LlmProviderError(truncated ? "LLM output truncated (max_tokens)" : "LLM returned no structured output", truncated);
+      const text = message.content
+        .map((b) => (b.type === "text" ? b.text : ""))
+        .join("")
+        .trim();
+      const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+      let problem: string;
+      try {
+        const parsed = schema.safeParse(normalize(JSON.parse(jsonText.slice(jsonText.indexOf("{"), jsonText.lastIndexOf("}") + 1))));
+        if (parsed.success) {
+          message.usage = { ...message.usage, input_tokens: inTok, output_tokens: outTok };
+          return { value: parsed.data, message };
+        }
+        problem = parsed.error.issues.slice(0, 12).map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+      } catch (e) {
+        problem = message.stop_reason === "max_tokens" ? "the JSON was cut off (too long); be more concise" : `not valid JSON (${e instanceof Error ? e.message : "parse error"})`;
       }
-      return message;
-    } catch (err) {
-      throw mapSdkError(err);
+      messages.push({ role: "assistant", content: text || "{}" });
+      messages.push({ role: "user", content: `That reply did not validate: ${problem}. Reply again with the complete corrected JSON object only.` });
     }
+    throw new LlmProviderError(`LLM returned invalid JSON twice${last ? ` (stop: ${last.stop_reason})` : ""}`, true);
   }
 }

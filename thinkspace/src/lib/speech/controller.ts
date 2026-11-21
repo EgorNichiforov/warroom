@@ -576,8 +576,11 @@ export class ThinkingController {
 
   // ---------------- scenes ----------------
 
+  /** set when the image provider reports it cannot work at all (e.g. no quota): stop auto-rendering */
+  private imagesUnavailable = false;
+
   private async renderPlannedScenes() {
-    if (this.rendering || this.disposed) return;
+    if (this.rendering || this.disposed || this.imagesUnavailable) return;
     this.rendering = true;
     try {
       for (;;) {
@@ -598,7 +601,12 @@ export class ThinkingController {
     try {
       await runStream(
         () => api.streams.render(this.sessionId, sceneId),
-        (e) => this.applyEvent(e),
+        (e) => {
+          if (e.type === "engine.error" && e.payload.stage === "render" && !e.payload.retryable && /not available on this Gemini key/.test(e.payload.message)) {
+            this.imagesUnavailable = true;
+          }
+          this.applyEvent(e);
+        },
       );
     } catch (e) {
       if (!isAbortError(e)) {
