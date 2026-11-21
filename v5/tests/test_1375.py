@@ -48,6 +48,12 @@ with sync_playwright() as p:
     ok = ev(f"""(()=>{{const to=document.querySelector('input[name="pf-to"][value="{bb}"]')||document.querySelector('input[name="pf-to"]'); if(!to) return 'no target'; to.checked=true; document.querySelector('input[name="pf-kind"][value="sup"]').checked=true; const w=document.getElementById('pf-why'); if(w) w.value='the second idea is evidence for the first'; pfLinkSave('{a}'); const t=to.value; const A=pfLinks('{a}').find(x=>x.to===t), B=pfLinks(t).find(x=>x.to==='{a}'); return [A&&A.kind, A&&A.why.slice(0,10), B&&B.kind, B&&B.why.slice(0,15)]}})()""")
     check('saving a supports link records it on both ideas, each from its own side', ok == ['sup', 'Supports: ', 'sup', 'Is supported by'], ok)
     ev("try{closeModal()}catch(e){}; 0")
+    for w, h in [(1036, 800), (360, 740)]:
+        pg.set_viewport_size({'width': w, 'height': h}); pg.wait_for_timeout(200); ev(f"pfLink('{a}'); 0"); pg.wait_for_timeout(300)
+        m = ev("(()=>{const m=document.getElementById('modal'),k=document.getElementById('pf-kinds');return [m.scrollWidth<=m.clientWidth+2,k.scrollWidth<=k.clientWidth+2,k.querySelectorAll('input').length]})()")
+        check(f'13.76: the link form also fits at {w} px wide (the laptop showed it did not)', m == [True, True, 8], m)
+        ev("try{closeModal()}catch(e){}; 0")
+    pg.set_viewport_size({'width': 390, 'height': 844}); pg.wait_for_timeout(200)
     A = ev("(()=>{const a=bpAudit();return {total:a.total,lessons:a.lessons,noLesson:a.noLesson,complete:a.complete}})()")
     note = ev("AUD.find(a=>a.k==='P10').rows.find(r=>r.s.startsWith('Part 1')).n")
     check('the Blueprint counts in the ledger follow the new total', all(str(A[k]) in note for k in A), [A, note[:160]])

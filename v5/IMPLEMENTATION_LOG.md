@@ -624,3 +624,10 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Built:** four rows in `CM_CAPS` (c-lead, j-psych, d-solve, l-tech; 96 capabilities; `bpAudit()` now total 119, lessons 96, noLesson 20, exercise 99, assess 61, complete 35). `FN_KIND` gains sup, expl, ext, app (finish.js). Finder entries `camps` and `timeline`, keywords on `money`, `slowing`, `me` (claims.js, wayfind.js). Test `test_1375` (18 checks); `test_1365` count updated to 96.
 - **Fault found by the new width check, already present in 13.74.0 (measured: 481 px wide in a 388 px sheet):** in `pfLink` (proof.js) the radio input inherited width 100% inside a flex row, so the idea titles started at x = 383. Fixed with `.pf-c input{width:auto}` and `.pf-c span{min-width:0}`; the kind choices are inline-block so they wrap.
 - Recorded, not built: the twelve knowledge types are not twelve record types; time to complete common tasks and unnecessary taps are not measured.
+
+
+## 13.76.0 · 21 Nov 2026, about 02:50 · link form at laptop width
+
+- Read-only laptop check of 13.75.0: `pfLink` sheet 629 px wide in 598; the cause was `#pf-kinds` (607 in 554), no other element. Phone width was fine. The inline-block labels did not wrap there.
+- Fixed in finish.js: `#pf-kinds` is a wrapping flex row, each label an inline-flex item, each radio `width:auto`. Measured at 390, 1036 and 360 px: fits, 8 choices. `test_1375` now checks 1036 and 360 as well (20 checks).
+- Lesson: a width check at phone size does not cover the laptop; when a form has a row of choices, check both.
