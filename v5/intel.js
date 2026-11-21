@@ -168,7 +168,7 @@ async function salesExtract() {
   render();
 }
 function salesAiCard() {
-  if (!salesAi) return card('AI lessons from your notes', `<div class="small muted" style="margin-bottom:8px">Reads only what you typed after calls (no recordings of owner calls, ever). Needs notes on 5+ agencies.</div><button class="btn" onclick="salesExtract()">Extract lessons</button>`);
+  if (!salesAi) return card('AI lessons from your notes', `<div class="small muted" style="margin-bottom:8px">Reads only what you typed after calls (owner calls are recorded only with an audible notice, Florida all-party consent). Needs notes on 5+ agencies.</div><button class="btn" onclick="salesExtract()">Extract lessons</button>`);
   if (salesAi.busy) return card('AI lessons from your notes', '<div class="small muted">Reading your notes…</div>'); if (salesAi.err) return card('AI lessons from your notes', `<div class="small bad">${esc(salesAi.err)}</div>`);
   const L = (t, a) => (a.length ? `<div class="sec-h">${t}</div>${a.map((x) => `<div class="small">· ${esc(x)}</div>`).join('')}` : '');
   return card('AI lessons from your notes', `${salesAi.objections.map((o) => `<div class="kv"><span class="small">${esc(o.text)}</span><span class="small">${o.count}</span></div>`).join('')}${L('Their pains', salesAi.pains)}${L('Why they were interested', salesAi.interest)}${L('What worked', salesAi.worked)}${L('What failed', salesAi.failed)}<div class="xs muted" style="margin-top:6px">AI reading of ${salesAi.n} agencies' notes. Patterns, not proof. <a href="#" onclick="salesExtract();return false">refresh</a></div>`);

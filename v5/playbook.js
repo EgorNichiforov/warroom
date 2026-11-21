@@ -532,7 +532,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 - **We never employ, pay, schedule or place caregivers.** The agency hires them as its own W-2 employees. Never send a caregiver to a family.
 - **Caregivers never pay us anything.** Ever.
 - **No reference or background checks.** The agency runs them (Level 2, I-9, E-Verify). We pass on only what the caregiver tells us and what we observe (FCRA).
-- **No call recording.** Florida needs everyone's consent.
+- **Calls are recorded only with an audible notice at the start** (Quo, decided 18 Nov): Florida needs everyone's consent. No notice, no recording. Transcripts feed the AI call coach.
 - **No text messages** without consent and a registered business number (A2P 10DLC). No cold texts, no texting after a voicemail.
 - **Calls:** 8am–8pm their time, max 3 calls per number per 24 hours, no prerecorded voicemails, "don't call me" = do-not-call immediately.
 - **Fair job ads:** no words about age, sex, origin, religion, family or health.

@@ -7,7 +7,7 @@
    · Agency record with one timeline (HubSpot / Attio): every call, stage move, note and email in one place.
    · Velocity (Pipedrive reports): how long agencies sit in each stage and how many move on.
    Data lives on the queue item (synced): x.hist [{at,t,text,from,to}], x.tags, x.cad (paused/parked).
-   Legal lines kept: no cold SMS, no call recording, email only when they gave an address. */
+   Legal lines kept: no cold SMS, calls recorded only with an audible notice, email only when they gave an address. */
 'use strict';
 const CRM_STAGES = [
   ['working', 'Working', 'Called, no owner yet', 4],
