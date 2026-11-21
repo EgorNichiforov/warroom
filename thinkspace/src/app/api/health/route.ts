@@ -19,10 +19,10 @@ export async function GET() {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
     const image = createImageProvider({ provider: config.image.provider, model: config.image.model }, process.env.GEMINI_API_KEY);
-    const available = ["browser", "mock"];
+    const available = process.env.GEMINI_API_KEY || process.env.MOCK_TRANSCRIBE === "1" ? ["cloud", "browser", "mock"] : ["browser", "mock"];
     if (config.speech.sonioxKey) available.push("soniox");
     if (config.speech.deepgramKey) available.push("deepgram");
-    const def = available.includes(config.speech.defaultProvider) ? config.speech.defaultProvider : "browser";
+    const def = available.includes(config.speech.defaultProvider) ? config.speech.defaultProvider : available[0];
     const body: HealthResponse = {
       ok: true,
       db: getDbKind(),

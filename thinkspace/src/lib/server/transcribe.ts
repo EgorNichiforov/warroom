@@ -26,7 +26,26 @@ export class TranscribeError extends Error {
 }
 
 export function transcribeModel() {
-  return process.env.THINKSPACE_TRANSCRIBE_MODEL?.trim() || "gemini-2.5-flash";
+  return process.env.THINKSPACE_TRANSCRIBE_MODEL?.trim() || "gemini-3.5-flash";
+}
+
+/** Faster model used when the primary one fails (outage, quota, retired model). */
+export function transcribeFallbackModel() {
+  return process.env.THINKSPACE_TRANSCRIBE_FALLBACK_MODEL?.trim() || "gemini-3.5-flash-lite";
+}
+
+/** Primary model, then the fallback model on any non-configuration failure. */
+export async function transcribeWithFallback(audio: Uint8Array, mimeType: string): Promise<TranscribeResult> {
+  if (process.env.MOCK_TRANSCRIBE === "1") {
+    // test hook (local/e2e only): proves audio arrived without calling Gemini
+    return { text: `Test transcript of ${Math.round(audio.byteLength / 1024)} KB of ${mimeType.split(";")[0]} audio.`, language: "en", model: "mock", ms: 1 };
+  }
+  try {
+    return await transcribeAudio(audio, mimeType, transcribeModel());
+  } catch (e) {
+    if (e instanceof TranscribeError && e.status === 501) throw e;
+    return await transcribeAudio(audio, mimeType, transcribeFallbackModel());
+  }
 }
 
 const LANGS = new Set(["ro", "en", "mixed", "unknown"]);

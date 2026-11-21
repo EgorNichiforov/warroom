@@ -1,6 +1,7 @@
 /** Speech provider factory + metadata for the provider selector. */
 import type { SpeechProvider, SpeechProviderName } from "./types";
 import { BrowserSpeechProvider, isBrowserSpeechSupported } from "./providers/browser";
+import { CloudSpeechProvider, isCloudSpeechSupported } from "./providers/cloud";
 import { DeepgramSpeechProvider } from "./providers/deepgram";
 import { MockSpeechProvider } from "./providers/mock";
 import { SonioxSpeechProvider } from "./providers/soniox";
@@ -11,6 +12,8 @@ export { isBrowserSpeechSupported } from "./providers/browser";
 
 export function createSpeechProvider(name: SpeechProviderName): SpeechProvider {
   switch (name) {
+    case "cloud":
+      return new CloudSpeechProvider();
     case "browser":
       return new BrowserSpeechProvider();
     case "soniox":
@@ -26,6 +29,14 @@ export const SPEECH_PROVIDER_INFO: Record<
   SpeechProviderName,
   { label: string; real: boolean; supportsCodeSwitching: boolean; needsToken: boolean; description: string }
 > = {
+  cloud: {
+    label: "Gemini (RO+EN, recommended)",
+    real: true,
+    supportsCodeSwitching: true,
+    needsToken: false,
+    description:
+      "Records each phrase and transcribes it on the server with Gemini. Understands Romanian and English in the same sentence. Works in any modern browser. Text appears right after each pause.",
+  },
   browser: {
     label: "Browser (Web Speech)",
     real: true,
@@ -58,11 +69,13 @@ export const SPEECH_PROVIDER_INFO: Record<
 };
 
 export const isSpeechProviderName = (v: string): v is SpeechProviderName =>
-  v === "browser" || v === "soniox" || v === "deepgram" || v === "mock";
+  v === "cloud" || v === "browser" || v === "soniox" || v === "deepgram" || v === "mock";
 
 /** Which providers can actually run here, given what the server offers. */
 export function usableProviders(serverAvailable: string[] | undefined): SpeechProviderName[] {
   const list = (serverAvailable ?? ["browser", "mock"]).filter(isSpeechProviderName);
   if (!list.includes("mock")) list.push("mock");
-  return list.filter((p) => (p === "browser" ? isBrowserSpeechSupported() || typeof window === "undefined" : true));
+  return list.filter((p) =>
+    p === "browser" ? isBrowserSpeechSupported() || typeof window === "undefined" : p === "cloud" ? isCloudSpeechSupported() || typeof window === "undefined" : true,
+  );
 }

@@ -31,7 +31,7 @@ export const config = {
     maxPerSession: num("THINKSPACE_MAX_IMAGES_PER_SESSION", 12),
   },
   speech: {
-    defaultProvider: env("SPEECH_PROVIDER", "browser"),
+    defaultProvider: env("SPEECH_PROVIDER", "cloud"),
     sonioxKey: env("SONIOX_API_KEY"),
     deepgramKey: env("DEEPGRAM_API_KEY"),
   },

@@ -260,7 +260,7 @@ export class ThinkingController {
       provider.on("error", (message, recoverable) => {
         if (this.provider !== provider) return;
         s.pushError({ stage: "extract", message: `Speech: ${message}`, retryable: recoverable });
-        if (!recoverable && this.store.thinking === "listening" && provider.name !== "browser" && provider.name !== "mock" && isBrowserSpeechSupported()) {
+        if (!recoverable && this.store.thinking === "listening" && provider.name !== "browser" && provider.name !== "mock" && provider.name !== "cloud" && isBrowserSpeechSupported()) {
           // A paid provider failed for good (no credit, bad key, not configured): keep listening
           // with the free built-in recognizer instead of leaving the user talking to nothing.
           s.pushError({ stage: "extract", message: `Switched to the built-in browser recognizer because ${provider.name} is unavailable.`, retryable: false });
@@ -294,7 +294,9 @@ export class ThinkingController {
         }
       : undefined;
     try {
-      await provider.start({ language: this.language, sessionStartedAt: this.sessionStartedAt, getToken });
+      const sessionId = this.sessionId;
+      const transcribe = provider.name === "cloud" ? (audio: Blob, mime: string) => api.speech.transcribe(sessionId, audio, mime) : undefined;
+      await provider.start({ language: this.language, sessionStartedAt: this.sessionStartedAt, getToken, transcribe });
     } catch (e) {
       // provider already emitted a user-facing error
       await this.teardownProvider();

@@ -283,6 +283,18 @@ export const api = {
     request<{ results: SearchResult[] }>(`/api/search?q=${encodeURIComponent(q)}`, { signal }),
 
   speech: {
+    transcribe: async (sessionId: string, audio: Blob, mime: string, signal?: AbortSignal) => {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/transcribe`, {
+        method: "POST",
+        headers: { "content-type": mime || "audio/webm" },
+        body: audio,
+        credentials: "same-origin",
+        signal,
+      });
+      const body = (await res.json().catch(() => ({}))) as { text?: string; language?: string; error?: string; code?: string };
+      if (!res.ok) throw new ApiError(res.status, body.error ?? `Transcription failed (${res.status})`, body.code);
+      return { text: body.text ?? "", language: body.language ?? "unknown" };
+    },
     token: (provider: "soniox" | "deepgram") =>
       request<SpeechTokenResponse>("/api/speech/token", { method: "POST", body: JSON.stringify({ provider }) }),
   },

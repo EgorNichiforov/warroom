@@ -4,7 +4,7 @@
  */
 import type { Language } from "@/lib/contracts/domain";
 
-export type SpeechProviderName = "browser" | "soniox" | "deepgram" | "mock";
+export type SpeechProviderName = "cloud" | "browser" | "soniox" | "deepgram" | "mock";
 
 export type SpeechStatus =
   | "idle"
@@ -44,6 +44,8 @@ export type SpeechStartOptions = {
   sessionStartedAt: number;
   /** fetches a short-lived token from the server for soniox/deepgram */
   getToken?: () => Promise<{ token: string; expiresAt: string }>;
+  /** cloud provider: transcribe one recorded utterance on the server */
+  transcribe?: (audio: Blob, mime: string) => Promise<{ text: string; language: string }>;
   /** mock only: scripted lines to replay */
   script?: { text: string; language: Language; delayMs?: number }[];
 };

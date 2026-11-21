@@ -930,7 +930,7 @@ export async function logUsage(input: {
   sessionId: string | null;
   provider: string;
   model: string;
-  kind: "extract" | "summary" | "image";
+  kind: "extract" | "summary" | "image" | "transcribe";
   inputTokens?: number;
   outputTokens?: number;
   costUsd?: number;
