@@ -3,7 +3,7 @@ import { transcribeWithFallback } from "@/lib/server/transcribe";
 import { createConfiguredLlmProvider } from "@/lib/server/ingest";
 import { createImageProvider } from "@/lib/providers/image";
 import { config } from "@/lib/config";
-import { WEBM_B64 } from "./audio";
+import { WEBM_B64, WEBM2_B64 } from "./audio";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -14,7 +14,11 @@ export async function GET(req: Request) {
   const x = u.searchParams.get("x") ?? "stt";
   const t0 = Date.now();
   try {
-    if (x === "stt") return Response.json({ x, r: await transcribeWithFallback(Buffer.from(WEBM_B64, "base64"), "audio/webm;codecs=opus"), ms: Date.now() - t0 });
+    if (x === "stt") {
+      const a = await transcribeWithFallback(Buffer.from(WEBM_B64, "base64"), "audio/webm;codecs=opus");
+      const b = await transcribeWithFallback(Buffer.from(WEBM2_B64, "base64"), "audio/webm;codecs=opus");
+      return Response.json({ x, clip1: a, clip2: b, ms: Date.now() - t0 });
+    }
     if (x === "llm") {
       const llm = createConfiguredLlmProvider();
       const digest = { sessionTitle: "Test", focus: "", concepts: [], relations: [], models: [], recentThoughts: [], openQuestions: [], scenes: [], recentSegments: [] };
