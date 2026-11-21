@@ -758,3 +758,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.2.0 · 21 Nov 2026 · taps-to-task
 - ask.js capNorm/capDue/capGoals/capProj/capSug/capPick, CAPSEL; cohere.js adds #cap-sug to the + sheet and uses CAPSEL in coRoute task; todoist.js captureTask(text,k,proj,goal); core.js editTask Goal it serves. Names checked for collisions. test_1388 counts taps (4 vs 6, goal not possible before).
+
+## 14.3.0 · 21 Nov 2026 · screen-by-screen sweep
+- 131 screens at 390px (21 views + 110 finder entries, 89 modals). Found 351 buttons <40px on 55 screens; 0 overflow, 0 errors, 0 broken text. Fix: iron.css min-height 40px for button/.btn/[role=button]. test_1389 re-runs the sweep.
