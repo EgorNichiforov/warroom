@@ -216,3 +216,8 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - P14 done in two passes (eight of 29 parts read in this audit; the rest rest on the coverage file). Remaining: P15 `413c63df` (2,070 lines), P16 `356a7c9c` (1,162 lines), then the closing report.
 - Sixth technique that found a fault: in every new test that opens a form, assert the sheet is not wider than the phone, and when it fails measure each child to find the cause (a radio or checkbox inside a flex row inherits width 100%).
+
+
+## Resume note · 21 Nov 2026, about 03:15 (after 13.77.0)
+
+- P15 run one done. Decide in the next run whether a second P15 pass is worth it: unread in this audit are sections 4 (domain models), 5 (learning without questionnaires), 6 (hardware), 7 (world intelligence), 10 to 22. Their ledger rows were written on 20 Nov when the addendum arrived. Then P16 `356a7c9c`, then the closing report.

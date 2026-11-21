@@ -239,14 +239,14 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 3 Eight kinds of claim | Partly | claims.js, entity.js | On the scorecard and one page; not inside the day header, money screen or Mission Control. |
 | 3.1 Happened-at against recorded-at | Not built | claims.js (a count only) | Day-level change stamps cannot tell your typing from the hourly sync. Needs a time on each entry. |
 | 3.2 Source and provenance | Partly | entity.js, content library | Per record type, not per typed value. |
-| 3.3 History and change detection | Partly | entity.js event log, nightly server backup | No "what changed since last week" view yet. |
+| 3.3 History and change detection | Partly | claims.js (what changed), entity.js, nightly server backup | CHECKED LINE BY LINE 21 Nov. A view of what changed in 7, 14 or 30 days is built in 13.77, read from the date on each record. Still missing: versions of a record (what a goal said before you changed it) and rules for when a fact counts as stale. |
 | 4 Deep domain models; 4.2 fidelity map | Built, with a test | reality.js, domain.js, model.js, fidelity.js |  |
 | 4.1 Cross-domain interaction | Not built |  | No tested links yet (for example sleep and next-day dials). |
 | 5 Learning without questionnaires | Partly | Log anything, ask.js, calendar, Todoist, Sheet sync | No passive sources beyond those. |
 | 6 Hardware and sensing | Not built |  | A research document, no purchase. Not started. |
 | 7 World intelligence | Partly | content library, daily scan, sources that disagree | No world-model validation; server search has no quota. |
-| 8 Knowledge graph and causal hypotheses | Partly | entity.js, link kinds, experiments | Hypotheses are not yet records tied to experiments. |
-| 9 Limits of its own knowledge | Partly | minimum-evidence rules in model.js, fidelity.js, forecast.js | The six kinds of uncertainty are not named. |
+| 8 Knowledge graph and causal hypotheses | Partly | intel.js (experiments), entity.js, link kinds | CHECKED LINE BY LINE 21 Nov. An experiment kept baseline, hypothesis, the one change, the comparison, the result and the decision. Missing were other explanations, what else changed, how sure you are, and the follow-up; added in 13.77, and a conclusion without the first two is marked provisional. The app does not propose competing explanations itself. |
+| 9 Limits of its own knowledge | Partly | claims.js, minimum-evidence rules in model.js, fidelity.js, forecast.js | CHECKED LINE BY LINE 21 Nov. The six kinds of uncertainty are now named on the kinds-of-number page, each with what the app really does about it (13.77). They are not attached to each individual number. |
 | 10 Future Lab simulation | Partly | future.js, scenarios | No simulation with ranges. Deliberately waits until forecasts have a track record. |
 | 11 Prediction, backtesting, calibration | Built, with a test | judge.js, forecast.js | Three variables; first real marked week comes after Monday 23 Nov. |
 | 12 Decisions and experiments | Exists (not re-checked line by line) | judge.js, intel.js |  |

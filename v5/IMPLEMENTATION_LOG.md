@@ -631,3 +631,12 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Read-only laptop check of 13.75.0: `pfLink` sheet 629 px wide in 598; the cause was `#pf-kinds` (607 in 554), no other element. Phone width was fine. The inline-block labels did not wrap there.
 - Fixed in finish.js: `#pf-kinds` is a wrapping flex row, each label an inline-flex item, each radio `width:auto`. Measured at 390, 1036 and 360 px: fits, 8 choices. `test_1375` now checks 1036 and 360 as well (20 checks).
 - Lesson: a width check at phone size does not cover the laptop; when a form has a row of choices, check both.
+
+
+## 13.77.0 · 21 Nov 2026, about 03:15 · P15 run one (sections 3.3, 8, 9)
+
+- Read: P15 (`413c63df`) numbered headings in full; sections 3.3 (205–220), 8.1–8.2 and 9 (901–1000) with their bullet lists.
+- Compared 8.2's nine experiment parts with `F.experiments` in intel.js: baseline (auto), hypothesis, intervention, comparison, outcome, conclusion present; confounders, confidence, follow-up and rival explanations absent.
+- **Built:** experiment fields `rival`, `confound`, `conf`, `follow` and the provisional mark on the card (intel.js). `CK_UNC` (six kinds of uncertainty, each with what the code does) inside `ckOpen` (claims.js). `chgRows(days)` / `chgOpen(days)` and finder entry `whatchanged` (claims.js), read from `enAll()` time stamps. Test `test_1376` (20 checks, each new sheet measured at 390 and 1036 px).
+- Sweep: 36 sheets opened at 390 and 1036 px in a throwaway browser; 35 opened and none is wider than the screen (`auOpen` opened no sheet without data).
+- Not built, as recorded in the ledger: record versions and staleness rules (3.3), competing explanations proposed by the app (8.1), uncertainty attached to each number (9), cross-domain links (4.1: needs 20 paired days), simulation with ranges (10: waits for a forecast track record), hardware research (6: no purchase without approval), the other documents of section 20.
