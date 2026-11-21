@@ -785,3 +785,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 15.1.0 · 21 Nov 2026 · energy and task difficulty
 - expand.js EN_HARD, EN_EASY, enFit; exAugment wrapped to set M.energy only with a check-in today; mission.js card line #mc-en. No reordering. test_1397.
+
+## 15.2.0 · 21 Nov 2026 · money commitments
+- reality.js rlmAmt/rlmList/rlmCheck/rlmBlock in Capacity; claims.js enOpen hook for decisions and campaigns. Fixed rlMoney reading x.amount instead of t.amt. test_1398.
