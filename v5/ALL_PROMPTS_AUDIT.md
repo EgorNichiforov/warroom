@@ -8,8 +8,8 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 |---|---|
 | Built, with a test | 56 |
 | Exists (not re-checked line by line) | 77 |
-| Partly | 48 |
-| Not built | 2 |
+| Partly | 49 |
+| Not built | 1 |
 | Needs you | 2 |
 | A rule of work | 3 |
 
@@ -237,7 +237,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | Section | Status | Where | What is missing |
 |---|---|---|---|
 | 3 Eight kinds of claim | Partly | claims.js, entity.js | On the scorecard and one page; not inside the day header, money screen or Mission Control. |
-| 3.1 Happened-at against recorded-at | Not built | claims.js (a count only) | Day-level change stamps cannot tell your typing from the hourly sync. Needs a time on each entry. |
+| 3.1 Happened-at against recorded-at | Partly | claims.js hrAdd/hrWeek | Day-level change stamps cannot tell your typing from the hourly sync. Added 21 Nov in 14.6: from now on each new entry carries its own stamp (when typed, and when it happened if known) for dialer dials and owner talks, counter taps, typed dial totals, the + sheet (which now also reads woke up 7:10 and bed 22:30), the sleep tap and typed sleep, and money. Typed more than 60 minutes after it happened, or on a later day, shows as entered later. The scorecard and kinds-of-number pages count the week: typed at the time, afterwards, and days whose numbers have no stamps (time not recorded; nothing before 14.6 is guessed). Not stamped yet: food, training, weight typed outside the + sheet, the BAC and journal screens. |
 | 3.2 Source and provenance | Partly | entity.js, content library | Per record type, not per typed value. |
 | 3.3 History and change detection | Partly | claims.js (what changed), entity.js, nightly server backup | CHECKED LINE BY LINE 21 Nov. A view of what changed in 7, 14 or 30 days is built in 13.77, read from the date on each record. Added 21 Nov in 13.98: a goal keeps its earlier values each time you edit it (up to 10), shown as Earlier versions on the record; stale rules per kind. Still missing: versions for records other than goals. |
 | 4 Deep domain models; 4.2 fidelity map | Built, with a test | reality.js, domain.js, model.js, fidelity.js |  |

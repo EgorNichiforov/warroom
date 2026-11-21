@@ -1,4 +1,4 @@
-# War Room · master architecture (14.5.0, 19 Nov 2026)
+# War Room · master architecture (14.6.0, 19 Nov 2026)
 
 **This is the one current architecture document.** It describes `main:v5/` as deployed. `ARCHITECTURE.md` keeps the
 Build Gate, the runbook and history only. `IMPLEMENTATION_LOG.md` is the per-release record; `NEXT_PHASE_ROADMAP.md` is what is open.

@@ -767,3 +767,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.5.0 · 21 Nov 2026 · Blueprint lessons batch 2
 - cards.json +7 -> 282 (drive, world, create, culture, lang, style, firstaid). Blueprint 119/119 own lessons. test_1331/1332 no-lesson checks use a test-only competency. test_1391.
+
+## 14.6.0 · 21 Nov 2026 · happened-at vs recorded-at
+- claims.js hrAdd/hrHm/hrIsLate/hrWeek/hrLabel/hrBlock; o.hr per day (new entries only); wraps countDial, bump, dialsSave, arcParse (woke/bed), arcApply, mcSleepSave, wokeUp, mnSave, scOpen, ckOpen. test_1392. Ledger 3.1 N to P.
