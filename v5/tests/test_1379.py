@@ -15,9 +15,9 @@ with sync_playwright() as p:
     for _ in range(40):
         if ev("window.__ok"): break
         pg.wait_for_timeout(250); pg.clock.run_for(250)
-    check('version 13.83.0 or later', ev("APP_VERSION.localeCompare('13.83.0',undefined,{numeric:true})>=0"), ev("APP_VERSION"))
+    check('version 13.84.0 or later', ev("APP_VERSION.localeCompare('13.84.0',undefined,{numeric:true})>=0"), ev("APP_VERSION"))
     E = ev("ccAll().filter(x=>x.type==='email'&&x.at<'2026-09-01').map(x=>({t:x.t,acc:x.acc,cards:x.cards||[],ins:x.ins||'',note:x.note||''}))")
-    check('thirty emails from before 1 September are now in the library', len(E) == 30, len(E))
+    check('forty emails from before 1 September are now in the library', len(E) == 40, len(E))
     check('none is passed off as fully opened: the text was read, the links were not', all(e['acc'] == 'part' and 'not opened' in e['note'] for e in E))
     check('each has a paraphrased lesson line', all(len(e['ins']) > 60 for e in E))
     ev("try{xcLoad()}catch(e){}; 0")
@@ -27,9 +27,9 @@ with sync_playwright() as p:
     bad = ev("(()=>{if(typeof XC==='undefined'||!XC||!XC.byId)return ['lessons not loaded'];return ccAll().filter(x=>x.type==='email'&&x.at<'2026-09-01').flatMap(x=>x.cards||[]).filter(c=>!XC.byId[c])})()")
     check('every lesson link points at a lesson that exists', bad == [], bad)
     pr = [e for e in E if 'Promotion' in e['note']]
-    check('the three adverts are marked as promotion', len(pr) == 3, pr)
+    check('the four adverts are marked as promotion', len(pr) == 4, pr)
     ev("ccAccessOpen(); 0"); pg.wait_for_timeout(250); t = ev("document.getElementById('modal').textContent")
-    check('the screen says 30 of the older ones were added and a fresh Gmail estimate of about 50 are still missing', '30 of those older ones were read and added on 2026-11-21' in t and 'estimates about 50 older ones are still not in the library' in t, t[300:900])
+    check('the screen says 40 of the older ones were added and a fresh Gmail estimate of about 16 are still missing', '40 of those older ones were read and added on 2026-11-21' in t and 'estimates about 16 older ones are still not in the library' in t, t[300:900])
     check('the screen still fits the phone', ev("document.getElementById('modal').scrollWidth<=document.getElementById('modal').clientWidth+2"))
     pg.set_viewport_size({'width': 1036, 'height': 800}); pg.wait_for_timeout(200)
     check('and the laptop', ev("document.getElementById('modal').scrollWidth<=document.getElementById('modal').clientWidth+2"))

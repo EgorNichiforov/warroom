@@ -320,7 +320,7 @@ setInterval(() => { try { ['view-boot', 'view-acq'].forEach((id) => { const el =
    access rather than pretending you studied it"). Reads the library's own access field. It claims nothing about the
    mailbox itself: that count is a dated note from a Gmail search, labelled as an estimate. ───────── */
 const CC_ACC = { full: 'Opened in full', part: 'Partly opened', none: 'Not opened' };
-const CC_MAIL_NOTE = { at: '2026-11-20', all: 204, old: 114, cut: '2026-09-01', done: 30, doneAt: '2026-11-21', left: 50 };
+const CC_MAIL_NOTE = { at: '2026-11-20', all: 204, old: 114, cut: '2026-09-01', done: 40, doneAt: '2026-11-21', left: 16 };
 function ccAccessRows() { const A = ccAll().filter((x) => !x.clip), by = { full: [], part: [], none: [] }; A.forEach((x) => (by[CC_ACC[x.acc] ? x.acc : 'none']).push(x)); const E = A.filter((x) => x.type === 'email'); return { n: A.length, by, mail: { n: E.length, linked: E.filter((x) => (x.cards || []).length).length, part: E.filter((x) => x.acc !== 'full').length, first: E.map((x) => x.at || '').filter(Boolean).sort()[0] || '', last: E.map((x) => x.at || '').filter(Boolean).sort().slice(-1)[0] || '' } }; }
 function ccAccessOpen(all) {
   const R = ccAccessRows(), L = R.by.none.concat(R.by.part).sort((a, b) => ((b.cards || []).length ? 0 : 1) - ((a.cards || []).length ? 0 : 1) || String(b.at || '').localeCompare(String(a.at || ''))), show = all ? L : L.slice(0, 25), M = R.mail, N = CC_MAIL_NOTE;
