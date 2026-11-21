@@ -16,7 +16,7 @@ def boot(b, keep=None, t='2026-11-19T17:00:00+02:00'):
 with sync_playwright() as p:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox']); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("S.settings.season={dom:'biz',kind:'bizbuild',primary:'20k MRR'}; save(); 0")
-    check('version 13.80.0', ev("APP_VERSION==='13.80.0'"), ev("APP_VERSION"))
+    check('version 13.81.0', ev("APP_VERSION==='13.81.0'"), ev("APP_VERSION"))
     # ── calls made elsewhere
     check('nothing is counted until you enter it', ev("mcDialEvidence(dk(new Date())).logged===0&&mcWeek().logged===0&&stFunnel(7,0).d===0"))
     ev("dxOutside(); 0"); pg.wait_for_timeout(250)

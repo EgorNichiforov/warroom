@@ -665,3 +665,8 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 ## Scheduled tasks on warroom_owner() · 21 Nov 2026, about 10:35 (docs only, no release)
 - Every live War Room scheduled task now finds Egor's row with (select warroom_owner()) instead of "newest row": Sheet sync, Dial Guard, Acvila attendance, Curriculum review, Content discovery, Nightly review, System check, Sunday strategy audit, Morning brief 05:03, Monday Bench Bulletin, Weekly review, Close the day, and the paused 06:00 brief (left paused). Checked in each task's stored text from a full listing, not from notes.
 - Monthly archive and the old disabled tasks never read the row; untouched.
+
+## 13.81.0 · 21 Nov 2026, about 11:00 · older Hormozi emails, batch 1
+- Gmail read-only: the newest 10 Acquisition.com emails from before 1 Sep (18 Jun to 28 Aug) read in full as plain text and added to lib/sources.json (acc 'part': links, videos and PDFs not opened). Each has a paraphrased lesson line, one action for Caregiver Bench and links only to existing lessons (checked). The 28 Aug workshop advert is marked as promotion with no lesson.
+- CC_MAIL_NOTE now carries done 10 / doneAt; the screen says 10 added, about 104 still missing. Ledger P02 row 5 updated.
+- Test test_1379 (11 checks). Next batches continue from the 2 Jul email backwards; the search returned 20 per page and 10 were read this run because each email is large.
