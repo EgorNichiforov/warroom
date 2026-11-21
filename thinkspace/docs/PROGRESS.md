@@ -183,3 +183,9 @@ Not mine: `/icon.svg` auth gating in `src/proxy.ts` (Agent D finding 3) and a de
 - Owner added DATABASE_PASSWORD, ANTHROPIC_API_KEY, GEMINI_API_KEY and SONIOX_API_KEY on Vercel.
 - The egorflow pooler lives on aws-0-us-east-1 (aws-1 answered "tenant/user not found"); DATABASE_URL corrected and redeployed.
 - /api/health on production: db postgres, llm anthropic (real, claude-sonnet-5-5), image gemini (real), speech browser + soniox, auth passphrase. 14 tables created in the thinkspace schema.
+
+## Lead — live fixes after first real use (2026-11-21)
+- Root causes found on the live system: Supabase transaction pooler stalls on pipelined queries (moved to session pooler, port 5432); concurrent cold-start migrations blocked each other (skip when ledger current); Soniox account balance exhausted (402) and the adapter retried silently (now fatal + clear message + fallback); Claude rejected structured-output grammar as too large (now validated JSON with one corrective retry); Gemini free tier has zero image quota (clear non-retryable message, auto-render stops).
+- New default speech path "Gemini (RO+EN)": the browser records each phrase (MediaRecorder + pause detection), the server transcribes it with gemini-3.5-flash, hedged with gemini-3.5-flash-lite after 4 s. Verified: fake-mic Chromium run cuts phrases correctly; a bug where later clips lacked a container header was caught and fixed; real Chrome-recorded clips transcribed on Vercel in RO and EN (~1–2 s each).
+- Verified with real keys on Vercel: Claude extraction (claude-sonnet-5-5, ~5 s, ~$0.02 per batch) and Gemini transcription. Image generation needs Google billing.
+- Unit 35/35, e2e 12/12.
