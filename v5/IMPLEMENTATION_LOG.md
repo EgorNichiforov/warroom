@@ -715,3 +715,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - 6 lessons in lib/cards.json (lc-freefail, lc-premium, lc-grid, lc-nosale, lc-stick, lc-lock), own words, each with a Hormozi video found by title (MoreMozi or Alex Hormozi channels), marked title-checked, not watched. Linked from hz-lost and the chapter entries lc-03..06, lc-14..16, lc-20..23. Free presentations, freemium and pick-your-price were read; no lesson (presentations already covered by existing cards; the other two do not fit a recruiting service).
 - 6 KX principles (21 in all). Offer unchanged; kx-premium, kx-stick and kx-lock are notes for the 8 Dec review.
 - Not done: rest of Section B (pp. 52–71); most of Gym Launch Secrets. test_1380 added; test_1331 count updated to 21.
+
+## 13.90.1 · 21 Nov 2026 · fix
+- 13.90.0 was pushed with three gate failures (test_1327 x3, legacy x1): the six new lessons belonged to no Bootcamp module and two counts still said 250. Added lc-freefail and lc-premium to m2, the other four to m7; counts now 256. All gates rerun.
