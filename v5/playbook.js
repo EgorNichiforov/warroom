@@ -65,6 +65,7 @@ Claude does steps 1–6. You only decide the change.
 { id: 'changelog', cat: 'system', title: 'Changelog', body: `Newest first. One line per change: what, why, which rule.
 
 | Date | Change | Why |
+| 21 Nov | **War Room 15.5.0 · the retained-hours game** | New North Star: Reliable Retained Care Hours (supporting metrics + guardrails on This week). 4 discovery questions in Call 1. 90-Day Stay-or-Replace made conditional (clock, what voids it, maximum). Only qualified discovery conversations count toward the 100. Script: one line a week from the worst call. Blitz rules. New Retained care hours card in Pipeline → Money (hours wanted vs worked, day 30/60/90). | You approved the 21 Nov research + ChatGPT cross-check ("do it") |
 | 21 Nov | **War Room 15.4.0 · what kind of number is it, where you decide** | Tap Why this? on the mission: each line now carries a small tag saying what kind of claim it is (Observed from the call log, Your report, Worked out, Outside source, Forecast). Lines whose origin cannot be told get no tag. On the Money screen, runway, safe to spend, earned minus spent and savings rate are tagged Worked out, because they are calculated from what you entered. No number and no order changed. |
 | 21 Nov | **War Room 15.3.0 · agency history** | When you move an agency to another stage, save its details (next step, date, contact, receptionist, email, tags) or add a note, the version before your change is kept (the last 10) and shown as Earlier versions at the bottom of the agency page. Dial outcomes and the call log are not versioned and are never touched. |
 | 21 Nov | **War Room 15.2.0 · can the money cover it?** | Capacity now checks each money commitment in date order against the cash you can use now plus planned income before it: planned payments, and any decision or campaign whose cost note has an amount ("400 lei a month"). Each says covered, tight (takes more than half of what is left) or not covered, with the numbers. A cost note without an amount says so. A decision page shows the same for that decision. Nothing is moved. Also fixed: the money line in Capacity always showed in 0 · out 0 because it read the wrong field. |
@@ -235,8 +236,25 @@ Claude does steps 1–6. You only decide the change.
 
 ## Priority order
 The company is #1. When things clash, the cut order decides (see Rules → When the day doesn't fit).` },
-{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# v4 · 17 Nov (overrides anything older)
+{ id: 'now', cat: 'mission', title: 'This week: the current rules', body: `# v5 · 21 Nov (overrides anything older)
 0 owner conversations so far. The plan is done. **The work is dialing, screening and delivering.**
+
+## The game we play (21 Nov research + ChatGPT cross-check)
+Recruiters count hires. We count **care that keeps happening.** The problem we own: reliable home-care capacity. First market: Florida (Tampa Bay). First vehicle: Caregiver Bench. Destination kept open: workforce infrastructure, employing caregivers, owning agencies, or a mix, decided on evidence around 2028.
+
+| Scoreboard | Metric |
+| **North Star** | **Reliable Retained Care Hours**: weekly care hours worked by caregivers we placed who are 90+ days in |
+| Supporting | 30/60/90-day retention · hours worked ÷ hours she wants · hours filled ÷ hours requested · same caregiver on the case (continuity) · margin per hour |
+| Guardrails | No preventable serious harm within our control · every incident reported and investigated · never grow the North Star at the cost of the others |
+
+Tracked in Pipeline → Money → Retained care hours (enter hours wanted, hours worked, date left).
+
+## Blitz rules (5-step algorithm, 21 Nov)
+1. **Question:** nothing has to exist before the next dial. The lawyer is needed before the first invoice, not before calls.
+2. **Delete:** no AI strategy debates, no app-building time of yours, no idea hunting until 100 qualified conversations.
+3. **Simplify:** 1 metro, 1 script, 1 question first ("How many care hours did you turn down last month?"), 1 number a day: dials.
+4. **Accelerate:** every call reviewed within 24 hours; one script line changed per week.
+5. **Automate last.** Rejection quota: 100 no's. Front line = live owner calls, made by you.
 
 ## The 5 numbers that run the business
 | What | Rule |
@@ -567,6 +585,12 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 > What have you tried so far: Indeed, a recruiter, referrals? How did that go?
 > If that case were covered by someone reliable by next week, what would that change for you?
 
+**The 4 discovery questions (21 Nov), ask every owner and log the answers:**
+> How many care hours did you turn down last month because you had no caregiver?
+> Do your caregivers get the hours they want, or fewer?
+> What happens to new caregivers in their first 90 days?
+> When you lose a caregiver, what does that actually cost you: lost billing, your time, the family, finding a replacement?
+
 ## 3 · Recap, label, confirm
 > So if I heard you right: **[case]** has been open **[time]**, it's costing you about **[$]**, and the real problem isn't applicants, it's people who actually show up. Is that fair?
 - No gap = no pitch. Go to "Not now".
@@ -575,7 +599,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 > Given what you said, I think I can help. Mind if I walk you through it in 60 seconds?
 > **No-shows:** I call every caregiver myself and confirm her the evening before and the morning of the interview, and again before the first shift. If she doesn't show, you get a replacement profile within 24 hours. That's my Show-Up Guarantee. Would that help?
 > **Speed:** I post ads for your exact case the same day and phone-screen everyone who applies, so you get 2 to 3 local, screened profiles within 3 days, not a pile of résumés. Would that help with [case]?
-> **Staying:** I check in with her on days 1, 3, 7, 14, 30 and 90. If she leaves in the first 90 days, I replace her free. Would that help?
+> **Staying:** I check in with her on days 1, 3, 7, 14, 30 and 90. If she leaves in the first 90 days while she gets the hours and pay we agreed, I replace her free. Would that help?
 
 ## 5 · The ask · then silence
 > Here's how I'd start, and it's simple: I recruit for that **[Tuesday overnight in Brandon]** this week. **The first caregiver who works it for you is free.** You only pay if you want me to keep going after you've seen it work. **Would you be against trying it on that one case?**
@@ -856,7 +880,7 @@ Pick the worst call of the day. Rewrite the one line that lost it.
 
 ## Every Sunday
 - Score: average call review /5 (Call Lab).
-- **Script version:** v4.0 from 17 Nov. Change ONE line only after 300+ dials on the current version and a clear pattern. Log it on System → Changelog.
+- **Script version:** v4.0 from 17 Nov. Change ONE line a week, taken from the week's worst call (Blitz rule, 21 Nov). Log it on System → Changelog.
 - The number that dropped most this week = the step you train next week.` },
 { id: 'sop-after-yes', cat: 'sops', title: 'After an owner says yes (the trial)', body: `Recruiting starts only after a yes, for that exact case. **The product is the confirmation calls:** a caregiver who shows up.
 
@@ -958,7 +982,7 @@ Paid on outcomes (caregivers who work), with a base small enough to keep cash po
 { id: 'sop-review', cat: 'sops', title: 'Sunday review (11:00, 30 min)', body: `1. Open **Plan → Review**. The week report is at the top.
 2. Dials vs 350, connects, owner conversations, open cases stated, trials started, caregivers who worked, money collected. Caregivers screened (Tampa Bay, /15 by 30 Nov). Open leads left (under 700 = ask Claude for more).
 3. The funnel: which stage dropped most? That's next week's ONE fix (Business → The funnel math).
-4. Script: version + dials on it. 300+ dials and a clear pattern = change one line (SOPs → Practice).
+4. Script: change ONE line, taken from the week's worst call (Blitz rule, 21 Nov; SOPs → Practice).
 5. BAC hours and the Saturday test score. Training days. Weight vs the checkpoint. Money made vs spent.
 6. **Courses check (5 min):** Rule of 100: days at 100+ this week (Courses → Leads) · weakest funnel step (Courses → Sales) · the constraint (Courses → Scaling): is it still the same?
 7. **Money (5 min):** count every account (Money → Count). Then Money → Wealth: margin this week and month, the fund %, the one lever for next week. Unlogged gap above 10% = log harder, not a new budget.
@@ -989,7 +1013,7 @@ The agency agrees in writing to: a 10-minute case call, replies to profiles with
 
 ## Two guarantees on every caregiver (name them on every pitch)
 - **Show-Up Guarantee:** she misses the interview or first shift → a replacement profile within 24 hours, and she never counts against the plan.
-- **90-Day Stay-or-Replace:** she leaves within 90 days → free replacement; if you can't replace within 21 days, that cycle's share is credited.
+- **90-Day Stay-or-Replace (conditional, 21 Nov):** the clock starts on her first worked shift. She leaves within 90 days → one free replacement (2–3 new profiles within 3 days); if no replacement works within 21 days, that cycle's share is credited. **It applies only if the agency kept its side:** paid the agreed rate, offered the agreed hours, replied to profiles within 24 hours and interviewed within 72. **It does not apply** if the agency cut her hours or pay, let her go for its own reasons, or changed the case. Maximum: one free replacement per placement; no cash refunds beyond the credit.
 Check-ins on days 1, 3, 7, 14, 30, 90 are how you deliver them.
 
 ## Pricing rules
@@ -1030,7 +1054,7 @@ Owner side: dials, connects, owner conversations, open cases, trials. Caregiver 
 { id: 'scale', cat: 'business', title: 'Scaling: the 6 gates', body: `Hormozi's Scaling Roadmap: **study only your stage, one before and one after.** You are at **Improvise → Monetize** (0 → first sale). Each layer of the business switches on only when its gate is passed: complexity grows with proof, not with plans.
 
 | Gate | Passed when | What switches ON | What stays OFF | Target |
-| **1 · Proof of conversation** | 20 owner conversations | One change to the script allowed (after 300 dials on it) | New offers, new markets, app features | ~1 Dec |
+| **1 · Proof of conversation** | 20 owner conversations | One script line changed per week (from the worst call) | New offers, new markets, app features | ~1 Dec |
 | **2 · A caregiver works** | First trial caregiver works a shift | Case study draft, the "proof line" opens every call | Paid owner ads, cold email | mid-Dec |
 | **3 · First payment** | First invoice cleared (needs payment route + lawyer-checked agreement) | Founding 5 pricing, referral ask on every win, card on file once possible | Hiring | ~20 Jan |
 | **4 · 3 paying agencies** | 3 agencies paying | **Collier and Lee** (second metro), **Multi-site** offer (reprice if real cost per working caregiver > $250), cold email from spare domains, CNA-school partnerships | A second product | 31 Mar |
@@ -1058,6 +1082,8 @@ Being ahead in a function means it's not the constraint. Building ahead of the g
 | Hours per caregiver placed | down each month | Templates, then screener #1 at gate 5 |
 
 Emails, positive chats and "send me info" never count as owner conversations.
+
+**From 21 Nov only a qualified discovery conversation counts toward the 100:** the decision-maker talks about their staffing problem, what they use now, what it costs them and whether they would pay to fix it. Dials, contacts and short chats are still logged separately; they do not count.
 
 ## Unit economics (assumes ~$300 of ads per caregiver who works)
 | Offer | Price | Cost if fully used | Gross margin |
