@@ -1,12 +1,12 @@
 # Every prompt, section by section
 
-Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 182 sections.
+Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 185 sections.
 
 **What this is:** a check at the level of sections. "Exists" means a module is there whose own note says it does this and whose tests pass; it does NOT mean I re-read every sentence of that prompt against the app today. A line-by-line check of about 17,000 lines has not been done.
 
 | Status | Sections |
 |---|---|
-| Built, with a test | 47 |
+| Built, with a test | 50 |
 | Exists (not re-checked line by line) | 78 |
 | Partly | 49 |
 | Not built | 3 |
@@ -225,6 +225,9 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | XXV Testing (13.50.0) | Built, with a test |  | First test on a real device with real data: 16 screens open clean on the laptop. Phone still untested |
 | XVI Agents (13.51.0) | Built, with a test |  | All twelve roles the brief names exist in the app; six of them can also run on the server. Collaboration is still one optional red-team pass |
 | XVII Evolution | Built, with a test |  | An automatic audit schedule exists: the server's weekly check (Mondays 05:50) and the daily System check task |
+| VIII Execution (13.74.0) | Built, with a test |  | Checked line by line 21 Nov. The Friction tab measured only the delay before the first dial; the eight patterns the vision lists are now looked for in the records, each with one concrete correction (exFriction in claims.js). Seven |
+| IX Capability (13.74.0) | Built, with a test |  | Checked line by line 21 Nov. The Blueprint has eight stages (Not encountered to Able to teach); the vision names nine. Guided practice and consistent performance are not separate stages. Left as is: changing the ladder would rewri |
+| XIII Business (13.74.0) | Built, with a test |  | Checked line by line 21 Nov. An agency record keeps organisation, contact and role, place, source, status, the call history, follow-up date and next step. Qualification, needs and objections have no field of their own: they live i |
 
 ## P15 · Personal Reality, World Intelligence and Future Lab (20 Nov)
 

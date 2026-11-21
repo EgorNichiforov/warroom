@@ -205,3 +205,8 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 
 - Audit done: P01 to P13 (all but the three long ones). Remaining: P14 `decf8883` (3,425 lines; ledger rows are generated from VISION_COVERAGE.md), P15 `413c63df` (2,070), P16 `356a7c9c` (1,162).
 - Fifth technique that found a fault: type the prompt's own topic words into the main search (`bfSearch`), not only the finder.
+
+
+## Resume note · 21 Nov 2026, about 02:00 (after 13.74.0)
+
+- P14 part one done (Parts VIII, IX, XIII). P14 part two: read Part X knowledge (1103–1213), XV personal domains (1741–1836), XXV testing and acceptance (3071–3181), XXVI success metrics (3181–3247), XXVIII definition of done (3279–3333); the other parts were covered by the coverage file of 19 and 20 Nov and by the P01, P13 and P10 checks. Then P15 `413c63df`, P16 `356a7c9c`, then the closing report.

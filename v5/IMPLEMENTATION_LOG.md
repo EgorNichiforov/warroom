@@ -605,3 +605,13 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - **Built:** `bfLearnRows(q)` and a `bfSearch` wrapper (`_en`) in claims.js: up to three records from `enFind` and up to three lesson titles from `XC.cards`, de-duplicated by title; `BF_SPELL` maps four US spellings. Test `test_1373` (15 checks).
 - Laptop: 13.71.0 and 13.72.0 confirmed read-only at 01:30 (BAC floor 7, subjects 7, saved profile intact, video counts, finder). Seen there: no active campaign; 0 videos reviewed by him.
 - Next: P14 (`decf8883`, 3,425 lines), then P15, then P16, one per run.
+
+
+## 13.74.0 · 21 Nov 2026, about 02:00 · P14 part one (Parts VIII, IX, XIII)
+
+- Read: P14 (`decf8883`) headings in full (29 parts, 52 sections) and lines 838–1103 and 1444–1611.
+- Settled in the code: 16.6 friction: `friction()` / `intelFriction()` in intel.js measured planned start against first dial only. 17.2: `BP_ST` has eight stages. 21.2: the agency sheet (crm.js) has contact and role, email, note, who answers, next step, tags, follow-up; no field for qualification, needs, objections.
+- **Built:** `exFriction()` / `exFrictionHtml()` in claims.js and a wrapper on `intelFriction` (`_ex`): overdue tasks (3+ older than 14 days), active campaigns without `next`, active campaigns with no evidenced milestone and no change in 14 days, more than three goals on `prio === 'focus'`, six or more recorded interruptions in focus blocks in 7 days, the two `rtReality()` lines, three or more `rsUnapplied()`. Finder entry `slowing`. Test `test_1374` (20 checks). Three rows appended to VISION_COVERAGE.md.
+- Note: `campMsAuto` overrides a manual tick for milestones it can count itself (for example "20 owner conversations"): intended, evidence from records wins.
+- Correction: the previous scheduled note said the laptop was confirmed at 02:05; it was about 01:50.
+- Not read yet in this pass: P14 Parts I to VII, X to XII, XIV to XXIX (lines 1–837, 1104–1443, 1612–3425). Their coverage rows date from 19 and 20 Nov.
