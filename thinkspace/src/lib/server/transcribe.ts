@@ -4,7 +4,7 @@
  * posts it here, and gets back the verbatim text in the language(s) actually spoken.
  */
 import "server-only";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import type { Language } from "@/lib/contracts/domain";
 
 export const TRANSCRIBE_PROMPT = `Transcribe this audio exactly as spoken.
@@ -41,16 +41,16 @@ export async function transcribeWithFallback(audio: Uint8Array, mimeType: string
     return { text: `Test transcript of ${Math.round(audio.byteLength / 1024)} KB of ${mimeType.split(";")[0]} audio.`, language: "en", model: "mock", ms: 1 };
   }
   try {
-    return await transcribeAudio(audio, mimeType, transcribeModel());
+    return await transcribeAudio(audio, mimeType, transcribeModel(), 15_000);
   } catch (e) {
     if (e instanceof TranscribeError && e.status === 501) throw e;
-    return await transcribeAudio(audio, mimeType, transcribeFallbackModel());
+    return await transcribeAudio(audio, mimeType, transcribeFallbackModel(), 20_000);
   }
 }
 
 const LANGS = new Set(["ro", "en", "mixed", "unknown"]);
 
-export async function transcribeAudio(audio: Uint8Array, mimeType: string, model = transcribeModel()): Promise<TranscribeResult> {
+export async function transcribeAudio(audio: Uint8Array, mimeType: string, model = transcribeModel(), timeoutMs = 20_000): Promise<TranscribeResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new TranscribeError("Transcription is not configured (GEMINI_API_KEY missing).", 501);
   const ai = new GoogleGenAI({ apiKey });
@@ -68,7 +68,13 @@ export async function transcribeAudio(audio: Uint8Array, mimeType: string, model
           ],
         },
       ],
-      config: { responseMimeType: "application/json", temperature: 0, abortSignal: AbortSignal.timeout(45_000) },
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0,
+        // transcription needs no reasoning: thinking only adds latency
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+        abortSignal: AbortSignal.timeout(timeoutMs),
+      },
     });
     raw = res.text ?? "";
   } catch (e) {
