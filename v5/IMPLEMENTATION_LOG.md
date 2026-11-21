@@ -709,3 +709,9 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 ## 13.89.0 · 21 Nov 2026 · July and June done
 - 10 more pre-September Hormozi emails read in full (plain text) and added (4 Jul, 5 Jun, 1 May). Three are adverts (Offers Workshop launch sent twice, Skool creator programme), tier extra.
 - CC_MAIL_NOTE done 85, left 29 (May 4, Apr 7, Mar 18). Ledger P02 row 5 and test_1379 updated.
+
+## 13.90.0 · 21 Nov 2026 · Lost Chapters Sections A and C read
+- Read in full from the supplied PDF text: Section A (Attract: why free and discount, premium, free, discount promotions) and Section C (value grid, stacking how-to, free presentations, freemium, pick your price, free with alternate revenue, lifetime upgrades, lifetime discounts and the bigger-head-longer-tail part).
+- 6 lessons in lib/cards.json (lc-freefail, lc-premium, lc-grid, lc-nosale, lc-stick, lc-lock), own words, each with a Hormozi video found by title (MoreMozi or Alex Hormozi channels), marked title-checked, not watched. Linked from hz-lost and the chapter entries lc-03..06, lc-14..16, lc-20..23. Free presentations, freemium and pick-your-price were read; no lesson (presentations already covered by existing cards; the other two do not fit a recruiting service).
+- 6 KX principles (21 in all). Offer unchanged; kx-premium, kx-stick and kx-lock are notes for the 8 Dec review.
+- Not done: rest of Section B (pp. 52–71); most of Gym Launch Secrets. test_1380 added; test_1331 count updated to 21.
