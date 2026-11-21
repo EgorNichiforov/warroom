@@ -256,3 +256,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 14.4.0, six Blueprint life lessons.
 - 21 Nov 2026: 14.5.0, last seven Blueprint lessons.
 - 21 Nov 2026: 14.6.0, happened-at vs recorded-at.
+- 21 Nov 2026: 14.7.0, honest runway.

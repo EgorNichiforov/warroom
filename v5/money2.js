@@ -84,7 +84,7 @@ mnOver = function () {
     : `<div class="mn2-hero"><span class="k">You have</span><div class="v muted">?</div><div class="small muted">Count once and every number here comes alive.</div></div>`;
   return `<div class="mn2">
     <div class="card mn2-top">${hero}
-      <div class="mn2-kpis"><div><span>Safe to spend today</span><b>${T.any ? mcNum(S0.perDay) : '–'}</b><em>${T.any ? `${mnF(S0.safe)} until ${fmtShort(S0.eom)}` : ''}</em></div><div><span>Runway</span><b>${runway != null && T.any ? runway + ' days' : '–'}</b><em>${burn ? `at ${mnF(burn)}/day` : 'log spending to see'}</em></div><div><span>Kept this month</span><b>${mcNum(cm.earned - cm.spent, 'MDL', true)}</b><em>${cm.earned ? Math.round(((cm.earned - cm.spent) / cm.earned) * 100) + '% of income' : ''}</em></div></div>
+      <div class="mn2-kpis"><div><span>Safe to spend today</span><b>${T.any ? mcNum(S0.perDay) : '–'}</b><em>${T.any ? `${mnF(S0.safe)} until ${fmtShort(S0.eom)}` : ''}</em></div><div onclick="mnRunwayOpen()" style="cursor:pointer"><span>Runway ›</span><b>${(() => { const R = mnRunway(); return R.ok ? (R.months >= 24 ? '24+ mo' : (Math.round(R.months * 10) / 10) + ' mo') : '–'; })()}</b><em>${(() => { const R = mnRunway(); return R.ok ? `${R.days} days of records, no income assumed` : (R.days < 30 && R.days > 0 ? 'not enough data yet' : 'log spending to see'); })()}</em></div><div><span>Kept this month</span><b>${mcNum(cm.earned - cm.spent, 'MDL', true)}</b><em>${cm.earned ? Math.round(((cm.earned - cm.spent) / cm.earned) * 100) + '% of income' : ''}</em></div></div>
       <div class="mn2-accs">${A.map((a) => { const b = mnBal(a.id); return `<button onclick="mnCountModal('${a.id}')"><span>${esc(a.name)}</span><b>${b.counted ? mnF(b.bal, a.cur) : 'count'}</b><em>${b.counted ? (b.days ? b.days + ' d ago' : 'today') : ''}</em></button>`; }).join('')}<button class="add" onclick="mnAccEdit()">+</button></div>
       <button class="btn primary block" onclick="mnCountModal()">${T.any ? 'Count again' : 'Count my money now'}</button></div>
     ${ins.length ? `<div class="mn2-ins">${ins.map(([k, t]) => `<div class="${k}">${esc(t)}</div>`).join('')}</div>` : ''}
@@ -196,3 +196,21 @@ mnRepTab = function () {
 
 /* animate after every Money render */
 if (typeof renderMoney === 'function' && !renderMoney._v2) { const _r = renderMoney; renderMoney = function () { _r(); const el = $('view-money'); if (el) { el.classList.remove('mn2-anim'); void el.offsetWidth; el.classList.add('mn2-anim'); mcCount(el); } }; renderMoney._v2 = 1; }
+
+/* 14.7: runway, honestly. Usable cash (cash and cards, not savings or money owed) ÷ average spending over the recorded days
+   (up to the last 90). It needs 30+ days of records; it shows a likely range from week-to-week swings, how many days it rests
+   on, and what it cannot see: spending you did not record, and any income (it assumes none). It changes nothing. */
+function mnRunway() { const tk = dk(new Date()), all = mnTx().filter((t) => !t.plan && t.date && t.date <= tk); if (!all.length) return { ok: false, days: 0, why: 'No transactions recorded yet.' };
+  const first = all.map((t) => t.date).sort()[0], span = Math.min(90, Math.round((pd(tk) - pd(first)) / 864e5) + 1), from = dk(addDays(new Date(), -span + 1));
+  const S0 = mnSafe(), cash = S0.spendable; if (span < 30) return { ok: false, days: span, cash, why: `Not enough data: ${span} day${span === 1 ? '' : 's'} of records, needs 30.` };
+  const out = all.filter((t) => t.type === 'out' && t.date >= from), inc = all.filter((t) => t.type === 'in' && t.date >= from), sum = (L) => L.reduce((a, t) => a + mnB(t.amt, mnAccCur(t.acc)), 0);
+  const perDay = sum(out) / span, W = []; for (let s = 0; s + 7 <= span; s += 7) { const a = dk(addDays(pd(from), s)), b = dk(addDays(pd(from), s + 6)); W.push(sum(out.filter((t) => t.date >= a && t.date <= b)) / 7); }
+  const mean = W.length ? W.reduce((a, b) => a + b, 0) / W.length : perDay, sd = W.length > 1 ? Math.sqrt(W.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (W.length - 1)) : 0, se = W.length > 1 ? sd / Math.sqrt(W.length) : 0;
+  const lo = Math.max(0, perDay - 1.645 * se), hi = perDay + 1.645 * se, m = (d) => d > 0 ? cash / d / 30.44 : null;
+  return { ok: perDay > 0 && cash > 0, days: span, cash, perDay, perMonth: perDay * 30.44, incMonth: sum(inc) / span * 30.44, months: m(perDay), mLo: m(hi), mHi: lo > 0 ? m(lo) : null, weeks: W.length, nOut: out.length,
+    why: cash <= 0 ? 'No usable cash recorded in your accounts.' : perDay <= 0 ? 'No spending recorded in this period, so no runway can be worked out.' : '' }; }
+function mnRunwayTxt(R) { if (!R.ok) return R.why; const f = (x) => x == null ? 'open-ended' : x >= 24 ? '24+ months' : (Math.round(x * 10) / 10) + ' months'; return `${f(R.months)} (likely ${f(R.mLo)} to ${f(R.mHi)})`; }
+function mnRunwayOpen() { const R = mnRunway(); openModal(`<h2>Runway</h2><div class="hint">How long the money you can use would last if you kept spending as recorded and earned nothing.</div>
+  ${R.ok ? `<div class="mc-wl"><span>${esc(mnRunwayTxt(R))}</span><div class="xs">${mnF(R.cash)} usable (cash and cards; savings and money owed are not counted) ÷ ${mnF(R.perMonth)} a month spent, from ${R.nOut} recorded payments over ${R.days} days. The range comes from how much your spending changed week to week (${R.weeks} weeks).</div></div>` : `<div class="mc-wl"><span>${esc(R.why)}</span><div class="xs">Nothing is estimated until there is enough record to rest on.</div></div>`}
+  <div class="mc-wl"><span>What it leaves out</span><div class="xs">• Spending you did not record: if you paid cash and did not log it, the real runway is shorter.</div><div class="xs">• Income: it assumes none.${R.ok ? ` Over the same ${R.days} days you recorded ${mnF(R.incMonth)} a month coming in, for example from coaching.` : ''}</div><div class="xs">• Planned payments not yet made, and money other people owe you.</div></div>
+  <div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`, true); }
