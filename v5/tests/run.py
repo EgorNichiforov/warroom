@@ -843,7 +843,7 @@ with sync_playwright() as p:
     # Bootcamp 13.18–13.20 (bootcamp.js: Path, Practice, Missions, Progress): modules, lesson loop, boss fights, red lines, call mission, simulator
     b, pg, errs = fresh(p); ev = pg.evaluate
     ev("bcS={scr:'home',tab:'path'};show('boot')"); pg.wait_for_timeout(1800)  # 13.31: Learn opens on "Now"; the Path is its second tab
-    check('Bootcamp: 26 modules (15 Business + 11 Life) cover all 264 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===26&&bcTrack('biz').length===15&&bcTrack('life').length===11&&f.length===264&&new Set(f).size===264&&f.every(id=>XC.byId[id])&&XC.cards.length===264})()"))
+    check('Bootcamp: 26 modules (15 Business + 11 Life) cover all 269 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===26&&bcTrack('biz').length===15&&bcTrack('life').length===11&&f.length===269&&new Set(f).size===269&&f.every(id=>XC.byId[id])&&XC.cards.length===269})()"))
     check('Bootcamp: Path shows today, the next Business and Life lesson, and the 15 Business modules', ev("!!document.querySelector('#view-boot .bcx-today')&&document.querySelectorAll('#view-boot .bcx-cont').length===2&&!!document.querySelector('#view-boot .bcx-cont.life')&&document.querySelectorAll('#view-boot .bcx-path .bcx-mod').length===15"))
     ev("bcS.trk='life';render()"); pg.wait_for_timeout(200)
     check('Bootcamp: Life path switch shows the 11 Life modules', ev("document.querySelectorAll('#view-boot .bcx-path.life .bcx-mod').length===11"))

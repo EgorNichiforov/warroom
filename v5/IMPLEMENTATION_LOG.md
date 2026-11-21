@@ -737,3 +737,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.95.0 · 21 Nov 2026 · email backlog finished
 - Last 9 pre-September Hormozi emails read in full (plain text) and added. All 114 (Jan to Aug 2026, month-by-month count) are in lib/sources.json; 17 marked promotion. CC_MAIL_NOTE left 0; the screen now says all 114 are in. Ledger P02 row 5 status B. Links inside emails still not opened.
+
+## 13.96.0 · 21 Nov 2026 · five more Blueprint gaps
+- Lessons bp-l-values, bp-l-digital, bp-l-read, bp-l-docs, bp-l-health (sources: McKeown; CISA Secure Our World; Adler and Van Doren; ASP and servicii.gov.md; CNAM via servicii.gov.md and Radio Moldova). No medical advice in the health lesson. Blueprint 106 own / 11 none / 2 keyword-only. Counts 269 lessons, rating list 130. test_1382 added.

@@ -24,7 +24,7 @@ with sync_playwright() as p:
     inb = ev(f"{list(P.values())}.filter(id=>!BC.modules.some(m=>m.cards.includes(id)))")
     check('all five are in a Bootcamp module', inb == [], inb)
     A = ev("(()=>{const a=bpAudit();return {lessons:a.lessons,none:a.noLesson,kw:a.kwOnly,total:a.total}})()")
-    check('the Blueprint audit still adds up and shows fewer gaps', A['lessons'] + A['none'] + A['kw'] == A['total'] and A['none'] <= 15, A)
+    check('the Blueprint audit still adds up and shows fewer gaps', A['lessons'] + A['none'] + A['kw'] == A['total'] and A['none'] <= 12, A)
     for c in P.values():
         ev(f"xcOpen('{c}'); 0"); pg.wait_for_timeout(150)
     check('each lesson opens; the last one fits the phone', ev("document.getElementById('modal').scrollWidth<=document.getElementById('modal').clientWidth+2") and 'one throughline' in ev("document.getElementById('modal').textContent"))
