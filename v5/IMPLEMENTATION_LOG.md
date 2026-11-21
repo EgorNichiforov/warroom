@@ -615,3 +615,12 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Note: `campMsAuto` overrides a manual tick for milestones it can count itself (for example "20 owner conversations"): intended, evidence from records wins.
 - Correction: the previous scheduled note said the laptop was confirmed at 02:05; it was about 01:50.
 - Not read yet in this pass: P14 Parts I to VII, X to XII, XIV to XXIX (lines 1–837, 1104–1443, 1612–3425). Their coverage rows date from 19 and 20 Nov.
+
+
+## 13.75.0 · 21 Nov 2026, about 02:25 · P14 part two (Parts X, XV, XXVI, XXVIII)
+
+- Read: P14 lines 1105–1213, 1741–1836, 3181–3247, 3279–3333, bullets included. Not read in this audit: Parts I to VII, XI, XII, XIV, XVI to XXV, XXVII, XXIX; their rows in VISION_COVERAGE.md date from 19 and 20 Nov.
+- Typed the prompt's words into `bfSearch` / `wfFind`: nothing for leadership, psychology, campaign, timeline, savings, overplanning, corrections.
+- **Built:** four rows in `CM_CAPS` (c-lead, j-psych, d-solve, l-tech; 96 capabilities; `bpAudit()` now total 119, lessons 96, noLesson 20, exercise 99, assess 61, complete 35). `FN_KIND` gains sup, expl, ext, app (finish.js). Finder entries `camps` and `timeline`, keywords on `money`, `slowing`, `me` (claims.js, wayfind.js). Test `test_1375` (18 checks); `test_1365` count updated to 96.
+- **Fault found by the new width check, already present in 13.74.0 (measured: 481 px wide in a 388 px sheet):** in `pfLink` (proof.js) the radio input inherited width 100% inside a flex row, so the idea titles started at x = 383. Fixed with `.pf-c input{width:auto}` and `.pf-c span{min-width:0}`; the kind choices are inline-block so they wrap.
+- Recorded, not built: the twelve knowledge types are not twelve record types; time to complete common tasks and unnecessary taps are not measured.

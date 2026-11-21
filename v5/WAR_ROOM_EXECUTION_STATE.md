@@ -210,3 +210,9 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 ## Resume note · 21 Nov 2026, about 02:00 (after 13.74.0)
 
 - P14 part one done (Parts VIII, IX, XIII). P14 part two: read Part X knowledge (1103–1213), XV personal domains (1741–1836), XXV testing and acceptance (3071–3181), XXVI success metrics (3181–3247), XXVIII definition of done (3279–3333); the other parts were covered by the coverage file of 19 and 20 Nov and by the P01, P13 and P10 checks. Then P15 `413c63df`, P16 `356a7c9c`, then the closing report.
+
+
+## Resume note · 21 Nov 2026, about 02:25 (after 13.75.0)
+
+- P14 done in two passes (eight of 29 parts read in this audit; the rest rest on the coverage file). Remaining: P15 `413c63df` (2,070 lines), P16 `356a7c9c` (1,162 lines), then the closing report.
+- Sixth technique that found a fault: in every new test that opens a form, assert the sheet is not wider than the phone, and when it fails measure each child to find the cause (a radio or checkbox inside a flex row inherits width 100%).

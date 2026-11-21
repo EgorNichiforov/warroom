@@ -19,7 +19,7 @@ with sync_playwright() as p:
     # ── 1. link kinds
     ev("XC.cards.forEach(c=>bcW('l:'+c.id,{at:1})); window._a=XC.cards.find(c=>pfCands(c.id).length>=2).id; window._C=pfCands(_a); 0")
     ev("pfLink(_a); 0"); pg.wait_for_timeout(100)
-    check('Connect it asks how the two ideas relate, four ways', ev("document.querySelectorAll('#pf-kinds input[name=pf-kind]').length") == 4 and ev(f"/depends on/.test({t})&&/contradicts/.test({t})&&/is an example of/.test({t})"))
+    check('Connect it asks how the two ideas relate (four ways in 13.46, eight since 13.75)', ev("document.querySelectorAll('#pf-kinds input[name=pf-kind]').length") == 8 and ev(f"/depends on/.test({t})&&/contradicts/.test({t})&&/is an example of/.test({t})"))
     ev("document.querySelector('input[name=pf-to][value=\"'+_C[0]+'\"]').checked=true; document.querySelector('input[name=pf-kind][value=dep]').checked=true; $('pf-why').value='You cannot do the second before the first is in place'; pfLinkSave(_a); 0"); pg.wait_for_timeout(100)
     L = ev("[pfLinks(_a).find(x=>x.to===_C[0]), pfLinks(_C[0]).find(x=>x.to===_a)]")
     check('the kind is saved on both sides, each in its own direction', L[0] and L[1] and L[0]['kind'] == 'dep' and L[0]['why'].startswith('Depends on: You cannot') and L[1]['why'].startswith('Is needed by: You cannot'), L)

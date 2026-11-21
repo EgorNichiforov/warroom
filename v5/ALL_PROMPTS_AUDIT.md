@@ -1,12 +1,12 @@
 # Every prompt, section by section
 
-Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 185 sections.
+Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice), 188 sections.
 
 **What this is:** a check at the level of sections. "Exists" means a module is there whose own note says it does this and whose tests pass; it does NOT mean I re-read every sentence of that prompt against the app today. A line-by-line check of about 17,000 lines has not been done.
 
 | Status | Sections |
 |---|---|
-| Built, with a test | 50 |
+| Built, with a test | 53 |
 | Exists (not re-checked line by line) | 78 |
 | Partly | 49 |
 | Not built | 3 |
@@ -25,7 +25,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 7 Attention defense and self-regulation | Built, with a test | defense.js, mission.js (day modes) | CHECKED LINE BY LINE 20 Nov: triggers, if-then protocols with review date and evidence, protocol results, lapse recovery and attention measures were there. What each of Full, Minimum and Recovery means in practice was one line each; 13.65 spells it out from your Playbook and lets you set your own restart condition. |
 | 8 Personal field manual | Exists (not re-checked line by line) | defense.js, ops.js | CHECKED LINE BY LINE 20 Nov: all thirteen fields, the six kinds of source, turning a lesson into an entry and flagging old or doubtful entries are in the code. |
 | 9 Connected personal knowledge system | Partly | capmap.js, entity.js, finish.js (link kinds), kpipe.js | Read 20 Nov, not settled line by line: links, search, source and verification status exist; I did not find a field for limitations or for the date last checked, and the upkeep list (duplicates, outdated, never used) was only partly found. |
-| 10 The complete Bootcamp, nine areas | Partly | capmap.js, bootcamp.js, mastery.js, blueprint.js | CHECKED LINE BY LINE 20 Nov: nine areas, six ways of training and the six-step ladder are there. Of about 130 capabilities you listed, ten had no home in the map; 13.65 adds eight entries for them (92 in all). Each is linked to the nearest existing lessons; its own lesson is still missing, and the map says so. Review scheduling and course states were found but not checked line by line. |
+| 10 The complete Bootcamp, nine areas | Partly | capmap.js, bootcamp.js, mastery.js, blueprint.js | CHECKED LINE BY LINE 20 Nov: nine areas, six ways of training and the six-step ladder are there. Of about 130 capabilities you listed, ten had no home in the map; 13.65 adds eight entries for them (92 in all; 96 after 13.75 added leadership, psychology, problem-solving and technical skills from the vision prompt). Each is linked to the nearest existing lessons; its own lesson is still missing, and the map says so. Review scheduling and course states were found but not checked line by line. |
 | 11 Real-world experience and after-action | Built, with a test | capability.js (reviews), journal.js, capmap.js, defense.js | CHECKED LINE BY LINE 20 Nov: the review had six of your seven questions; What did I learn is added in 13.68. A review whose change was tested and kept can now become a Field Manual procedure, filed as a personal experiment. The timeline exists; filtering by period was not checked. |
 | 12 Personal resource planner | Partly | reality.js (capacity), money modules | Read 20 Nov: time against commitments, the over-full week with a proposed fix, and money from the Money hub are there. Not found: a check for a week with no recovery time, estimates corrected from how long things really took, and support or equipment as resources. |
 | 13 Contingency and readiness center | Exists (not re-checked line by line) | defense.js | CHECKED LINE BY LINE 20 Nov: all eleven plans you listed plus a medical one, the eight parts of a plan with its review date, and the five readiness checks are in the code. Contacts are left for you to fill in; none are invented. |
@@ -141,7 +141,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 
 | Section | Status | Where | What is missing |
 |---|---|---|---|
-| Part 1 Blueprint and curriculum, ten areas A to J | Partly | blueprint.js | CHECKED LINE BY LINE 21 Nov: counted by the Blueprint itself. 115 competencies: 92 have a lesson, 20 have none and 3 only a keyword match; 95 have an exercise, 58 an assessment; 32 are complete. Found by typing your own words: the main search returned nothing for negotiation, cooking, contracts or humour although the Blueprint has each. Fixed in 13.73: search now answers with capabilities, competences and lessons, and reads humor as humour. |
+| Part 1 Blueprint and curriculum, ten areas A to J | Partly | blueprint.js | CHECKED LINE BY LINE 21 Nov: counted by the Blueprint itself. 119 competencies (115 until 13.75 added four): 96 have a lesson, 20 have none and 3 only a keyword match; 99 have an exercise, 61 an assessment; 35 are complete. Found by typing your own words: the main search returned nothing for negotiation, cooking, contracts or humour although the Blueprint has each. Fixed in 13.73: search now answers with capabilities, competences and lessons, and reads humor as humour. |
 | Part 2 Roadmap; assess capability, not content | Exists (not re-checked line by line) | capability.js |  |
 | Part 3 Intelligent research and one library | Exists (not re-checked line by line) | research.js, content.js |  |
 | 9 Market intelligence | Exists (not re-checked line by line) | lib/market.json, the Sunday brief | CHECKED LINE BY LINE 21 Nov: 18 entries, every one with a source, a link and a date (checked 19 Nov): 5 official, 9 reported, 4 from vendors. |
@@ -228,6 +228,9 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | VIII Execution (13.74.0) | Built, with a test |  | Checked line by line 21 Nov. The Friction tab measured only the delay before the first dial; the eight patterns the vision lists are now looked for in the records, each with one concrete correction (exFriction in claims.js). Seven |
 | IX Capability (13.74.0) | Built, with a test |  | Checked line by line 21 Nov. The Blueprint has eight stages (Not encountered to Able to teach); the vision names nine. Guided practice and consistent performance are not separate stages. Left as is: changing the ladder would rewri |
 | XIII Business (13.74.0) | Built, with a test |  | Checked line by line 21 Nov. An agency record keeps organisation, contact and role, place, source, status, the call history, follow-up date and next step. Qualification, needs and objections have no field of their own: they live i |
+| X Knowledge (13.75.0) | Built, with a test |  | Checked line by line 21 Nov. A link between two ideas could say four things (works with, depends on, contradicts, example of); the vision names ten. Supports, explains, extends and applies to are added; was learned from is the sou |
+| XV Personal domains (13.75.0) | Built, with a test |  | Checked line by line 21 Nov. Of the eleven capability areas the vision lists, leadership, psychology, problem-solving and technical skills had no capability of their own; added, each tied to lessons you already have (96 capabiliti |
+| XXVI Success metrics (13.75.0) | Built, with a test |  | Read in full 21 Nov. Execution, learning, decision, business and reliability measures exist as separate views and there is no single score. Not measured anywhere: time to complete common tasks and unnecessary taps |
 
 ## P15 · Personal Reality, World Intelligence and Future Lab (20 Nov)
 

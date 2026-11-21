@@ -49,7 +49,7 @@ with sync_playwright() as p:
     ev("closeModal(); 0")
     # --- capability map
     c = ev("(()=>{let n=0,bad=0,ids={};Object.keys(CM_CAPS).forEach(d=>CM_CAPS[d].forEach(r=>{n++;if(r.length!==11||!Array.isArray(r[10])||ids[r[0]])bad++;ids[r[0]]=1}));return [n,bad,Object.keys(CM_CAPS).length]})()")
-    check('the map has 92 capabilities in nine areas, every row complete, ids unique', c == [92, 0, 9], c)
+    check('the map has 96 capabilities in nine areas (92 in 13.65, four more in 13.75), every row complete, ids unique', c == [96, 0, 9], c)
     new = ['b-salesmgmt', 'c-culture', 's-ready', 'd-logic', 'f-debt', 'f-housing', 'p-coord', 'l-reading']
     check('the eight added capabilities are indexed', ev(f"(()=>{{const I=cmIndex();return {new}.every(i=>I[i]&&I[i].n)}})()"))
     check('each is linked to the nearest existing lessons and says plainly that its own lesson is still missing', ev(f"{new}.every(i=>{{const r=Object.values(CM_CAPS).flat().find(x=>x[0]===i);return cmCards(cmCap(i)).length>=1&&/no lesson yet/i.test(r[4])}})") and ev("cmGaps().length") == 0, ev("cmGaps().map(c=>c.id)"))
