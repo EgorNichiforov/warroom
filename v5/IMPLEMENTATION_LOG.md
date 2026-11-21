@@ -650,3 +650,14 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 - Part 7: `sppFill(lang)` / `sppFillHtml` and a `sppOpen` wrapper (`_fill`): filler totals and other-language small words, counted from kept text.
 - Tests: `test_1377` (24 checks; four sheets measured at 390 and 1036 px); `test_1357` updated to nine situations on purpose.
 - The exercise grid (30 = five domains by six levels) is unchanged: `spkNext` assumes one exercise per cell.
+
+## 13.80.0 · 21 Nov 2026, about 09:40 · his requests of 09:28
+
+- New file pick.js (loads last): `pkWho`, `pkBy` (a lesson clip with no name takes `clipBy`, then `who`, then Alex Hormozi for course groups mind/scale/offer/leads/mm/sales/wealth; titles with Leila go to Leila), `pkCat` (biz / mind / life / other, from the lesson group or title words), `pkPool`, `pkTeachers`, `pkPlan(who, cat, fmt, min)` (greedy fill, started items first, never over the time; the shortest offered when nothing fits), `pkOpen`, `pkSet` (store `pk:last`), `pkOut`; `pkRateList`/`pkRateOpen` (lessons with a clip, not content-inspected, not rated; uses `rsVidRate`); wrapper on `lxHome` (`_pk`) adds Communication, Watch by teacher, Rate videos; finder entries `pick`, `vidrate`, `aiset`. The library gate (`ccGate`) is shown first and respected.
+- Found: Communication (`spkOpen`) had no button anywhere; only the finder reached it. The root address (/warroom/) serves the 4.6.0 app; a notice linking to /v5/ was added to the root index.html (no redirect, nothing removed).
+- Supabase `warroom_server_v1_closed`: checked first that 0 of 14 rows would be blocked; `apply_migration` asked for confirmation and timed out (fifth time). Not retried.
+- Decisions recorded in the ledger: Life score stays; simulation after everything else; hardware direction one personal device later.
+- Test `test_1378` (24 checks). Real library: Alex Hormozi 207 items, 41 mindset videos.
+- test_1331 'home is short' updated on purpose: the Learn screen now has three more rows (the doors), limit 6 to 9.
+- Released as 13.80.0: another session had released its own 13.79.0 (balance chart) at 09:51 while this one was in test. Rebuilt on top of it; nothing of it was overwritten.
+- The four version-pinned tests (1327, 1331, 1333, 1334) still said 13.78.0 after the other session's 13.79.0; set to 13.80.0.
