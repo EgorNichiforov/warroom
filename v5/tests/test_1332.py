@@ -71,7 +71,7 @@ with sync_playwright() as p:
     check('B · a weekly personal minimum makes personal development a protected commitment in Mission Control', B and B['tier'] == 2 and B['dom'] == 'life' and '90 minutes' in B['why'] and 'personal minutes this week' in B['ev'], B)
     ev("bpSet('c-humour'); 0"); pg.wait_for_timeout(200); ev("document.querySelector('input[name=bp-st][value=\"4\"]').checked=true; $('bp-pf').value='Told the story at the club on 19 Nov, three people laughed, coach saw it'; bpSetSave('c-humour'); 0")
     check('B, D · demonstrated improvement is ONE record: the proof lands in the capability evidence that every screen reads', ev("cmLog('c-humour').some(e=>e.src==='real'&&/three people laughed/.test(e.ev))&&bpStage(bpGet('c-humour'))>=4"))
-    check('D · a practical capability with no lesson is declared and gets a research request, not a made-up lesson', ev("(()=>{const x=bpGet('bp-drive');return bpMissing(x).includes('lesson')&&!!bpJob('bp-drive')&&Object.values(S.research).some(r=>r.key==='bp:bp-drive'&&r.st==='open')})()"))
+    check('D · a practical capability with no lesson (a test-only one) is declared and gets a research request, not a made-up lesson', ev("(()=>{if(!bpAll._fk){const f=bpAll;bpAll=function(){const A=f.apply(this,arguments);return A.some(x=>x.id==='bp-zz-test')?A:A.concat([{id:'bp-zz-test',area:'J',n:'Test skill with no lesson',beh:'test only',hz:'later',lv:'f',kwCards:[]}])};bpAll._fk=1}})();(()=>{const x=bpGet('bp-zz-test');return bpMissing(x).includes('lesson')&&!!bpJob('bp-zz-test')&&Object.values(S.research).some(r=>r.key==='bp:bp-zz-test'&&r.st==='open')})()"))
     ev("S.settings.learn={persMin:null}; CO_LEARN.t=0; closeModal(); 0")
 
     # ── G · done is not outcome

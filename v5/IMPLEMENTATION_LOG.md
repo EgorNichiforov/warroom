@@ -764,3 +764,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.4.0 · 21 Nov 2026 · Blueprint lessons batch 1
 - cards.json +6 (bp-l-friend, relate, etiq, cook, home, travel) -> 275; boot.json l11 x3, l4, l10 x2. Counts: 1327, run.py, 1378 (136). Blueprint 112/6/1, exercise 113, assessment 75. test_1390.
+
+## 14.5.0 · 21 Nov 2026 · Blueprint lessons batch 2
+- cards.json +7 -> 282 (drive, world, create, culture, lang, style, firstaid). Blueprint 119/119 own lessons. test_1331/1332 no-lesson checks use a test-only competency. test_1391.

@@ -33,7 +33,7 @@ with sync_playwright() as p:
     # B3 capability map
     check('nine domains', ev("CM_DOM.length===9 && CM_DOM.every(d=>CM_CAPS[d[0]].length>0)"))
     check('every mapped card exists in the library', ev("cmAll().every(c=>(c.cards||[]).every(id=>!!XC.byId[id]))"), ev("cmAll().flatMap(c=>(c.cards||[]).filter(id=>!XC.byId[id]))"))
-    check('missing content listed, not invented', ev("cmGaps().every(c=>!cmCards(c).length) && bpAudit().noLesson>0"))
+    check('missing content listed, not invented', ev("cmGaps().every(c=>!cmCards(c).length) && bpAudit().noLesson===bpAll().filter(x=>!bpHas(x).lessons).length"))
     check('every capability has the 7 definitions', ev("cmAll().every(c=>c.mean&&c.beh&&c.know&&c.prac&&c.ev&&c.as&&c.nx)"))
 
     # 6 · real business experience creates capability evidence; log alone ≠ mastery

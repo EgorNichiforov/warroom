@@ -254,3 +254,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 14.2.0, taps-to-task.
 - 21 Nov 2026: 14.3.0, screen sweep and tap targets.
 - 21 Nov 2026: 14.4.0, six Blueprint life lessons.
+- 21 Nov 2026: 14.5.0, last seven Blueprint lessons.

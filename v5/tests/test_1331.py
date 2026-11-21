@@ -21,7 +21,7 @@ def boot(b, t='2026-11-19T17:00:00+02:00', keep=None):
 with sync_playwright() as p:
     b = p.chromium.launch(**CH); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("(()=>{const o=day(new Date());o.counters.dials=12;touch(o);save();})(); 0")
-    check('libraries loaded; version 14.4.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='14.4.0'"), ev("APP_VERSION"))
+    check('libraries loaded; version 14.5.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='14.5.0'"), ev("APP_VERSION"))
 
     # ── lessons
     check('16 new lessons: source, kind, two questions, a move, a video, in a module', ev("(()=>{const N=XC.cards.filter(c=>c.added==='13.31');return N.length===16&&N.every(c=>c.src&&c.kind&&c.q.length===2&&c.move.length>30&&c.clip.length===1&&c.clipBy&&c.clipMin>0&&BC.cardMod[c.id])})()"))
@@ -36,10 +36,10 @@ with sync_playwright() as p:
     # ── Blueprint
     u = ev("(()=>{const u=bpAudit();return {total:u.total,lessons:u.lessons,kw:u.kwOnly,none:u.noLesson,assess:u.assess,ex:u.exercise,insp:u.inspected,any:u.anyVideo,ev:u.evidence,areas:BP_AREAS.map(a=>bpAll().filter(x=>x.area===a[0]).length)}})()")
     check('Blueprint: ten areas, every one populated, over 100 competencies', len(u['areas']) == 10 and min(u['areas']) >= 4 and u['total'] >= 100, u)
-    check('audit adds up: own lesson + keyword-only + none = total', u['lessons'] + u['kw'] + u['none'] == u['total'] and u['none'] >= 1, u)
+    check('audit adds up: own lesson + keyword-only + none = total', u['lessons'] + u['kw'] + u['none'] == u['total'] and u['none'] >= 0, u)
     check('audit does not overclaim: inspected videos < any video; fewer written tests than lessons', u['insp'] < u['any'] and u['assess'] < u['lessons'] + u['kw'], u)
     check('every competency has an observable behaviour, a level and a horizon', ev("bpAll().every(x=>x.beh&&x.beh.length>15&&BP_LV[x.lv]&&['now','next','later'].includes(x.hz))"))
-    check('a competency with no lesson says so and offers research', ev("(()=>{const m=bpMissing(bpGet('bp-drive'));return m.includes('lesson')&&m.includes('assessment')&&m.includes('practical exercise')})()"))
+    check('a competency with no lesson (a test-only one, since all 119 now have lessons) says so and offers research', ev("(()=>{if(!bpAll._fk){const f=bpAll;bpAll=function(){const A=f.apply(this,arguments);return A.some(x=>x.id==='bp-zz-test')?A:A.concat([{id:'bp-zz-test',area:'J',n:'Test skill with no lesson',beh:'test only',hz:'now',lv:'f',kwCards:[]}])};bpAll._fk=1}})();(()=>{const m=bpMissing(bpGet('bp-zz-test'));return m.includes('lesson')&&m.includes('assessment')&&m.includes('practical exercise')})()"))
     check('humour sits under social intelligence with its lesson', ev("bpGet('c-humour').area==='C'&&bpCards(bpGet('c-humour')).includes('nc-humour')"))
     check('stage starts at "Not encountered" with no records', ev("bpStage(bpGet('c-humour'))===0"))
     ev("bpSet('c-humour'); 0"); pg.wait_for_timeout(200); ev("document.querySelector('input[name=bp-st][value=\"4\"]').checked=true; bpSetSave('c-humour'); 0")
@@ -146,6 +146,7 @@ with sync_playwright() as p:
     check('D · once practised, new lessons come back', ev("lxBuild(20,'biz',{dry:1}).mode==='learn'"))
     check('D · practice skipped twice in sessions is treated the same way', ev("(()=>{const L=lxLog();bcW('lx:log',L.concat([{dom:'biz',skipped:['b-cold']},{dom:'life',skipped:['b-cold']}]));const r=lxUnpracticed()[0];bcW('lx:log',L);return r&&r.c.id==='b-cold'&&r.sk===2})()"))
     # Scenario C · missing knowledge → research → resource connected
+    ev("(()=>{if(!bpAll._fk){const f=bpAll;bpAll=function(){const A=f.apply(this,arguments);return A.some(x=>x.id==='bp-zz-test')?A:A.concat([{id:'bp-zz-test',area:'J',n:'Test skill with no lesson',beh:'test only',hz:'now',lv:'f',kwCards:[]}])};bpAll._fk=1}})(); 0")  # since 14.5 all 119 have lessons, so a test-only competency stands in for the gap
     g = ev("(lxGap('life')||{}).id||''")
     P = ev("(()=>{const n0=Object.keys(S.research||{}).length;const P=lxBuild(20,'life');const j=Object.values(S.research).find(r=>r.key==='bp:'+%s);return {made:Object.keys(S.research).length-n0,job:j&&j.id,st:j&&j.st,auto:j&&j.auto,note:P.notes.join(' ')}})()" % json.dumps(g))
     check('C · a competency with no lesson is found and a research job is created for it', bool(g) and P['made'] == 1 and P['st'] == 'open' and 'no lesson yet' in P['note'], [g, P])
@@ -182,7 +183,7 @@ with sync_playwright() as p:
         c3.close()
     check('tapping away from Day right after launch is not undone by the startup timer (noon, evening x2, night)', bad == 0, bad)
     sw = ev("fetch('./sw.js').then(r=>r.text())")
-    check('service worker caches the two new files under the new cache name', "warroom-v14.4.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
+    check('service worker caches the two new files under the new cache name', "warroom-v14.5.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
     b.close()
 bad = [r for r in RES if not r[1]]
 print(f"\n{len(RES) - len(bad)}/{len(RES)} passed"); sys.exit(1 if bad else 0)
