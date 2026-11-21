@@ -788,3 +788,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 15.2.0 · 21 Nov 2026 · money commitments
 - reality.js rlmAmt/rlmList/rlmCheck/rlmBlock in Capacity; claims.js enOpen hook for decisions and campaigns. Fixed rlMoney reading x.amount instead of t.amt. test_1398.
+
+## 15.3.0 · 21 Nov 2026 · agency versions
+- entity.js VER_FT.agency, verAgency wrapping crmMove, crmSave, crmNote; crmOpen shows #ver-blk. test_1399.
