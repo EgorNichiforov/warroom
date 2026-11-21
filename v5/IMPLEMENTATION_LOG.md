@@ -718,3 +718,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.90.1 · 21 Nov 2026 · fix
 - 13.90.0 was pushed with three gate failures (test_1327 x3, legacy x1): the six new lessons belonged to no Bootcamp module and two counts still said 250. Added lc-freefail and lc-premium to m2, the other four to m7; counts now 256. All gates rerun.
+
+## 13.91.0 · 21 Nov 2026 · May done, April almost
+- 10 more pre-September Hormozi emails read in full (plain text) and added (4 May, 6 Apr). Two workshop adverts marked promotion. CC_MAIL_NOTE done 95, left 19 (Apr 1, Mar 18). Ledger P02 row 5 and test_1379 updated.

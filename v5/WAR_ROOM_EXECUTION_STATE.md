@@ -240,3 +240,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 13.88.0, Hormozi backlog 75 of 114; 39 left.
 - 21 Nov 2026: 13.89.0, Hormozi backlog 85 of 114; 29 left.
 - 21 Nov 2026: 13.90.0, Lost Chapters A and C read: 6 lessons, 6 principles. Next: Gym Launch Secrets, Section B, and email batch 10 (29 left).
+- 21 Nov 2026: 13.91.0, Hormozi backlog 95 of 114; 19 left.
