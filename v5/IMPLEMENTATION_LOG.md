@@ -746,3 +746,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.98.0 · 21 Nov 2026 · record versions, limitations, last checked, stale
 - entity.js: verPick/verAfter/verFor (goal versions in S.boot ver:<ref>, max 10, only on real change), called from saveGoal (core.js) and gcSave (depth.js). knGet/knSave/knChecked (S.boot kn:<ref>, never inside the record), knStale with KN_STALE days per kind, knStaleList shown in chgOpen. knBlock shown in enOpen. test_1384. Ledger rows P01-9 and history 3.3 updated.
+
+## 13.99.0 · 21 Nov 2026 · uncertainty per number
+- claims.js: ckWilson (90% Wilson interval), ckRate, ckUncFor; scRows wrapped to add r[9] how-sure text; depth.js scOpen renders it (.ck-unc); ckOpen repeats it. test_1385. Ledger addendum 9 updated: money totals, forecasts and the funnel model still without per-number uncertainty.
