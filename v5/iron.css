@@ -209,3 +209,5 @@ html:not(.wr-nav) :is(.view,#arc,#side,#nav,#rail,#top-right) *:not(.spin):not(.
 /* 14.3: tap targets. Every button is at least 40px tall so a thumb can hit it (screen-by-screen sweep found 351 buttons under 40px on 55 of 131 screens). Loaded last so it wins. */
 button, .btn, [role=button] { min-height: 40px !important; }
 .wf-i, .wf-x { min-width: 40px; }
+
+#upk-blk .fn-inline{flex-wrap:wrap}

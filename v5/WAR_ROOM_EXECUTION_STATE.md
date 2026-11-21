@@ -258,3 +258,4 @@ Still pending Egor's tap in Supabase: migration `warroom_server_v1_closed` (time
 - 21 Nov 2026: 14.6.0, happened-at vs recorded-at.
 - 21 Nov 2026: 14.7.0, honest runway.
 - 21 Nov 2026: 14.8.0, versions for decisions, risks, protocols, campaigns.
+- 21 Nov 2026: 14.9.0, upkeep list.

@@ -776,3 +776,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.8.0 · 21 Nov 2026 · versions beyond goals
 - entity.js VER_FT, verPickT, verAfterT, verWrap; wraps jlDecSave, rtRiskSave, dfProtoSave, enProtoSave, recSave (campaigns as project:, decisions). knBlock shows v._s. test_1394. Ledger 3.3 and P01-9.
+
+## 14.9.0 · 21 Nov 2026 · upkeep list
+- claims.js UPK_TYPES, upkNorm, upkDis, upkDismiss, upkDups (exact or Jaccard>=0.8, 3+ words), upkUnused (30+ days, untouched, no links, not done), upkBlock in chgOpen. Show-only. test_1395.
