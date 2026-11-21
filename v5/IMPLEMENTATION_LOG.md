@@ -779,3 +779,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.9.0 · 21 Nov 2026 · upkeep list
 - claims.js UPK_TYPES, upkNorm, upkDis, upkDismiss, upkDups (exact or Jaccard>=0.8, 3+ words), upkUnused (30+ days, untouched, no links, not done), upkBlock in chgOpen. Show-only. test_1395.
+
+## 15.0.0 · 21 Nov 2026 · campaigns competing for hours
+- reality.js rlcDays/rlcWeek/rlcFix/rlcBlock; Capacity (rlCapOpen) section #rl-camp. Hours from calendar blocks linked to campaign tasks; no estimate otherwise; proposal only. test_1396.
