@@ -21,7 +21,7 @@ def boot(b, t='2026-11-19T17:00:00+02:00', keep=None):
 with sync_playwright() as p:
     b = p.chromium.launch(**CH); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("(()=>{const o=day(new Date());o.counters.dials=12;touch(o);save();})(); 0")
-    check('libraries loaded; version 14.3.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='14.3.0'"), ev("APP_VERSION"))
+    check('libraries loaded; version 14.4.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='14.4.0'"), ev("APP_VERSION"))
 
     # ── lessons
     check('16 new lessons: source, kind, two questions, a move, a video, in a module', ev("(()=>{const N=XC.cards.filter(c=>c.added==='13.31');return N.length===16&&N.every(c=>c.src&&c.kind&&c.q.length===2&&c.move.length>30&&c.clip.length===1&&c.clipBy&&c.clipMin>0&&BC.cardMod[c.id])})()"))
@@ -36,10 +36,10 @@ with sync_playwright() as p:
     # ── Blueprint
     u = ev("(()=>{const u=bpAudit();return {total:u.total,lessons:u.lessons,kw:u.kwOnly,none:u.noLesson,assess:u.assess,ex:u.exercise,insp:u.inspected,any:u.anyVideo,ev:u.evidence,areas:BP_AREAS.map(a=>bpAll().filter(x=>x.area===a[0]).length)}})()")
     check('Blueprint: ten areas, every one populated, over 100 competencies', len(u['areas']) == 10 and min(u['areas']) >= 4 and u['total'] >= 100, u)
-    check('audit adds up: own lesson + keyword-only + none = total', u['lessons'] + u['kw'] + u['none'] == u['total'] and u['none'] >= 10, u)
+    check('audit adds up: own lesson + keyword-only + none = total', u['lessons'] + u['kw'] + u['none'] == u['total'] and u['none'] >= 1, u)
     check('audit does not overclaim: inspected videos < any video; fewer written tests than lessons', u['insp'] < u['any'] and u['assess'] < u['lessons'] + u['kw'], u)
     check('every competency has an observable behaviour, a level and a horizon', ev("bpAll().every(x=>x.beh&&x.beh.length>15&&BP_LV[x.lv]&&['now','next','later'].includes(x.hz))"))
-    check('a competency with no lesson says so and offers research', ev("(()=>{const m=bpMissing(bpGet('bp-cook'));return m.includes('lesson')&&m.includes('assessment')&&m.includes('practical exercise')})()"))
+    check('a competency with no lesson says so and offers research', ev("(()=>{const m=bpMissing(bpGet('bp-drive'));return m.includes('lesson')&&m.includes('assessment')&&m.includes('practical exercise')})()"))
     check('humour sits under social intelligence with its lesson', ev("bpGet('c-humour').area==='C'&&bpCards(bpGet('c-humour')).includes('nc-humour')"))
     check('stage starts at "Not encountered" with no records', ev("bpStage(bpGet('c-humour'))===0"))
     ev("bpSet('c-humour'); 0"); pg.wait_for_timeout(200); ev("document.querySelector('input[name=bp-st][value=\"4\"]').checked=true; bpSetSave('c-humour'); 0")
@@ -182,7 +182,7 @@ with sync_playwright() as p:
         c3.close()
     check('tapping away from Day right after launch is not undone by the startup timer (noon, evening x2, night)', bad == 0, bad)
     sw = ev("fetch('./sw.js').then(r=>r.text())")
-    check('service worker caches the two new files under the new cache name', "warroom-v14.3.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
+    check('service worker caches the two new files under the new cache name', "warroom-v14.4.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
     b.close()
 bad = [r for r in RES if not r[1]]
 print(f"\n{len(RES) - len(bad)}/{len(RES)} passed"); sys.exit(1 if bad else 0)

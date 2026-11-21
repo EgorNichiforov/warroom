@@ -49,7 +49,7 @@ with sync_playwright() as p:
     check('picking ranks nothing: Mission Control keeps its own list', ev("mcBuild().C.length") == n0 and ev("(()=>{const M=mcBuild();return M.top===(M.C[0]||null)})()"))
     # --- rate videos
     k0 = ev("pkRateList().length")
-    check('the rating list holds the lesson videos nobody confirmed (130 at the start: 111 plus 9 book lessons and 10 Blueprint lessons)', k0 == 130, k0)
+    check('the rating list holds the lesson videos nobody confirmed (136 at the start: 111 plus 9 book lessons and 16 Blueprint lessons)', k0 == 136, k0)
     ev("pkRateOpen(); 0"); pg.wait_for_timeout(250); first = ev("document.querySelector('#pk-rate b').textContent")
     ev("document.getElementById('pk-ok').click(); 0"); pg.wait_for_timeout(250)
     check('one tap rates it and the next one appears', ev("pkRateList().length") == k0 - 1 and ev("document.querySelector('#pk-rate b').textContent") != first)

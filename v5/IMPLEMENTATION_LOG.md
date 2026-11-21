@@ -761,3 +761,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 14.3.0 · 21 Nov 2026 · screen-by-screen sweep
 - 131 screens at 390px (21 views + 110 finder entries, 89 modals). Found 351 buttons <40px on 55 screens; 0 overflow, 0 errors, 0 broken text. Fix: iron.css min-height 40px for button/.btn/[role=button]. test_1389 re-runs the sweep.
+
+## 14.4.0 · 21 Nov 2026 · Blueprint lessons batch 1
+- cards.json +6 (bp-l-friend, relate, etiq, cook, home, travel) -> 275; boot.json l11 x3, l4, l10 x2. Counts: 1327, run.py, 1378 (136). Blueprint 112/6/1, exercise 113, assessment 75. test_1390.
