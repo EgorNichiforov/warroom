@@ -21,7 +21,7 @@ def boot(b, t='2026-11-19T17:00:00+02:00', keep=None):
 with sync_playwright() as p:
     b = p.chromium.launch(**CH); ctx, pg, errs = boot(b); ev = pg.evaluate
     ev("(()=>{const o=day(new Date());o.counters.dials=12;touch(o);save();})(); 0")
-    check('libraries loaded; version 13.91.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='13.91.0'"), ev("APP_VERSION"))
+    check('libraries loaded; version 13.92.0', ev("!!(XC&&XC.byId&&BC&&KPL)&&APP_VERSION==='13.92.0'"), ev("APP_VERSION"))
 
     # ── lessons
     check('16 new lessons: source, kind, two questions, a move, a video, in a module', ev("(()=>{const N=XC.cards.filter(c=>c.added==='13.31');return N.length===16&&N.every(c=>c.src&&c.kind&&c.q.length===2&&c.move.length>30&&c.clip.length===1&&c.clipBy&&c.clipMin>0&&BC.cardMod[c.id])})()"))
@@ -77,13 +77,13 @@ with sync_playwright() as p:
     ev("delete S.obs['tt']; closeModal(); 0")
 
     # ── knowledge → execution
-    check('21 principles, each with source place, verdict and adaptation; unread chapters are declared', ev("KX.length===21&&KX.every(r=>r[1]&&KX_AP[r[4]]&&r[5])&&KX.find(r=>r[0]==='kx-gym')[4]==='no'&&/Not read/.test(KX.find(r=>r[0]==='kx-gym')[5])"))
+    check('25 principles, each with source place, verdict and adaptation; unread chapters are declared', ev("KX.length===25&&KX.every(r=>r[1]&&KX_AP[r[4]]&&r[5])&&KX.find(r=>r[0]==='kx-gym')[4]==='no'&&/Not read/.test(KX.find(r=>r[0]==='kx-gym')[5])"))
     check('principles point at real operating-system steps and real lessons', ev("KX.every(r=>(!r[8]||osStep(r[8]))&&r[9].every(c=>XC.byId[c]))"), ev("KX.filter(r=>(r[8]&&!osStep(r[8]))||!r[9].every(c=>XC.byId[c])).map(r=>r[0])"))
     ev("kxSet('kx-sameday'); 0"); pg.wait_for_timeout(200); ev("document.querySelector('input[name=kx-st][value=\"4\"]').checked=true; $('kx-n').value=''; kxSetSave('kx-sameday'); 0")
     check('"Tested" is refused without a written result', ev("kxState('kx-sameday').st===2"))
     ev("kxExp('kx-sameday'); 0"); pg.wait_for_timeout(200)
     check('making an experiment is your tap, and moves it to "Ready to test"', ev("kxState('kx-sameday').st===3&&Object.values(S.experiments||{}).some(e=>e.from==='kx:kx-sameday')"))
-    check('book entries in the library say what was read and what was not', ev("(()=>{const a=kpAll().find(x=>x.id==='hz-lost'),g=kpAll().find(x=>x.id==='hz-gls');return /NOT read/.test(a.note)&&/pp\\. 9–17/.test(a.note)&&/NOT read/.test(g.note)&&/not an official edition/.test(g.note)})()"))
+    check('book entries in the library say what was read and what was not', ev("(()=>{const a=kpAll().find(x=>x.id==='hz-lost'),g=kpAll().find(x=>x.id==='hz-gls');return /NOT read|All four sections are now read/.test(a.note)&&/pp\\. 9–17/.test(a.note)&&/NOT read/.test(g.note)&&/not an official edition/.test(g.note)})()"))
     check('email lessons list is built from processed emails only', ev("emLessons().length>=15&&emLessons().every(x=>(x.ins||x.why)&&!/^Promotion/.test(x.ins||''))"), ev("emLessons().length"))
     ev("closeModal(); 0")
 
@@ -182,7 +182,7 @@ with sync_playwright() as p:
         c3.close()
     check('tapping away from Day right after launch is not undone by the startup timer (noon, evening x2, night)', bad == 0, bad)
     sw = ev("fetch('./sw.js').then(r=>r.text())")
-    check('service worker caches the two new files under the new cache name', "warroom-v13.91.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
+    check('service worker caches the two new files under the new cache name', "warroom-v13.92.0" in sw and './blueprint.js' in sw and './learnx.js' in sw)
     b.close()
 bad = [r for r in RES if not r[1]]
 print(f"\n{len(RES) - len(bad)}/{len(RES)} passed"); sys.exit(1 if bad else 0)

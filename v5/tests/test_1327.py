@@ -26,7 +26,7 @@ with sync_playwright() as p:
     ev("CP_NOLATE=1; XC||xcLoad(); BC||bcLoad(); ccLoad(); bacLoad(); clLoad&&clLoad();")
     pg.wait_for_timeout(1800); pg.clock.run_for(2000)
     check('libraries loaded (cards, bootcamp, sources, mentors, BAC)', ev("!!(XC&&XC.byId&&BC&&KPL&&CCM&&BACD)"))
-    check('version is 13.91.0', ev("APP_VERSION==='13.91.0'"), ev("APP_VERSION"))
+    check('version is 13.92.0', ev("APP_VERSION==='13.92.0'"), ev("APP_VERSION"))
 
     # ── data integrity
     check('31 new sourced cards, every one with a source, a kind and two test questions', ev("XC.cards.filter(c=>c.added==='13.27').length===31 && XC.cards.filter(c=>c.added==='13.27').every(c=>c.src&&c.kind&&c.q.length>=2&&c.move&&c.trap)"))
@@ -131,7 +131,7 @@ with sync_playwright() as p:
     check('spacing: costly-to-forget lessons get a higher memory floor', ev("msFloor('sf-112')===0.85 && msImp('sf-112')===3 && msFloor('lf-4laws')<0.85 && /costly to forget/.test(msWhyDue('sf-112'))"))
 
     # ── 13.28 · a video on every lesson; strategy layer
-    check('every lesson has a video; the Florida one is official and says what it does not cover', ev("XC.cards.filter(c=>(c.clip||[]).length).length===256 && /Florida AHCA/.test(xcCardHtml(XC.byId['nc-florida'])) && /No official video explains the licence types/.test(xcCardHtml(XC.byId['nc-florida'])) && ccForCard('nc-florida').match(/Florida AHCA/g).length>=3"), ev("XC.cards.filter(c=>!(c.clip||[]).length).map(c=>c.id)"))
+    check('every lesson has a video; the Florida one is official and says what it does not cover', ev("XC.cards.filter(c=>(c.clip||[]).length).length===259 && /Florida AHCA/.test(xcCardHtml(XC.byId['nc-florida'])) && /No official video explains the licence types/.test(xcCardHtml(XC.byId['nc-florida'])) && ccForCard('nc-florida').match(/Florida AHCA/g).length>=3"), ev("XC.cards.filter(c=>!(c.clip||[]).length).map(c=>c.id)"))
     check('the video comes first on the card, names who and how long, and says when it is not the original teacher', ev("(()=>{const h=xcCardHtml(XC.byId['as-desc']); return h.indexOf('Watch first')<h.indexOf('xc-s plain') && /TEDx Talks/.test(h) && /different, credible teacher/.test(h) && /Leila Hormozi · \\d+ min/.test(xcCardHtml(XC.byId['lh-emotion']))})()"))
     ev("delete S.settings.m1328; delete S.assets; delete S.opps; delete S.obs; delete S.settings.strategy; stSeed(); stSeed()")
     check('strategy seed: real assets at honest stages, opportunities in all doors, no scores invented', ev("stAssets().length===7 && stAssets().every(a=>a.proof) && stLive(S.opps).length===5 && ['4','5'].every(c=>stLive(S.opps).some(o=>o.cls===c&&o.st==='parked')) && stCoverage().known===0 && !stCfg().lean && !!stCfg().next"))
@@ -194,7 +194,7 @@ with sync_playwright() as p:
     # ── 13.30 · research states, video verification, market intelligence
     ev("mktLoad()"); pg.wait_for_timeout(600)
     r = ev("(()=>{const c=XC.cards.filter(c=>(c.clip||[]).length); return {content:c.filter(x=>x.clipV==='content').length, title:c.filter(x=>x.clipV==='title').length, link:c.filter(x=>x.clipV==='link').length, qual:c.filter(x=>rsVid(x).qual).length}})()")
-    check('video checks are four separate claims; nothing is "reviewed" before you watch it', r['content'] + r['title'] + r['link'] == 256 and r['qual'] == 0 and r['link'] > 50, r)
+    check('video checks are four separate claims; nothing is "reviewed" before you watch it', r['content'] + r['title'] + r['link'] == 259 and r['qual'] == 0 and r['link'] > 50, r)
     check('a link-only video says its fit is not confirmed; a course clip says how it was matched', ev("/fit to this lesson is NOT confirmed/.test(xcCardHtml(XC.cards.find(c=>c.clipV==='link')))") and ev("/matched to its transcript/.test(xcCardHtml(XC.cards.find(c=>c.clipV==='content')))"))
     vid = ev("XC.cards.find(c=>c.clipV==='link').id")
     ev(f"rsVidRate('{vid}',0)")
@@ -261,12 +261,12 @@ with sync_playwright() as p:
     p2.goto(URL); p2.wait_for_timeout(1500)
     try:
         p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); p2.wait_for_timeout(6000)
-        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.91\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
+        cached = p2.evaluate("caches.keys().then(async ks=>{const k=ks.find(x=>/13\\.92\\.0/.test(x)); if(!k) return []; const c=await caches.open(k); return (await c.keys()).map(r=>new URL(r.url).pathname.split('/v5/')[1])})")
         need = ['content.js', 'expand.js', 'blueprint.js', 'learnx.js', 'lib/bac.json', 'lib/mentors.json', 'lib/sources.json', 'lib/cards.json']
         check('offline cache holds the new files', all(n in cached for n in need), [n for n in need if n not in cached])
         c2.set_offline(True); p2.reload(); p2.wait_for_timeout(3000)
         r = p2.evaluate("(async()=>{ccLoad(); bacLoad(); xcLoad&&xcLoad(); await new Promise(r=>setTimeout(r,1500)); return {v:APP_VERSION, lib:!!(KPL&&KPL.sources.length>150), bac:!!BACD, men:!!CCM, plan:(KPL?ccPlan(15,'any','any').steps.length:0)}})()")
-        check('app starts offline and the content planner works from cache', r['v'] == '13.91.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
+        check('app starts offline and the content planner works from cache', r['v'] == '13.92.0' and r['lib'] and r['bac'] and r['men'] and r['plan'] >= 1, r)
         check('offline: no page errors', not e2, e2[:3])
     except Exception as e:
         check('offline test ran', False, str(e)[:200])

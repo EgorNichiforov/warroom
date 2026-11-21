@@ -721,3 +721,8 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.91.0 · 21 Nov 2026 · May done, April almost
 - 10 more pre-September Hormozi emails read in full (plain text) and added (4 May, 6 Apr). Two workshop adverts marked promotion. CC_MAIL_NOTE done 95, left 19 (Apr 1, Mar 18). Ledger P02 row 5 and test_1379 updated.
+
+## 13.92.0 · 21 Nov 2026 · Lost Chapters finished, Gym Launch sorted
+- Lost Chapters Section B read in full (CFA, CAC, LTGP, payback, 30-day cash, three levels): lesson lc-truecac; linked from hz-lost and lc-07..13. All four sections read.
+- Gym Launch Secrets ch. 5 and 15 in full, ch. 20 in part: lessons gl-3transfers, gl-path; KX kx-truecac, kx-3transfers, kx-path, kx-motivate (25 in all); kx-gym chapter list corrected. Deceptive or platform-restricted tactics (faked sign-in sheets, required or paid reviews) deliberately left out.
+- Counts updated: 259 lessons (test_1327, run.py), rating list 120 (test_1378), KX 25 (test_1331, test_1380), ledger P05/P08.
