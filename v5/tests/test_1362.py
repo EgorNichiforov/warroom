@@ -21,7 +21,7 @@ with sync_playwright() as p:
     ev("audOpen(); 0"); pg.wait_for_timeout(200)
     n = ev("audCount('')")
     check('the page says plainly it is a section-level check, not line by line, and fits the phone', ev(f"/line-by-line check has not been done/.test({t})&&/Seventeen prompts/.test({t})&&{fits}") and n > 150, n)
-    check('the counts add up', ev("['B','E','P','N','Y','X'].reduce((s,k)=>s+audCount(k),0)") == n and ev("audCount('N')") >= 3 and ev("audCount('Y')") >= 2)
+    check('the counts add up', ev("['B','E','P','N','Y','X'].reduce((s,k)=>s+audCount(k),0)") == n and ev("audCount('N')") >= 1 and ev("audCount('Y')") >= 2)
     ev("audOpen('N'); 0"); pg.wait_for_timeout(150)
     check('"Not built" shows only what is not built, opened out, with the reason', ev(f"/Hardware and sensing/.test({t})&&/Happened-at against recorded-at/.test({t})&&!/Judgment lab/.test({t})&&{fits}"))
     ev("audOpen('Y'); 0"); pg.wait_for_timeout(150)

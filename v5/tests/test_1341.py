@@ -67,7 +67,7 @@ with sync_playwright() as p:
     # health
     ev("closeModal(); window.dispatchEvent(new ErrorEvent('error',{message:'Test failure for the log',filename:'x.js',lineno:7})); 0")
     H = ev("(()=>{const E=hxErrs(),St=hxStore(),R=hxData();return {err:E.length,msg:(E[0]||[])[1],ver:(E[0]||[])[3],mb:St.total>1000,rows:R.map(r=>[r[0],r[1]])}})()")
-    check('an error on this device is recorded with the version and screen, and shows in system health', H['err'] == 1 and 'Test failure' in H['msg'] and H['ver'].startswith('13.') and H['mb'] and any(r[0].startswith('Errors seen') and r[1] == 'warn' for r in H['rows']) and any(r[0].startswith('Storage') for r in H['rows']), H)
+    check('an error on this device is recorded with the version and screen, and shows in system health', H['err'] == 1 and 'Test failure' in H['msg'] and H['ver'] == ev('APP_VERSION') and H['mb'] and any(r[0].startswith('Errors seen') and r[1] == 'warn' for r in H['rows']) and any(r[0].startswith('Storage') for r in H['rows']), H)
     ev("S.settings.sync.code='testcode-not-real-0000'; S.settings.sync.url='https://x.test'; S.settings.sync.key='k'; localStorage.removeItem(BASE_KEY); 0")
     check('with sync on and no merge memory stored, health says so in plain words', ev("hxData().some(r=>r[0]==='Sync merge memory'&&r[1]==='warn'&&/overwrite one made elsewhere/.test(r[2]))"))
     check('on a device that holds synced data, the tour opens once and only once', ev("(()=>{localStorage.removeItem('wr-tour');const a=uxTourAuto();closeModal();const b2=uxTourAuto();return a===true&&b2===false})()"))

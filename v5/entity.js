@@ -51,7 +51,7 @@ function enOpen(ref) { const e = enGet(ref); if (!e) { toast('That record is not
   openModal(`<h2>${esc(e.title)}</h2><div class="hint">${esc(EN_TYPE[e.type])}${e.status ? ' · ' + esc(e.status) : ''}</div>
     <div class="st-o"><em>Where this comes from</em><div class="xs">${esc(EN_ORIGIN[e.origin] || e.origin)} · confidence: ${esc(EN_CONF[e.conf] || e.conf)}${e.at ? ' · created ' + esc(enWhen(e.at)) : ''}${e.upd ? ' · last changed ' + esc(enWhen(e.upd)) : ''}</div></div>
     ${lines.length ? `<div class="st-o"><em>What is recorded</em>${lines.map(([k, v]) => `<div class="xs"><b>${esc(LBL[k])}:</b> ${k === 'lostWhy' && typeof SL_WHY !== 'undefined' && SL_WHY[v] ? esc(SL_WHY[v]) : esc(v)}</div>`).join('')}</div>` : ''}
-    ${knBlock(ref, e)}
+    ${knBlock(ref, e)}${enXd(e)}
     <div class="mc-wl" id="en-rel"><span>Connected to (${R.length})</span>${R.slice(0, 12).map(enRow).join('') || '<div class="xs muted">Nothing is linked to this record yet.</div>'}</div>
     ${(() => { const H = evFor(ref); return H.length ? `<div class="mc-wl"><span>History</span>${H.slice(0, 6).map((h) => `<div class="xs">${esc(enWhen(h[0]))}: ${esc(h[3])}</div>`).join('')}</div>` : ''; })()}
     <div class="actions wrap"><button class="btn" onclick="enSearch()">Find another</button>${e.type === 'lesson' ? `<button class="btn primary" onclick="xcOpen('${esc(e.id)}')">Open the lesson</button>` : e.type === 'goal' && typeof gcEdit === 'function' ? `<button class="btn primary" onclick="gcEdit('${esc(e.id)}')">Edit this goal</button>` : e.home ? `<button class="btn primary" onclick="wfGo('${e.home}')">Open where it lives</button>` : '<button class="btn primary" onclick="closeModal()">Close</button>'}</div>`, true); }
@@ -185,3 +185,8 @@ function knBlock(ref, e) { const K = knGet(ref), st = knStale(e), V = verFor(ref
     <textarea class="aq-in" id="kn-lim" rows="2" placeholder="Limitations: what this record does not tell you, or why it may be wrong">${esc(K.lim || '')}</textarea>
     <div class="actions wrap"><button class="btn sm" onclick="knSave('${esc(ref)}')">Save limitation</button><button class="btn sm" onclick="knChecked('${esc(ref)}')">Checked today</button></div></div>
     ${V.length ? `<div class="mc-wl" id="ver-blk"><span>Earlier versions (${V.length})</span>${V.slice().reverse().map((v) => `<div class="xs">${esc(enWhen(v.at))}, before you changed ${esc((v.ch || []).join(', '))}: ${esc(v.title || '')}${v.target != null ? ' · target ' + esc(v.target) + (v.unit ? ' ' + esc(v.unit) : '') : ''}${v.deadline ? ' · by ' + esc(v.deadline) : ''}</div>`).join('')}</div>` : ''}`; }
+
+/* 14.0: on a record about sleep, calls, BAC, training or money, show the cross-area links that touch it (measured from your days only). */
+function enXd(e) { if (typeof xdAll !== 'function' || !e) return ''; const t = ((e.title || e.t || '') + ' ' + JSON.stringify(e.raw || {})).toLowerCase(), W = { Sleep: /sleep|somn|bed/, Bedtime: /sleep|bed/, Calls: /dial|call|owner|apel/, BAC: /\bbac\b|exam|study/, Training: /train|gym|tennis/, Money: /money|income|cash|bani|runway/ };
+  const R = xdAll().filter((r) => (W[r.L.from] && W[r.L.from].test(t)) || (W[r.L.to] && W[r.L.to].test(t))); if (!R.length) return '';
+  return `<div class="mc-wl" id="en-xd"><span>Links to other areas (${R.length})</span>${R.map((r) => `<div class="xs" style="margin:4px 0">${xdText(r)}</div>`).join('')}</div>`; }

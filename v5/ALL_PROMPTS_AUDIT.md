@@ -8,8 +8,8 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 |---|---|
 | Built, with a test | 56 |
 | Exists (not re-checked line by line) | 77 |
-| Partly | 47 |
-| Not built | 3 |
+| Partly | 48 |
+| Not built | 2 |
 | Needs you | 2 |
 | A rule of work | 3 |
 
@@ -241,7 +241,7 @@ Written 20 Nov 2026 at your request. Seventeen prompt files (one was sent twice)
 | 3.2 Source and provenance | Partly | entity.js, content library | Per record type, not per typed value. |
 | 3.3 History and change detection | Partly | claims.js (what changed), entity.js, nightly server backup | CHECKED LINE BY LINE 21 Nov. A view of what changed in 7, 14 or 30 days is built in 13.77, read from the date on each record. Added 21 Nov in 13.98: a goal keeps its earlier values each time you edit it (up to 10), shown as Earlier versions on the record; stale rules per kind. Still missing: versions for records other than goals. |
 | 4 Deep domain models; 4.2 fidelity map | Built, with a test | reality.js, domain.js, model.js, fidelity.js |  |
-| 4.1 Cross-domain interaction | Not built |  | No tested links yet (for example sleep and next-day dials). |
+| 4.1 Cross-domain interaction | Partly | drill.js XD, claims.js ckOpen, entity.js enXd | Added 21 Nov in 14.0: six tested links compare your own logged days with and without a cause: sleep to dials, sleep to BAC, late bedtime to BAC, BAC day to dials, training to next-day dials, money day to dials. Each needs 5 days on each side, gives both averages and the day counts, and says it is a pattern, not proof. Shown on the kinds-of-number page, the dials and BAC metric pages, and on records about those areas. Still missing: money runway (the app has no runway figure), tennis lessons as their own record, and links feeding the plan; mcBuild does not use them. |
 | 5 Learning without questionnaires | Partly | Log anything, ask.js, calendar, Todoist, Sheet sync | No passive sources beyond those. |
 | 6 Hardware and sensing | Not built |  | Your direction of 21 Nov: one personal device, perhaps a watch, that does everything and is built around you, after everything else is finished. A research document, no purchase. Not started. |
 | 7 World intelligence | Partly | content library, daily scan, sources that disagree | No world-model validation; server search has no quota. |

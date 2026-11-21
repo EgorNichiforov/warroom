@@ -749,3 +749,6 @@ Brief: `/mnt/user-data/uploads/356a7c9c-attachment.txt` (16 parts). This increme
 
 ## 13.99.0 · 21 Nov 2026 · uncertainty per number
 - claims.js: ckWilson (90% Wilson interval), ckRate, ckUncFor; scRows wrapped to add r[9] how-sure text; depth.js scOpen renders it (.ck-unc); ckOpen repeats it. test_1385. Ledger addendum 9 updated: money totals, forecasts and the funnel model still without per-number uncertainty.
+
+## 14.0.0 · 21 Nov 2026 · cross-domain links
+- drill.js XD (6 links), xdRun/xdText/xdAll/xdFor, min 5 days per side; metInsights adds non-sleep links on dials/BAC; claims.js ckOpen #ck-xd; entity.js enXd on related records. Read-only. test_1386. Ledger 4.1 N to P.

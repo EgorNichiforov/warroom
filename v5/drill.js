@@ -60,6 +60,24 @@ function metLine(vals) {
   const svg = lineChart({ raw: pts.map((p) => ({ x: X(p.k), v: p.v })), avg, target: S.settings.weightTarget, showTarget: false, xl: [[0, fmtShort(pd(pts[0].k)), 'start'], [1, fmtShort(pd(pts[pts.length - 1].k)), 'end']] });
   return `<div style="position:relative">${svg}<div class="dd-hits">${pts.map((p) => `<span style="left:${(3 + X(p.k) * 94).toFixed(1)}%" onclick="dayDetail('${p.k}')" title="${fmtShort(pd(p.k))}: ${fmt(p.v, 1)}"></span>`).join('')}</div></div>`;
 }
+/* 14.0: links across areas. Each one compares your own logged days with and without the cause, and says how many days
+   it rests on. Shown only with 5+ days on each side. It is a pattern in your days, not proof that one causes the other. */
+const XD_MIN = 5;
+const XD = [
+  { id: 'sleep-dials', a: 'a 7.5 h+ night', not: 'a shorter night', b: 'dials', u: '', from: 'Sleep', to: 'Calls', c: (k) => { const v = MET.sleep.v(k); return v == null ? null : v >= 7.5; }, e: (k) => MET.dials.v(k), lag: 0 },
+  { id: 'sleep-bac', a: 'a 7.5 h+ night', not: 'a shorter night', b: 'BAC study', u: ' min', from: 'Sleep', to: 'BAC', c: (k) => { const v = MET.sleep.v(k); return v == null ? null : v >= 7.5; }, e: (k) => MET.bac.v(k), lag: 0 },
+  { id: 'late-bac', a: 'going to bed after 22:00', not: 'bed by 22:00', b: 'BAC study', u: ' min', from: 'Bedtime', to: 'BAC', c: (k) => { const o = S.days[k]; if (!o || !o.bedAt) return null; const m = tmin(o.bedAt); return m > 22 * 60 || m < 5 * 60; }, e: (k) => MET.bac.v(k), lag: 0 },
+  { id: 'bac-dials', a: 'a day with BAC study done', not: 'a day without', b: 'dials', u: '', from: 'BAC', to: 'Calls', c: (k) => (S.days[k] ? MET.bac.v(k) > 0 : null), e: (k) => MET.dials.v(k), lag: 0 },
+  { id: 'train-dials', a: 'a training day', not: 'a rest day', b: 'dials the next day', u: '', from: 'Training', to: 'Calls', c: (k) => (S.days[k] ? !!MET.train.v(k) : null), e: (k) => MET.dials.v(k), lag: 1 },
+  { id: 'money-dials', a: 'a day you made money (for example coaching)', not: 'a day without', b: 'dials', u: '', from: 'Money', to: 'Calls', c: (k) => (S.days[k] ? MET.income.v(k) > 0 : null), e: (k) => MET.dials.v(k), lag: 0 },
+];
+function xdRun(L, n) { const tk = dk(new Date()), days = Object.keys(S.days).filter((k) => k < tk).sort().slice(-(n || 84)), A = [], B = [];
+  days.forEach((ek) => { if (!S.days[ek]) return; const ck = L.lag ? dk(addDays(pd(ek), -L.lag)) : ek, c = L.c(ck); if (c == null) return; const v = L.e(ek); if (v == null) return; (c ? A : B).push(v); });
+  const m = (x) => x.reduce((a, b) => a + b, 0) / x.length; return { L, na: A.length, nb: B.length, ok: A.length >= XD_MIN && B.length >= XD_MIN, ma: A.length ? m(A) : null, mb: B.length ? m(B) : null }; }
+function xdText(r) { const L = r.L; if (!r.ok) return `${L.from} → ${L.to}: not enough days yet (${r.na} after ${L.a}, ${r.nb} after ${L.not}; needs ${XD_MIN} of each).`;
+  return `${L.from} → ${L.to}: after ${L.a} you average <b>${fmt(r.ma, 1)}${L.u}</b> ${L.b}, after ${L.not} <b>${fmt(r.mb, 1)}${L.u}</b> (${r.na} vs ${r.nb} logged days). A pattern in your own days, not proof that one causes the other.`; }
+function xdAll() { return XD.map((L) => xdRun(L)); }
+function xdFor(metric) { return XD.filter((L) => L.e === MET[metric]?.v || (metric === 'dials' && /dials/.test(L.b)) || (metric === 'bac' && L.b === 'BAC study')).map((L) => xdRun(L)); }
 /* honest insights: only when there are enough days to say something */
 function metInsights(id, m, vals, wdAvg) {
   const out = [], tk = dk(new Date()), days = Object.keys(S.days).filter((k) => k < tk).sort().slice(-84);
@@ -72,6 +90,7 @@ function metInsights(id, m, vals, wdAvg) {
   if (id === 'dials') { const tot = counterTotal('dials'), ow = counterTotal('owners'); if (tot >= 30) out.push(`All time: ${fmt(tot)} dials → ${ow} owner conversations: <b>1 owner every ${Math.round(tot / Math.max(1, ow))} dials</b>. 100 owner conversations needs about ${fmt(Math.max(0, 100 - ow) * Math.round(tot / Math.max(1, ow)))} more dials.`); }
   if (id === 'weight') { const a7 = avgWeight(7), a28 = avgWeight(28), wk = Math.max(1, daysUntil(S.settings.weightTargetDate) / 7); if (a7 && a28) { const rate = (a7 - avgWeight(7, dk(addDays(new Date(), -21)))) / 3; out.push(`Gaining <b>${rate >= 0 ? '+' : ''}${fmt(rate, 2)} kg a week</b> (last 3 weeks). Needed for ${S.settings.weightTarget} kg by the deadline: <b>+${fmt((S.settings.weightTarget - a7) / wk, 2)} kg a week</b>.`); } }
   if (id === 'protein' || id === 'kcal') { const r = split((k) => (S.days[k] && dayTrained(S.days[k]) ? true : S.days[k] ? false : null), m.v); if (r) out.push(`Training days: <b>${fmt(r[0])}${m.u}</b> · rest days: <b>${fmt(r[1])}${m.u}</b>.`); }
+  try { if (id === 'dials' || id === 'bac') xdFor(id).filter((r) => r.ok && !r.L.id.startsWith('sleep-')).forEach((r) => out.push(xdText(r))); } catch (e) { }
   return out;
 }
 
