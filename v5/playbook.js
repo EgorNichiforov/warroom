@@ -782,10 +782,10 @@ Subject: Bench Bulletin · [date] · [N] caregivers available
 { id: 'script-screen', cat: 'scripts', title: 'Caregiver side: ad, reply, screen, confirm, check in', body: `Supply is the #1 risk. Speed wins: an applicant called the same day is twice as likely to be hired. **Never charge caregivers. Never social security numbers or medical information. Never references or background checks.**
 
 ## The job ad (Leila Hormozi: hook → values → the meat → reinforce)
-Title: **Caregiver / HHA · steady hours near [town] · weekly pay**
-> **Tired of last-minute cancellations and agencies that never call back?** I match caregivers with licensed home care agencies near [town] that are hiring now, for the shifts you actually want.
+Title: **Caregiver / HHA / CNA jobs near [town] · your shifts · free for caregivers**
+> **Tired of last-minute cancellations and agencies that never call back?** Home care agencies around [town] are short on caregivers. I connect caregivers with licensed agencies that need them, for the shifts you actually want.
 > **Who this is for:** caregivers who show up, treat clients like family, and want steady hours close to home.
-> **What you get:** jobs that fit your shifts (days, nights, weekends, live-in), interviews within a few days, and one person (me) who answers your calls. You're hired by the agency as its own employee. **I never charge you anything.**
+> **What you get:** one person (me) who calls you back within 24 hours, learns which shifts you want (days, nights, weekends, live-in), and calls you first when a job fits. You're hired by the agency as its own employee. **I never charge you anything.**
 > **What we need:** HHA, CNA or companion experience, reliable transport, and to be able to work in the US.
 > **Apply in 1 minute:** [link]. I call every applicant within 24 hours.
 - Facebook: Employment category. English and Spanish. No words about age, sex, origin, religion, family or health.
@@ -908,7 +908,7 @@ Pick the worst call of the day. Rewrite the one line that lost it.
 5. **Score 1–5 → bench.** Every bench caregiver gets a call every week so the information stays fresh.
 6. **Note the source of every applicant.** Each Sunday: the source with the lowest cost per screened caregiver gets more money; the worst one is cut.
 
-**Target: 15 phone-screened caregivers in Tampa Bay by 30 Nov.** Until then, no 48-hour promises: "within 3 days".` },
+**Target: 5 phone-screened caregivers in Tampa Bay by 8 Dec** (changed 22 Nov from 15 by 30 Nov; demand comes first). Until the bench is real, no 48-hour promises: "within 3 days".` },
 { id: 'sop-snapshot', cat: 'sops', title: 'Hiring Snapshot (the lead magnet, 15 min)', body: `A complete solution to a narrow problem that reveals the next one (Hormozi: lead magnet). Only for owners who say "not now" or "send me info". **Never the ask on Call 1.**
 
 ## What it is (one page, by email)
