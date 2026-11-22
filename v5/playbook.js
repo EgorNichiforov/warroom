@@ -323,8 +323,8 @@ Your board says 300 dials; the plan says 350. 300 is the floor you signed; 350 i
 | 28 Feb | 3 paying agencies (≈ $8,100 MRR) · Collier and Lee switched on |
 | 31 Jan | **First paying agency** (first invoice cleared) · 3 agencies where a caregiver of mine worked |
 | 31 Dec | **First caregiver worked a shift** (free trial) · 2 trials running · 2,000+ dials |
-| 8 Dec | 100 owner conversations (then, and only then, new ideas are allowed) |
-| 30 Nov | **15 screened caregivers in Tampa Bay** · first trial started · number clean · payment route agreed · lawyer booked |
+| 8 Dec | **Gate:** 700+ dials since 24 Nov · 15 owner conversations · 1 case call booked · 5 screened caregivers (changed 22 Nov). New ideas only after 100 owner conversations |
+| 30 Nov | First real week: 360 dials logged · caregiver ad live · payment route agreed with dad (changed 22 Nov) |
 
 ## The honest math
 ~2,000 dials per paying agency (the 14 Nov estimate). At 350 a week that is one new agency every ~6 weeks = **about 5 by June: not enough.** The gap closes only by (1) a clean local number that doubles pickup, (2) a disco that finds the open case, (3) going to 400 then 550 dials from December. Real rates replace these after 300 dials.
