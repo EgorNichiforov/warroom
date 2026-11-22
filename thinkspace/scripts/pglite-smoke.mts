@@ -1,0 +1,11 @@
+import { PGlite } from "@electric-sql/pglite";
+import { drizzle } from "drizzle-orm/pglite";
+import { migrate } from "drizzle-orm/pglite/migrator";
+import * as schema from "../src/lib/db/schema.ts";
+const client = new PGlite();
+const db = drizzle(client, { schema });
+await migrate(db, { migrationsFolder: "./drizzle" });
+await db.insert(schema.sessions).values({ id: "ses_test", ownerId: "owner", title: "t" });
+const rows = await db.select().from(schema.sessions);
+console.log("rows", rows.length, rows[0].createdAt);
+await client.close();
