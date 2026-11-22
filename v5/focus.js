@@ -4,8 +4,8 @@
    Day · Work (Dial, Pipeline when the stage opens it, Playbook for the scripts) · Money (Overview, Transactions) · You (Train, Settings).
    Nothing is deleted: every other screen still exists, keeps its data and opens from Settings → Focus mode → Hidden screens.
    Focus lifts by itself at 1,000 logged dials or the first paid invoice; it can also be switched off by hand in Settings.
-   Implementation: each hub's segment list is wrapped in a getter. Focus on → a filtered copy (anything other modules
-   splice into it is simply not shown). Focus off → the real list, untouched, so all existing behaviour is unchanged. */
+   Implementation: the last wrapper on sgApply (which every render runs) keeps each hub's full list and shows the filtered one.
+   Focus off → the full lists are put back, so all existing behaviour is unchanged. */
 'use strict';
 const FC_KEEP = { work: ['dial', 'crm', 'book'], you: ['train', 'me'], money: ['over', 'tx'] };
 const FC_NAMES = { boot: 'Learn / Bootcamp', acq: 'Courses', intel: 'Intel', later: 'Later', life: 'Overview / Engine', trlog: 'Training log', food: 'Food', stats: 'Stats', week: 'Plan', cal: 'Calendar', ask: 'Ask' };
@@ -24,17 +24,24 @@ function fcHidden() {
 }
 (function fcInstall() {
   if (typeof SH_HUBS === 'undefined') return;
-  SH_HUBS.forEach((H) => {
-    const keep = FC_KEEP[H.id]; if (!keep) return;
-    const prop = H.id === 'money' ? 'inner' : 'segs', store = H.id === 'money' ? '_fcInner' : '_fcSegs';
-    if (Object.getOwnPropertyDescriptor(H, prop) && Object.getOwnPropertyDescriptor(H, prop).get) return;
-    H[store] = H[prop];
-    Object.defineProperty(H, prop, {
-      configurable: true, enumerable: true,
-      get() { const raw = this[store] || []; if (!fcOn()) return raw; const f = raw.filter((s) => keep.includes(s[0])); return f.length ? f : raw; },
-      set(v) { this[store] = v; },
-    });
-  });
+  /* Work is rebuilt from scratch on every render by stage.js (sgApply) and then Learn/Bootcamp/Courses add their tabs.
+     focus.js loads last, so this wrapper runs after all of them: keep the full list in H._fcSegs, show the filtered one.
+     You and Money are built once at start-up: keep their full lists and re-derive the shown list on every render. */
+  SH_HUBS.forEach((H) => { if (H.id === 'you') H._fcSegs = (H.segs || []).slice(); if (H.id === 'money') H._fcInner = (H.inner || []).slice(); });
+  const apply = () => {
+    try {
+      const on = fcOn();
+      SH_HUBS.forEach((H) => {
+        const keep = FC_KEEP[H.id]; if (!keep) return;
+        if (H.id === 'work') { H._fcSegs = (H.segs || []).slice(); if (on) { const f = H._fcSegs.filter((s) => keep.includes(s[0])); if (f.length) H.segs = f; } }
+        else if (H.id === 'you') { const f = H._fcSegs.filter((s) => keep.includes(s[0])); H.segs = on && f.length ? f : H._fcSegs.slice(); }
+        else if (H.id === 'money') { const f = H._fcInner.filter((s) => keep.includes(s[0])); H.inner = on && f.length ? f : H._fcInner.slice(); }
+      });
+    } catch (e) { }
+  };
+  window.fcApply = apply;
+  if (typeof sgApply === 'function' && !sgApply._fc) { const f = sgApply; sgApply = function () { const r = f.apply(this, arguments); apply(); return r; }; sgApply._fc = 1; }
+  apply();
 })();
 function fcToggle() {
   try { S.settings = S.settings || {}; S.settings.focusOff = !S.settings.focusOff; touch(S.settings); save(); } catch (e) { }

@@ -33,7 +33,7 @@ with sync_playwright() as p:
     check('Focus off restores the full Work list', W2 == rawW, [W2, rawW])
     check('Focus off: You list is the original', len(ev("SH_HUBS.find(h=>h.id==='you').segs")) > len(Y))
     ev("S.settings.focusOff=false; 0")
-    ev("""(()=>{const k=dk(new Date());const x=Object.values(Q.items)[0];x.log=x.log||[];for(let i=0;i<1000;i++)x.log.push({at:Date.now(),r:'NO ANSWER',d:{dials:1}});})(); 0""")
+    ev("""(()=>{const k=dk(new Date());let x=Object.values(Q.items)[0];if(!x){Q.items['t1']={id:'t1',agency:'Test agency',status:'new',log:[]};x=Q.items['t1'];}x.log=x.log||[];for(let i=0;i<1000;i++)x.log.push({at:Date.now(),r:'NO ANSWER',d:{dials:1}});})(); 0""")
     check('1,000 logged dials lift Focus by itself', not ev("fcOn()"), ev("sgEvidence().attempts"))
     check('no page errors', not errs, errs[:3])
     b.close()
