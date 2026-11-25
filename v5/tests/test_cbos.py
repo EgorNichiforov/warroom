@@ -37,7 +37,7 @@ with sync_playwright() as p:
     pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2500)
     check('loads with no page errors', not errs, errs[:3])
-    check('app version 15.8.0', pg.evaluate('APP_VERSION') == '15.8.0')
+    check('app version 15.8.1', pg.evaluate('APP_VERSION') == '15.8.1')
     pg.evaluate("""() => { S.settings.sync = Object.assign({}, S.settings.sync || {}, { url: 'https://fake.supabase.co', key: 'k', code: 'test-code-1234567890' }); }""")
     pg.evaluate('cbLoad(true)'); pg.wait_for_timeout(600)
     check('state loaded through cb_api', pg.evaluate('!!(CB && CB.counts && CB.counts.agencies === 964)'))
