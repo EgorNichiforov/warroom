@@ -1,6 +1,6 @@
 /* War Room v5 · core: state, data model, sync, derived numbers. Vanilla JS, offline-first. */
 'use strict';
-const APP_VERSION = '13.31.1';
+const APP_VERSION = '15.8.0';
 const STORE = 'warroom2';
 const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_LONG = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -139,13 +139,13 @@ function seed() {
     ] },
   };
   const R = (id, title, days, link) => ({ id, title, days, link: link || '' });
-  const G = (title, horizon, target, unit, deadline, source, extra) => Object.assign({ id: uid(), _u: t, title, horizon, target, unit, deadline: deadline || '', source: source || 'manual', current: null, done: false }, extra || {});
+  const G = (title, horizon, target, unit, deadline, source, extra) => Object.assign({ id: uid(), _u: t, title, horizon, target, unit, deadline: deadline || '', source: source || 'manual', current: null, done: false, seed: 1 }, extra || {});
   const goals = {};
   [
     G('EgorFlow MRR', 'long', 20000, '$', '2027-07-01'), G('Priority Bench clients', 'long', 8, 'clients', '2027-07-01'), G('Multi-site clients', 'long', 3, 'clients', '2027-07-01'),
     G('Owner conversations (before any new idea)', 'long', 100, 'convos', '', 'counter:owners'), G('Body weight', 'long', 85, 'kg', '2027-07-01', 'weight'),
-    G('BAC average 9+ (Română, Istorie by exam; English + IT certificates)', 'long', 9, 'avg', '2027-06-30'),
-    G('Weight 77 kg by end of November', 'month', 77, 'kg', '2026-11-30', 'weight'), G('Book the Python ITS exam (UTM, Dec 14–18)', 'month', 1, '', '2026-11-15', 'check'),
+    G('BAC: pass, average not lower than 7', 'long', 7, 'avg', '2027-06-30'),
+    G('Weight 80 kg by end of November', 'month', 80, 'kg', '2026-11-30', 'weight'), G('Book the Python ITS exam (UTM, Dec 14–18)', 'month', 1, '', '2026-11-15', 'check'),
     G('Python ITS exam: 700/1000', 'month', 700, 'pts', '2026-12-18'),
     G('350 dials', 'week', 350, 'dials', '', 'counter:dials:week'), G('20 h BAC study', 'week', 1200, 'min', '', 'counter:bac:week'), G('6 training days', 'week', 6, 'days', '', 'workouts:week'),
   ].forEach((g) => (goals[g.id] = g));
@@ -371,7 +371,6 @@ function weighCard(o, k, d) {
 }
 function stepWeight(s) { const i = $('w-inp'); i.value = (Number(i.value || 0) + s).toFixed(1); }
 function saveWeight() { const v = num($('w-inp').value); if (v == null || v < 30 || v > 200) { toast('Enter a weight between 30 and 200 kg'); return; } const o = day(curDate); o.weight = Math.round(v * 10) / 10; delete o.weighEdit; delete o.weightSkipped; S.routines.morning.filter((r) => r.link === 'weight').forEach((r) => (o.routine[r.id] = 1)); touch(o); toast('Saved · ' + fmt(v, 1) + ' kg. Next: train.'); render(); }
-function editWeight() { const o = day(curDate); o.weighEdit = true; render(); }
 function cancelWeight() { const o = day(curDate); delete o.weighEdit; render(); }
 function skipWeight() { const o = day(curDate); o.weightSkipped = true; touch(o); render(); }
 function focusMorning(o, d) {
@@ -393,19 +392,6 @@ function routineCard(key, d, o, open) {
   const items = routineFor(S.routines[key], d); if (!items.length) return ''; const done = items.filter((r) => rState(o, r.id) === 'done').length, skipped = items.filter((r) => rState(o, r.id) === 'skip').length; const curIdx = items.findIndex((r) => !rState(o, r.id));
   return sec(key, `${key} routine`, `<b>${done}</b>/${items.length - skipped}${skipped ? ` <span class="dim">· ${skipped} skipped</span>` : ''} ${done === items.length - skipped ? '✓' : ''}`, items.map((r, i) => { const st = rState(o, r.id); return `<div class="ck ${st === 'done' ? 'on' : ''} ${st === 'skip' ? 'done' : ''} ${i === curIdx && isToday(d) ? 'cur' : ''}" onclick="routineDo('${r.id}')"><div class="box ${st === 'skip' ? 'round' : ''}">${st === 'done' ? '✓' : st === 'skip' ? '–' : ''}</div><div class="lbl">${esc(r.title)}${!st && stepHint(r) ? `<span class="sub">${stepHint(r)}</span>` : ''}${st === 'skip' ? `<span class="sub">skipped${rSkipReason(o, r.id) ? ' · ' + esc(rSkipReason(o, r.id)) : ''}</span>` : ''}</div>${st ? '' : `<button class="edit" title="Skip" onclick="event.stopPropagation();skipRoutine('${r.id}')">↷</button>`}</div>`; }).join(''), open);
 }
-function scoreboardCard(o, d) {
-  const w = dow(d); const cs = S.counters.items.filter((c) => !['dials', 'owners'].includes(c.id)).filter((c) => (c.targets[w] || 0) > 0 || (o.counters[c.id] || 0) > 0 || c.weekly > 0 || c.id === 'owners'); if (!cs.length) return '';
-  return `<div class="card"><div class="card-h"><div class="card-t">📚 Study &amp; counters</div><div class="card-r">week of ${fmtShort(monday(d))}</div></div>${cs.map((c) => { const v = Number(o.counters[c.id]) || 0, tg = c.targets[w] || 0, wk = counterWeek(c.id, d), tot = counterTotal(c.id); const timed = c.unit === 'min';
-    return `<div class="counter"><div class="top"><div class="name">${esc(c.title)}</div><div class="num">${v}${tg ? `<small> / ${tg}${c.unit ? ' ' + c.unit : ''}</small>` : (c.unit ? `<small> ${c.unit}</small>` : '')}</div></div>
-      ${tg ? `<div class="bar"><i class="${c.color || ''}" style="width:${clamp((v / tg) * 100, 0, 100)}%"></i></div>` : ''}
-      <div class="btns">${timed ? `<button class="btn" onclick="startTimer('${c.id}',25)">▶ 25</button><button class="btn" onclick="startTimer('${c.id}',50)">▶ 50</button>` : ''}${c.steps.slice(0, timed ? 2 : 3).map((s) => `<button class="btn" onclick="bump('${c.id}',${s})">+${s}</button>`).join('')}<button class="btn" onclick="bump('${c.id}',-${c.steps[0]})">−${c.steps[0]}</button><button class="btn" onclick="setCounter('${c.id}')">=</button></div>
-      <div class="wk">${c.weekly ? `<span>week <b>${wk}</b> / ${c.weekly}${c.unit ? ' ' + c.unit : ''} ${wk >= c.weekly ? '✓' : `· ${c.weekly - wk} left`}</span>` : `<span>week <b>${wk}</b></span>`}<span>all time <b>${tot}</b></span></div></div>`; }).join('')}</div>`;
-}
-function top3Card(o, k, d) {
-  const due = tasksList().filter((t) => !t.done && t.due && t.due <= k).sort((a, b) => a.due.localeCompare(b.due));
-  return `<div class="card top3"><div class="card-h"><div class="card-t">Top 3 for the day</div><div class="card-r">${o.top3.filter((x) => x.d).length}/${o.top3.filter((x) => x.t).length || 3}</div></div>${o.top3.map((x, i) => `<div class="item ${x.d ? 'on' : ''}"><div class="n">${i + 1}</div><input value="${esc(x.t)}" placeholder="${['Most important thing…', 'Second…', 'Third…'][i]}" oninput="setTop3(${i},this.value)"><div class="box" onclick="toggleTop3(${i})">${x.d ? '✓' : ''}</div></div>`).join('')}
-    ${due.length ? `<div class="sec-h">Tasks due</div>${due.map((t) => taskRow(t, k)).join('')}` : ''}<div class="row" style="margin-top:8px"><input id="quick-task" placeholder="+ task for ${isToday(d) ? 'today' : fmtShort(d)}" onkeydown="if(event.key==='Enter')quickTask('${k}')"></div></div>`;
-}
 function standardsCard(o) { const short = (t) => t.replace(/\s*\(.*?\)\s*/g, '').replace(/ Protocol| Check/g, ''); return `<div class="card"><div class="card-h"><div class="card-t">Standards</div><div class="card-r"><b>${S.habits.items.filter((h) => o.habits[h.id]).length}</b>/${S.habits.items.length}</div></div><div class="habits compact">${S.habits.items.map((h) => `<div class="habit ${o.habits[h.id] ? 'on' : ''}" onclick="toggleHabit('${h.id}')" title="${esc(h.title)}"><div class="b">${o.habits[h.id] ? '✓' : ''}</div><span>${esc(short(h.title))}</span></div>`).join('')}</div></div>`; }
 function moneyCard(o, d) {
   const cur = S.settings.currency, today = isToday(d), k = dk(d);
@@ -418,15 +404,7 @@ function incomeModal(k) {
     <div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="${MONEY_IN.concat(MONEY_OUT).map(([id]) => `setMoney('${k}','${id}',document.getElementById('inc-${id}').value);`).join('')}closeModal();render()">Save</button></div>`);
 }
 function debriefBody(o) { return `<div class="field"><label>Win</label><input value="${esc(o.win || '')}" placeholder="What worked today?" oninput="setDayField('win',this.value)"></div><div class="field"><label>Loss</label><input value="${esc(o.loss || '')}" placeholder="Where did I break my word?" oninput="setDayField('loss',this.value)"></div><div class="field" style="margin:0"><label>Fix for tomorrow</label><input value="${esc(o.fix || '')}" placeholder="One change" oninput="setDayField('fix',this.value)"></div>`; }
-function gradeCard(d) {
-  const sc = dayScore(d), g = gradeFor(d), m = minimumMet(d);
-  const st = [['⚖️', streakWeigh(), 'weigh-ins'], ['📞', streakMinimum(), 'minimum days'], ['🌅', streakMorning(), 'full mornings'], ['😴', streakBed(), `bed ${S.settings.bed}`]];
-  const col = g === 'A' ? 'var(--acc)' : g === 'B' ? 'var(--ok)' : g === 'C' ? 'var(--acc)' : 'var(--bad)';
-  return `<div class="card flat"><div class="row sb" onclick="toggleSec('streaks')" style="cursor:pointer"><div class="row"><span style="font-size:26px;font-weight:800;color:${col};width:34px">${g}</span><div><div style="font-weight:700">Day grade · ${sc}%</div><div class="xs muted">${m.met ? 'Minimum met' : `Minimum: ${m.dials}/${m.needDials} dials · ${m.bac}/${m.needBac} min BAC`}</div></div></div><span class="dim">${secOpen.streaks ? '▾' : '▸'}</span></div>
-    <div id="sec-streaks" class="${secOpen.streaks ? '' : 'hidden'}"><div class="chips" style="margin-top:12px">${st.map(([ic, n, l]) => `<span class="chip ${n > 0 ? 'on' : ''}">${ic} ${n}d <span class="dim">${l}</span></span>`).join('')}</div></div></div>`;
-}
 function sleepDur(a, b) { let m = tmin(b) - tmin(a); if (m < 0) m += 1440; return Math.floor(m / 60) + 'h ' + pad(m % 60) + 'm'; }
-function toggleRoutine(id) { const o = day(curDate); o.routine[id] = rState(o, id) ? 0 : 1; touch(o); render(); }
 function skipRoutine(id) {
   const all = S.routines.morning.concat(S.routines.evening), r = all.find((x) => x.id === id); if (!r) return;
   openModal(`<h2>Skip · ${esc(r.title)}</h2><div class="small muted" style="margin-bottom:10px">Skipped steps don't count against your day. Tap it again later to mark it done.</div><div class="chips">${['Not today', 'No time', 'Sick', 'Travelling', 'Already done elsewhere', 'Overslept'].map((x) => `<span class="chip" onclick="setRoutineSkip('${id}','${x}')">${x}</span>`).join('')}</div><div class="field" style="margin-top:12px"><label>Or your reason</label><div class="inline"><input id="m-skipwhy" placeholder="optional"><button class="btn" onclick="setRoutineSkip('${id}',document.getElementById('m-skipwhy').value)">Skip</button></div></div>`);
@@ -436,8 +414,6 @@ function skipRestOfMorning() { const o = day(curDate); routineFor(S.routines.mor
 function toggleHabit(id) { const o = day(curDate); o.habits[id] = o.habits[id] ? 0 : 1; touch(o); render(); }
 function bump(id, n) { const o = day(curDate); o.counters[id] = Math.max(0, (Number(o.counters[id]) || 0) + n); touch(o); render(); }
 function setCounter(id) { const o = day(curDate); const c = S.counters.items.find((x) => x.id === id); const v = prompt('Set ' + c.title + ' for ' + fmtShort(curDate), o.counters[id] || 0); if (v == null) return; o.counters[id] = Math.max(0, num(v) || 0); touch(o); render(); }
-function setTop3(i, v) { const o = day(curDate); o.top3[i].t = v; touch(o); }
-function toggleTop3(i) { const o = day(curDate); if (!o.top3[i].t) return; o.top3[i].d = o.top3[i].d ? 0 : 1; touch(o); render(); }
 function setDayField(f, v) { const o = day(curDate); o[f] = v; touch(o); }
 /* ───────── GRADE · MINIMUM · STREAKS · STAKES ───────── */
 function minimumMet(d) { const o = S.days[dk(d)], w = dow(d), st = S.settings; const dials = o ? Number((o.counters || {}).dials) || 0 : 0, bac = o ? Number((o.counters || {}).bac) || 0 : 0; const dcT = dialTargetFor(d); const needDials = WK.includes(w) ? Math.min(st.minDials || 0, dcT || st.minDials || 0) : 0, needBac = st.minBac || 0; return { met: dials >= needDials && bac >= needBac, dials, bac, needDials, needBac }; }
@@ -445,8 +421,6 @@ function gradeFor(d) { const sc = dayScore(d); let g = sc >= 85 ? 'A' : sc >= 70
 function streak(pred) { let d = new Date(); d.setHours(0, 0, 0, 0); if (!pred(d)) d = addDays(d, -1); let n = 0; while (n < 3650 && pred(d)) { n++; d = addDays(d, -1); } return n; }
 function streakWeigh() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.weight != null && o.weight !== ''); }); }
 function streakMinimum() { return streak((d) => !!S.days[dk(d)] && (S.days[dk(d)].mode === 'rec' || (minimumMet(d).met && (Number(S.days[dk(d)].counters.dials) || Number(S.days[dk(d)].counters.bac))))); }   /* 13.24: a chosen Recovery day never breaks the streak */
-function streakMorning() { return streak((d) => { const o = S.days[dk(d)]; return !!o && routineFor(S.routines.morning, d).every((r) => rState(o, r.id) === 'done'); }); }
-function streakBed() { return streak((d) => { const o = S.days[dk(d)]; return !!(o && o.routine && o.routine.bed); }); }
 function evaluateStakes() {
   const st = S.settings; if (!st.commitStart || !st.stake) return; if (!S.stakes) S.stakes = {};
   let d = pd(st.commitStart); const floor = addDays(new Date(), -60); if (d < floor) d = floor; const y = addDays(new Date(), -1); y.setHours(0, 0, 0, 0); let changed = false;
@@ -521,15 +495,13 @@ function renderTasks() {
     ${!open.length ? '<div class="empty">No open tasks.</div>' : ''}
     ${sec('Overdue', overdue, 'bad')}${sec('Today', todayT)}${sec('Tomorrow', tmrw)}${sec('Upcoming', later)}${sec('No date', nodate)}${sec('Done recently', done)}`;
 }
-function addTask(due) { const i = $('task-inp'); const v = i.value.trim(); if (!v) { i.focus(); return; } const t = { id: uid(), _u: now(), title: v, due: due || '', done: false, note: '' }; S.tasks[t.id] = t; save(); i.value = ''; taskHook('create', t); render(); }
-function quickTask(k) { const i = $('quick-task'); const v = i.value.trim(); if (!v) return; const t = { id: uid(), _u: now(), title: v, due: k, done: false, note: '' }; S.tasks[t.id] = t; save(); taskHook('create', t); render(); }
 function toggleTask(id) { const t = S.tasks[id]; t.done = !t.done; t.doneAt = t.done ? now() : null; t._u = now(); save(); taskHook(t.done ? 'close' : 'reopen', t); render(); }
 function editTask(id) {
   const t = S.tasks[id];
-  openModal(`<h2>Edit task</h2><div class="field"><label>Title</label><input id="m-title" value="${esc(t.title)}"></div><div class="field"><label>Due</label><input id="m-due" type="date" value="${esc(t.due || '')}"></div><div class="chips" style="margin:-6px 0 12px">${[['Today', 0], ['Tomorrow', 1], ['+3 days', 3], ['Next Mon', 'mon'], ['No date', null]].map(([l, n]) => `<span class="chip" onclick="document.getElementById('m-due').value='${n == null ? '' : n === 'mon' ? dk(addDays(monday(new Date()), 7)) : dk(addDays(new Date(), n))}'">${l}</span>`).join('')}</div><div class="field"><label>Note</label><textarea id="m-note">${esc(t.note || '')}</textarea></div>
+  openModal(`<h2>Edit task</h2><div class="field"><label>Title</label><input id="m-title" value="${esc(t.title)}"></div><div class="field"><label>Due</label><input id="m-due" type="date" value="${esc(t.due || '')}"></div><div class="chips" style="margin:-6px 0 12px">${[['Today', 0], ['Tomorrow', 1], ['+3 days', 3], ['Next Mon', 'mon'], ['No date', null]].map(([l, n]) => `<span class="chip" onclick="document.getElementById('m-due').value='${n == null ? '' : n === 'mon' ? dk(addDays(monday(new Date()), 7)) : dk(addDays(new Date(), n))}'">${l}</span>`).join('')}</div>${(() => { const G = Object.values(S.goals || {}).filter((g) => g && !g._del && (!g.done || g.id === t.goal)); return G.length ? `<div class="field"><label>Goal it serves</label><select id="m-goal"><option value="">None</option>${G.map((g) => `<option value="${esc(g.id)}"${g.id === t.goal ? ' selected' : ''}>${esc(String(g.title).slice(0, 60))}</option>`).join('')}</select></div>` : ''; })()}<div class="field"><label>Note</label><textarea id="m-note">${esc(t.note || '')}</textarea></div>
     <div class="actions"><button class="btn danger" onclick="delTask('${id}')">Delete</button><button class="btn primary" onclick="saveTask('${id}')">Save</button></div>`);
 }
-function saveTask(id) { const t = S.tasks[id]; t.title = $('m-title').value.trim() || t.title; t.due = $('m-due').value; t.note = $('m-note').value.trim(); t._u = now(); save(); taskHook('update', t); closeModal(); render(); }
+function saveTask(id) { const t = S.tasks[id]; t.title = $('m-title').value.trim() || t.title; t.due = $('m-due').value; t.note = $('m-note').value.trim(); const mg = $('m-goal'); if (mg && mg.value !== (t.goal || '')) { if (mg.value) t.goal = mg.value; else delete t.goal; } t._u = now(); save(); taskHook('update', t); closeModal(); render(); }
 function delTask(id) { S.tasks[id]._del = true; S.tasks[id]._u = now(); save(); taskHook('delete', S.tasks[id]); closeModal(); render(); }
 function taskHook(kind, t) { try { if (typeof tdOnChange === 'function') tdOnChange(kind, t); } catch (e) { console.error(e); } }
 
@@ -590,7 +562,6 @@ function programsCard() { let html = '';
   html += `<div class="card"><div class="card-h"><div class="card-t">Programs</div><button class="btn sm" onclick="editProgram('')">+ New</button></div>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<div class="setting-row" onclick="editProgram('${id}')"><div><div class="t">${esc(S.programs[id].name)}</div><div class="d">${S.programs[id].ex.length} exercises · ${ALL.filter((d) => S.programByDay.map[d] === id).map((d) => DAY_SHORT[d]).join(', ') || 'unscheduled'}</div></div><div class="arr">›</div></div>`).join('')}</div>`;
   html += `<div class="card"><div class="card-t" style="margin-bottom:8px">Weekly split</div>${ALL.map((d) => `<div class="kv"><span>${DAY_LONG[d]}</span><select style="width:60%" onchange="S.programByDay.map[${d}]=this.value;S.programByDay._u=Date.now();save();render()"><option value="">Rest</option>${Object.keys(S.programs).filter((id) => !S.programs[id]._del).map((id) => `<option value="${id}" ${S.programByDay.map[d] === id ? 'selected' : ''}>${esc(S.programs[id].name)}</option>`).join('')}</select></div>`).join('')}</div>`;
   return html; }
-function prevWorkout(pid, beforeKey) { const ks = Object.keys(S.days).filter((k) => k < beforeKey && S.days[k].workout && S.days[k].workout.program === pid && Object.keys(S.days[k].workout.sets || {}).length).sort(); if (!ks.length) return null; const k = ks[ks.length - 1]; return { k, sets: S.days[k].workout.sets }; }
 function sessionEx(wo) { if (!wo) return []; if (wo.ex) return wo.ex; const p = S.programs[wo.program]; return p ? p.ex : []; }
 function exKey(n) { return String(n || '').toLowerCase().replace(/^[a-d]\d?\s+/, '').replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 /* every past session that had this exercise (matched by name, across programs and per-day edits), newest first */
@@ -683,9 +654,9 @@ function editGoal(id) {
 }
 function saveGoal(id) {
   const title = $('m-title').value.trim(); if (!title) { toast('Give the goal a title'); return; }
-  const g = id ? S.goals[id] : { id: uid(), current: null, done: false }; Object.assign(g, { _u: now(), title, horizon: $('m-h').value, deadline: $('m-dl').value, target: num($('m-target').value), unit: $('m-unit').value.trim(), source: $('m-src').value });
+  const g = id ? S.goals[id] : { id: uid(), current: null, done: false }; const _vb = id && typeof verPick === 'function' ? verPick(g) : null; Object.assign(g, { _u: now(), title, horizon: $('m-h').value, deadline: $('m-dl').value, target: num($('m-target').value), unit: $('m-unit').value.trim(), source: $('m-src').value });
   if ($('m-cur')) g.current = num($('m-cur').value); if ($('m-done')) g.done = $('m-done').checked; if (g.source === 'weight' && g.start == null) { const w = weightEntries(); if (w.length) g.start = w[0].w; }
-  S.goals[g.id] = g; save(); closeModal(); render();
+  S.goals[g.id] = g; if (_vb && typeof verAfter === 'function') verAfter('goal:' + g.id, _vb, g); save(); closeModal(); render();
 }
 function delGoal(id) { S.goals[id]._del = true; S.goals[id]._u = now(); save(); closeModal(); render(); }
 
@@ -739,7 +710,6 @@ function renderCountersEditor() {
 
 /* ───────── SYNC (Supabase, optional) ───────── */
 const syncState = { status: 'off', msg: '', last: 0 };
-function syncIcon() { return { off: '⚙', ok: '⚙', pending: '⚙', err: '⚙' }[syncState.status]; }
 function syncLabel() { return { off: 'off', ok: 'synced', pending: 'syncing…', err: 'error' }[syncState.status]; }
 function hdr() { const s = S.settings.sync; return { apikey: s.key, Authorization: 'Bearer ' + s.key, 'x-warroom-key': s.code, 'Content-Type': 'application/json' }; }
 function syncReady() { const s = S.settings.sync; return s && s.url && s.key && s.code && s.code.length >= 16; }
@@ -811,6 +781,8 @@ function mergeRec(l, r, b) {   /* → { v: record to keep, changed: differs from
 }
 function merge(remote, threeWay) {
   let changed = false; syncAhead = false; const base = threeWay ? baseGet() : {};
+  /* 13.37: a fresh install seeds starter goals. If the cloud already holds a goal with that title (live or deleted), the starter copy is dropped here instead of becoming a duplicate, or bringing back a goal you removed. */
+  try { if (remote.goals && S.goals) { const T = new Set(Object.values(remote.goals).filter(Boolean).map((g) => g.title)); if (T.size) for (const id in S.goals) { const g = S.goals[id]; if (g && g.seed && !remote.goals[id] && (T.has(g.title) || (/^BAC: pass/.test(g.title) && [...T].some((t) => /^BAC: pass/.test(t))) || (/^Weight \d+ kg by end of/.test(g.title) && [...T].some((t) => /^Weight \d+ kg by end of/.test(t))))) { delete S.goals[id]; changed = true; } } } } catch (e) { }
   for (const k of MERGE_SINGLES) {
     if (!remote[k]) { if (S[k] && S[k]._u) syncAhead = true; continue; }
     const keepSync = k === 'settings' ? S.settings.sync : null, res = mergeRec(S[k], remote[k], base[k]);

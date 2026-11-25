@@ -14,7 +14,7 @@ def check(name, cond, info=''):
     results.append((name, bool(cond), info))
 
 def fresh(p):
-    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); ctx.add_init_script('window.CP_NOLATE=1'); ctx.add_init_script("localStorage.setItem('wr-cb-state', JSON.stringify({calling_open:true,counts:{}})); window.CB_TEST_ET_MIN=600;"); pg = ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2200)
     return b, pg, errs
@@ -90,7 +90,7 @@ with sync_playwright() as p:
       await aiShare({ provider: 'gemini', key: 'AIzaREALKEYxxxxxxxxxxxxxxxxxx', model: 'm' }, true); const stored = calls.some((x) => x.body.includes('"op":"store"'));
       const syncHasNoKey = !JSON.stringify(S.secrets).includes('AIza');
       S.secrets = { _u: 2, ai: { provider: 'gemini', key: 'AIzaOLDKEYinsyncxxxxxxxxxxxxx', model: 'm' } }; await aiMoveKeyToServer(); const moved = !JSON.stringify(S.secrets).includes('AIza') && S.secrets.ai.server === true;
-      window.fetch = realFetch; localStorage.removeItem(FOOD_AI_KEY); S.secrets = { _u: 3 };
+      window.fetch = realFetch; localStorage.removeItem(FOOD_AI_KEY); S.secrets = { _u: 3 }; S.settings.sync.code = ''; clearTimeout(pushTimer);
       return { viaProxy, direct, noStoreOfPlaceholder, stored, syncHasNoKey, moved }; }""")
     for k2, v in r.items(): check('AI key: ' + k2, v)
 
@@ -223,7 +223,7 @@ with sync_playwright() as p:
     b.close()
 
     # launch: the first painted screen is the real one
-    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); pg = ctx.new_page(); seen = []
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); ctx.add_init_script("localStorage.setItem('wr-cb-state', JSON.stringify({calling_open:true,counts:{}})); window.CB_TEST_ET_MIN=600;"); pg = ctx.new_page(); seen = []
     pg.add_init_script("window.__seen=[];new MutationObserver(()=>{const h=document.documentElement;if(document.body&&!h.classList.contains('wr-boot')){const t=(document.querySelector('#nav')||{}).textContent||'';if(t&&window.__seen.indexOf(t)<0)window.__seen.push(t)}}).observe(document,{childList:true,subtree:true,attributes:true});")
     pg.goto(URL); pg.wait_for_timeout(3200)
     seen = pg.evaluate("__seen")
@@ -285,7 +285,7 @@ with sync_playwright() as p:
     b.close()
 
     # Day: Done on the current block must move the screen on (classic screen: with Guided day on, the guided card replaces this hero, 13.13.1)
-    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.add_init_script("localStorage.setItem('wr-guide','off')"); ctx.add_init_script('window.CP_NOLATE=1'); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    b = p.chromium.launch(**_CH); ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); ctx.add_init_script("localStorage.setItem('wr-guide','off')"); ctx.add_init_script('window.CP_NOLATE=1'); ctx.add_init_script("localStorage.setItem('wr-cb-state', JSON.stringify({calling_open:true,counts:{}})); window.CB_TEST_ET_MIN=600;"); pg = ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto(URL); pg.wait_for_timeout(2400); ev = pg.evaluate
     cur = ev("(()=>{const d=new Date(),nm=nowMin(),L=arcBlocks(d);let b=L.find(x=>tmin(x.start)<=nm&&nm<tmin(x.end)&&!['dials','bac','agency','train','program'].includes(x.kind));if(!b){const o=day(d);o.sched=o.sched||{};const s=String(Math.floor(nm/60)).padStart(2,'0')+':'+String(nm%60).padStart(2,'0'),e2=Math.min(nm+30,1439),e=String(Math.floor(e2/60)).padStart(2,'0')+':'+String(e2%60).padStart(2,'0');return null}return {id:b.id,title:b.title}})()")
     if cur and pg.query_selector('#arc .arc-now'):
@@ -507,7 +507,8 @@ with sync_playwright() as p:
     ev("bcS.tab='progress';render();0"); pg.wait_for_timeout(300)
     r = ev("({d:document.querySelectorAll('.cp-dash').length, cal:!!document.querySelector('.cp-dash svg'), al:document.querySelectorAll('.cp-al').length, db:document.querySelectorAll('.cp-db').length})")
     check('Capability 13.23: Progress shows capability status, 4 dimensions, confidence vs reality and 70/20/10', r['d'] == 3 and r['al'] == 3 and r['db'] == 4, r)
-    ev("cpMissionStart(0);0"); pg.wait_for_timeout(300)
+    # 13.32: a NEW timed session is planned by Learn (lxBuild). The mission screen stays for a mission already in progress, so the test starts one the way 13.23 stored it.
+    ev("(()=>{const n=cpPickNew();bcW('cm:'+cpToday(),{t0:Date.now(),long:0,id:n?n.c:null,rv:msQueue(8).length?0:1});bcGo('cpm')})();0"); pg.wait_for_timeout(300)
     check('Capability 13.23: the mission screen has the 6 steps with the briefing open', ev("document.querySelectorAll('.cp-ms').length===6 && !!document.querySelector('.cp-ms.on .cp-brf, .cp-ms.on .aq-note')"))
     ev("cpMSet('brief');0"); pg.wait_for_timeout(200)
     check('Capability 13.23: finishing a step moves the mission on', ev("document.querySelector('.cp-ms.on .cp-msh b').textContent!=='Mission briefing'"))
@@ -612,7 +613,7 @@ with sync_playwright() as p:
     check('Mission 13.24: you can overrule the recommendation and go back; the reason stays visible', r['pick'] and r['unpick'], r)
     check('Modes 13.24: Minimum caps the day at the floors; Recovery asks for nothing but recovery and keeps the streak', r['min'] and r['rec'], r)
     ev("show('now');0"); pg.wait_for_timeout(500)
-    check('Mission 13.24: the Day screen shows exactly one mission card (the old briefing is replaced)', ev("document.querySelectorAll('#view-now .mc').length") == 1, ev("document.querySelectorAll('#view-now .mc').length"))
+    check('Mission 13.24: the Day screen shows exactly one mission card (the old briefing is replaced; at shutdown and after bedtime the shutdown or night screen shows instead)', ev("(()=>{const n=document.querySelectorAll('#view-now .mc').length,t=(document.getElementById('view-now')||{}).innerText||'';return n===1||(n===0&&(oneNight()||/shut ?down|sleep\\./i.test(t)))})()"), ev("[document.querySelectorAll('#view-now .mc').length,oneNight(),new Date().toTimeString().slice(0,5),S.settings.bed,S.settings.wake,((document.getElementById('view-now')||{}).innerText||'').slice(0,160)]"))
     r = ev("""(()=>{ const out={}, o=day(new Date()); mcBuild(); fcOpen('dial'); out.pre=document.getElementById('fc-r').value.length>5&&document.getElementById('fc-d').value.length>5; document.getElementById('fc-m').value='30'; fcStart();
       out.run=!!fcRun()&&o.fcRun===o.fc[0].id&&o.mc.k==='dial'&&/Focus contract/.test(mcCard()); fcInterrupt(); document.getElementById('fc-w').value='phone'; document.getElementById('fc-n').value='dial the next number'; fcResume();
       out.intr=o.fc[0].intr.length===1&&o.fc[0].first==='dial the next number'&&!!fcRun(); fcFinishOpen(); document.getElementById('fc-a').value='20 dials logged'; document.getElementById('fc-o').value='1'; fcFinishSave();
@@ -629,7 +630,7 @@ with sync_playwright() as p:
     check('Ladder 13.24: one six-stage ladder, each stage on its own evidence, in order (Exposed → Maintained after 30 real days)', r['seq'] == '0123456' and r['names'] == 'Not started,Exposed,Understood,Retained,Applied,Integrated,Maintained', r)
     check('Ladder 13.24: a sales skill does not reach Applied from simulations; a real logged call does', r['simOnly'] and r['real'], r)
     r = ev("""(()=>{ const out={}, T=dk(new Date()), D=(n)=>dk(new Date(Date.now()-n*864e5)); S.lifeTests={}; S.lifeErrors={}; let t=bacTrack(), n=bacNext(); out.unknown=t.known===false&&n.kind==='baseline'&&/cannot be judged/.test(n.unknown);
-      [['ro',7,9],['ro',7.5,2],['ist',9,9],['ist',9,2],['en',170,9],['en',172,2],['it',800,9],['it',820,2]].forEach(([s,v,ago],i)=>{S.lifeTests['t'+i]={id:'t'+i,subj:s,score:v,date:D(ago),_u:now()};});
+      [['ro',6,9],['ro',6.5,2],['ist',9,9],['ist',9,2],['en',170,9],['en',172,2],['it',800,9],['it',820,2]].forEach(([s,v,ago],i)=>{S.lifeTests['t'+i]={id:'t'+i,subj:s,score:v,date:D(ago),_u:now()};});
       t=bacTrack(); out.track=t.known&&t.ok&&/Română/.test(t.line); n=bacNext(); out.study=n.kind==='study'&&n.subj==='ro';
       S.lifeErrors.e1={id:'e1',subj:'ro',topic:'Comentariu liric',what:'x',fix:'y',lvl:0,due:T,at:D(1),_u:now()}; n=bacNext(); out.err=n.kind==='errors'&&n.urgent; S.settings.season={kind:'exam',dom:'bac',primary:'BAC'}; day(new Date()).counters.bac=0; const M=mcBuild(); out.mission=M.top.k==='bac'&&/Redo 1 due/.test(M.top.out);
       bacOpen(); out.board=document.querySelectorAll('#modal .bac-r').length===5&&/official|Official/.test(document.getElementById('modal').textContent); closeModal(); return out; })()""")
@@ -641,12 +642,12 @@ with sync_playwright() as p:
     check('Privacy 13.24: the sales-notes AI analysis states what it sends before sending', 'This sends data to' in open(__file__.replace('tests/run.py','intel.js')).read())
     r = ev("""(()=>{ const out={}, o=day(new Date()); closeModal(); mcOpenCard=false; delete o.bedAt; delete o.wokeAt; let h=mcCard(); out.compact=/mc-s/.test(h)&&!/Why this/.test(h)&&/sleep is not logged/.test(h); mcToggle(); h=mcCard(); out.full=/Why this/.test(h)&&/Hide/.test(h); mcToggle();
       mcSleepOpen(); document.getElementById('sl-b').value='22:15'; document.getElementById('sl-w').value='06:05'; mcSleepSave(); out.sleep=o.bedAt==='22:15'&&o.wokeAt==='06:05'&&o.sleepSrc==='typed'&&!/sleep is not logged/.test(mcCard());
-      delete S.settings.bac; out.def8=bacStats().find(s=>s.id==='ro').target===8&&LF_SUBJ[0][3]===8; bacTargetsOpen(); document.querySelector('.bt-s[data-id="ist"]').value='7,5'; document.getElementById('bt-avg').value='8'; bacTargetsSave(); out.tgt=bacStats().find(s=>s.id==='ist').target===7.5&&S.settings.bac.target===8&&LF_SUBJ[1][3]===7.5&&/Change targets/.test(document.getElementById('modal').innerHTML); closeModal();
+      delete S.settings.bac; out.def8=bacStats().find(s=>s.id==='ro').target===7&&LF_SUBJ[0][3]===7; bacTargetsOpen(); document.querySelector('.bt-s[data-id="ist"]').value='7,5'; document.getElementById('bt-avg').value='8'; bacTargetsSave(); out.tgt=bacStats().find(s=>s.id==='ist').target===7.5&&S.settings.bac.target===8&&LF_SUBJ[1][3]===7.5&&/Change targets/.test(document.getElementById('modal').innerHTML); closeModal();
       const ac=aiCfg; aiCfg=()=>({key:'k',provider:'gemini'}); localStorage.removeItem('wr-dv-voice'); DV.bad={}; out.ai=dvOrder()[0]==='cloud'&&dvVoiceName()==='Orus'; localStorage.setItem('wr-dv-voice','phone'); out.phone=dvOrder()[0]!=='cloud'; localStorage.removeItem('wr-dv-voice'); aiCfg=ac; out.noKey=dvOrder()[0]!=='cloud';
       show('now'); if(typeof arcShow==='function') arcShow(); const a=document.getElementById('arc'); out.fold=!a||(!!a.querySelector('.arc-more')&&!a.classList.contains('more')); return out; })()""")
     check('Day 13.24.1: the mission is one compact strip until tapped; the rest of the Day panels sit behind one More fold', r['compact'] and r['full'] and r['fold'], r)
     check('Sleep 13.24.1: a forgotten night can be typed in from the mission card, and the reminder goes away', r['sleep'], r)
-    check('BAC 13.24.1: exam subjects default to a target of 8 and every target can be changed from the board', r['def8'] and r['tgt'], r)
+    check('BAC 13.24.1, updated 13.71 to the floor Egor set on 19 Nov: exam subjects default to a target of 7 and every target can be changed from the board', r['def8'] and r['tgt'], r)
     check('Drive 13.24.1: the natural AI voice goes first when available; "phone" or no key falls back to the phone voice', r['ai'] and r['phone'] and r['noKey'], r)
     r = ev("""(()=>{ const out={}, o=day(new Date()); closeModal(); o.mcSkip=[]; o.mcPick=null; mcOpenCard=false; mcSetMode('full'); window.__blocks=[{id:'s1',start:'17:00',end:'18:00',title:'School',kind:'school'}]; mcFlorida=()=>({h:10,t:'10:30',wd:'Wed',open:true,known:true,closeIn:390,opensIn:null});
       let M=mcBuild(); out.before=M.top.k==='fixed'&&/Skip<.button>/.test(mcCard())&&/Missed<.button>/.test(mcCard()); const second=M.C[1].k; mcSkip('fixed',1); M=mcBuild(); out.moved=M.top.k===second&&!M.C.some(x=>x.k==='fixed')&&o.mcSkip[0].miss===1&&o.mcSkip[0].s==='fixed:s1'&&/1 done, skipped or missed today/.test(mcCard());
@@ -709,7 +710,7 @@ with sync_playwright() as p:
     check('Parity: Settings has Jump to (App lock one tap away) and the App lock card on the phone', r['jump'] >= 6 and r['lockCard'], r)
     check('Parity: the Day side column shows on the phone', r['day'], r)
     check('Parity: no page errors', not errs, errs[:3]); b.close()
-    b = p.chromium.launch(**_CH); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.goto(URL); pg.wait_for_timeout(2200)
+    b = p.chromium.launch(**_CH); pg = b.new_context(viewport={'width': 1440, 'height': 900}).new_page(); pg.route('**/rest/v1/warroom_sync**', lambda r: r.abort()); pg.goto(URL); pg.wait_for_timeout(2200)
     check('Parity: laptop keeps its side rail, no doubled phone copies', pg.evaluate("show('money'),document.querySelectorAll('.ph-rail').length") == 0 and pg.evaluate("document.querySelectorAll('.ph-day').length") == 0); b.close()
 
     # Courses 13.9: every course as a working module (old layout via LN_OFF: the internals still power Learn → Tools)
@@ -842,7 +843,7 @@ with sync_playwright() as p:
     # Bootcamp 13.18–13.20 (bootcamp.js: Path, Practice, Missions, Progress): modules, lesson loop, boss fights, red lines, call mission, simulator
     b, pg, errs = fresh(p); ev = pg.evaluate
     ev("bcS={scr:'home',tab:'path'};show('boot')"); pg.wait_for_timeout(1800)  # 13.31: Learn opens on "Now"; the Path is its second tab
-    check('Bootcamp: 26 modules (15 Business + 11 Life) cover all 250 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===26&&bcTrack('biz').length===15&&bcTrack('life').length===11&&f.length===250&&new Set(f).size===250&&f.every(id=>XC.byId[id])&&XC.cards.length===250})()"))
+    check('Bootcamp: 26 modules (15 Business + 11 Life) cover all 282 cards exactly once', ev("(()=>{const f=BC.modules.flatMap(m=>m.cards);return BC.modules.length===26&&bcTrack('biz').length===15&&bcTrack('life').length===11&&f.length===282&&new Set(f).size===282&&f.every(id=>XC.byId[id])&&XC.cards.length===282})()"))
     check('Bootcamp: Path shows today, the next Business and Life lesson, and the 15 Business modules', ev("!!document.querySelector('#view-boot .bcx-today')&&document.querySelectorAll('#view-boot .bcx-cont').length===2&&!!document.querySelector('#view-boot .bcx-cont.life')&&document.querySelectorAll('#view-boot .bcx-path .bcx-mod').length===15"))
     ev("bcS.trk='life';render()"); pg.wait_for_timeout(200)
     check('Bootcamp: Life path switch shows the 11 Life modules', ev("document.querySelectorAll('#view-boot .bcx-path.life .bcx-mod').length===11"))
