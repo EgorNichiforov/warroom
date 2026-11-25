@@ -65,6 +65,7 @@ Claude does steps 1–6. You only decide the change.
 { id: 'changelog', cat: 'system', title: 'Changelog', body: `Newest first. One line per change: what, why, which rule.
 
 | Date | Change | Why |
+| 25 Nov | **War Room 15.7.3 · no recruiter words, no comparisons** | Every owner-facing line (Call 1 intro, ask, gatekeeper, voicemail, E1, objections, Call 2 anchor, questions about me, assisted-living opener) now says "I keep a bench of screened local caregivers" or "find caregivers" instead of "recruit". Recruiter, Indeed and competitor price comparisons removed from the anchor and "Why the price makes sense". caregiverbench.com updated the same day to offer v3 (First Hire Free · Priority Bench $2,500 / 4 weeks · Pay When They Work $1,500), Tampa Bay first, EN/ES/RO. | You asked (25 Nov) that owners never file us next to recruiters or compare us. |
 | 21 Nov | **War Room 15.6.0 · invoices match offer v3** | Money loop: the first caregiver who works for an agency is free (First Hire Free); after that Pay When They Work $1,500 ($2,000 hard case), billed after her first worked shift; Priority Bench and Multi-site members are covered by the plan (extras by hand). Founding Offer ($500 after 5 shifts) and the old $750 / $1,200 prices removed from invoices, the shift counter, email templates, client onboarding and Operation First Client. | You asked to align everything with the Playbook |
 | 21 Nov | **War Room 15.5.0 · the retained-hours game** | New North Star: Reliable Retained Care Hours (supporting metrics + guardrails on This week). 4 discovery questions in Call 1. 90-Day Stay-or-Replace made conditional (clock, what voids it, maximum). Only qualified discovery conversations count toward the 100. Script: one line a week from the worst call. Blitz rules. New Retained care hours card in Pipeline → Money (hours wanted vs worked, day 30/60/90). | You approved the 21 Nov research + ChatGPT cross-check ("do it") |
 | 21 Nov | **War Room 15.4.0 · what kind of number is it, where you decide** | Tap Why this? on the mission: each line now carries a small tag saying what kind of claim it is (Observed from the call log, Your report, Worked out, Outside source, Forecast). Lines whose origin cannot be told get no tag. On the Money screen, runway, safe to spend, earned minus spent and savings rate are tagged Worked out, because they are calculated from what you entered. No number and no order changed. |
@@ -570,7 +571,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 { id: 'script-owner', cat: 'scripts', title: 'Call 1 · the dial (book the case call)', body: `Shown in the dialer for every call. {name}, {hook} and {town} fill in from the agency. Aim: **a booked 10-minute case call** (or the case call right now). 3–6 minutes.
 
 ## 1 · Intro (under 20 seconds) · name, company, reason, small yes
-> Hi **{name}**, this is Egor with Caregiver Bench. I recruit caregivers for home care agencies around **{town}**. The reason I'm calling: **{hook}**.
+> Hi **{name}**, this is Egor with Caregiver Bench. I keep a bench of screened local caregivers for home care agencies around **{town}**. The reason I'm calling: **{hook}**.
 > I'll be quick: two questions to see if I can even help, and if not, I'll let you go. Fair?
 - Wait for the yes. Then: "Are you the one who handles caregiver hiring there?" Not them → Scripts → Gatekeeper.
 
@@ -583,7 +584,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 - Help with the math if they don't know: "A 24/7 case is 168 hours a week. At about $32 an hour that's ~$5,400 a week you can't bill. Is that close?"
 - Dig: **"Tell me more about that."** · **"Can you give me an example?"** Stay here until there's a number.
 > Is the hard part getting applicants, or getting them to show up and stay?
-> What have you tried so far: Indeed, a recruiter, referrals? How did that go?
+> What have you tried so far: Indeed, referrals, something else? How did that go?
 > If that case were covered by someone reliable by next week, what would that change for you?
 
 **The 4 discovery questions (21 Nov), ask every owner and log the answers:**
@@ -603,7 +604,7 @@ Behind for 2 months in a row = use the cut order, not more hours.` },
 > **Staying:** I check in with her on days 1, 3, 7, 14, 30 and 90. If she leaves in the first 90 days while she gets the hours and pay we agreed, I replace her free. Would that help?
 
 ## 5 · The ask · then silence
-> Here's how I'd start, and it's simple: I recruit for that **[Tuesday overnight in Brandon]** this week. **The first caregiver who works it for you is free.** You only pay if you want me to keep going after you've seen it work. **Would you be against trying it on that one case?**
+> Here's how I'd start, and it's simple: I find caregivers for that **[Tuesday overnight in Brandon]** this week. **The first caregiver who works it for you is free.** You only pay if you want me to keep going after you've seen it work. **Would you be against trying it on that one case?**
 - **Stop talking. Count to 8.** Whoever speaks first loses the frame.
 
 ## 6 · Yes → BAMFAM
@@ -636,8 +637,8 @@ See Scripts → Voicemail + same-day email.` },
 
 ## Objections by type
 | They say | You say |
-| **Money** · "How much?" (call 1) | "The first caregiver who works the case is free, so you see it before you pay a dollar. After that most agencies your size pay less than one recruiter fee. Can I ask about the case first, so I know if I can even help?" |
-| **Money** · "But after?" | "Two ways: $2,500 every 4 weeks for 2 caregivers who work, first pick in your towns. Or $1,500 per caregiver as you go. Recruiters charge $4,800 to $8,000 a hire." |
+| **Money** · "How much?" (call 1) | "The first caregiver who works the case is free, so you see it before you pay a dollar. After that you only pay when a caregiver actually works. Can I ask about the case first, so I know if I can even help?" |
+| **Money** · "But after?" | "Two ways: $2,500 every 4 weeks for 2 caregivers who work, first pick in your towns. Or $1,500 per caregiver as you go. One lost caregiver costs you about $2,600." |
 | **Money** · "Too expensive" (call 2) | "Compared with what? A lost caregiver costs you about $2,600, and that case is ~$5,400 a week of billing. If all it did was keep [case] covered, would it be worth it?" |
 | **Money** · "Can you do it cheaper?" | Smile: "I could do it for more!" Then: "I keep one price for everyone. If it's too much, I'll put you on the plan that fits better." Change the plan, never the number |
 | **Time** · "I'm busy / no time" | "That's exactly why. The case call is 10 minutes and takes the hiring off you. Today at 2 or tomorrow at 10?" |
@@ -645,22 +646,22 @@ See Scripts → Voicemail + same-day email.` },
 | **Decision maker** · "Ask my partner" | "Makes sense. What do you think they'd object to?" → "What if they say no?" → "Let's grab 10 minutes with both of you: tomorrow 10 or 2?" Ask for support, not permission |
 | **Fit** · "We use Indeed / a recruiter" | "Most agencies do. Keep them. How many of those interviews actually show up?" |
 | **Fit** · "We're fully staffed" | "Good to hear. Have you turned down a 24/7 or live-in case this year?" |
-| **Fit** · "Recruiters burned us" | "Fair. Did you marry the first person you dated? Don't let one bad recruiter burn you twice. That's why the first one is free. What happened with them?" |
+| **Fit** · "Recruiters burned us" | "Fair. That's exactly why the first caregiver who works is free: you see it work before you pay a dollar. What happened with them?" |
 | **Fit** · "Are you a staffing agency?" | "No. A staffing agency sends a temp and bills by the hour. I find people you hire yourself, as your own employees." |
 | **Stall** · "Send me info" | "Happy to. So it's not a brochure: which case should I build it around?" Then book the call that walks through it |
 | **Stall** · "Let me think" | "Of course. What information do you still need to decide?" |
 | **Stall** · "Maybe next month" | "What happens to [case] between now and then?" |
-| "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local to you; only the recruiting and screening is remote." |
-| "How many caregivers do you have?" | The real number from the bench. While building: "I'm building the bench this month, so I recruit for your case specifically." |
+| "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local to you; only the screening is remote." |
+| "How many caregivers do you have?" | The real number from the bench. While building: "I'm building the bench this month, so I find caregivers for your case specifically." |
 | "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why the first caregiver is free." |
 | "Is this legal? Patient brokering?" | "Yes. That's about paying for clients. I never touch clients or referrals, only caregivers you hire as employees." |
-| "Are you licensed?" | "Florida licenses companies that provide care or place contractors. I do neither: I recruit, you hire your own W-2 employees." |
+| "Are you licensed?" | "Florida licenses companies that provide care or place contractors. I do neither: I screen and introduce, you hire your own W-2 employees." |
 | "How did you get my number?" | "From your public listing." |
 | "Is this AI?" | "No, it's me, Egor. I make my own calls." |
 | Anything you don't know | "Good question. I don't want to guess. I'll find out and email you today." |` },
 { id: 'script-gatekeeper', cat: 'scripts', title: 'Gatekeeper', body: `Goal: **a name and a time.** That counts as a win.
 
-> Hi, this is Egor with Caregiver Bench. I recruit caregivers for home care agencies in the Tampa Bay area. Who handles caregiver hiring there?
+> Hi, this is Egor with Caregiver Bench. I keep a bench of screened caregivers for home care agencies in the Tampa Bay area. Who handles caregiver hiring there?
 
 - **You have the owner's name (Sunbiz):** "Hi, is Maria in?" beats "who's the owner?". Calm, like you've spoken before.
 - **They give a name:** "Thank you. And your name?" Write both.
@@ -672,7 +673,7 @@ See Scripts → Voicemail + same-day email.` },
 Log it as Gatekeeper with both names and the callback day.` },
 { id: 'script-vm', cat: 'scripts', title: 'Voicemail + same-day email', body: `Voicemail only on attempt 3 (cadence: SOPs → Dial block). **20 seconds.** Then the same-day email if you have an address.
 
-> Hi **{name}**, Egor with Caregiver Bench. **{hook}**. I recruit and phone-screen caregivers for agencies around **{town}**, and the first caregiver who works a case for you is free. I'll try you again on **[day]**. My number is 561-556-0536, again 561-556-0536. Thanks.
+> Hi **{name}**, Egor with Caregiver Bench. **{hook}**. I phone-screen local caregivers for agencies around **{town}**, and the first caregiver who works a case for you is free. I'll try you again on **[day]**. My number is 561-556-0536, again 561-556-0536. Thanks.
 
 (Swap in the 813 number once it's live.) Then call again on that day: owners notice when you do what you said.
 
@@ -702,7 +703,7 @@ Then: Emails → E3 within 1 hour. In War Room: Pipeline → "Case call done →
 
 ## E1 · Same day after a voicemail
 Subject: {town} caregivers
-> Hi {name}, I left you a short voicemail today. I recruit and phone-screen caregivers for home care agencies around {town}, and I confirm every interview and first shift so they actually show up. If a case is hard to staff right now, the first caregiver who works it is free. Is there one I could recruit for this week?
+> Hi {name}, I left you a short voicemail today. I phone-screen local caregivers for home care agencies around {town}, and I confirm every interview and first shift so they actually show up. If a case is hard to staff right now, the first caregiver who works it is free. Is there one I could find caregivers for this week?
 > Egor · Caregiver Bench · 561-556-0536
 
 ## E2 · Within 1 hour of an owner conversation
@@ -753,7 +754,7 @@ Subject: Bench Bulletin · [date] · [N] caregivers available
 > What happens if those sit open the way [first case] did?
 
 ## 4 · Anchor, then the menu (A or B)
-> For context: recruiters charge 15 to 25% of first-year pay, $4,800 to $8,000 a hire, and a lost caregiver costs you about $2,600.
+> For context: [first case] was costing you about [$] a week while it sat open, and one lost caregiver costs you about $2,600.
 > Most agencies your size go with **Priority Bench**: 2 caregivers who work every 4 weeks, first pick of every new caregiver in your towns 24 hours before anyone else, and I only take 2 agencies per area. **It is an investment: $2,500 every 4 weeks.** Or you pay **$1,500 per caregiver** as you go, no plan. **Which fits better?**
 - **Silence. 8 seconds or more.**
 - 6+ hires a month or 2+ locations (only after gate 4): Multi-site, $6,000 every 4 weeks, 6 caregivers, fully staffed in 90 days or no fee until reached.
@@ -822,7 +823,7 @@ Title: **Caregiver / HHA / CNA jobs near [town] · your shifts · free for careg
 { id: 'script-al', cat: 'scripts', title: 'Assisted living opener (parked)', body: `**Parked.** Assisted living and memory care are the backup segment, tested only if 100 owner conversations produce no paying agency.
 
 Shown in the dialer for tier AL:
-> Hi, is this the Executive Director? This is Egor with Caregiver Bench. I recruit caregivers and CNAs for communities in the Tampa Bay area. A lot of communities end up paying agency staff to cover shifts. Is that something you deal with, or are you fully staffed?
+> Hi, is this the Executive Director? This is Egor with Caregiver Bench. I keep a bench of screened caregivers and CNAs for communities in the Tampa Bay area. A lot of communities end up paying agency staff to cover shifts. Is that something you deal with, or are you fully staffed?
 
 ## Their words
 Residents (not clients), community or building (not agency), shifts, the floor. Decision maker: the Executive Director (sometimes the Director of Nursing or HR).
@@ -916,7 +917,7 @@ Pick the worst call of the day. Rewrite the one line that lost it.
 2. **Local pay range** for the same role (from the Market Intel sheet).
 3. **3 fixes** you can see in 15 minutes, e.g. pay hidden, no shift info in the title, no "weekly pay", apply process longer than 2 minutes.
 4. **The next problem it reveals:** "Even with a better ad, about 4 in 10 applicants won't show up to the interview. That's the part I do."
-5. **One line ask:** "Want me to recruit for your hardest case this week? The first caregiver who works it is free."
+5. **One line ask:** "Want me to find caregivers for your hardest case this week? The first caregiver who works it is free."
 
 ## Steps
 1. Owner says "send me info" → "Happy to. Which case should I build it around?"
@@ -1021,7 +1022,8 @@ Check-ins on days 1, 3, 7, 14, 30, 90 are how you deliver them.
 - **Free or full price, never a discount.** If they push, change the plan, never the number.
 - **Founding 5:** the first five paying agencies lock their price for 12 months for a written case study + two owner intros. A trade, not a discount.
 - Bill every 4 weeks (13 bills a year), quoted as "every 4 weeks".
-- Anchor out loud: recruiters charge 15–25% of first-year pay ($4,800–8,000 a hire); one lost caregiver costs about $2,600.
+- Anchor out loud with their own numbers: what the open case costs them a week, and about $2,600 for one lost caregiver.
+- **No recruiter words, no comparisons (25 Nov).** Never call us a recruiter, recruiting firm or staffing agency, and never compare us with recruiters, job boards or other services, on calls, emails, ads or the site.
 
 ## Fair play
 One agency at a time per caregiver (she chooses). No fee if she applied to them directly in the 60 days before. Hiring someone we introduced within 12 months = the fee is owed.
@@ -1099,12 +1101,9 @@ Cost to win an agency: ~$600 of ads (the free caregiver plus misses) + dial time
 8 Priority Bench ≈ $21,700 a month, or 6 Priority Bench + 1 Multi-site ≈ $22,750. **7–8 paying agencies**, about 16 caregivers starting every 4 weeks: a real delivery operation with a screener by spring.` },
 { id: 'pricewhy', cat: 'business', title: 'Why the price makes sense', body: `Say it with numbers (and only true ones):
 - One lost caregiver costs an agency **about $2,600** to replace.
-- Recruiters charge **15–25% of first-year pay: $4,800–8,000 a hire.**
-- Indeed is about **$561 per hire**, and they still do all the calling and chasing.
 - **One 24/7 case ≈ 168 hours a week ≈ $5,400 a week of billing** at ~$32 an hour. $1,500 to staff it pays back in days.
 - One caregiver at 25 hours a week brings the agency about **$350 a week** of margin.
-- **Priority Bench:** 2 caregivers at $1,500 = $3,000. The plan is $2,500 every 4 weeks, plus first pick and the 2-per-area limit.
-- Competitor monthly services charge $1,300–3,400 a month whether anyone works or not, often with a 6-month minimum. None publishes a show-up guarantee.` },
+- **Priority Bench:** 2 caregivers at $1,500 = $3,000. The plan is $2,500 every 4 weeks, plus first pick and the 2-per-area limit.` },
 { id: 'industry', cat: 'business', title: 'The industry in 5 minutes', body: `## Who you call
 | Type | What they do | Fit |
 | Home Health Agency (licensed) | Hands-on care, W-2 HHAs/CNAs | **Main buyer** |
@@ -1135,8 +1134,8 @@ Client (never ask about them) · case · open case · start of care · hourly vi
 ## Who picks up
 Owner (revenue, not turning down cases) · Administrator · **Scheduler** (tonight's shifts, your ally) · Recruiter/HR · Receptionist (gatekeeper). Franchises (Home Instead, BrightStar, Comfort Keepers, Visiting Angels, Griswold): each location's franchisee picks its own vendors.` },
 { id: 'aboutme', cat: 'business', title: 'Questions about me', body: `| They ask | I say |
-| "Who are you?" | "I'm Egor. I run Caregiver Bench: I recruit and phone-screen caregivers for private-pay home care agencies in Florida." |
-| "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local to you; only the recruiting and screening is remote. You always get me directly." |
+| "Who are you?" | "I'm Egor. I run Caregiver Bench: I keep a bench of phone-screened local caregivers for private-pay home care agencies in Florida." |
+| "Where are you based?" | "In Europe, in Moldova. I work Florida hours. The caregivers are local to you; only the screening is remote. You always get me directly." |
 | "How long have you done this?" | "Honestly, I'm new. You'd be one of my first agencies. That's exactly why the first caregiver is free: you don't have to trust me, just look at who shows up." |
 | "How many agencies do you work with?" | The real number. Never inflate it. |
 | "Do you have insurance?" | "The caregivers are your employees, covered by your insurance and your screening, the same as anyone you hire from Indeed." |
