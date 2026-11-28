@@ -1,0 +1,29 @@
+name = "warroom-coach"
+main = "src/worker.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 05:25 Europe/Chisinau is 03:25 UTC in winter and 02:25 UTC in summer; the worker fires on both and
+# only the one that lands inside the local 05:25–05:45 window actually places the call.
+[triggers]
+crons = ["25 2 * * *", "25 3 * * *"]
+
+[vars]
+MODEL_MODE = "native"          # "native" = Vapi's Anthropic provider (claude-opus-4-6). "custom" = this worker's /llm endpoint (Claude Opus 5.5, needs ANTHROPIC_API_KEY).
+NATIVE_MODEL = "claude-opus-4-6"
+VOICE_PROVIDER = "vapi"
+VOICE_ID = "Elliot"
+SUPABASE_URL = "https://lajechvmsrmrmfcluhkr.supabase.co"
+SUPABASE_KEY = "sb_publishable_E_GGwWPOvnvV_PZDPu95Vg_0_9iqRmE"
+# PUBLIC_URL = "https://warroom-coach.<your-subdomain>.workers.dev"   # set after the first deploy (wrangler prints it)
+# SKIP_DAYS = "7"                 # optional: ISO weekdays with no morning call (7 = Sunday)
+
+# Secrets (set with `npx wrangler secret put NAME`):
+#   VAPI_API_KEY          Vapi private key (dashboard → API keys)
+#   VAPI_PHONE_NUMBER_ID  id of the Twilio number imported into Vapi (GET /admin/numbers lists them)
+#   VAPI_ASSISTANT_ID     id of the stored "War Room coach" assistant (POST /admin/assistant creates it)
+#   EGOR_PHONE            his mobile in E.164, e.g. +373xxxxxxxx
+#   WARROOM_SYNC_CODE     the sync code from the app (More → Sync)
+#   VAPI_SERVER_SECRET    random string; sent by Vapi in x-warroom-secret on webhooks and /llm
+#   ADMIN_SECRET          random string for the /admin endpoints
+#   ANTHROPIC_API_KEY     only for MODEL_MODE = "custom"
